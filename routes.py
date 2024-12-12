@@ -7,33 +7,24 @@ main_blueprint = Blueprint('main', __name__)
 def index():
     return render_template('index.html')
 
-@main_blueprint.route('/raw_materials', methods=['POST'])
-def add_raw_material():
-    data = request.get_json()
-    new_material = RawMaterial(
-        name=data['name'],
-        category=data['category'],
-        unit=data['unit'],
-        cost_per_unit=data['cost_per_unit'],
-        stock=data['stock']
-    )
-    db.session.add(new_material)
-    db.session.commit()
-    return jsonify({"message": "Raw material added successfully."}), 201
-
-@main_blueprint.route('/raw_materials', methods=['GET'])
-def get_raw_materials():
+@main_blueprint.route('/raw_materials')
+def raw_materials():
     materials = RawMaterial.query.all()
-    return jsonify([
-        {
-            "id": material.id,
-            "name": material.name,
-            "category": material.category,
-            "unit": material.unit,
-            "cost_per_unit": material.cost_per_unit,
-            "stock": material.stock
-        } for material in materials
-    ])
+    return render_template('raw_materials.html', materials=materials)
+
+@main_blueprint.route('/raw_materials/add', methods=['GET', 'POST'])
+def add_raw_material():
+    if request.method == 'POST':
+        name = request.form['name']
+        category = request.form['category']
+        unit = request.form['unit']
+        cost_per_unit = request.form['cost_per_unit']
+        stock = request.form['stock']
+        new_material = RawMaterial(name=name, category=category, unit=unit, cost_per_unit=cost_per_unit, stock=stock)
+        db.session.add(new_material)
+        db.session.commit()
+        return redirect(url_for('main.raw_materials'))
+    return render_template('add_raw_material.html')
 
 @main_blueprint.route('/recipes', methods=['POST'])
 def add_recipe():
