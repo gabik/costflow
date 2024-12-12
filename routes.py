@@ -83,3 +83,7 @@ def get_labor():
         } for l in labor
     ])
 
+@main_blueprint.route('/')
+def index():
+    return "Welcome to the Waste Tracking System API"
+
