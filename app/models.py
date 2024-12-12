@@ -1,6 +1,4 @@
-from flask_sqlalchemy import SQLAlchemy
-
-db = SQLAlchemy()
+from .database import db
 
 class RawMaterial(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -10,13 +8,6 @@ class RawMaterial(db.Model):
     cost_per_unit = db.Column(db.Float, nullable=False)
     stock = db.Column(db.Float, nullable=False)
 
-class Recipe(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    material_id = db.Column(db.Integer, db.ForeignKey('raw_material.id'), nullable=False)
-    quantity = db.Column(db.Float, nullable=False)
-    cost_per_unit = db.Column(db.Float, nullable=False)
-
 class Labor(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -24,10 +15,21 @@ class Labor(db.Model):
     additional_hourly_rate = db.Column(db.Float, nullable=False)
     total_hourly_rate = db.Column(db.Float, nullable=False)
 
-class ProductionLog(db.Model):
+class Packaging(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    product_name = db.Column(db.String(100), nullable=False)
-    recipe_id = db.Column(db.Integer, db.ForeignKey('recipe.id'), nullable=False)
-    quantity = db.Column(db.Integer, nullable=False)
-    actual_cost = db.Column(db.Float, nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    cost_per_unit = db.Column(db.Float, nullable=False)
+
+class Product(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+
+class ProductComponent(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    component_type = db.Column(db.String(50), nullable=False)  # 'raw_material', 'labor', 'packaging'
+    component_id = db.Column(db.Integer, nullable=False)
+    quantity = db.Column(db.Float, nullable=False)
+
+    product = db.relationship('Product', backref=db.backref('components', lazy=True))
 
