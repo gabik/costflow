@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for
 from .models import db, RawMaterial, Recipe, Labor, ProductionLog
 
 main_blueprint = Blueprint('main', __name__)
@@ -26,54 +26,40 @@ def add_raw_material():
         return redirect(url_for('main.raw_materials'))
     return render_template('add_raw_material.html')
 
-@main_blueprint.route('/recipes', methods=['POST'])
-def add_recipe():
-    data = request.get_json()
-    new_recipe = Recipe(
-        name=data['name'],
-        material_id=data['material_id'],
-        quantity=data['quantity'],
-        cost_per_unit=data['cost_per_unit']
-    )
-    db.session.add(new_recipe)
-    db.session.commit()
-    return jsonify({"message": "Recipe added successfully."}), 201
-
-@main_blueprint.route('/recipes', methods=['GET'])
-def get_recipes():
+@main_blueprint.route('/recipes')
+def recipes():
     recipes = Recipe.query.all()
-    return jsonify([
-        {
-            "id": recipe.id,
-            "name": recipe.name,
-            "material_id": recipe.material_id,
-            "quantity": recipe.quantity,
-            "cost_per_unit": recipe.cost_per_unit
-        } for recipe in recipes
-    ])
+    return render_template('recipes.html', recipes=recipes)
 
-@main_blueprint.route('/labor', methods=['POST'])
-def add_labor():
-    data = request.get_json()
-    new_labor = Labor(
-        name=data['name'],
-        base_hourly_rate=data['base_hourly_rate'],
-        additional_hourly_rate=data['additional_hourly_rate'],
-        total_hourly_rate=data['base_hourly_rate'] + data['additional_hourly_rate']
-    )
-    db.session.add(new_labor)
-    db.session.commit()
-    return jsonify({"message": "Labor added successfully."}), 201
+@main_blueprint.route('/recipes/add', methods=['GET', 'POST'])
+def add_recipe():
+    if request.method == 'POST':
+        name = request.form['name']
+        material_id = request.form['material_id']
+        quantity = request.form['quantity']
+        cost_per_unit = request.form['cost_per_unit']
+        new_recipe = Recipe(name=name, material_id=material_id, quantity=quantity, cost_per_unit=cost_per_unit)
+        db.session.add(new_recipe)
+        db.session.commit()
+        return redirect(url_for('main.recipes'))
+    materials = RawMaterial.query.all()
+    return render_template('add_recipe.html', materials=materials)
 
-@main_blueprint.route('/labor', methods=['GET'])
-def get_labor():
+@main_blueprint.route('/labor')
+def labor():
     labor = Labor.query.all()
-    return jsonify([
-        {
-            "id": l.id,
-            "name": l.name,
-            "base_hourly_rate": l.base_hourly_rate,
-            "additional_hourly_rate": l.additional_hourly_rate,
-            "total_hourly_rate": l.total_hourly_rate
-        } for l in labor
-    ])
+    return render_template('labor.html', labor=labor)
+
+@main_blueprint.route('/labor/add', methods=['GET', 'POST'])
+def add_labor():
+    if request.method == 'POST':
+        name = request.form['name']
+        base_hourly_rate = request.form['base_hourly_rate']
+        additional_hourly_rate = request.form['additional_hourly_rate']
+        total_hourly_rate = float(base_hourly_rate) + float(additional_hourly_rate)
+        new_labor = Labor(name=name, base_hourly_rate=base_hourly_rate, additional_hourly_rate=additional_hourly_rate, total_hourly_rate=total_hourly_rate)
+        db.session.add(new_labor)
+        db.session.commit()
+        return redirect(url_for('main.labor'))
+    return render_template('add_labor.html')
+
