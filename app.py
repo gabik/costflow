@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
 import os
+from models import db, RawMaterial, Recipe, Labor, ProductionLog
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -10,37 +10,7 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///waste_tracking.db")
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(app)
-
-# Database models
-class RawMaterial(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    category = db.Column(db.String(100), nullable=False)
-    unit = db.Column(db.String(50), nullable=False)
-    cost_per_unit = db.Column(db.Float, nullable=False)
-    stock = db.Column(db.Float, nullable=False)
-
-class Recipe(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    material_id = db.Column(db.Integer, db.ForeignKey('raw_material.id'), nullable=False)
-    quantity = db.Column(db.Float, nullable=False)
-    cost_per_unit = db.Column(db.Float, nullable=False)
-
-class Labor(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    base_hourly_rate = db.Column(db.Float, nullable=False)
-    additional_hourly_rate = db.Column(db.Float, nullable=False)
-    total_hourly_rate = db.Column(db.Float, nullable=False)
-
-class ProductionLog(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    product_name = db.Column(db.String(100), nullable=False)
-    recipe_id = db.Column(db.Integer, db.ForeignKey('recipe.id'), nullable=False)
-    quantity = db.Column(db.Integer, nullable=False)
-    actual_cost = db.Column(db.Float, nullable=False)
+db.init_app(app)
 
 # Routes
 @app.route('/raw_materials', methods=['POST'])
@@ -98,6 +68,7 @@ def get_recipes():
     ])
 
 if __name__ == '__main__':
-    db.create_all()
+    with app.app_context():
+        db.create_all()
     app.run(debug=True, host='0.0.0.0', port=8080)
 
