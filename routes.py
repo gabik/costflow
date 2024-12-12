@@ -1,7 +1,11 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, render_template, request, jsonify
 from .models import db, RawMaterial, Recipe, Labor, ProductionLog
 
 main_blueprint = Blueprint('main', __name__)
+
+@main_blueprint.route('/')
+def index():
+    return render_template('index.html')
 
 @main_blueprint.route('/raw_materials', methods=['POST'])
 def add_raw_material():
@@ -82,8 +86,3 @@ def get_labor():
             "total_hourly_rate": l.total_hourly_rate
         } for l in labor
     ])
-
-@main_blueprint.route('/')
-def index():
-    return "Welcome to the Waste Tracking System API"
-
