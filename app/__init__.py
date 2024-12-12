@@ -1,9 +1,9 @@
 import os
 from flask import Flask
-from .database import db
+from .models import db
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, template_folder="../templates", static_folder="../static")
 
     # Load configurations
     DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///waste_tracking.db")

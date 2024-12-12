@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Raw Materials{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Raw Materials</h2>
+    <a href="{{ url_for('main.add_raw_material') }}" class="btn btn-primary mb-3">Add New Raw Material</a>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Unit</th>
+                <th>Cost per Unit</th>
+                <th>Stock</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for material in materials %}
+            <tr>
+                <td>{{ material.name }}</td>
+                <td>{{ material.category }}</td>
+                <td>{{ material.unit }}</td>
+                <td>{{ material.cost_per_unit }}</td>
+                <td>{{ material.stock }}</td>
+                <td>
+                    <a href="{{ url_for('main.edit_raw_material', id=material.id) }}" class="btn btn-warning btn-sm">Edit</a>
+                    <a href="{{ url_for('main.delete_raw_material', id=material.id) }}" class="btn btn-danger btn-sm">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
