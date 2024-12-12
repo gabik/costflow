@@ -1,19 +1,9 @@
-from flask import Flask, request, jsonify
-import os
-from models import db, RawMaterial, Recipe, Labor, ProductionLog
+from flask import Blueprint, request, jsonify
+from .models import db, RawMaterial, Recipe, Labor, ProductionLog
 
-# Initialize Flask app
-app = Flask(__name__)
+main_blueprint = Blueprint('main', __name__)
 
-# Configure database
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///waste_tracking.db")
-app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-db.init_app(app)
-
-# Routes
-@app.route('/raw_materials', methods=['POST'])
+@main_blueprint.route('/raw_materials', methods=['POST'])
 def add_raw_material():
     data = request.get_json()
     new_material = RawMaterial(
@@ -27,7 +17,7 @@ def add_raw_material():
     db.session.commit()
     return jsonify({"message": "Raw material added successfully."}), 201
 
-@app.route('/raw_materials', methods=['GET'])
+@main_blueprint.route('/raw_materials', methods=['GET'])
 def get_raw_materials():
     materials = RawMaterial.query.all()
     return jsonify([
@@ -41,7 +31,7 @@ def get_raw_materials():
         } for material in materials
     ])
 
-@app.route('/recipes', methods=['POST'])
+@main_blueprint.route('/recipes', methods=['POST'])
 def add_recipe():
     data = request.get_json()
     new_recipe = Recipe(
@@ -54,7 +44,7 @@ def add_recipe():
     db.session.commit()
     return jsonify({"message": "Recipe added successfully."}), 201
 
-@app.route('/recipes', methods=['GET'])
+@main_blueprint.route('/recipes', methods=['GET'])
 def get_recipes():
     recipes = Recipe.query.all()
     return jsonify([
@@ -67,8 +57,29 @@ def get_recipes():
         } for recipe in recipes
     ])
 
-if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True, host='0.0.0.0', port=8080)
+@main_blueprint.route('/labor', methods=['POST'])
+def add_labor():
+    data = request.get_json()
+    new_labor = Labor(
+        name=data['name'],
+        base_hourly_rate=data['base_hourly_rate'],
+        additional_hourly_rate=data['additional_hourly_rate'],
+        total_hourly_rate=data['base_hourly_rate'] + data['additional_hourly_rate']
+    )
+    db.session.add(new_labor)
+    db.session.commit()
+    return jsonify({"message": "Labor added successfully."}), 201
+
+@main_blueprint.route('/labor', methods=['GET'])
+def get_labor():
+    labor = Labor.query.all()
+    return jsonify([
+        {
+            "id": l.id,
+            "name": l.name,
+            "base_hourly_rate": l.base_hourly_rate,
+            "additional_hourly_rate": l.additional_hourly_rate,
+            "total_hourly_rate": l.total_hourly_rate
+        } for l in labor
+    ])
 
