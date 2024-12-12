@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labor</title>
+</head>
+<body>
+    <h1>Labor</h1>
+    <a href="{{ url_for('main.add_labor') }}">Add New Labor</a>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Base Hourly Rate</th>
+                <th>Additional Hourly Rate</th>
+                <th>Total Hourly Rate</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for l in labor %}
+            <tr>
+                <td>{{ l.name }}</td>
+                <td>{{ l.base_hourly_rate }}</td>
+                <td>{{ l.additional_hourly_rate }}</td>
+                <td>{{ l.total_hourly_rate }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
+

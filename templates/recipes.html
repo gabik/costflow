@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipes</title>
+</head>
+<body>
+    <h1>Recipes</h1>
+    <a href="{{ url_for('main.add_recipe') }}">Add New Recipe</a>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Material ID</th>
+                <th>Quantity</th>
+                <th>Cost Per Unit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for recipe in recipes %}
+            <tr>
+                <td>{{ recipe.name }}</td>
+                <td>{{ recipe.material_id }}</td>
+                <td>{{ recipe.quantity }}</td>
+                <td>{{ recipe.cost_per_unit }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
+
