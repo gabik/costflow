@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Product Details{% endblock %}
+{% block content %}
+<h1>{{ product.name }}</h1>
+<p><strong>Products Per Recipe:</strong> {{ product.products_per_recipe }}</p>
+<p><strong>Selling Price Per Unit:</strong> ${{ product.selling_price_per_unit }}</p>
+
+<h3>Raw Materials</h3>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Raw Material</th>
+        <th>Amount in Recipe</th>
+        <th>Price Per Unit</th>
+        <th>Price Per Recipe</th>
+        <th>Price Per Product</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for component in raw_materials %}
+    <tr>
+        <td>{{ component.name }}</td>
+        <td>{{ component.quantity }}</td>
+        <td>${{ component.price_per_unit }}</td>
+        <td>${{ component.price_per_recipe }}</td>
+        <td>${{ component.price_per_product }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<h3>Labor Costs</h3>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Employee Name</th>
+        <th>Hours of Labor</th>
+        <th>Price Per Hour</th>
+        <th>Price Per Recipe</th>
+        <th>Price Per Product</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for component in labor_costs %}
+    <tr>
+        <td>{{ component.name }}</td>
+        <td>{{ component.hours }}</td>
+        <td>${{ component.price_per_hour }}</td>
+        <td>${{ component.price_per_recipe }}</td>
+        <td>${{ component.price_per_product }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<h3>Packaging</h3>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Packaging</th>
+        <th>Units Per Recipe</th>
+        <th>Price Per Unit</th>
+        <th>Price Per Recipe</th>
+        <th>Price Per Product</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for component in packaging_costs %}
+    <tr>
+        <td>{{ component.name }}</td>
+        <td>{{ component.units }}</td>
+        <td>${{ component.price_per_unit }}</td>
+        <td>${{ component.price_per_recipe }}</td>
+        <td>${{ component.price_per_product }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

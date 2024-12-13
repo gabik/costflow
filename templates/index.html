@@ -1,14 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <title>Home</title>
-</head>
-<body class="container">
-    <h1 class="mt-5">Welcome to the Waste Tracking System</h1>
-    <a href="{{ url_for('main.products') }}" class="btn btn-primary mt-3">View Products</a>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Home - Waste Tracking{% endblock %}
+{% block content %}
+<div class="text-center">
+    <h1 class="display-4">Welcome to the Waste Tracking System</h1>
+    <p class="lead">Efficiently manage your bakery's resources, labor, and waste.</p>
+    <a href="{{ url_for('main.raw_materials') }}" class="btn btn-primary btn-lg">Manage Raw Materials</a>
+    <a href="{{ url_for('main.products') }}" class="btn btn-success btn-lg">Manage Products</a>
+    <a href="{{ url_for('main.labor') }}" class="btn btn-info btn-lg">Manage Labor</a>
+</div>
+{% endblock %}
 

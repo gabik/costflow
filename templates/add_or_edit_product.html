@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if product else 'Add' }} Product{% endblock %}
+{% block content %}
+<h1>{{ 'Edit' if product else 'Add' }} Product</h1>
+<form method="POST" class="p-4 bg-white border rounded shadow-sm">
+    <div class="form-group">
+        <label for="name">Product Name</label>
+        <input type="text" id="name" name="name" class="form-control" value="{{ product.name if product else '' }}" required>
+    </div>
+    <div class="form-group">
+        <label for="products_per_recipe">Products Per Recipe</label>
+        <input type="number" id="products_per_recipe" name="products_per_recipe" class="form-control" step="1" value="{{ product.products_per_recipe if product else '' }}" required>
+    </div>
+    <div class="form-group">
+        <label for="selling_price_per_unit">Selling Price Per Unit</label>
+        <input type="number" id="selling_price_per_unit" name="selling_price_per_unit" class="form-control" step="0.01" value="{{ product.selling_price_per_unit if product else '' }}" required>
+    </div>
+
+    <!-- Raw Materials Section -->
+    <h3>Raw Materials</h3>
+    <button type="button" class="btn btn-sm btn-outline-primary mb-2" onclick="addRawMaterial()">Add Raw Material</button>
+    <button type="button" class="btn btn-sm btn-outline-success mb-2" data-toggle="modal" data-target="#addRawMaterialModal">New Raw Material</button>
+    <div id="raw-materials-container"></div>
+
+    <!-- Packaging Section -->
+    <h3>Packaging</h3>
+    <button type="button" class="btn btn-sm btn-outline-primary mb-2" onclick="addPackaging()">Add Packaging</button>
+    <button type="button" class="btn btn-sm btn-outline-success mb-2" data-toggle="modal" data-target="#addPackagingModal">New Packaging</button>
+    <div id="packaging-container"></div>
+
+    <!-- Labor Section -->
+    <h3>Labor Costs</h3>
+    <button type="button" class="btn btn-sm btn-outline-primary mb-2" onclick="addLabor()">Add Labor</button>
+    <button type="button" class="btn btn-sm btn-outline-success mb-2" data-toggle="modal" data-target="#addLaborModal">New Labor</button>
+    <div id="labor-container"></div>
+
+    <button type="submit" class="btn btn-primary mt-3">Save Product</button>
+</form>
+
+<!-- Add Raw Material Modal -->
+<div class="modal fade" id="addRawMaterialModal" tabindex="-1" role="dialog" aria-labelledby="addRawMaterialModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('main.add_raw_material') }}">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addRawMaterialModalLabel">Add Raw Material</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="raw_material_name">Name</label>
+                        <input type="text" id="raw_material_name" name="name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="raw_material_category">Category</label>
+                        <select id="raw_material_category" name="category" class="form-control" required>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="button" class="btn btn-sm btn-outline-success mt-2" data-toggle="modal" data-target="#addCategoryModal">New Category</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="raw_material_unit">Unit</label>
+                        <select id="raw_material_unit" name="unit" class="form-control" required>
+                            {% for unit in units %}
+                            <option value="{{ unit }}">{{ unit }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="raw_material_cost">Cost Per Unit</label>
+                        <input type="number" id="raw_material_cost" name="cost_per_unit" class="form-control" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="raw_material_stock">Stock</label>
+                        <input type="number" id="raw_material_stock" name="stock" class="form-control" step="1" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Raw Material</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Packaging Modal -->
+<div class="modal fade" id="addPackagingModal" tabindex="-1" role="dialog" aria-labelledby="addPackagingModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('main.add_packaging') }}">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addPackagingModalLabel">Add Packaging</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="packaging_name">Name</label>
+                        <input type="text" id="packaging_name" name="name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="packaging_cost">Cost Per Unit</label>
+                        <input type="number" id="packaging_cost" name="cost_per_unit" class="form-control" step="0.01" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Packaging</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Labor Modal -->
+<div class="modal fade" id="addLaborModal" tabindex="-1" role="dialog" aria-labelledby="addLaborModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('main.add_labor') }}">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addLaborModalLabel">Add Labor</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="labor_name">Name</label>
+                        <input type="text" id="labor_name" name="name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="base_hourly_rate">Base Hourly Rate</label>
+                        <input type="number" id="base_hourly_rate" name="base_hourly_rate" class="form-control" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="additional_hourly_rate">Additional Hourly Rate</label>
+                        <input type="number" id="additional_hourly_rate" name="additional_hourly_rate" class="form-control" step="0.01" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Labor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1" role="dialog" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('main.add_category_from_modal') }}">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addCategoryModalLabel">Add New Category</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="new_category_name">Category Name</label>
+                        <input type="text" id="new_category_name" name="name" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Category</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function addRawMaterial() {
+        const container = document.getElementById('raw-materials-container');
+        const newRow = `
+            <div class="row mb-2">
+                <div class="col">
+                    <select name="raw_material[]" class="form-control">
+                        {% for material in all_raw_materials %}
+                        <option value="{{ material.id }}">{{ material.name }} ({{ material.unit }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col">
+                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="Quantity" required>
+                </div>
+                <div class="col-auto">
+                    <button type="button" class="btn btn-danger" onclick="this.parentElement.parentElement.remove()">Remove</button>
+                </div>
+            </div>`;
+        container.insertAdjacentHTML('beforeend', newRow);
+    }
+
+    function addPackaging() {
+        const container = document.getElementById('packaging-container');
+        const newRow = `
+            <div class="row mb-2">
+                <div class="col">
+                    <select name="packaging[]" class="form-control">
+                        {% for packaging in all_packaging %}
+                        <option value="{{ packaging.id }}">{{ packaging.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col">
+                    <input type="number" name="packaging_quantity[]" class="form-control" placeholder="Quantity" required>
+                </div>
+                <div class="col-auto">
+                    <button type="button" class="btn btn-danger" onclick="this.parentElement.parentElement.remove()">Remove</button>
+                </div>
+            </div>`;
+        container.insertAdjacentHTML('beforeend', newRow);
+    }
+
+    function addLabor() {
+        const container = document.getElementById('labor-container');
+        const newRow = `
+            <div class="row mb-2">
+                <div class="col">
+                    <select name="labor[]" class="form-control">
+                        {% for labor in all_labor %}
+                        <option value="{{ labor.id }}">{{ labor.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col">
+                    <input type="number" name="labor_hours[]" class="form-control" placeholder="Hours" required>
+                </div>
+                <div class="col-auto">
+                    <button type="button" class="btn btn-danger" onclick="this.parentElement.parentElement.remove()">Remove</button>
+                </div>
+            </div>`;
+        container.insertAdjacentHTML('beforeend', newRow);
+    }
+</script>
+{% endblock %}

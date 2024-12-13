@@ -1,4 +1,6 @@
-from .database import db
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
 
 class RawMaterial(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -18,11 +20,14 @@ class Labor(db.Model):
 class Packaging(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    cost_per_unit = db.Column(db.Float, nullable=False)
+    quantity_per_package = db.Column(db.Integer, nullable=False)
+    price_per_package = db.Column(db.Float, nullable=False)
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
+    products_per_recipe = db.Column(db.Integer, nullable=False)
+    selling_price_per_unit = db.Column(db.Float, nullable=False)
 
 class ProductComponent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -33,3 +38,6 @@ class ProductComponent(db.Model):
 
     product = db.relationship('Product', backref=db.backref('components', lazy=True))
 
+class Category(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)

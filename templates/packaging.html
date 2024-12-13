@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Manage Packaging{% endblock %}
+{% block content %}
+<h1>Manage Packaging</h1>
+<div class="mb-3">
+    <a href="{{ url_for('main.add_packaging') }}" class="btn btn-primary">Add Packaging</a>
+</div>
+<table class="table table-bordered table-striped">
+    <thead class="thead-dark">
+    <tr>
+        <th>Name</th>
+        <th>Quantity per Package</th>
+        <th>Price per Package</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for packaging in packaging %}
+    <tr>
+        <td>{{ packaging.name }}</td>
+        <td>{{ packaging.quantity_per_package }}</td>
+        <td>${{ packaging.price_per_package }}</td>
+        <td>
+            <a href="{{ url_for('main.edit_packaging', packaging_id=packaging.id) }}" class="btn btn-warning btn-sm">Edit</a>
+            <form method="POST" action="{{ url_for('main.delete_packaging', packaging_id=packaging.id) }}" style="display:inline;">
+                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

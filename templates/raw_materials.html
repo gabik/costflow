@@ -1,38 +1,37 @@
-{% extends 'base.html' %}
-
-{% block title %}Manage Raw Materials{% endblock %}
-
+{% extends "base.html" %}
+{% block title %}Raw Materials{% endblock %}
 {% block content %}
-<div class="container mt-5">
-    <h2>Raw Materials</h2>
-    <a href="{{ url_for('main.add_raw_material') }}" class="btn btn-primary mb-3">Add New Raw Material</a>
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Category</th>
-                <th>Unit</th>
-                <th>Cost per Unit</th>
-                <th>Stock</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for material in materials %}
-            <tr>
-                <td>{{ material.name }}</td>
-                <td>{{ material.category }}</td>
-                <td>{{ material.unit }}</td>
-                <td>{{ material.cost_per_unit }}</td>
-                <td>{{ material.stock }}</td>
-                <td>
-                    <a href="{{ url_for('main.edit_raw_material', id=material.id) }}" class="btn btn-warning btn-sm">Edit</a>
-                    <a href="{{ url_for('main.delete_raw_material', id=material.id) }}" class="btn btn-danger btn-sm">Delete</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+<h1>Raw Materials</h1>
+<a href="{{ url_for('main.add_raw_material') }}" class="btn btn-success mb-3">Add New Raw Material</a>
+<table class="table table-striped table-hover shadow-sm">
+    <thead class="thead-dark">
+    <tr>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Unit</th>
+        <th>Cost Per Unit</th>
+        <th>Stock</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for material in materials %}
+    <tr>
+        <td>{{ material.name }}</td>
+        <td>{{ material.category }}</td>
+        <td>{{ material.unit }}</td>
+        <td>${{ material.cost_per_unit }}</td>
+        <td>{{ material.stock }}</td>
+        <td>
+            <!-- Edit Button -->
+            <a href="{{ url_for('main.edit_raw_material', material_id=material.id) }}" class="btn btn-sm btn-warning">Edit</a>
+            <!-- Delete Button -->
+            <form method="POST" action="{{ url_for('main.delete_raw_material', material_id=material.id) }}" class="d-inline">
+                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this raw material?')">Delete</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
 {% endblock %}
-
