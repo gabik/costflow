@@ -22,7 +22,7 @@
 <ul class="list-group">
     {% for labor in labor %}
     <li class="list-group-item d-flex justify-content-between align-items-center">
-        {{ labor.name }} - Hourly Rate: ${{ labor.total_hourly_rate }}
+        {{ labor.name }} - Hourly Rate: {{ currency_symbol }}{{ labor.total_hourly_rate }}
         <form method="POST" action="{{ url_for('main.delete_labor', labor_id=labor.id) }}">
             <button type="submit" class="btn btn-danger btn-sm">Delete</button>
         </form>

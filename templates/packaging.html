@@ -11,6 +11,7 @@
         <th>Name</th>
         <th>Quantity per Package</th>
         <th>Price per Package</th>
+        <th>Price per Unit</th>
         <th>Actions</th>
     </tr>
     </thead>
@@ -19,7 +20,8 @@
     <tr>
         <td>{{ packaging.name }}</td>
         <td>{{ packaging.quantity_per_package }}</td>
-        <td>${{ packaging.price_per_package }}</td>
+        <td>{{ currency_symbol }}{{ packaging.price_per_package }}</td>
+        <td>{{ currency_symbol }}{{ (packaging.price_per_package / packaging.quantity_per_package) | round(2) }}</td>
         <td>
             <a href="{{ url_for('main.edit_packaging', packaging_id=packaging.id) }}" class="btn btn-warning btn-sm">Edit</a>
             <form method="POST" action="{{ url_for('main.delete_packaging', packaging_id=packaging.id) }}" style="display:inline;">
