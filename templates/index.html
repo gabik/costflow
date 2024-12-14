@@ -1,12 +1,65 @@
 {% extends "base.html" %}
-{% block title %}Home - Waste Tracking{% endblock %}
+{% block title %}Dashboard{% endblock %}
 {% block content %}
-<div class="text-center">
+<div class="jumbotron text-center bg-primary text-white">
     <h1 class="display-4">Welcome to the Waste Tracking System</h1>
-    <p class="lead">Efficiently manage your bakery's resources, labor, and waste.</p>
-    <a href="{{ url_for('main.raw_materials') }}" class="btn btn-primary btn-lg">Manage Raw Materials</a>
-    <a href="{{ url_for('main.products') }}" class="btn btn-success btn-lg">Manage Products</a>
-    <a href="{{ url_for('main.labor') }}" class="btn btn-info btn-lg">Manage Labor</a>
+    <p class="lead">Your one-stop solution to manage raw materials, production, and inventory efficiently.</p>
+    <hr class="my-4">
+    <p>Navigate through the system using the menu or explore the key features below:</p>
+    <a class="btn btn-light btn-lg" href="{{ url_for('main.raw_materials') }}" role="button">Manage Raw Materials</a>
+    <a class="btn btn-secondary btn-lg" href="{{ url_for('main.production') }}" role="button">Log Production</a>
+</div>
+
+<div class="row text-center">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Raw Materials</h5>
+                <p class="card-text">Track your inventory, update stock levels, and manage raw material categories seamlessly.</p>
+                <a href="{{ url_for('main.raw_materials') }}" class="btn btn-primary">Go to Raw Materials</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Production</h5>
+                <p class="card-text">Log production activities and analyze raw material usage for optimized operations.</p>
+                <a href="{{ url_for('main.production') }}" class="btn btn-secondary">Log Production</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Packaging</h5>
+                <p class="card-text">Manage packaging options, costs, and their integration into your products.</p>
+                <a href="{{ url_for('main.packaging') }}" class="btn btn-success">Manage Packaging</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr class="my-5">
+
+<div class="row text-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Labor Management</h5>
+                <p class="card-text">Oversee labor costs and contributions to each production activity.</p>
+                <a href="{{ url_for('main.labor') }}" class="btn btn-warning">Manage Labor</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Categories</h5>
+                <p class="card-text">Organize your raw materials and packaging into categories for easy management.</p>
+                <a href="{{ url_for('main.categories') }}" class="btn btn-info">Manage Categories</a>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
-
