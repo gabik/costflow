@@ -386,4 +386,5 @@ def production():
 
     products = Product.query.all()
     production_logs = ProductionLog.query.order_by(ProductionLog.timestamp.desc()).all()
-    return render_template('production.html', products=products, production_logs=production_logs)
+    current_time = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+    return render_template('production.html', products=products, production_logs=production_logs, current_time=current_time)

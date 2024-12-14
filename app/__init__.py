@@ -1,6 +1,12 @@
 import os
-from flask import Flask
+from flask import Flask, request, session
+from flask_babel import Babel
 from .models import db
+
+def get_locale():
+    selected_locale = request.args.get('lang', session.get('lang', 'en'))
+    print(f"Selected locale: {selected_locale}")  # Debug locale selection
+    return selected_locale
 
 def create_app():
     app = Flask(__name__, template_folder="../templates", static_folder="../static")
@@ -15,6 +21,11 @@ def create_app():
     DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///waste_tracking.db")
     app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    app.config['BABEL_DEFAULT_LOCALE'] = 'he'
+    app.config['BABEL_SUPPORTED_LOCALES'] = ['en', 'he']
+
+    babel = Babel(app, locale_selector=get_locale)
 
     # Initialize database
     db.init_app(app)
