@@ -68,7 +68,7 @@
     {% for component in packaging_costs %}
     <tr>
         <td>{{ component.name }}</td>
-        <td>{{ component.units }}</td>
+        <td>{{ component.quantity }}</td>
         <td>{{ currency_symbol }}{{ component.price_per_unit }}</td>
         <td>{{ currency_symbol }}{{ component.price_per_recipe }}</td>
         <td>{{ currency_symbol }}{{ component.price_per_product }}</td>

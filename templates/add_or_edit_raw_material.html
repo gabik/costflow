@@ -30,10 +30,6 @@
         <label for="cost_per_unit">Cost Per Unit</label>
         <input type="number" id="cost_per_unit" name="cost_per_unit" class="form-control" step="0.01" value="{{ material.cost_per_unit if material else '' }}" required>
     </div>
-    <div class="form-group">
-        <label for="stock">Stock</label>
-        <input type="number" id="stock" name="stock" class="form-control" step="1" value="{{ material.stock if material else '' }}" required>
-    </div>
     <button type="submit" class="btn btn-primary">Save Raw Material</button>
 </form>
 

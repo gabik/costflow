@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, request, redirect, url_for, jsonify
-from .models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category
+from datetime import datetime
+from flask import Blueprint, render_template, request, redirect, url_for
+from .models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog
 
 main_blueprint = Blueprint('main', __name__)
 
@@ -17,6 +18,36 @@ def index():
 @main_blueprint.route('/raw_materials')
 def raw_materials():
     materials = RawMaterial.query.all()
+
+    for material in materials:
+        # Start with the last "Set Stock" log
+        last_set_log = StockLog.query.filter_by(raw_material_id=material.id, action_type='set') \
+            .order_by(StockLog.timestamp.desc()).first()
+        stock = last_set_log.quantity if last_set_log else 0
+
+        # Add "Add Stock" logs after the last "Set Stock"
+        add_logs = StockLog.query.filter(
+            StockLog.raw_material_id == material.id,
+            StockLog.action_type == 'add',
+            StockLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min)
+        ).all()
+        for log in add_logs:
+            stock += log.quantity
+
+        # Subtract raw materials used in produced products
+        production_logs = ProductionLog.query.filter(
+            ProductionLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min)
+        ).all()
+
+        for production in production_logs:
+            product = Product.query.get(production.product_id)
+            for component in product.components:
+                if component.component_type == 'raw_material' and component.component_id == material.id:
+                    stock -= component.quantity * production.quantity_produced
+
+        # Attach calculated stock to material object
+        material.current_stock = stock
+
     return render_template('raw_materials.html', materials=materials)
 
 @main_blueprint.route('/raw_materials/add', methods=['GET', 'POST'])
@@ -71,6 +102,21 @@ def delete_raw_material(material_id):
     db.session.commit()
     return redirect(url_for('main.raw_materials'))
 
+@main_blueprint.route('/raw_materials/update_stock', methods=['POST'])
+def update_stock():
+    raw_material_id = request.form['raw_material_id']
+    quantity = float(request.form['quantity'])
+    action_type = request.form['action_type']  # 'add' or 'set'
+
+    if action_type not in ['add', 'set']:
+        return "Invalid action type", 400
+
+    stock_log = StockLog(raw_material_id=raw_material_id, action_type=action_type, quantity=quantity)
+    db.session.add(stock_log)
+    db.session.commit()
+
+    return redirect(url_for('main.raw_materials'))
+
 # ----------------------------
 # Labor Management
 # ----------------------------
@@ -98,6 +144,22 @@ def add_labor():
         return redirect(url_for('main.labor'))
 
     return render_template('add_labor.html')
+
+@main_blueprint.route('/labor/delete/<int:labor_id>', methods=['POST'])
+def delete_labor(labor_id):
+    # Fetch the labor entry by its ID
+    labor = Labor.query.get_or_404(labor_id)
+
+    # Check if this labor is used in any product components
+    associated_components = ProductComponent.query.filter_by(component_id=labor_id, component_type='labor').all()
+    if associated_components:
+        return "Cannot delete labor entry; it is associated with existing products.", 400
+
+    # Delete the labor entry
+    db.session.delete(labor)
+    db.session.commit()
+
+    return redirect(url_for('main.labor'))
 
 # ----------------------------
 # Packaging Management
@@ -155,77 +217,118 @@ def products():
 @main_blueprint.route('/products/add', methods=['GET', 'POST'])
 def add_product():
     if request.method == 'POST':
+        # Extract product-level data
         name = request.form['name']
         products_per_recipe = request.form['products_per_recipe']
         selling_price_per_unit = request.form['selling_price_per_unit']
 
-        # Create the product
-        product = Product(name=name, products_per_recipe=int(products_per_recipe), selling_price_per_unit=float(selling_price_per_unit))
+        # Create a new Product entry
+        product = Product(
+            name=name,
+            products_per_recipe=int(products_per_recipe),
+            selling_price_per_unit=float(selling_price_per_unit)
+        )
         db.session.add(product)
-        db.session.commit()
+        db.session.commit()  # Save product to get its ID
 
-        # Add raw materials
-        for key in request.form.keys():
-            if key.startswith('raw_material_id_'):
-                index = key.split('_')[-1]
-                raw_material_id = request.form.get(f'raw_material_id_{index}')
-                amount = request.form.get(f'raw_material_amount_{index}')
-                if raw_material_id and amount:
-                    component = ProductComponent(
-                        product_id=product.id,
-                        component_type='raw_material',
-                        component_id=int(raw_material_id),
-                        quantity=float(amount)
-                    )
-                    db.session.add(component)
+        # Process raw materials
+        raw_materials = request.form.getlist('raw_material[]')
+        raw_material_quantities = request.form.getlist('raw_material_quantity[]')
+        for material_id, quantity in zip(raw_materials, raw_material_quantities):
+            component = ProductComponent(
+                product_id=product.id,
+                component_type='raw_material',
+                component_id=int(material_id),
+                quantity=float(quantity)
+            )
+            db.session.add(component)
 
-        # Add packaging
-        for key in request.form.keys():
-            if key.startswith('packaging_id_'):
-                index = key.split('_')[-1]
-                packaging_id = request.form.get(f'packaging_id_{index}')
-                units_per_recipe = request.form.get(f'packaging_amount_{index}')
-                if packaging_id and units_per_recipe:
-                    component = ProductComponent(
-                        product_id=product.id,
-                        component_type='packaging',
-                        component_id=int(packaging_id),
-                        quantity=float(units_per_recipe)
-                    )
-                    db.session.add(component)
+        # Process packaging
+        packaging = request.form.getlist('packaging[]')
+        packaging_quantities = request.form.getlist('packaging_quantity[]')
+        for packaging_id, quantity in zip(packaging, packaging_quantities):
+            component = ProductComponent(
+                product_id=product.id,
+                component_type='packaging',
+                component_id=int(packaging_id),
+                quantity=float(quantity)
+            )
+            db.session.add(component)
 
-        # Add labor
-        for key in request.form.keys():
-            if key.startswith('labor_id_'):
-                index = key.split('_')[-1]
-                labor_id = request.form.get(f'labor_id_{index}')
-                hours = request.form.get(f'labor_hours_{index}')
-                if labor_id and hours:
-                    component = ProductComponent(
-                        product_id=product.id,
-                        component_type='labor',
-                        component_id=int(labor_id),
-                        quantity=float(hours)
-                    )
-                    db.session.add(component)
+        # Process labor
+        labor = request.form.getlist('labor[]')
+        labor_hours = request.form.getlist('labor_hours[]')
+        for labor_id, hours in zip(labor, labor_hours):
+            component = ProductComponent(
+                product_id=product.id,
+                component_type='labor',
+                component_id=int(labor_id),
+                quantity=float(hours)
+            )
+            db.session.add(component)
 
-        # Commit all changes to the database
-        db.session.commit()
+        db.session.commit()  # Save all components
         return redirect(url_for('main.products'))
 
-    # Fetch all available data for the form
+    # For GET requests, load the data required for the form
     all_raw_materials = RawMaterial.query.all()
     all_packaging = Packaging.query.all()
     all_labor = Labor.query.all()
-    categories = Category.query.all()
     return render_template(
         'add_or_edit_product.html',
         product=None,
         all_raw_materials=all_raw_materials,
         all_packaging=all_packaging,
-        all_labor=all_labor,
-        categories=categories,
-        units=units_list
+        all_labor=all_labor
+    )
+
+@main_blueprint.route('/products/<int:product_id>', methods=['GET'])
+def product_detail(product_id):
+    product = Product.query.get_or_404(product_id)
+
+    # Retrieve raw materials used in the product
+    raw_materials = [
+        {
+            'name': RawMaterial.query.get(component.component_id).name,
+            'quantity': component.quantity,
+            'price_per_unit': RawMaterial.query.get(component.component_id).cost_per_unit,
+            'price_per_recipe': component.quantity * RawMaterial.query.get(component.component_id).cost_per_unit,
+            'price_per_product': (component.quantity * RawMaterial.query.get(component.component_id).cost_per_unit) / product.products_per_recipe
+        }
+        for component in ProductComponent.query.filter_by(product_id=product_id, component_type='raw_material')
+    ]
+
+    # Retrieve labor costs
+    labor_costs = [
+        {
+            'name': Labor.query.get(component.component_id).name,
+            'hours': component.quantity,
+            'price_per_hour': Labor.query.get(component.component_id).total_hourly_rate,
+            'price_per_recipe': component.quantity * Labor.query.get(component.component_id).total_hourly_rate,
+            'price_per_product': (component.quantity * Labor.query.get(component.component_id).total_hourly_rate) / product.products_per_recipe
+        }
+        for component in ProductComponent.query.filter_by(product_id=product_id, component_type='labor')
+    ]
+
+    # Retrieve packaging costs
+    packaging_costs = [
+        {
+            'name': Packaging.query.get(component.component_id).name,
+            'quantity': component.quantity,
+            'price_per_package': Packaging.query.get(component.component_id).price_per_package,
+            'price_per_unit': Packaging.query.get(component.component_id).price_per_package / Packaging.query.get(component.component_id).quantity_per_package,
+            'price_per_recipe': component.quantity * (Packaging.query.get(component.component_id).price_per_package / Packaging.query.get(component.component_id).quantity_per_package),
+            'price_per_product': (component.quantity * (Packaging.query.get(component.component_id).price_per_package / Packaging.query.get(component.component_id).quantity_per_package)) / product.products_per_recipe
+        }
+        for component in ProductComponent.query.filter_by(product_id=product_id, component_type='packaging')
+    ]
+
+    return render_template(
+        'product_details.html',
+        product=product,
+        raw_materials=raw_materials,
+        labor_costs=labor_costs,
+        packaging_costs=packaging_costs
     )
 
 # ----------------------------
@@ -264,3 +367,23 @@ def add_category_from_modal():
 
     # Redirect back to the raw materials form
     return redirect(url_for('main.add_raw_material'))
+
+# ----------------------------
+# Production Management
+# ----------------------------
+@main_blueprint.route('/production', methods=['GET', 'POST'])
+def production():
+    if request.method == 'POST':
+        product_id = request.form['product_id']
+        quantity_produced = float(request.form['quantity_produced'])
+
+        # Log production
+        production_log = ProductionLog(product_id=product_id, quantity_produced=quantity_produced)
+        db.session.add(production_log)
+        db.session.commit()
+
+        return redirect(url_for('main.production'))
+
+    products = Product.query.all()
+    production_logs = ProductionLog.query.order_by(ProductionLog.timestamp.desc()).all()
+    return render_template('production.html', products=products, production_logs=production_logs)

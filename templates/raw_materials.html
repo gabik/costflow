@@ -21,8 +21,15 @@
         <td>{{ material.category }}</td>
         <td>{{ material.unit }}</td>
         <td>{{ currency_symbol }}{{ material.cost_per_unit }}</td>
-        <td>{{ material.stock }}</td>
+        <td>{{ material.current_stock }}</td>
         <td>
+            <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#addStockModal" data-id="{{ material.id }}" data-name="{{ material.name }}">
+                Add Stock
+            </button>
+            <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#setStockModal" data-id="{{ material.id }}" data-name="{{ material.name }}">
+                Set Stock
+            </button>
+
             <!-- Edit Button -->
             <a href="{{ url_for('main.edit_raw_material', material_id=material.id) }}" class="btn btn-sm btn-warning">Edit</a>
             <!-- Delete Button -->
@@ -34,4 +41,73 @@
     {% endfor %}
     </tbody>
 </table>
+
+<div class="modal fade" id="addStockModal" tabindex="-1" role="dialog" aria-labelledby="addStockModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('main.update_stock') }}">
+                <input type="hidden" id="add_stock_raw_material_id" name="raw_material_id">
+                <input type="hidden" name="action_type" value="add">
+                <div class="modal-body">
+                    <p>Adding stock for <strong id="addStockMaterialName"></strong></p>
+                    <div class="form-group">
+                        <label for="add_stock_quantity">Quantity</label>
+                        <input type="number" id="add_stock_quantity" name="quantity" class="form-control" step="0.01" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Add Stock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="setStockModal" tabindex="-1" role="dialog" aria-labelledby="setStockModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('main.update_stock') }}">
+                <input type="hidden" id="set_stock_raw_material_id" name="raw_material_id">
+                <input type="hidden" name="action_type" value="set">
+                <div class="modal-body">
+                    <p>Setting stock for <strong id="setStockMaterialName"></strong></p>
+                    <div class="form-group">
+                        <label for="set_stock_quantity">Quantity</label>
+                        <input type="number" id="set_stock_quantity" name="quantity" class="form-control" step="0.01" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">Set Stock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+        // Populate Add Stock Modal
+        $('#addStockModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Button that triggered the modal
+            var materialId = button.data('id'); // Extract info from data-* attributes
+            var materialName = button.data('name');
+
+            var modal = $(this);
+            modal.find('#add_stock_raw_material_id').val(materialId); // Populate hidden input
+            modal.find('#addStockMaterialName').text(materialName);  // Populate modal title
+        });
+
+        // Populate Set Stock Modal
+        $('#setStockModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Button that triggered the modal
+            var materialId = button.data('id'); // Extract info from data-* attributes
+            var materialName = button.data('name');
+
+            var modal = $(this);
+            modal.find('#set_stock_raw_material_id').val(materialId); // Populate hidden input
+            modal.find('#setStockMaterialName').text(materialName);  // Populate modal title
+        });
+</script>
+
 {% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Production Logs{% endblock %}
+{% block content %}
+<h1>Production Logs</h1>
+
+<!-- Form to Log New Production -->
+<form method="POST" class="p-4 bg-white border rounded shadow-sm">
+    <div class="form-group">
+        <label for="product_id">Select Product</label>
+        <select id="product_id" name="product_id" class="form-control" required>
+            {% for product in products %}
+            <option value="{{ product.id }}">{{ product.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="quantity_produced">Quantity Produced</label>
+        <input type="number" id="quantity_produced" name="quantity_produced" class="form-control" step="1" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Log Production</button>
+</form>
+
+<hr>
+
+<!-- Display Recent Production Logs -->
+<h2>Recent Production Logs</h2>
+<table class="table table-bordered table-hover">
+    <thead class="thead-dark">
+    <tr>
+        <th>Date</th>
+        <th>Product</th>
+        <th>Quantity Produced</th>
+        <th>Raw Materials Used</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for log in production_logs %}
+    <tr>
+        <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+        <td>{{ log.product.name }}</td>
+        <td>{{ log.quantity_produced }}</td>
+        <td>
+            <ul>
+                {% for component in log.product.components %}
+                {% if component.component_type == 'raw_material' %}
+                <li>
+                    {{ component.material.name }}:
+                    {{ component.quantity * log.quantity_produced }} {{ component.material.unit }}
+                </li>
+                {% endif %}
+                {% endfor %}
+            </ul>
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,6 +1,23 @@
+from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
+
+class StockLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    raw_material_id = db.Column(db.Integer, db.ForeignKey('raw_material.id'), nullable=False)
+    action_type = db.Column(db.String(10), nullable=False)  # 'add' or 'set'
+    quantity = db.Column(db.Float, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    raw_material = db.relationship('RawMaterial', backref='stock_logs')
+
+class ProductionLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    quantity_produced = db.Column(db.Float, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    # Relationships
+    product = db.relationship('Product', backref='production_logs')
 
 class RawMaterial(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -8,7 +25,6 @@ class RawMaterial(db.Model):
     category = db.Column(db.String(100), nullable=False)
     unit = db.Column(db.String(50), nullable=False)
     cost_per_unit = db.Column(db.Float, nullable=False)
-    stock = db.Column(db.Float, nullable=False)
 
 class Labor(db.Model):
     id = db.Column(db.Integer, primary_key=True)
