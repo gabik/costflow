@@ -1,63 +1,59 @@
 {% extends "base.html" %}
-{% block title %}Dashboard{% endblock %}
+{% block title %}{{ _('Dashboard') }}{% endblock %}
 {% block content %}
-<div class="jumbotron text-center bg-primary text-white">
-    <h1 class="display-4">Welcome to the Waste Tracking System</h1>
-    <p class="lead">Your one-stop solution to manage raw materials, production, and inventory efficiently.</p>
-    <hr class="my-4">
-    <p>Navigate through the system using the menu or explore the key features below:</p>
-    <a class="btn btn-light btn-lg" href="{{ url_for('main.raw_materials') }}" role="button">Manage Raw Materials</a>
-    <a class="btn btn-secondary btn-lg" href="{{ url_for('main.production') }}" role="button">Log Production</a>
+<div class="jumbotron text-center bg-primary">
+    <h1 class="display-4">{{ _('Welcome to the Waste Tracking System') }}</h1>
+    <p class="lead">{{ _('Your one-stop solution to manage raw materials, production, and inventory efficiently') }}</p>
+    <p>{{ _('Navigate through the system using the menu or explore the key features below') }}:</p>
 </div>
 
 <div class="row text-center">
     <div class="col-md-4">
         <div class="card shadow-sm">
             <div class="card-body">
-                <h5 class="card-title">Raw Materials</h5>
-                <p class="card-text">Track your inventory, update stock levels, and manage raw material categories seamlessly.</p>
-                <a href="{{ url_for('main.raw_materials') }}" class="btn btn-primary">Go to Raw Materials</a>
+                <h5 class="card-title">{{ _('Raw Materials') }}</h5>
+                <p class="card-text">{{ _('Track your inventory, update stock levels, and manage raw material categories seamlessly') }}.</p>
+                <a href="{{ url_for('main.raw_materials') }}" class="btn btn-primary">{{ _('Go to Raw Materials') }}</a>
             </div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="card shadow-sm">
             <div class="card-body">
-                <h5 class="card-title">Production</h5>
-                <p class="card-text">Log production activities and analyze raw material usage for optimized operations.</p>
-                <a href="{{ url_for('main.production') }}" class="btn btn-secondary">Log Production</a>
+                <h5 class="card-title">{{ _('Production') }}</h5>
+                <p class="card-text">{{ _('Log production activities and analyze raw material usage for optimized operations') }}.</p>
+                <a href="{{ url_for('main.production') }}" class="btn btn-secondary">{{ _('Log Production') }}</a>
             </div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="card shadow-sm">
             <div class="card-body">
-                <h5 class="card-title">Packaging</h5>
-                <p class="card-text">Manage packaging options, costs, and their integration into your products.</p>
-                <a href="{{ url_for('main.packaging') }}" class="btn btn-success">Manage Packaging</a>
+                <h5 class="card-title">{{ _('Packaging') }}</h5>
+                <p class="card-text">{{ _('Manage packaging options, costs, and their integration into your products') }}.</p>
+                <a href="{{ url_for('main.packaging') }}" class="btn btn-success">{{ _('Manage Packaging') }}</a>
             </div>
         </div>
     </div>
 </div>
 
-<hr class="my-5">
-
+<BR>
 <div class="row text-center">
     <div class="col-md-6">
         <div class="card shadow-sm">
             <div class="card-body">
-                <h5 class="card-title">Labor Management</h5>
-                <p class="card-text">Oversee labor costs and contributions to each production activity.</p>
-                <a href="{{ url_for('main.labor') }}" class="btn btn-warning">Manage Labor</a>
+                <h5 class="card-title">{{ _('Labor Management') }}</h5>
+                <p class="card-text">{{ _('Oversee labor costs and contributions to each production activity') }}.</p>
+                <a href="{{ url_for('main.labor') }}" class="btn btn-warning">{{ _('Manage Labor') }}</a>
             </div>
         </div>
     </div>
     <div class="col-md-6">
         <div class="card shadow-sm">
             <div class="card-body">
-                <h5 class="card-title">Categories</h5>
-                <p class="card-text">Organize your raw materials and packaging into categories for easy management.</p>
-                <a href="{{ url_for('main.categories') }}" class="btn btn-info">Manage Categories</a>
+                <h5 class="card-title">{{ _('Categories') }}</h5>
+                <p class="card-text">{{ _('Organize your raw materials and packaging into categories for easy management') }}.</p>
+                <a href="{{ url_for('main.categories') }}" class="btn btn-info">{{ _('Manage Categories') }}</a>
             </div>
         </div>
     </div>

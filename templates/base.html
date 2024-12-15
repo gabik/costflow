@@ -13,8 +13,8 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <!-- Navigation Bar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <a class="navbar-brand" href="{{ url_for('main.index') }}">{{ _('Inventory Manager') }}</a>
+<nav class="navbar navbar-expand-lg" style="background-color: #f55951;">
+    <a class="navbar-brand" href="{{ url_for('main.index') }}" style="color: #543c52;">{{ _('Inventory Manager') }}</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
@@ -36,8 +36,8 @@
 </div>
 
 <!-- Footer -->
-<footer class="bg-dark text-white text-center py-3">
-    &copy; 2024 Waste Tracking System. All rights reserved.
+<footer class="text-center py-3" style="background-color: #edd2cb; color: #543c52;">
+    &copy; {{ _('2024 Waste Tracking System. All rights reserved.') }}
     <a href="?lang=en" class="btn btn-link">English</a>
     <a href="?lang=he" class="btn btn-link">עברית</a>
 </footer>

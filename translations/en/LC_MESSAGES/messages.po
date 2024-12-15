@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-12-15 08:42+0200\n"
+"POT-Creation-Date: 2024-12-15 09:16+0200\n"
 "PO-Revision-Date: 2024-12-14 21:06+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -40,7 +40,8 @@ msgstr "הוסף"
 #: templates/add_or_edit_packaging.html:4
 #: templates/add_or_edit_packaging.html:18
 #: templates/add_or_edit_product.html:26 templates/base.html:27
-#: templates/product_details.html:56 templates/product_details.html:60
+#: templates/index.html:35 templates/product_details.html:56
+#: templates/product_details.html:60
 msgid "Packaging"
 msgstr "אריזה"
 
@@ -80,8 +81,8 @@ msgid "Selling Price Per Unit"
 msgstr ""
 
 #: templates/add_or_edit_product.html:20 templates/base.html:23
-#: templates/product_details.html:8 templates/raw_materials.html:2
-#: templates/raw_materials.html:4
+#: templates/index.html:17 templates/product_details.html:8
+#: templates/raw_materials.html:2 templates/raw_materials.html:4
 msgid "Raw Materials"
 msgstr ""
 
@@ -204,15 +205,20 @@ msgstr ""
 msgid "Labor"
 msgstr ""
 
-#: templates/base.html:26
+#: templates/base.html:26 templates/index.html:58
 msgid "Categories"
 msgstr ""
 
-#: templates/base.html:28
+#: templates/base.html:28 templates/index.html:26
 msgid "Production"
 msgstr ""
 
+#: templates/base.html:40
+msgid "2024 Waste Tracking System. All rights reserved."
+msgstr ""
+
 #: templates/categories.html:2 templates/categories.html:4
+#: templates/index.html:60
 msgid "Manage Categories"
 msgstr ""
 
@@ -228,8 +234,76 @@ msgstr ""
 msgid "Save Changes"
 msgstr ""
 
-#: templates/labor.html:2 templates/labor.html:4
+#: templates/index.html:2
+msgid "Dashboard"
+msgstr ""
+
+#: templates/index.html:5
+msgid "Welcome to the Waste Tracking System"
+msgstr ""
+
+#: templates/index.html:6
+msgid ""
+"Your one-stop solution to manage raw materials, production, and inventory"
+" efficiently"
+msgstr ""
+
+#: templates/index.html:8
+msgid ""
+"Navigate through the system using the menu or explore the key features "
+"below"
+msgstr ""
+
+#: templates/index.html:9
+msgid "Manage Raw Materials"
+msgstr ""
+
+#: templates/index.html:10 templates/index.html:28 templates/production.html:24
+msgid "Log Production"
+msgstr ""
+
+#: templates/index.html:18
+msgid ""
+"Track your inventory, update stock levels, and manage raw material "
+"categories seamlessly"
+msgstr ""
+
+#: templates/index.html:19
+msgid "Go to Raw Materials"
+msgstr ""
+
+#: templates/index.html:27
+msgid ""
+"Log production activities and analyze raw material usage for optimized "
+"operations"
+msgstr ""
+
+#: templates/index.html:36
+msgid "Manage packaging options, costs, and their integration into your products"
+msgstr ""
+
+#: templates/index.html:37 templates/packaging.html:2
+#: templates/packaging.html:4
+#, fuzzy
+msgid "Manage Packaging"
+msgstr "אריזה"
+
+#: templates/index.html:49
+msgid "Labor Management"
+msgstr ""
+
+#: templates/index.html:50
+msgid "Oversee labor costs and contributions to each production activity"
+msgstr ""
+
+#: templates/index.html:51 templates/labor.html:2 templates/labor.html:4
 msgid "Manage Labor"
+msgstr ""
+
+#: templates/index.html:59
+msgid ""
+"Organize your raw materials and packaging into categories for easy "
+"management"
 msgstr ""
 
 #: templates/labor.html:7 templates/product_details.html:36
@@ -248,11 +322,6 @@ msgstr ""
 #: templates/raw_materials.html:37
 msgid "Delete"
 msgstr ""
-
-#: templates/packaging.html:2 templates/packaging.html:4
-#, fuzzy
-msgid "Manage Packaging"
-msgstr "אריזה"
 
 #: templates/packaging.html:14
 #, fuzzy
@@ -326,10 +395,6 @@ msgstr ""
 
 #: templates/production.html:21 templates/production.html:36
 msgid "Quantity Produced"
-msgstr ""
-
-#: templates/production.html:24
-msgid "Log Production"
 msgstr ""
 
 #: templates/production.html:30
