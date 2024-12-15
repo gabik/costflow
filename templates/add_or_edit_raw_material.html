@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}{{ 'Edit' if material else 'Add' }} Raw Material{% endblock %}
+{% block title %}{{ _('Edit') if material else _('Add') }} {{ _('Raw Material') }}{% endblock %}
 {% block content %}
-<h1>{{ 'Edit' if material else 'Add' }} Raw Material</h1>
+<h1>{{ _('Edit') if material else _('Add') }} {{ _('Raw Material') }}</h1>
 <form method="POST" class="p-4 bg-white border rounded shadow-sm">
     <div class="form-group">
-        <label for="category">Category</label>
+        <label for="category">{{ _('Category') }}</label>
         <select id="category" name="category" class="form-control" required>
             {% for category in categories %}
             <option value="{{ category.id }}" {% if material and material.category == category.name %}selected{% endif %}>
@@ -12,14 +12,14 @@
             </option>
             {% endfor %}
         </select>
-        <button type="button" class="btn btn-sm btn-outline-success mt-2" data-toggle="modal" data-target="#addCategoryModal">New Category</button>
+        <button type="button" class="btn btn-sm btn-outline-success mt-2" data-toggle="modal" data-target="#addCategoryModal">{{ _('New Category') }}</button>
     </div>
     <div class="form-group">
         <label for="name">Name</label>
         <input type="text" id="name" name="name" class="form-control" value="{{ material.name if material else '' }}" required>
     </div>
     <div class="form-group">
-        <label for="unit">Unit</label>
+        <label for="unit">{{ _('Unit') }}</label>
         <select id="unit" name="unit" class="form-control" required>
             {% for unit in units %}
             <option value="{{ unit }}" {% if material and material.unit == unit %}selected{% endif %}>{{ unit }}</option>
@@ -27,10 +27,10 @@
         </select>
     </div>
     <div class="form-group">
-        <label for="cost_per_unit">Cost Per Unit</label>
+        <label for="cost_per_unit">{{ _('Cost Per Unit') }}</label>
         <input type="number" id="cost_per_unit" name="cost_per_unit" class="form-control" step="0.01" value="{{ material.cost_per_unit if material else '' }}" required>
     </div>
-    <button type="submit" class="btn btn-primary">Save Raw Material</button>
+    <button type="submit" class="btn btn-primary">{{ _('Save Raw Material') }}</button>
 </form>
 
 <!-- Add Category Modal -->
@@ -39,20 +39,20 @@
         <div class="modal-content">
             <form method="POST" action="{{ url_for('main.add_category_from_modal') }}">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addCategoryModalLabel">Add New Category</h5>
+                    <h5 class="modal-title" id="addCategoryModalLabel">{{ _('Add New Category') }}</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="new_category_name">Category Name</label>
+                        <label for="new_category_name">{{ _('Category Name') }}</label>
                         <input type="text" id="new_category_name" name="name" class="form-control" required>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Add Category</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ _('Add Category') }}</button>
                 </div>
             </form>
         </div>

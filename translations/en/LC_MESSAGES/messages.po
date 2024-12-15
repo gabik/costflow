@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-12-14 21:05+0200\n"
+"POT-Creation-Date: 2024-12-15 08:42+0200\n"
 "PO-Revision-Date: 2024-12-14 21:06+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -18,11 +18,365 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.16.0\n"
 
-#: templates/add_labor.html:17
+#: templates/add_or_edit_packaging.html:2
+#: templates/add_or_edit_packaging.html:4 templates/add_or_edit_product.html:2
+#: templates/add_or_edit_product.html:4
+#: templates/add_or_edit_raw_material.html:2
+#: templates/add_or_edit_raw_material.html:4 templates/categories.html:19
+#: templates/packaging.html:26 templates/raw_materials.html:34
+msgid "Edit"
+msgstr "עדכן"
+
+#: templates/add_or_edit_packaging.html:2
+#: templates/add_or_edit_packaging.html:4
+#: templates/add_or_edit_packaging.html:18 templates/add_or_edit_product.html:2
+#: templates/add_or_edit_product.html:4
+#: templates/add_or_edit_raw_material.html:2
+#: templates/add_or_edit_raw_material.html:4
 msgid "Add"
+msgstr "הוסף"
+
+#: templates/add_or_edit_packaging.html:2
+#: templates/add_or_edit_packaging.html:4
+#: templates/add_or_edit_packaging.html:18
+#: templates/add_or_edit_product.html:26 templates/base.html:27
+#: templates/product_details.html:56 templates/product_details.html:60
+msgid "Packaging"
+msgstr "אריזה"
+
+#: templates/add_or_edit_packaging.html:7
+msgid "Packaging Name"
+msgstr "שם אריזה"
+
+#: templates/add_or_edit_packaging.html:11
+#: templates/add_or_edit_product.html:108 templates/packaging.html:12
+msgid "Quantity per Package"
+msgstr "כמות לארגז"
+
+#: templates/add_or_edit_packaging.html:15
+#: templates/add_or_edit_product.html:112 templates/packaging.html:13
+msgid "Price per Package"
+msgstr "מחיר לארגז"
+
+#: templates/add_or_edit_packaging.html:18
+msgid "Update"
+msgstr "עדכן"
+
+#: templates/add_or_edit_product.html:2 templates/add_or_edit_product.html:4
+#: templates/production.html:35
+msgid "Product"
 msgstr ""
 
-#: templates/labor.html:18
+#: templates/add_or_edit_product.html:7
+msgid "Product Name"
+msgstr ""
+
+#: templates/add_or_edit_product.html:11
+msgid "Products Per Recipe"
+msgstr ""
+
+#: templates/add_or_edit_product.html:15
+msgid "Selling Price Per Unit"
+msgstr ""
+
+#: templates/add_or_edit_product.html:20 templates/base.html:23
+#: templates/product_details.html:8 templates/raw_materials.html:2
+#: templates/raw_materials.html:4
+msgid "Raw Materials"
+msgstr ""
+
+#: templates/add_or_edit_product.html:21 templates/add_or_edit_product.html:46
+#: templates/add_or_edit_product.html:84
+msgid "Add Raw Material"
+msgstr ""
+
+#: templates/add_or_edit_product.html:22
+msgid "New Raw Material"
+msgstr ""
+
+#: templates/add_or_edit_product.html:27 templates/add_or_edit_product.html:97
+#: templates/add_or_edit_product.html:118 templates/packaging.html:6
+#, fuzzy
+msgid "Add Packaging"
+msgstr "אריזה"
+
+#: templates/add_or_edit_product.html:28
+#, fuzzy
+msgid "New Packaging"
+msgstr "אריזה"
+
+#: templates/add_or_edit_product.html:32 templates/product_details.html:32
+msgid "Labor Costs"
+msgstr ""
+
+#: templates/add_or_edit_product.html:33 templates/add_or_edit_product.html:131
+#: templates/add_or_edit_product.html:152 templates/labor.html:18
 msgid "Add Labor"
 msgstr ""
+
+#: templates/add_or_edit_product.html:34
+msgid "New Labor"
+msgstr ""
+
+#: templates/add_or_edit_product.html:37
+msgid "Save Product"
+msgstr ""
+
+#: templates/add_or_edit_product.html:53 templates/add_or_edit_product.html:104
+#: templates/add_or_edit_product.html:138 templates/packaging.html:11
+#: templates/products.html:9 templates/raw_materials.html:9
+msgid "Name"
+msgstr ""
+
+#: templates/add_or_edit_product.html:57
+#: templates/add_or_edit_raw_material.html:7 templates/raw_materials.html:10
+msgid "Category"
+msgstr ""
+
+#: templates/add_or_edit_product.html:63
+#: templates/add_or_edit_raw_material.html:15
+msgid "New Category"
+msgstr ""
+
+#: templates/add_or_edit_product.html:66
+#: templates/add_or_edit_raw_material.html:22 templates/raw_materials.html:11
+msgid "Unit"
+msgstr ""
+
+#: templates/add_or_edit_product.html:74
+#: templates/add_or_edit_raw_material.html:30 templates/raw_materials.html:12
+msgid "Cost Per Unit"
+msgstr ""
+
+#: templates/add_or_edit_product.html:83 templates/add_or_edit_product.html:117
+#: templates/add_or_edit_product.html:151
+#: templates/add_or_edit_product.html:177
+#: templates/add_or_edit_raw_material.html:54 templates/categories.html:39
+#: templates/raw_materials.html:59 templates/raw_materials.html:81
+msgid "Cancel"
+msgstr ""
+
+#: templates/add_or_edit_product.html:142 templates/labor.html:11
+msgid "Base Hourly Rate"
+msgstr ""
+
+#: templates/add_or_edit_product.html:146 templates/labor.html:15
+msgid "Additional Hourly Rate"
+msgstr ""
+
+#: templates/add_or_edit_product.html:165
+#: templates/add_or_edit_raw_material.html:42 templates/categories.html:8
+msgid "Add New Category"
+msgstr ""
+
+#: templates/add_or_edit_product.html:172
+#: templates/add_or_edit_raw_material.html:49 templates/categories.html:34
+msgid "Category Name"
+msgstr ""
+
+#: templates/add_or_edit_product.html:178
+#: templates/add_or_edit_raw_material.html:55 templates/categories.html:11
+msgid "Add Category"
+msgstr ""
+
+#: templates/add_or_edit_raw_material.html:2
+#: templates/add_or_edit_raw_material.html:4 templates/product_details.html:12
+msgid "Raw Material"
+msgstr ""
+
+#: templates/add_or_edit_raw_material.html:33
+msgid "Save Raw Material"
+msgstr ""
+
+#: templates/base.html:8
+msgid "Waste Tracking System"
+msgstr ""
+
+#: templates/base.html:17
+msgid "Inventory Manager"
+msgstr ""
+
+#: templates/base.html:24 templates/products.html:2 templates/products.html:4
+msgid "Products"
+msgstr ""
+
+#: templates/base.html:25
+msgid "Labor"
+msgstr ""
+
+#: templates/base.html:26
+msgid "Categories"
+msgstr ""
+
+#: templates/base.html:28
+msgid "Production"
+msgstr ""
+
+#: templates/categories.html:2 templates/categories.html:4
+msgid "Manage Categories"
+msgstr ""
+
+#: templates/categories.html:14
+msgid "Existing Categories"
+msgstr ""
+
+#: templates/categories.html:27
+msgid "Edit Category"
+msgstr ""
+
+#: templates/categories.html:40
+msgid "Save Changes"
+msgstr ""
+
+#: templates/labor.html:2 templates/labor.html:4
+msgid "Manage Labor"
+msgstr ""
+
+#: templates/labor.html:7 templates/product_details.html:36
+msgid "Employee Name"
+msgstr ""
+
+#: templates/labor.html:21
+msgid "Existing Labor"
+msgstr ""
+
+#: templates/labor.html:25
+msgid "Hourly Rate"
+msgstr ""
+
+#: templates/labor.html:27 templates/packaging.html:28
+#: templates/raw_materials.html:37
+msgid "Delete"
+msgstr ""
+
+#: templates/packaging.html:2 templates/packaging.html:4
+#, fuzzy
+msgid "Manage Packaging"
+msgstr "אריזה"
+
+#: templates/packaging.html:14
+#, fuzzy
+msgid "Price per Unit"
+msgstr "מחיר לארגז"
+
+#: templates/packaging.html:15 templates/products.html:10
+#: templates/raw_materials.html:14
+msgid "Actions"
+msgstr ""
+
+#: templates/product_details.html:2
+msgid "Product Details"
+msgstr ""
+
+#: templates/product_details.html:5
+msgid "Products Per Recipe:"
+msgstr ""
+
+#: templates/product_details.html:6
+#, fuzzy
+msgid "Selling Price Per Unit:"
+msgstr "מחיר לארגז"
+
+#: templates/product_details.html:13
+msgid "Amount in Recipe"
+msgstr ""
+
+#: templates/product_details.html:14 templates/product_details.html:62
+#, fuzzy
+msgid "Price Per Unit"
+msgstr "מחיר לארגז"
+
+#: templates/product_details.html:15 templates/product_details.html:39
+#: templates/product_details.html:63
+#, fuzzy
+msgid "Price Per Recipe"
+msgstr "מחיר לארגז"
+
+#: templates/product_details.html:16 templates/product_details.html:40
+#: templates/product_details.html:64
+#, fuzzy
+msgid "Price Per Product"
+msgstr "מחיר לארגז"
+
+#: templates/product_details.html:37
+msgid "Hours of Labor"
+msgstr ""
+
+#: templates/product_details.html:38
+#, fuzzy
+msgid "Price Per Hour"
+msgstr "מחיר לארגז"
+
+#: templates/product_details.html:61
+#, fuzzy
+msgid "Units Per Recipe"
+msgstr "כמות לארגז"
+
+#: templates/production.html:2 templates/production.html:4
+msgid "Production Logs"
+msgstr ""
+
+#: templates/production.html:9
+msgid "Timestamp"
+msgstr ""
+
+#: templates/production.html:13
+msgid "Select Product"
+msgstr ""
+
+#: templates/production.html:21 templates/production.html:36
+msgid "Quantity Produced"
+msgstr ""
+
+#: templates/production.html:24
+msgid "Log Production"
+msgstr ""
+
+#: templates/production.html:30
+msgid "Recent Production Logs"
+msgstr ""
+
+#: templates/production.html:34
+#, fuzzy
+msgid "Date"
+msgstr "עדכן"
+
+#: templates/products.html:5
+msgid "Add New Product"
+msgstr ""
+
+#: templates/products.html:18
+msgid "View"
+msgstr ""
+
+#: templates/raw_materials.html:5
+msgid "Add New Raw Material"
+msgstr ""
+
+#: templates/raw_materials.html:13
+msgid "Stock"
+msgstr ""
+
+#: templates/raw_materials.html:27
+msgid "Add Stock"
+msgstr ""
+
+#: templates/raw_materials.html:30
+msgid "Set Stock"
+msgstr ""
+
+#: templates/raw_materials.html:52
+msgid "Adding stock for "
+msgstr ""
+
+#: templates/raw_materials.html:54 templates/raw_materials.html:76
+msgid "Quantity"
+msgstr ""
+
+#: templates/raw_materials.html:74
+msgid "Setting stock for "
+msgstr ""
+
+#~ msgid "Add"
+#~ msgstr ""
 

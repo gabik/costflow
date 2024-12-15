@@ -1,19 +1,19 @@
 {% extends "base.html" %}
-{% block title %}Product Details{% endblock %}
+{% block title %}{{ _('Product Details') }}{% endblock %}
 {% block content %}
 <h1>{{ product.name }}</h1>
-<p><strong>Products Per Recipe:</strong> {{ product.products_per_recipe }}</p>
-<p><strong>Selling Price Per Unit:</strong> {{ currency_symbol }}{{ product.selling_price_per_unit }}</p>
+<p><strong>{{ _('Products Per Recipe:') }}</strong> {{ product.products_per_recipe }}</p>
+<p><strong>{{ _('Selling Price Per Unit:') }}</strong> {{ currency_symbol }}{{ product.selling_price_per_unit }}</p>
 
-<h3>Raw Materials</h3>
+<h3>{{ _('Raw Materials') }}</h3>
 <table class="table">
     <thead>
     <tr>
-        <th>Raw Material</th>
-        <th>Amount in Recipe</th>
-        <th>Price Per Unit</th>
-        <th>Price Per Recipe</th>
-        <th>Price Per Product</th>
+        <th>{{ _('Raw Material') }}</th>
+        <th>{{ _('Amount in Recipe') }}</th>
+        <th>{{ _('Price Per Unit') }}</th>
+        <th>{{ _('Price Per Recipe') }}</th>
+        <th>{{ _('Price Per Product') }}</th>
     </tr>
     </thead>
     <tbody>
@@ -29,15 +29,15 @@
     </tbody>
 </table>
 
-<h3>Labor Costs</h3>
+<h3>{{ _('Labor Costs') }}</h3>
 <table class="table">
     <thead>
     <tr>
-        <th>Employee Name</th>
-        <th>Hours of Labor</th>
-        <th>Price Per Hour</th>
-        <th>Price Per Recipe</th>
-        <th>Price Per Product</th>
+        <th>{{ _('Employee Name') }}</th>
+        <th>{{ _('Hours of Labor') }}</th>
+        <th>{{ _('Price Per Hour') }}</th>
+        <th>{{ _('Price Per Recipe') }}</th>
+        <th>{{ _('Price Per Product') }}</th>
     </tr>
     </thead>
     <tbody>
@@ -53,15 +53,15 @@
     </tbody>
 </table>
 
-<h3>Packaging</h3>
+<h3>{{ _('Packaging') }}</h3>
 <table class="table">
     <thead>
     <tr>
-        <th>Packaging</th>
-        <th>Units Per Recipe</th>
-        <th>Price Per Unit</th>
-        <th>Price Per Recipe</th>
-        <th>Price Per Product</th>
+        <th>{{ _('Packaging') }}</th>
+        <th>{{ _('Units Per Recipe') }}</th>
+        <th>{{ _('Price Per Unit') }}</th>
+        <th>{{ _('Price Per Recipe') }}</th>
+        <th>{{ _('Price Per Product') }}</th>
     </tr>
     </thead>
     <tbody>

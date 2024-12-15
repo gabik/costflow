@@ -1,30 +1,30 @@
 {% extends "base.html" %}
-{% block title %}Manage Labor{% endblock %}
+{% block title %}{{ _('Manage Labor') }}{% endblock %}
 {% block content %}
-<h1>Manage Labor</h1>
+<h1>{{ _('Manage Labor') }}</h1>
 <form method="POST" action="{{ url_for('main.add_labor') }}" class="p-4 bg-white border rounded shadow-sm">
     <div class="form-group">
-        <label for="name">Employee Name</label>
+        <label for="name">{{ _('Employee Name') }}</label>
         <input type="text" id="name" name="name" class="form-control" required>
     </div>
     <div class="form-group">
-        <label for="base_hourly_rate">Base Hourly Rate</label>
+        <label for="base_hourly_rate">{{ _('Base Hourly Rate') }}</label>
         <input type="number" id="base_hourly_rate" name="base_hourly_rate" class="form-control" step="0.01" required>
     </div>
     <div class="form-group">
-        <label for="additional_hourly_rate">Additional Hourly Rate</label>
+        <label for="additional_hourly_rate">{{ _('Additional Hourly Rate') }}</label>
         <input type="number" id="additional_hourly_rate" name="additional_hourly_rate" class="form-control" step="0.01" required>
     </div>
     <button type="submit" class="btn btn-success">{{ _('Add Labor') }}</button>
 </form>
 <hr>
-<h2>Existing Labor</h2>
+<h2>{{ _('Existing Labor') }}</h2>
 <ul class="list-group">
     {% for labor in labor %}
     <li class="list-group-item d-flex justify-content-between align-items-center">
-        {{ labor.name }} - Hourly Rate: {{ currency_symbol }}{{ labor.total_hourly_rate }}
+        {{ labor.name }} - {{ _('Hourly Rate') }}: {{ currency_symbol }}{{ labor.total_hourly_rate }}
         <form method="POST" action="{{ url_for('main.delete_labor', labor_id=labor.id) }}">
-            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+            <button type="submit" class="btn btn-danger btn-sm">{{ _('Delete') }}</button>
         </form>
     </li>
     {% endfor %}

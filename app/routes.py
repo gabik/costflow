@@ -140,10 +140,7 @@ def add_labor():
         # Handle modal submissions
         if request.referrer and 'products/add' in request.referrer:
             return redirect(request.referrer)
-
-        return redirect(url_for('main.labor'))
-
-    return render_template('add_labor.html')
+    return redirect(url_for('main.labor'))
 
 @main_blueprint.route('/labor/delete/<int:labor_id>', methods=['POST'])
 def delete_labor(labor_id):

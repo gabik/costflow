@@ -1,18 +1,18 @@
 {% extends "base.html" %}
-{% block title %}Manage Packaging{% endblock %}
+{% block title %}{{ _('Manage Packaging') }}{% endblock %}
 {% block content %}
-<h1>Manage Packaging</h1>
+<h1>{{ _('Manage Packaging') }}</h1>
 <div class="mb-3">
-    <a href="{{ url_for('main.add_packaging') }}" class="btn btn-primary">Add Packaging</a>
+    <a href="{{ url_for('main.add_packaging') }}" class="btn btn-primary">{{ _('Add Packaging') }}</a>
 </div>
 <table class="table table-bordered table-striped">
     <thead class="thead-dark">
     <tr>
-        <th>Name</th>
-        <th>Quantity per Package</th>
-        <th>Price per Package</th>
-        <th>Price per Unit</th>
-        <th>Actions</th>
+        <th>{{ _('Name') }}</th>
+        <th>{{ _('Quantity per Package') }}</th>
+        <th>{{ _('Price per Package') }}</th>
+        <th>{{ _('Price per Unit') }}</th>
+        <th>{{ _('Actions') }}</th>
     </tr>
     </thead>
     <tbody>
@@ -23,9 +23,9 @@
         <td>{{ currency_symbol }}{{ packaging.price_per_package }}</td>
         <td>{{ currency_symbol }}{{ (packaging.price_per_package / packaging.quantity_per_package) | round(2) }}</td>
         <td>
-            <a href="{{ url_for('main.edit_packaging', packaging_id=packaging.id) }}" class="btn btn-warning btn-sm">Edit</a>
+            <a href="{{ url_for('main.edit_packaging', packaging_id=packaging.id) }}" class="btn btn-warning btn-sm">{{ _('Edit') }}</a>
             <form method="POST" action="{{ url_for('main.delete_packaging', packaging_id=packaging.id) }}" style="display:inline;">
-                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                <button type="submit" class="btn btn-danger btn-sm">{{ _('Delete') }}</button>
             </form>
         </td>
     </tr>

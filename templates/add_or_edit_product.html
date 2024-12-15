@@ -1,40 +1,40 @@
 {% extends "base.html" %}
-{% block title %}{{ 'Edit' if product else 'Add' }} Product{% endblock %}
+{% block title %}{{ _('Edit') if product else _('Add') }} {{ _('Product') }}{% endblock %}
 {% block content %}
-<h1>{{ 'Edit' if product else 'Add' }} Product</h1>
+<h1>{{ _('Edit') if product else _('Add') }} {{ _('Product') }}</h1>
 <form method="POST" class="p-4 bg-white border rounded shadow-sm">
     <div class="form-group">
-        <label for="name">Product Name</label>
+        <label for="name">{{ _('Product Name') }}</label>
         <input type="text" id="name" name="name" class="form-control" value="{{ product.name if product else '' }}" required>
     </div>
     <div class="form-group">
-        <label for="products_per_recipe">Products Per Recipe</label>
+        <label for="products_per_recipe">{{ _('Products Per Recipe') }}</label>
         <input type="number" id="products_per_recipe" name="products_per_recipe" class="form-control" step="1" value="{{ product.products_per_recipe if product else '' }}" required>
     </div>
     <div class="form-group">
-        <label for="selling_price_per_unit">Selling Price Per Unit</label>
+        <label for="selling_price_per_unit">{{ _('Selling Price Per Unit') }}</label>
         <input type="number" id="selling_price_per_unit" name="selling_price_per_unit" class="form-control" step="0.01" value="{{ product.selling_price_per_unit if product else '' }}" required>
     </div>
 
     <!-- Raw Materials Section -->
-    <h3>Raw Materials</h3>
-    <button type="button" class="btn btn-sm btn-outline-primary mb-2" onclick="addRawMaterial()">Add Raw Material</button>
-    <button type="button" class="btn btn-sm btn-outline-success mb-2" data-toggle="modal" data-target="#addRawMaterialModal">New Raw Material</button>
+    <h3>{{ _('Raw Materials') }}</h3>
+    <button type="button" class="btn btn-sm btn-outline-primary mb-2" onclick="addRawMaterial()">{{ _('Add Raw Material') }}</button>
+    <button type="button" class="btn btn-sm btn-outline-success mb-2" data-toggle="modal" data-target="#addRawMaterialModal">{{ _('New Raw Material') }}</button>
     <div id="raw-materials-container"></div>
 
     <!-- Packaging Section -->
-    <h3>Packaging</h3>
-    <button type="button" class="btn btn-sm btn-outline-primary mb-2" onclick="addPackaging()">Add Packaging</button>
-    <button type="button" class="btn btn-sm btn-outline-success mb-2" data-toggle="modal" data-target="#addPackagingModal">New Packaging</button>
+    <h3>{{ _('Packaging') }}</h3>
+    <button type="button" class="btn btn-sm btn-outline-primary mb-2" onclick="addPackaging()">{{ _('Add Packaging') }}</button>
+    <button type="button" class="btn btn-sm btn-outline-success mb-2" data-toggle="modal" data-target="#addPackagingModal">{{ _('New Packaging') }}</button>
     <div id="packaging-container"></div>
 
     <!-- Labor Section -->
-    <h3>Labor Costs</h3>
-    <button type="button" class="btn btn-sm btn-outline-primary mb-2" onclick="addLabor()">Add Labor</button>
-    <button type="button" class="btn btn-sm btn-outline-success mb-2" data-toggle="modal" data-target="#addLaborModal">New Labor</button>
+    <h3>{{ _('Labor Costs') }}</h3>
+    <button type="button" class="btn btn-sm btn-outline-primary mb-2" onclick="addLabor()">{{ _('Add Labor') }}</button>
+    <button type="button" class="btn btn-sm btn-outline-success mb-2" data-toggle="modal" data-target="#addLaborModal">{{ _('New Labor') }}</button>
     <div id="labor-container"></div>
 
-    <button type="submit" class="btn btn-primary mt-3">Save Product</button>
+    <button type="submit" class="btn btn-primary mt-3">{{ _('Save Product') }}</button>
 </form>
 
 <!-- Add Raw Material Modal -->
@@ -43,27 +43,27 @@
         <div class="modal-content">
             <form method="POST" action="{{ url_for('main.add_raw_material') }}">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addRawMaterialModalLabel">Add Raw Material</h5>
+                    <h5 class="modal-title" id="addRawMaterialModalLabel">{{ _('Add Raw Material') }}</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="raw_material_name">Name</label>
+                        <label for="raw_material_name">{{ _('Name') }}</label>
                         <input type="text" id="raw_material_name" name="name" class="form-control" required>
                     </div>
                     <div class="form-group">
-                        <label for="raw_material_category">Category</label>
+                        <label for="raw_material_category">{{ _('Category') }}</label>
                         <select id="raw_material_category" name="category" class="form-control" required>
                             {% for category in categories %}
                             <option value="{{ category.id }}">{{ category.name }}</option>
                             {% endfor %}
                         </select>
-                        <button type="button" class="btn btn-sm btn-outline-success mt-2" data-toggle="modal" data-target="#addCategoryModal">New Category</button>
+                        <button type="button" class="btn btn-sm btn-outline-success mt-2" data-toggle="modal" data-target="#addCategoryModal">{{ _('New Category') }}</button>
                     </div>
                     <div class="form-group">
-                        <label for="raw_material_unit">Unit</label>
+                        <label for="raw_material_unit">{{ _('Unit') }}</label>
                         <select id="raw_material_unit" name="unit" class="form-control" required>
                             {% for unit in units %}
                             <option value="{{ unit }}">{{ unit }}</option>
@@ -71,7 +71,7 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="raw_material_cost">Cost Per Unit</label>
+                        <label for="raw_material_cost">{{ _('Cost Per Unit') }}</label>
                         <input type="number" id="raw_material_cost" name="cost_per_unit" class="form-control" step="0.01" required>
                     </div>
                     <div class="form-group">
@@ -80,8 +80,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Add Raw Material</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ _('Add Raw Material') }}</button>
                 </div>
             </form>
         </div>
@@ -94,28 +94,28 @@
         <div class="modal-content">
             <form method="POST" action="{{ url_for('main.add_packaging') }}">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addPackagingModalLabel">Add Packaging</h5>
+                    <h5 class="modal-title" id="addPackagingModalLabel">{{ _('Add Packaging') }}</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="packaging_name">Name</label>
+                        <label for="packaging_name">{{ _('Name') }}</label>
                         <input type="text" id="packaging_name" name="name" class="form-control" required>
                     </div>
                     <div class="form-group">
-                        <label for="quantity_per_package">Quantity per Package</label>
+                        <label for="quantity_per_package">{{ _('Quantity per Package') }}</label>
                         <input type="number" id="quantity_per_package" name="quantity_per_package" class="form-control" step="0.1" required>
                     </div>
                     <div class="form-group">
-                        <label for="price_per_package">Price per Package</label>
+                        <label for="price_per_package">{{ _('Price per Package') }}</label>
                         <input type="number" id="price_per_package" name="price_per_package" class="form-control" step="0.01" required>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Add Packaging</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ _('Add Packaging') }}</button>
                 </div>
             </form>
         </div>
@@ -128,28 +128,28 @@
         <div class="modal-content">
             <form method="POST" action="{{ url_for('main.add_labor') }}">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addLaborModalLabel">Add Labor</h5>
+                    <h5 class="modal-title" id="addLaborModalLabel">{{ _('Add Labor') }}</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="labor_name">Name</label>
+                        <label for="labor_name">{{ _('Name') }}</label>
                         <input type="text" id="labor_name" name="name" class="form-control" required>
                     </div>
                     <div class="form-group">
-                        <label for="base_hourly_rate">Base Hourly Rate</label>
+                        <label for="base_hourly_rate">{{ _('Base Hourly Rate') }}</label>
                         <input type="number" id="base_hourly_rate" name="base_hourly_rate" class="form-control" step="0.01" required>
                     </div>
                     <div class="form-group">
-                        <label for="additional_hourly_rate">Additional Hourly Rate</label>
+                        <label for="additional_hourly_rate">{{ _('Additional Hourly Rate') }}</label>
                         <input type="number" id="additional_hourly_rate" name="additional_hourly_rate" class="form-control" step="0.01" required>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Add Labor</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ _('Add Labor') }}</button>
                 </div>
             </form>
         </div>
@@ -162,20 +162,20 @@
         <div class="modal-content">
             <form method="POST" action="{{ url_for('main.add_category_from_modal') }}">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addCategoryModalLabel">Add New Category</h5>
+                    <h5 class="modal-title" id="addCategoryModalLabel">{{ _('Add New Category') }}</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="new_category_name">Category Name</label>
+                        <label for="new_category_name">{{ _('Category Name') }}</label>
                         <input type="text" id="new_category_name" name="name" class="form-control" required>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Add Category</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ _('Add Category') }}</button>
                 </div>
             </form>
         </div>
@@ -195,7 +195,7 @@
                     </select>
                 </div>
                 <div class="col">
-                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="Quantity" required>
+                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder='Quantity' required>
                 </div>
                 <div class="col-auto">
                     <button type="button" class="btn btn-danger" onclick="this.parentElement.parentElement.remove()">Remove</button>
@@ -216,7 +216,7 @@
                     </select>
                 </div>
                 <div class="col">
-                    <input type="number" name="packaging_quantity[]" class="form-control" placeholder="Quantity" required>
+                    <input type="number" name="packaging_quantity[]" class="form-control" placeholder='Quantity' required>
                 </div>
                 <div class="col-auto">
                     <button type="button" class="btn btn-danger" onclick="this.parentElement.parentElement.remove()">Remove</button>
@@ -237,7 +237,7 @@
                     </select>
                 </div>
                 <div class="col">
-                    <input type="number" name="labor_hours[]" class="form-control" placeholder="Hours" required>
+                    <input type="number" name="labor_hours[]" class="form-control" placeholder='Hours' required>
                 </div>
                 <div class="col-auto">
                     <button type="button" class="btn btn-danger" onclick="this.parentElement.parentElement.remove()">Remove</button>
