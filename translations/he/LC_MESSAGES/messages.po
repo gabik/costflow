@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-12-15 09:16+0200\n"
+"POT-Creation-Date: 2024-12-16 10:53+0200\n"
 "PO-Revision-Date: 2024-12-14 21:06+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: he\n"
@@ -23,7 +23,8 @@ msgstr ""
 #: templates/add_or_edit_product.html:4
 #: templates/add_or_edit_raw_material.html:2
 #: templates/add_or_edit_raw_material.html:4 templates/categories.html:19
-#: templates/packaging.html:26 templates/raw_materials.html:34
+#: templates/packaging.html:26 templates/products.html:42
+#: templates/raw_materials.html:34
 msgid "Edit"
 msgstr "עדכן"
 
@@ -40,7 +41,7 @@ msgstr "הוסף"
 #: templates/add_or_edit_packaging.html:4
 #: templates/add_or_edit_packaging.html:18
 #: templates/add_or_edit_product.html:26 templates/base.html:27
-#: templates/index.html:35 templates/product_details.html:56
+#: templates/index.html:32 templates/product_details.html:56
 #: templates/product_details.html:60
 msgid "Packaging"
 msgstr "אריזה"
@@ -81,7 +82,7 @@ msgid "Selling Price Per Unit"
 msgstr "מחיר מכירה ליחידה"
 
 #: templates/add_or_edit_product.html:20 templates/base.html:23
-#: templates/index.html:17 templates/product_details.html:8
+#: templates/index.html:14 templates/product_details.html:8
 #: templates/raw_materials.html:2 templates/raw_materials.html:4
 msgid "Raw Materials"
 msgstr "חומרי גלם"
@@ -122,12 +123,13 @@ msgid "Save Product"
 msgstr "שמור מוצר"
 
 #: templates/add_or_edit_product.html:53 templates/add_or_edit_product.html:104
-#: templates/add_or_edit_product.html:138 templates/packaging.html:11
+#: templates/add_or_edit_product.html:138
+#: templates/add_or_edit_product.html:202 templates/packaging.html:11
 #: templates/products.html:9 templates/raw_materials.html:9
 msgid "Name"
 msgstr "שם"
 
-#: templates/add_or_edit_product.html:57
+#: templates/add_or_edit_product.html:57 templates/add_or_edit_product.html:193
 #: templates/add_or_edit_raw_material.html:7 templates/raw_materials.html:10
 msgid "Category"
 msgstr "קטגוריה"
@@ -146,6 +148,10 @@ msgstr "יחידה"
 #: templates/add_or_edit_raw_material.html:30 templates/raw_materials.html:12
 msgid "Cost Per Unit"
 msgstr "מחיר ליחידה"
+
+#: templates/add_or_edit_product.html:78 templates/raw_materials.html:13
+msgid "Stock"
+msgstr "במלאי"
 
 #: templates/add_or_edit_product.html:83 templates/add_or_edit_product.html:117
 #: templates/add_or_edit_product.html:151
@@ -178,6 +184,15 @@ msgstr "שם קטגוריה"
 msgid "Add Category"
 msgstr "הוסף קטגוריה"
 
+#: templates/add_or_edit_product.html:195
+msgid "All"
+msgstr "כל המוצרים"
+
+#: templates/add_or_edit_product.html:210 templates/raw_materials.html:54
+#: templates/raw_materials.html:76
+msgid "Quantity"
+msgstr "כמות"
+
 #: templates/add_or_edit_raw_material.html:2
 #: templates/add_or_edit_raw_material.html:4 templates/product_details.html:12
 msgid "Raw Material"
@@ -203,11 +218,11 @@ msgstr "מוצרים"
 msgid "Labor"
 msgstr "עובדים"
 
-#: templates/base.html:26 templates/index.html:58
+#: templates/base.html:26 templates/index.html:54
 msgid "Categories"
 msgstr "קטגוריות"
 
-#: templates/base.html:28 templates/index.html:26
+#: templates/base.html:28 templates/index.html:23
 msgid "Production"
 msgstr "ייצור"
 
@@ -216,7 +231,7 @@ msgid "2024 Waste Tracking System. All rights reserved."
 msgstr "סיתי בולאנז׳רי // מערכת ניהול עלויות"
 
 #: templates/categories.html:2 templates/categories.html:4
-#: templates/index.html:60
+#: templates/index.html:56
 msgid "Manage Categories"
 msgstr "ניהול קטגוריות"
 
@@ -246,58 +261,54 @@ msgid ""
 " efficiently"
 msgstr "ניהול עלויות תהליכי הייצור"
 
-#: templates/index.html:8
+#: templates/index.html:7
 msgid ""
 "Navigate through the system using the menu or explore the key features "
 "below"
 msgstr "נווט אל האזור הרצוי בעזרת הכפתורים"
 
-#: templates/index.html:9
-msgid "Manage Raw Materials"
-msgstr "נהל חומרי גלם"
-
-#: templates/index.html:10 templates/index.html:28 templates/production.html:24
-msgid "Log Production"
-msgstr "יומן ייצור"
-
-#: templates/index.html:18
+#: templates/index.html:15
 msgid ""
 "Track your inventory, update stock levels, and manage raw material "
 "categories seamlessly"
 msgstr "נהל ועקוב אחר חומרי הגלם"
 
-#: templates/index.html:19
+#: templates/index.html:16
 msgid "Go to Raw Materials"
 msgstr "חומרי גלם"
 
-#: templates/index.html:27
+#: templates/index.html:24
 msgid ""
 "Log production activities and analyze raw material usage for optimized "
 "operations"
 msgstr "נהל יומן ייצור על מנת לזהות פחת עודף"
 
-#: templates/index.html:36
+#: templates/index.html:25 templates/production.html:24
+msgid "Log Production"
+msgstr "יומן ייצור"
+
+#: templates/index.html:33
 msgid "Manage packaging options, costs, and their integration into your products"
 msgstr "נהל חוצרי אריזה, מחירים וכמויות"
 
-#: templates/index.html:37 templates/packaging.html:2
+#: templates/index.html:34 templates/packaging.html:2
 #: templates/packaging.html:4
 msgid "Manage Packaging"
 msgstr "ניהול מוצרי אריזה"
 
-#: templates/index.html:49
+#: templates/index.html:45
 msgid "Labor Management"
 msgstr "ניהול עובדים"
 
-#: templates/index.html:50
+#: templates/index.html:46
 msgid "Oversee labor costs and contributions to each production activity"
 msgstr "נהל את עובדי הייצור ושכרם"
 
-#: templates/index.html:51 templates/labor.html:2 templates/labor.html:4
+#: templates/index.html:47 templates/labor.html:2 templates/labor.html:4
 msgid "Manage Labor"
 msgstr "ניהול עובדים"
 
-#: templates/index.html:59
+#: templates/index.html:55
 msgid ""
 "Organize your raw materials and packaging into categories for easy "
 "management"
@@ -324,7 +335,7 @@ msgstr "מחק"
 msgid "Price per Unit"
 msgstr "מחיר ליחידה"
 
-#: templates/packaging.html:15 templates/products.html:10
+#: templates/packaging.html:15 templates/products.html:12
 #: templates/raw_materials.html:14
 msgid "Actions"
 msgstr "פעולות"
@@ -399,17 +410,25 @@ msgstr "תאריך"
 msgid "Add New Product"
 msgstr "הוסף מוצר חדש"
 
-#: templates/products.html:18
+#: templates/products.html:10
+msgid "Unit Price"
+msgstr "מחיר ליחידה"
+
+#: templates/products.html:11
+msgid "Cost Margin"
+msgstr "שולי רווח"
+
+#: templates/products.html:37
+msgid "N/A"
+msgstr "שגיאה"
+
+#: templates/products.html:41
 msgid "View"
 msgstr "הצג"
 
 #: templates/raw_materials.html:5
 msgid "Add New Raw Material"
 msgstr "הוסף חומר גלם חדש"
-
-#: templates/raw_materials.html:13
-msgid "Stock"
-msgstr "במלאי"
 
 #: templates/raw_materials.html:27
 msgid "Add Stock"
@@ -423,11 +442,10 @@ msgstr "הגדר כמות"
 msgid "Adding stock for "
 msgstr "הוסף כמות ל"
 
-#: templates/raw_materials.html:54 templates/raw_materials.html:76
-msgid "Quantity"
-msgstr "כמות"
-
 #: templates/raw_materials.html:74
 msgid "Setting stock for "
 msgstr "הגדר כמות נוכחית ל"
+
+#~ msgid "Manage Raw Materials"
+#~ msgstr "נהל חומרי גלם"
 

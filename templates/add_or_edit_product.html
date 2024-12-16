@@ -18,7 +18,7 @@
 
     <!-- Raw Materials Section -->
     <h3>{{ _('Raw Materials') }}</h3>
-    <button type="button" class="btn btn-sm btn-outline-primary mb-2" onclick="addRawMaterial()">{{ _('Add Raw Material') }}</button>
+    <button type="button" class="btn btn-sm btn-outline-primary mb-2" onclick="addRawMaterialRow()">{{ _('Add Raw Material') }}</button>
     <button type="button" class="btn btn-sm btn-outline-success mb-2" data-toggle="modal" data-target="#addRawMaterialModal">{{ _('New Raw Material') }}</button>
     <div id="raw-materials-container"></div>
 
@@ -75,7 +75,7 @@
                         <input type="number" id="raw_material_cost" name="cost_per_unit" class="form-control" step="0.01" required>
                     </div>
                     <div class="form-group">
-                        <label for="raw_material_stock">Stock</label>
+                        <label for="raw_material_stock">{{ _('Stock') }}</label>
                         <input type="number" id="raw_material_stock" name="stock" class="form-control" step="0.01" required>
                     </div>
                 </div>
@@ -183,25 +183,55 @@
 </div>
 
 <script>
-    function addRawMaterial() {
+    let rawMaterialRowIndex = 1;
+
+    function addRawMaterialRow() {
         const container = document.getElementById('raw-materials-container');
-        const newRow = `
-            <div class="row mb-2">
+        const rowHtml = `
+            <div class="form-row mt-2">
                 <div class="col">
-                    <select name="raw_material[]" class="form-control">
-                        {% for material in all_raw_materials %}
-                        <option value="{{ material.id }}">{{ material.name }} ({{ material.unit }})</option>
+                    <label for="raw_material_category_${rawMaterialRowIndex}">{{ _('Category') }}</label>
+                    <select class="form-control raw-material-category" id="raw_material_category_${rawMaterialRowIndex}" data-row="${rawMaterialRowIndex}" onchange="filterRawMaterials(${rawMaterialRowIndex})">
+                        <option value="all">{{ _('All') }}</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="col">
-                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder='Quantity' required>
+                    <label for="raw_material_name_${rawMaterialRowIndex}">{{ _('Name') }}</label>
+                    <select class="form-control raw-material-name" id="raw_material_name_${rawMaterialRowIndex}" name="raw_material[]" required>
+                        {% for material in raw_materials %}
+                        <option data-category="{{ material.category_id }}" value="{{ material.id }}">{{ material.name }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-                <div class="col-auto">
-                    <button type="button" class="btn btn-danger" onclick="this.parentElement.parentElement.remove()">Remove</button>
+                <div class="col">
+                    <label for="raw_material_quantity_${rawMaterialRowIndex}">{{ _('Quantity') }}</label>
+                    <input type="number" class="form-control" id="raw_material_quantity_${rawMaterialRowIndex}" name="raw_material_quantity[]" step="0.01" required>
                 </div>
             </div>`;
-        container.insertAdjacentHTML('beforeend', newRow);
+        container.insertAdjacentHTML('beforeend', rowHtml);
+        rawMaterialRowIndex++;
+    }
+
+    function filterRawMaterials(rowIndex) {
+        const categorySelector = document.getElementById(`raw_material_category_${rowIndex}`);
+        const selectedCategory = categorySelector.value;
+        const nameSelector = document.getElementById(`raw_material_name_${rowIndex}`);
+
+        Array.from(nameSelector.options).forEach(option => {
+            if (selectedCategory === 'all' || option.getAttribute('data-category') === selectedCategory) {
+                option.style.display = 'block';
+            } else {
+                option.style.display = 'none';
+            }
+        });
+
+        // Reset selection if the selected option is no longer visible
+        if (nameSelector.selectedOptions.length && nameSelector.selectedOptions[0].style.display === 'none') {
+            nameSelector.value = '';
+        }
     }
 
     function addPackaging() {

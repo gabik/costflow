@@ -269,14 +269,16 @@ def add_product():
 
     # For GET requests, load the data required for the form
     all_raw_materials = RawMaterial.query.all()
+    categories = Category.query.all()
     all_packaging = Packaging.query.all()
     all_labor = Labor.query.all()
     return render_template(
         'add_or_edit_product.html',
         product=None,
-        all_raw_materials=all_raw_materials,
+        raw_materials=all_raw_materials,
         all_packaging=all_packaging,
-        all_labor=all_labor
+        all_labor=all_labor,
+        categories=categories
     )
 
 @main_blueprint.route('/products/<int:product_id>', methods=['GET'])
@@ -326,6 +328,73 @@ def product_detail(product_id):
         raw_materials=raw_materials,
         labor_costs=labor_costs,
         packaging_costs=packaging_costs
+    )
+
+@main_blueprint.route('/products/edit/<int:product_id>', methods=['GET', 'POST'])
+def edit_product(product_id):
+    product = Product.query.get_or_404(product_id)
+
+    if request.method == 'POST':
+        product.name = request.form['name']
+        product.products_per_recipe = int(request.form['products_per_recipe'])
+        product.selling_price_per_unit = float(request.form['selling_price_per_unit'])
+
+        # Clear existing components
+        ProductComponent.query.filter_by(product_id=product_id).delete()
+
+        # Add updated raw materials
+        raw_materials = request.form.getlist('raw_material[]')
+        raw_material_quantities = request.form.getlist('raw_material_quantity[]')
+        for raw_material_id, quantity in zip(raw_materials, raw_material_quantities):
+            if raw_material_id and quantity:
+                component = ProductComponent(
+                    product_id=product.id,
+                    component_type='raw_material',
+                    component_id=int(raw_material_id),
+                    quantity=float(quantity)
+                )
+                db.session.add(component)
+
+        # Add updated packaging
+        packaging = request.form.getlist('packaging[]')
+        packaging_quantities = request.form.getlist('packaging_quantity[]')
+        for packaging_id, quantity in zip(packaging, packaging_quantities):
+            if packaging_id and quantity:
+                component = ProductComponent(
+                    product_id=product.id,
+                    component_type='packaging',
+                    component_id=int(packaging_id),
+                    quantity=float(quantity)
+                )
+                db.session.add(component)
+
+        # Add updated labor
+        labor = request.form.getlist('labor[]')
+        labor_hours = request.form.getlist('labor_hours[]')
+        for labor_id, hours in zip(labor, labor_hours):
+            if labor_id and hours:
+                component = ProductComponent(
+                    product_id=product.id,
+                    component_type='labor',
+                    component_id=int(labor_id),
+                    quantity=float(hours)
+                )
+                db.session.add(component)
+
+        db.session.commit()
+        return redirect(url_for('main.products'))
+
+    # Prepopulate fields for editing
+    all_raw_materials = RawMaterial.query.all()
+    all_packaging = Packaging.query.all()
+    all_labor = Labor.query.all()
+
+    return render_template(
+        'add_or_edit_product.html',
+        product=product,
+        all_raw_materials=all_raw_materials,
+        all_packaging=all_packaging,
+        all_labor=all_labor
     )
 
 # ----------------------------
