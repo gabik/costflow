@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}עדכון מלאי מקובץ - CostFlow{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-6 fw-bold text-primary">עדכון מלאי מקובץ</h1>
+        <p class="text-secondary">העלאת קובץ אקסל לעדכון כמויות ומחירים.</p>
+    </div>
+</div>
+
+{% if not review_data %}
+<!-- Step 1: Upload Form -->
+<div class="card shadow-sm">
+    <div class="card-body p-5 text-center">
+        <i class="bi bi-file-earmark-spreadsheet display-1 text-success mb-3"></i>
+        <h4 class="mb-3">העלה קובץ אקסל</h4>
+        <p class="text-muted mb-4">הקובץ חייב להכיל את העמודות: שם מוצר, סה"כ כמות, מחיר ממוצע.</p>
+        
+        <form method="POST" enctype="multipart/form-data" class="d-inline-block text-start" style="max-width: 400px;">
+            <div class="mb-3">
+                <input type="file" name="inventory_file" class="form-control" accept=".xlsx, .xls" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-upload me-2"></i> טען קובץ
+            </button>
+        </form>
+    </div>
+</div>
+
+{% else %}
+<!-- Step 2: Review Data -->
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">סקירת נתונים ואישור שינויים</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('main.confirm_inventory_upload') }}">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>שם מוצר (מהקובץ)</th>
+                            <th>סטטוס</th>
+                            <th>כמות להוספה</th>
+                            <th>מחיר בקובץ</th>
+                            <th>מחיר במערכת</th>
+                            <th>פעולה נדרשת</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in review_data %}
+                        <tr class="{{ 'table-warning' if item.price_differs else '' }}">
+                            <td>
+                                <input type="hidden" name="items[{{ loop.index0 }}][name]" value="{{ item.name }}">
+                                <input type="hidden" name="items[{{ loop.index0 }}][quantity]" value="{{ item.quantity }}">
+                                <input type="hidden" name="items[{{ loop.index0 }}][new_price]" value="{{ item.new_price }}">
+                                <input type="hidden" name="items[{{ loop.index0 }}][status]" value="{{ item.status }}">
+                                <strong>{{ item.name }}</strong>
+                            </td>
+                            <td>
+                                {% if item.status == 'new' %}
+                                    <span class="badge bg-success">חדש</span>
+                                {% elif item.status == 'exists' %}
+                                    <span class="badge bg-secondary">קיים</span>
+                                {% endif %}
+                            </td>
+                            <td>+{{ item.quantity }} ק"ג</td>
+                            <td class="fw-bold">{{ item.new_price }} ₪</td>
+                            <td>
+                                {% if item.current_price is not none %}
+                                    {{ item.current_price }} ₪
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.price_differs %}
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="update_price_{{ loop.index0 }}" name="items[{{ loop.index0 }}][update_price]" value="yes" checked>
+                                        <label class="form-check-label text-danger fw-bold" for="update_price_{{ loop.index0 }}">
+                                            עדכן מחיר ל-{{ item.new_price }} ₪
+                                        </label>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted small"><i class="bi bi-check-circle me-1"></i>מחיר זהה</span>
+                                    <input type="hidden" name="items[{{ loop.index0 }}][update_price]" value="yes"> <!-- Default to yes/ignore if same -->
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mt-4 d-flex justify-content-end gap-2">
+                <a href="{{ url_for('main.upload_inventory') }}" class="btn btn-secondary">ביטול</a>
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="bi bi-check-lg me-2"></i> אשר ועדכן מלאי
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

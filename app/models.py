@@ -74,6 +74,7 @@ class Product(db.Model):
     name = db.Column(db.String(100), nullable=False)
     products_per_recipe = db.Column(db.Integer, nullable=False)
     selling_price_per_unit = db.Column(db.Float, nullable=False)
+    image_filename = db.Column(db.String(255), nullable=True)
 
     def to_dict(self):
         return {
@@ -81,6 +82,7 @@ class Product(db.Model):
             'name': self.name,
             'products_per_recipe': self.products_per_recipe,
             'selling_price_per_unit': self.selling_price_per_unit,
+            'image_filename': self.image_filename,
             'components': [c.to_dict() for c in self.components]
         }
 
@@ -118,3 +120,15 @@ class ProductComponent(db.Model):
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
+
+class WeeklyLaborCost(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    week_start_date = db.Column(db.Date, unique=True, nullable=False)
+    total_cost = db.Column(db.Float, nullable=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'week_start_date': self.week_start_date.strftime('%Y-%m-%d'),
+            'total_cost': self.total_cost
+        }

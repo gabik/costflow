@@ -28,6 +28,8 @@ def create_app():
     app.config['BABEL_DEFAULT_LOCALE'] = 'he'
     app.config['BABEL_SUPPORTED_LOCALES'] = ['en', 'he']
     app.config['BABEL_TRANSLATION_DIRECTORIES'] = '../translations'
+    app.config['UPLOAD_FOLDER'] = os.path.join(app.static_folder, 'uploads', 'products')
+    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload size
 
     babel = Babel(app, locale_selector=get_locale)
 

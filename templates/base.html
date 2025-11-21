@@ -37,10 +37,12 @@
                         הגדרות
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg" aria-labelledby="navbarDropdown" style="border-radius: 12px;">
-                        <li><a class="dropdown-item py-2" href="{{ url_for('main.labor') }}">עלויות עבודה</a></li>
+                        <li><a class="dropdown-item py-2" href="{{ url_for('main.weekly_costs') }}">עלויות שבועיות</a></li>
+                        <li><a class="dropdown-item py-2" href="{{ url_for('main.labor') }}">ניהול תפקידים (ישן)</a></li>
                         <li><a class="dropdown-item py-2" href="{{ url_for('main.packaging') }}">אריזה</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item py-2" href="{{ url_for('main.categories') }}">קטגוריות</a></li>
+                        <li><a class="dropdown-item py-2" href="{{ url_for('main.upload_inventory') }}">טעינת מלאי מקובץ</a></li>
                     </ul>
                 </li>
             </ul>

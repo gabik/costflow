@@ -9,18 +9,35 @@
 </div>
 
 <div class="card shadow-sm p-4">
-    <form method="POST">
-        <div class="mb-3">
-            <label for="name" class="form-label">שם המוצר</label>
-            <input type="text" id="name" name="name" class="form-control" value="{{ product.name if product else '' }}" placeholder="לדוגמה: לחם אחיד">
-        </div>
-        <div class="mb-3">
-            <label for="products_per_recipe" class="form-label">כמות מוצרים למתכון (לסיבוב ייצור)</label>
-            <input type="number" id="products_per_recipe" name="products_per_recipe" class="form-control" step="1" value="{{ product.products_per_recipe if product else '' }}">
-        </div>
-        <div class="mb-4">
-            <label for="selling_price_per_unit" class="form-label">מחיר מכירה ליחידה (₪)</label>
-            <input type="number" id="selling_price_per_unit" name="selling_price_per_unit" class="form-control" step="0.01" value="{{ product.selling_price_per_unit if product else '' }}">
+    <form method="POST" enctype="multipart/form-data">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="mb-3">
+                    <label for="name" class="form-label">שם המוצר</label>
+                    <input type="text" id="name" name="name" class="form-control" value="{{ product.name if product else '' }}" placeholder="לדוגמה: לחם אחיד">
+                </div>
+                <div class="mb-3">
+                    <label for="products_per_recipe" class="form-label">כמות מוצרים למתכון (לסיבוב ייצור)</label>
+                    <input type="number" id="products_per_recipe" name="products_per_recipe" class="form-control" step="1" value="{{ product.products_per_recipe if product else '' }}">
+                </div>
+                <div class="mb-4">
+                    <label for="selling_price_per_unit" class="form-label">מחיר מכירה ליחידה (₪)</label>
+                    <input type="number" id="selling_price_per_unit" name="selling_price_per_unit" class="form-control" step="0.01" value="{{ product.selling_price_per_unit if product else '' }}">
+                </div>
+            </div>
+            <div class="col-md-4 text-center">
+                <label class="form-label d-block">תמונת מוצר</label>
+                <div class="mb-3">
+                    {% if product and product.image_filename %}
+                        <img src="{{ url_for('static', filename='uploads/products/' + product.image_filename) }}" alt="Current Image" class="img-thumbnail mb-2" style="max-height: 150px;">
+                    {% else %}
+                        <div class="bg-light d-flex align-items-center justify-content-center border rounded mb-2" style="height: 150px;">
+                            <i class="bi bi-image text-muted display-4"></i>
+                        </div>
+                    {% endif %}
+                    <input type="file" name="image" class="form-control" accept="image/*">
+                </div>
+            </div>
         </div>
 
         <!-- Raw Materials Section -->
@@ -83,37 +100,6 @@
         </div>
         <button type="button" class="btn btn-outline-primary mb-4" onclick="addPackagingRow()">
             <i class="bi bi-plus-lg me-2"></i>הוסף אריזה
-        </button>
-
-        <!-- Labor Section -->
-        <h4 class="mb-3 fw-bold">עלויות עבודה נדרשות</h4>
-        <div id="labor-container" class="mb-4">
-            {% if product %}
-                {% for component in product.components %}
-                    {% if component.component_type == 'labor' %}
-                    <div class="row g-2 mb-2 align-items-center labor-row">
-                        <div class="col-md-5">
-                            <select name="labor[]" class="form-select">
-                                {% for labor_option in all_labor %}
-                                    <option value="{{ labor_option.id }}" {% if component.component_id == labor_option.id %}selected{% endif %}>
-                                        {{ labor_option.name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <input type="number" name="labor_hours[]" class="form-control" placeholder="שעות" step="0.01" value="{{ component.quantity }}">
-                        </div>
-                        <div class="col-md-auto">
-                            <button type="button" class="btn btn-outline-danger" onclick="this.closest('.labor-row').remove()"><i class="bi bi-x-lg"></i></button>
-                        </div>
-                    </div>
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
-        </div>
-        <button type="button" class="btn btn-outline-primary mb-4" onclick="addLaborRow()">
-            <i class="bi bi-plus-lg me-2"></i>הוסף עבודה
         </button>
 
         <div class="d-grid gap-2 mt-4">
@@ -210,132 +196,6 @@
     </div>
 </div>
 
-<!-- Add Labor Modal (shared) -->
-<div class="modal fade" id="addLaborModal" tabindex="-1" aria-labelledby="addLaborModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="POST" action="{{ url_for('main.add_labor') }}">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addLaborModalLabel">הוספת עובד / תפקיד חדש</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="labor_name_modal" class="form-label">שם עובד / תפקיד</label>
-                        <input type="text" id="labor_name_modal" name="name" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="base_hourly_rate_modal" class="form-label">שכר בסיס (₪)</label>
-                        <input type="number" id="base_hourly_rate_modal" name="base_hourly_rate" class="form-control" step="0.01" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="additional_hourly_rate_modal" class="form-label">עלויות מעביד (₪)</label>
-                        <input type="number" id="additional_hourly_rate_modal" name="additional_hourly_rate" class="form-control" step="0.01" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
-                    <button type="submit" class="btn btn-primary">הוסף עובד</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-
-
-<script>
-    let rawMaterialRowIndex = 0;
-    let packagingRowIndex = 0;
-    let laborRowIndex = 0;
-
-    // Function to add a new raw material row dynamically
-    function addRawMaterialRow(materialId = '', quantity = '') {
-        rawMaterialRowIndex++;
-        const container = document.getElementById('raw-materials-container');
-        const allRawMaterials = JSON.parse('{{ all_raw_materials | default([]) | tojson }}');
-        
-        let optionsHtml = '<option value="" disabled selected>בחר חומר גלם...</option>';
-        allRawMaterials.forEach(material => {
-            const selected = materialId == material.id ? 'selected' : '';
-            optionsHtml += `<option value="${material.id}" ${selected}>${material.name}</option>`;
-        });
-
-        const rowHtml = `
-            <div class="row g-2 mb-2 align-items-center raw-material-row">
-                <div class="col-md-5">
-                    <select name="raw_material[]" class="form-select">
-                        ${optionsHtml}
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="${quantity}">
-                </div>
-                <div class="col-md-auto">
-                    <button type="button" class="btn btn-outline-danger" onclick="this.closest('.raw-material-row').remove()"><i class="bi bi-x-lg"></i></button>
-                </div>
-            </div>`;
-        container.insertAdjacentHTML('beforeend', rowHtml);
-    }
-
-    // Function to add a new packaging row dynamically
-    function addPackagingRow(packagingId = '', quantity = '') {
-        packagingRowIndex++;
-        const container = document.getElementById('packaging-container');
-        const allPackaging = JSON.parse('{{ all_packaging | default([]) | tojson }}');
-
-        let optionsHtml = '<option value="" disabled selected>בחר אריזה...</option>';
-        allPackaging.forEach(pkg => {
-            const selected = packagingId == pkg.id ? 'selected' : '';
-            optionsHtml += `<option value="${pkg.id}" ${selected}>${pkg.name}</option>`;
-        });
-
-        const rowHtml = `
-            <div class="row g-2 mb-2 align-items-center packaging-row">
-                <div class="col-md-5">
-                    <select name="packaging[]" class="form-select">
-                        ${optionsHtml}
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <input type="number" name="packaging_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="${quantity}">
-                </div>
-                <div class="col-md-auto">
-                    <button type="button" class="btn btn-outline-danger" onclick="this.closest('.packaging-row').remove()"><i class="bi bi-x-lg"></i></button>
-                </div>
-            </div>`;
-        container.insertAdjacentHTML('beforeend', rowHtml);
-    }
-
-    // Function to add a new labor row dynamically
-    function addLaborRow(laborId = '', hours = '') {
-        laborRowIndex++;
-        const container = document.getElementById('labor-container');
-        const allLabor = JSON.parse('{{ all_labor | default([]) | tojson }}');
-
-        let optionsHtml = '<option value="" disabled selected>בחר עובד / תפקיד...</option>';
-        allLabor.forEach(labor => {
-            const selected = laborId == labor.id ? 'selected' : '';
-            optionsHtml += `<option value="${labor.id}" ${selected}>${labor.name}</option>`;
-        });
-
-        const rowHtml = `
-            <div class="row g-2 mb-2 align-items-center labor-row">
-                <div class="col-md-5">
-                    <select name="labor[]" class="form-select">
-                        ${optionsHtml}
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <input type="number" name="labor_hours[]" class="form-control" placeholder="שעות" step="0.01" value="${hours}">
-                </div>
-                <div class="col-md-auto">
-                    <button type="button" class="btn btn-outline-danger" onclick="this.closest('.labor-row').remove()"><i class="bi bi-x-lg"></i></button>
-                </div>
-            </div>`;
-        container.insertAdjacentHTML('beforeend', rowHtml);
-    }
-
     // Initialize existing components for editing
     document.addEventListener('DOMContentLoaded', function() {
         const product = JSON.parse('{{ product_json | tojson }}');
@@ -345,14 +205,11 @@
                     addRawMaterialRow(component.component_id, component.quantity);
                 } else if (component.component_type === 'packaging') {
                     addPackagingRow(component.component_id, component.quantity);
-                } else if (component.component_type === 'labor') {
-                    addLaborRow(component.component_id, component.quantity);
                 }
             });
         } else { // For new product, add one empty row of each type
             addRawMaterialRow();
             addPackagingRow();
-            addLaborRow();
         }
     });
 </script>

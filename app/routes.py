@@ -1,16 +1,100 @@
-from datetime import datetime
-from flask import Blueprint, render_template, request, redirect, url_for
-from .models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog
+import os
+import pandas as pd
+from datetime import datetime, date, timedelta
+from werkzeug.utils import secure_filename
+from flask import Blueprint, render_template, request, redirect, url_for, current_app
+from sqlalchemy import func
+from .models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog, WeeklyLaborCost
 
 main_blueprint = Blueprint('main', __name__)
 
 # Predefined units for raw materials
 units_list = ["g", "kg", "ml", "l", "piece"]
 
-# Homepage
+# Homepage - Weekly Dashboard
 @main_blueprint.route('/')
 def index():
-    return render_template('index.html')
+    # 1. Fetch all weeks for dropdown
+    all_weeks = WeeklyLaborCost.query.order_by(WeeklyLaborCost.week_start_date.desc()).all()
+    
+    selected_week_id = request.args.get('week_id')
+    selected_week = None
+    
+    if selected_week_id:
+        selected_week = WeeklyLaborCost.query.get(selected_week_id)
+    elif all_weeks:
+        selected_week = all_weeks[0] # Default to latest
+
+    report_data = []
+    total_units = 0
+    labor_cost_per_unit = 0
+    
+    if selected_week:
+        week_start = selected_week.week_start_date
+        week_end = week_start + timedelta(days=6)
+        
+        # 2. Fetch production logs for this week
+        # Note: ProductionLog.timestamp is DateTime, week_start is Date. Cast or compare carefully.
+        logs = ProductionLog.query.filter(
+            func.date(ProductionLog.timestamp) >= week_start,
+            func.date(ProductionLog.timestamp) <= week_end
+        ).all()
+        
+        # 3. Calculate Total Units
+        total_units = sum(log.quantity_produced for log in logs)
+        
+        # 4. Calculate Labor Cost Per Unit
+        if total_units > 0:
+            labor_cost_per_unit = selected_week.total_cost / total_units
+            
+        # 5. Build Product Performance Data
+        # Group logs by product to get total qty per product
+        product_quantities = {}
+        for log in logs:
+            product_quantities[log.product_id] = product_quantities.get(log.product_id, 0) + log.quantity_produced
+            
+        for product_id, qty in product_quantities.items():
+            product = Product.query.get(product_id)
+            if not product: continue
+            
+            # Calculate Prime Cost (Materials + Packaging only)
+            prime_cost = 0
+            for component in product.components:
+                if component.component_type == 'raw_material' and component.material:
+                    prime_cost += component.quantity * component.material.cost_per_unit
+                elif component.component_type == 'packaging' and component.packaging:
+                    prime_cost += component.quantity * component.packaging.price_per_unit
+            
+            # Normalize prime cost to per-unit (since components are per recipe)
+            if product.products_per_recipe > 0:
+                prime_cost_per_unit = prime_cost / product.products_per_recipe
+            else:
+                prime_cost_per_unit = 0
+                
+            total_unit_cost = prime_cost_per_unit + labor_cost_per_unit
+            
+            margin_percent = 0
+            if product.selling_price_per_unit > 0:
+                margin_percent = ((product.selling_price_per_unit - total_unit_cost) / product.selling_price_per_unit) * 100
+                
+            report_data.append({
+                'product_name': product.name,
+                'product_image': product.image_filename,
+                'quantity_produced': qty,
+                'prime_cost': prime_cost_per_unit,
+                'labor_cost': labor_cost_per_unit,
+                'total_cost': total_unit_cost,
+                'selling_price': product.selling_price_per_unit,
+                'margin_percent': margin_percent,
+                'total_profit': (product.selling_price_per_unit - total_unit_cost) * qty
+            })
+
+    return render_template('index.html', 
+                           weeks=all_weeks, 
+                           selected_week=selected_week, 
+                           report_data=report_data,
+                           total_units=total_units,
+                           labor_cost_per_unit=labor_cost_per_unit)
 
 # ----------------------------
 # Raw Materials Management
@@ -240,12 +324,25 @@ def add_product():
         name = request.form['name']
         products_per_recipe = request.form['products_per_recipe']
         selling_price_per_unit = request.form['selling_price_per_unit']
+        
+        image_filename = None
+        if 'image' in request.files:
+            file = request.files['image']
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                # Ensure unique filename to prevent overwrites? For simple MVP, simple secure is okay, or prepend timestamp.
+                # Let's prepend timestamp for uniqueness.
+                timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+                filename = f"{timestamp}_{filename}"
+                file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+                image_filename = filename
 
         # Create a new Product entry
         product = Product(
             name=name,
             products_per_recipe=int(products_per_recipe),
-            selling_price_per_unit=float(selling_price_per_unit)
+            selling_price_per_unit=float(selling_price_per_unit),
+            image_filename=image_filename
         )
         db.session.add(product)
         db.session.commit()  # Save product to get its ID
@@ -361,6 +458,15 @@ def edit_product(product_id):
         product.name = request.form['name']
         product.products_per_recipe = int(request.form['products_per_recipe'])
         product.selling_price_per_unit = float(request.form['selling_price_per_unit'])
+        
+        if 'image' in request.files:
+            file = request.files['image']
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+                filename = f"{timestamp}_{filename}"
+                file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+                product.image_filename = filename
 
         # Clear existing components
         ProductComponent.query.filter_by(product_id=product_id).delete()
@@ -491,3 +597,162 @@ def production():
     production_logs = ProductionLog.query.order_by(ProductionLog.timestamp.desc()).all()
     current_time = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
     return render_template('production.html', products=products, production_logs=production_logs, current_time=current_time)
+
+# ----------------------------
+# Weekly Costs Management
+# ----------------------------
+@main_blueprint.route('/weekly_costs', methods=['GET', 'POST'])
+def weekly_costs():
+    if request.method == 'POST':
+        date_str = request.form['week_start_date']
+        total_cost = float(request.form['total_cost'])
+        week_start = datetime.strptime(date_str, '%Y-%m-%d').date()
+
+        # Check if exists
+        existing_entry = WeeklyLaborCost.query.filter_by(week_start_date=week_start).first()
+        if existing_entry:
+            existing_entry.total_cost = total_cost
+        else:
+            new_entry = WeeklyLaborCost(week_start_date=week_start, total_cost=total_cost)
+            db.session.add(new_entry)
+        
+        db.session.commit()
+        return redirect(url_for('main.weekly_costs'))
+
+    weekly_costs = WeeklyLaborCost.query.order_by(WeeklyLaborCost.week_start_date.desc()).all()
+    return render_template('weekly_costs.html', weekly_costs=weekly_costs)
+
+# ----------------------------
+# Bulk Inventory Upload
+# ----------------------------
+@main_blueprint.route('/inventory/upload', methods=['GET', 'POST'])
+def upload_inventory():
+    review_data = None
+    
+    if request.method == 'POST':
+        if 'inventory_file' not in request.files:
+            return redirect(request.url)
+            
+        file = request.files['inventory_file']
+        if file.filename == '':
+            return redirect(request.url)
+
+        if file:
+            try:
+                df = pd.read_excel(file)
+                
+                # Normalize column names (strip whitespace)
+                df.columns = df.columns.str.strip()
+                
+                # Expected columns
+                col_name = 'שם מוצר'
+                col_qty = "סה''כ כמות"
+                col_price = 'מחיר ממוצע'
+                
+                review_data = []
+                
+                for index, row in df.iterrows():
+                    if pd.isna(row[col_name]): continue
+                    
+                    name = str(row[col_name]).strip()
+                    try:
+                        quantity = float(row[col_qty])
+                        price = float(row[col_price])
+                    except (ValueError, KeyError):
+                        continue # Skip invalid rows
+                        
+                    # Check DB
+                    material = RawMaterial.query.filter_by(name=name).first()
+                    
+                    status = 'new'
+                    current_price = None
+                    price_differs = False
+                    
+                    if material:
+                        status = 'exists'
+                        current_price = material.cost_per_unit
+                        if abs(current_price - price) > 0.01:
+                            price_differs = True
+                    
+                    review_data.append({
+                        'name': name,
+                        'quantity': quantity,
+                        'new_price': price,
+                        'status': status,
+                        'current_price': current_price,
+                        'price_differs': price_differs
+                    })
+                    
+            except Exception as e:
+                print(f"Error processing Excel: {e}")
+                return f"Error processing file: {e}", 400
+
+    return render_template('upload_inventory.html', review_data=review_data)
+
+@main_blueprint.route('/inventory/confirm', methods=['POST'])
+def confirm_inventory_upload():
+    # Parse the complex form data (items[0][name], items[0][quantity], etc.)
+    # Flask doesn't parse nested dicts automatically, so we iterate manually.
+    
+    items_data = {}
+    for key, value in request.form.items():
+        if key.startswith('items['):
+            # items[0][name] -> index=0, field=name
+            parts = key.replace(']', '').split('[')
+            index = int(parts[1])
+            field = parts[2]
+            
+            if index not in items_data:
+                items_data[index] = {}
+            items_data[index][field] = value
+
+    # Process items
+    # Default category for new items (or create a 'General' one)
+    default_category = Category.query.first()
+    if not default_category:
+        default_category = Category(name="כללי")
+        db.session.add(default_category)
+        db.session.commit()
+
+    for index, item in items_data.items():
+        name = item['name']
+        quantity = float(item['quantity'])
+        new_price = float(item['new_price'])
+        update_price = item.get('update_price') == 'yes'
+        
+        material = RawMaterial.query.filter_by(name=name).first()
+        
+        if not material:
+            # Create new
+            material = RawMaterial(
+                name=name,
+                category=default_category,
+                unit='kg', # Default unit
+                cost_per_unit=new_price
+            )
+            db.session.add(material)
+            db.session.flush() # Get ID
+            
+            # Initial stock log
+            log = StockLog(
+                raw_material_id=material.id,
+                action_type='set',
+                quantity=quantity
+            )
+            db.session.add(log)
+            
+        else:
+            # Update existing
+            if update_price:
+                material.cost_per_unit = new_price
+            
+            # Add stock log
+            log = StockLog(
+                raw_material_id=material.id,
+                action_type='add',
+                quantity=quantity
+            )
+            db.session.add(log)
+            
+    db.session.commit()
+    return redirect(url_for('main.raw_materials'))

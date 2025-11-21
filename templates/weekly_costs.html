@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}ניהול עלויות עבודה שבועיות - CostFlow{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-6 fw-bold text-primary">ניהול עלויות עבודה שבועיות</h1>
+        <p class="text-secondary">הזנת עלויות כוח אדם בפועל ברמה שבועית.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Add/Edit Form -->
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">עדכון עלות שבועית</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="week_start_date" class="form-label">תאריך תחילת שבוע</label>
+                        <input type="date" id="week_start_date" name="week_start_date" class="form-control" required>
+                        <div class="form-text small">בחר את יום ראשון של השבוע הרלוונטי.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="total_cost" class="form-label">סה"כ עלות עבודה (₪)</label>
+                        <input type="number" id="total_cost" name="total_cost" class="form-control" step="0.01" min="0" required>
+                        <div class="form-text small">כולל שכר ברוטו, נסיעות וסוציאליות לכל העובדים.</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-save me-2"></i> שמור עלות
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Table -->
+    <div class="col-md-8">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">היסטוריית עלויות</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>שבוע מתאריך</th>
+                            <th>סה"כ עלות</th>
+                            <th>פעולות</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in weekly_costs %}
+                        <tr>
+                            <td>{{ item.week_start_date.strftime('%d/%m/%Y') }}</td>
+                            <td class="fw-bold">{{ currency_symbol }}{{ "%.2f"|format(item.total_cost) }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" onclick="editCost('{{ item.week_start_date }}', '{{ item.total_cost }}')">
+                                    <i class="bi bi-pencil"></i> ערוך
+                                </button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center py-4 text-muted">לא הוזנו נתונים.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function editCost(dateStr, cost) {
+        // Convert Python date string format if needed, usually YYYY-MM-DD works for input type=date
+        document.getElementById('week_start_date').value = dateStr;
+        document.getElementById('total_cost').value = cost;
+    }
+</script>
+{% endblock %}
