@@ -12,15 +12,15 @@
     <form method="POST">
         <div class="mb-3">
             <label for="name" class="form-label">שם המוצר</label>
-            <input type="text" id="name" name="name" class="form-control" value="{{ product.name if product else '' }}" placeholder="לדוגמה: לחם אחיד" required>
+            <input type="text" id="name" name="name" class="form-control" value="{{ product.name if product else '' }}" placeholder="לדוגמה: לחם אחיד">
         </div>
         <div class="mb-3">
             <label for="products_per_recipe" class="form-label">כמות מוצרים למתכון (לסיבוב ייצור)</label>
-            <input type="number" id="products_per_recipe" name="products_per_recipe" class="form-control" step="1" value="{{ product.products_per_recipe if product else '' }}" required>
+            <input type="number" id="products_per_recipe" name="products_per_recipe" class="form-control" step="1" value="{{ product.products_per_recipe if product else '' }}">
         </div>
         <div class="mb-4">
             <label for="selling_price_per_unit" class="form-label">מחיר מכירה ליחידה (₪)</label>
-            <input type="number" id="selling_price_per_unit" name="selling_price_per_unit" class="form-control" step="0.01" value="{{ product.selling_price_per_unit if product else '' }}" required>
+            <input type="number" id="selling_price_per_unit" name="selling_price_per_unit" class="form-control" step="0.01" value="{{ product.selling_price_per_unit if product else '' }}">
         </div>
 
         <!-- Raw Materials Section -->
@@ -31,7 +31,7 @@
                     {% if component.component_type == 'raw_material' %}
                     <div class="row g-2 mb-2 align-items-center raw-material-row">
                         <div class="col-md-5">
-                            <select name="raw_material[]" class="form-select" required>
+                            <select name="raw_material[]" class="form-select">
                                 {% for material_option in all_raw_materials %}
                                     <option value="{{ material_option.id }}" {% if component.component_id == material_option.id %}selected{% endif %}>
                                         {{ material_option.name }}
@@ -40,7 +40,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="{{ component.quantity }}" required>
+                            <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="{{ component.quantity }}">
                         </div>
                         <div class="col-md-auto">
                             <button type="button" class="btn btn-outline-danger" onclick="this.closest('.raw-material-row').remove()"><i class="bi bi-x-lg"></i></button>
@@ -62,7 +62,7 @@
                     {% if component.component_type == 'packaging' %}
                     <div class="row g-2 mb-2 align-items-center packaging-row">
                         <div class="col-md-5">
-                            <select name="packaging[]" class="form-select" required>
+                            <select name="packaging[]" class="form-select">
                                 {% for packaging_option in all_packaging %}
                                     <option value="{{ packaging_option.id }}" {% if component.component_id == packaging_option.id %}selected{% endif %}>
                                         {{ packaging_option.name }}
@@ -71,7 +71,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <input type="number" name="packaging_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="{{ component.quantity }}" required>
+                            <input type="number" name="packaging_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="{{ component.quantity }}">
                         </div>
                         <div class="col-md-auto">
                             <button type="button" class="btn btn-outline-danger" onclick="this.closest('.packaging-row').remove()"><i class="bi bi-x-lg"></i></button>
@@ -93,7 +93,7 @@
                     {% if component.component_type == 'labor' %}
                     <div class="row g-2 mb-2 align-items-center labor-row">
                         <div class="col-md-5">
-                            <select name="labor[]" class="form-select" required>
+                            <select name="labor[]" class="form-select">
                                 {% for labor_option in all_labor %}
                                     <option value="{{ labor_option.id }}" {% if component.component_id == labor_option.id %}selected{% endif %}>
                                         {{ labor_option.name }}
@@ -102,7 +102,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <input type="number" name="labor_hours[]" class="form-control" placeholder="שעות" step="0.01" value="{{ component.quantity }}" required>
+                            <input type="number" name="labor_hours[]" class="form-control" placeholder="שעות" step="0.01" value="{{ component.quantity }}">
                         </div>
                         <div class="col-md-auto">
                             <button type="button" class="btn btn-outline-danger" onclick="this.closest('.labor-row').remove()"><i class="bi bi-x-lg"></i></button>
@@ -264,12 +264,12 @@
         const rowHtml = `
             <div class="row g-2 mb-2 align-items-center raw-material-row">
                 <div class="col-md-5">
-                    <select name="raw_material[]" class="form-select" required>
+                    <select name="raw_material[]" class="form-select">
                         ${optionsHtml}
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="${quantity}" required>
+                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="${quantity}">
                 </div>
                 <div class="col-md-auto">
                     <button type="button" class="btn btn-outline-danger" onclick="this.closest('.raw-material-row').remove()"><i class="bi bi-x-lg"></i></button>
@@ -293,12 +293,12 @@
         const rowHtml = `
             <div class="row g-2 mb-2 align-items-center packaging-row">
                 <div class="col-md-5">
-                    <select name="packaging[]" class="form-select" required>
+                    <select name="packaging[]" class="form-select">
                         ${optionsHtml}
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <input type="number" name="packaging_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="${quantity}" required>
+                    <input type="number" name="packaging_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="${quantity}">
                 </div>
                 <div class="col-md-auto">
                     <button type="button" class="btn btn-outline-danger" onclick="this.closest('.packaging-row').remove()"><i class="bi bi-x-lg"></i></button>
@@ -322,12 +322,12 @@
         const rowHtml = `
             <div class="row g-2 mb-2 align-items-center labor-row">
                 <div class="col-md-5">
-                    <select name="labor[]" class="form-select" required>
+                    <select name="labor[]" class="form-select">
                         ${optionsHtml}
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <input type="number" name="labor_hours[]" class="form-control" placeholder="שעות" step="0.01" value="${hours}" required>
+                    <input type="number" name="labor_hours[]" class="form-control" placeholder="שעות" step="0.01" value="${hours}">
                 </div>
                 <div class="col-md-auto">
                     <button type="button" class="btn btn-outline-danger" onclick="this.closest('.labor-row').remove()"><i class="bi bi-x-lg"></i></button>
