@@ -35,7 +35,7 @@ def index():
     if selected_week_id:
         selected_week = WeeklyLaborCost.query.get(selected_week_id)
     elif all_weeks:
-        selected_week = all_weeks[0] # Default to latest
+        selected_week = all_weeks[0]  # Default to latest
 
     report_data = []
     total_units = 0
@@ -67,7 +67,8 @@ def index():
             
         for product_id, qty in product_quantities.items():
             product = Product.query.get(product_id)
-            if not product: continue
+            if not product:
+                continue
             
             # Calculate Prime Cost (Materials + Packaging only)
             prime_cost = 0
@@ -406,7 +407,7 @@ def add_product():
     all_raw_materials = [m.to_dict() for m in RawMaterial.query.all()]
     categories = Category.query.all()
     all_packaging = [p.to_dict() for p in Packaging.query.all()]
-    all_labor = [l.to_dict() for l in Labor.query.all()]
+    all_labor = [labor_item.to_dict() for labor_item in Labor.query.all()]
     return render_template(
         'add_or_edit_product.html',
         product=None,
@@ -533,7 +534,7 @@ def edit_product(product_id):
     # Prepopulate fields for editing
     all_raw_materials = [m.to_dict() for m in RawMaterial.query.all()]
     all_packaging = [p.to_dict() for p in Packaging.query.all()]
-    all_labor = [l.to_dict() for l in Labor.query.all()]
+    all_labor = [labor_item.to_dict() for labor_item in Labor.query.all()]
 
     # Pass both the object (for Jinja server-side) and the dict (for JS client-side)
     return render_template(
@@ -669,7 +670,8 @@ def upload_inventory():
                 review_data = []
                 
                 for index, row in df.iterrows():
-                    if pd.isna(row[col_name]): continue
+                    if pd.isna(row[col_name]):
+                        continue
                     
                     name = str(row[col_name]).strip()
                     try:
@@ -769,11 +771,11 @@ def confirm_inventory_upload():
                 action_type='add',
                 quantity=quantity
             )
-                        db.session.add(log)                                                                                                                                 
-                                                                                                                                                                            
-                log_audit("IMPORT", "Inventory", details=f"Imported {len(items_data)} items from Excel.")
-                db.session.commit()                                                                                                                                         
-                return redirect(url_for('main.raw_materials'))
+            db.session.add(log)
+                                                                                                                                                                
+    log_audit("IMPORT", "Inventory", details=f"Imported {len(items_data)} items from Excel.")
+    db.session.commit()
+    return redirect(url_for('main.raw_materials'))
 
 # ----------------------------
 # Admin Actions

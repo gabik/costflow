@@ -21,7 +21,7 @@ def create_app():
 
     # Load configurations
     DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///waste_tracking.db")
-    print(f"Connecting to database: {DATABASE_URL}") # Log the database URL
+    print(f"Connecting to database: {DATABASE_URL}")  # Log the database URL
     app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -31,7 +31,7 @@ def create_app():
     app.config['UPLOAD_FOLDER'] = os.path.join(app.static_folder, 'uploads', 'products')
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload size
 
-    babel = Babel(app, locale_selector=get_locale)
+    Babel(app, locale_selector=get_locale)
 
     # Initialize database
     db.init_app(app)
