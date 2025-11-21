@@ -338,7 +338,7 @@
 
     // Initialize existing components for editing
     document.addEventListener('DOMContentLoaded', function() {
-        const product = JSON.parse('{{ product | tojson }}');
+        const product = JSON.parse('{{ product_json | tojson }}');
         if (product && product.components) {
             product.components.forEach(component => {
                 if (component.component_type === 'raw_material') {

@@ -162,11 +162,10 @@ def edit_labor(labor_id):
         labor_item.additional_hourly_rate = float(request.form['additional_hourly_rate'])
         db.session.commit()
         return redirect(url_for('main.labor'))
-    
-    # Reuse the same template structure? 
-    # Actually, let's create a dedicated edit view or just use a new template. 
-    # For consistency with Raw Materials, I will create 'add_or_edit_labor.html' in the next step.
     return render_template('add_or_edit_labor.html', labor=labor_item)
+
+@main_blueprint.route('/labor/delete/<int:labor_id>', methods=['POST'])
+def delete_labor(labor_id):
     # Fetch the labor entry by its ID
     labor = Labor.query.get_or_404(labor_id)
 
@@ -291,14 +290,15 @@ def add_product():
         return redirect(url_for('main.products'))
 
     # For GET requests, load the data required for the form
-    all_raw_materials = RawMaterial.query.all()
+    all_raw_materials = [m.to_dict() for m in RawMaterial.query.all()]
     categories = Category.query.all()
-    all_packaging = Packaging.query.all()
-    all_labor = Labor.query.all()
+    all_packaging = [p.to_dict() for p in Packaging.query.all()]
+    all_labor = [l.to_dict() for l in Labor.query.all()]
     return render_template(
         'add_or_edit_product.html',
         product=None,
-        raw_materials=all_raw_materials,
+        product_json=None,
+        raw_materials=all_raw_materials, # Note: template uses 'all_raw_materials' for the JS loop, but 'raw_materials' was passed here originally. I will align it to 'all_raw_materials' in the template call for consistency.
         all_packaging=all_packaging,
         all_labor=all_labor,
         categories=categories
@@ -408,13 +408,15 @@ def edit_product(product_id):
         return redirect(url_for('main.products'))
 
     # Prepopulate fields for editing
-    all_raw_materials = RawMaterial.query.all()
-    all_packaging = Packaging.query.all()
-    all_labor = Labor.query.all()
+    all_raw_materials = [m.to_dict() for m in RawMaterial.query.all()]
+    all_packaging = [p.to_dict() for p in Packaging.query.all()]
+    all_labor = [l.to_dict() for l in Labor.query.all()]
 
+    # Pass both the object (for Jinja server-side) and the dict (for JS client-side)
     return render_template(
         'add_or_edit_product.html',
         product=product,
+        product_json=product.to_dict(),
         all_raw_materials=all_raw_materials,
         all_packaging=all_packaging,
         all_labor=all_labor

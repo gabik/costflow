@@ -13,7 +13,7 @@ def create_app():
 
     @app.context_processor
     def inject_globals():
-        return {'currency_symbol': os.getenv('CURRENCY_SYMBOL', '$')}
+        return {'currency_symbol': os.getenv('CURRENCY_SYMBOL', '₪')}
 
     @app.context_processor
     def inject_locale():
@@ -21,6 +21,7 @@ def create_app():
 
     # Load configurations
     DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///waste_tracking.db")
+    print(f"Connecting to database: {DATABASE_URL}") # Log the database URL
     app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 

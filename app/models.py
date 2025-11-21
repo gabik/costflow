@@ -27,6 +27,15 @@ class RawMaterial(db.Model):
     unit = db.Column(db.String(50), nullable=False)
     cost_per_unit = db.Column(db.Float, nullable=False)
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'category_id': self.category_id,
+            'unit': self.unit,
+            'cost_per_unit': self.cost_per_unit
+        }
+
 class Labor(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -36,6 +45,12 @@ class Labor(db.Model):
     @property
     def total_hourly_rate(self):
         return self.base_hourly_rate + self.additional_hourly_rate
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name
+        }
 
 class Packaging(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -47,12 +62,27 @@ class Packaging(db.Model):
     def price_per_unit(self):
         return self.price_per_package / self.quantity_per_package if self.quantity_per_package > 0 else 0
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name
+        }
+
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     products_per_recipe = db.Column(db.Integer, nullable=False)
     selling_price_per_unit = db.Column(db.Float, nullable=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'products_per_recipe': self.products_per_recipe,
+            'selling_price_per_unit': self.selling_price_per_unit,
+            'components': [c.to_dict() for c in self.components]
+        }
 
 class ProductComponent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -76,6 +106,14 @@ class ProductComponent(db.Model):
     def packaging(self):
         if self.component_type == 'packaging':
             return Packaging.query.get(self.component_id)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'component_type': self.component_type,
+            'component_id': self.component_id,
+            'quantity': self.quantity
+        }
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
