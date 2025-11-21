@@ -1,85 +1,133 @@
 {% extends "base.html" %}
 {% block title %}{{ _('Raw Materials') }}{% endblock %}
 {% block content %}
-<h1>{{ _('Raw Materials') }}</h1>
-<a href="{{ url_for('main.add_raw_material') }}" class="btn btn-success mb-3">{{ _('Add New Raw Material') }}</a>
-<table class="table table-striped table-hover shadow-sm">
-    <thead class="thead-dark">
-    <tr>
-        <th>{{ _('Name') }}</th>
-        <th>{{ _('Category') }}</th>
-        <th>{{ _('Unit') }}</th>
-        <th>{{ _('Cost Per Unit') }}</th>
-        <th>{{ _('Stock') }}</th>
-        <th>{{ _('Actions') }}</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% for material in materials %}
-    <tr>
-        <td>{{ material.name }}</td>
-        <td>{{ material.category.name }}</td>
-        <td>{{ material.unit }}</td>
-        <td>{{ currency_symbol }}{{ material.cost_per_unit }}</td>
-        <td>{{ material.current_stock }}</td>
-        <td>
-            <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#addStockModal" data-id="{{ material.id }}" data-name="{{ material.name }}">
-                {{ _('Add Stock') }}
-            </button>
-            <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#setStockModal" data-id="{{ material.id }}" data-name="{{ material.name }}">
-                {{ _('Set Stock') }}
-            </button>
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="display-6 fw-bold text-primary">ניהול חומרי גלם</h1>
+            <p class="text-secondary">מעקב אחר מלאי, עלויות וספקים.</p>
+        </div>
+        <a href="{{ url_for('main.add_raw_material') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i> הוסף חומר גלם
+        </a>
+    </div>
+</div>
 
-            <!-- Edit Button -->
-            <a href="{{ url_for('main.edit_raw_material', material_id=material.id) }}" class="btn btn-sm btn-warning">{{ _('Edit') }}</a>
-            <!-- Delete Button -->
-            <form method="POST" action="{{ url_for('main.delete_raw_material', material_id=material.id) }}" class="d-inline">
-                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this raw material?')">{{ _('Delete') }}</button>
-            </form>
-        </td>
-    </tr>
-    {% endfor %}
-    </tbody>
-</table>
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+            <tr>
+                <th>שם</th>
+                <th>קטגוריה</th>
+                <th>יחידה</th>
+                <th>עלות ליחידה</th>
+                <th>מלאי נוכחי</th>
+                <th class="text-end">פעולות</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for material in materials %}
+            <tr>
+                <td class="fw-medium">{{ material.name }}</td>
+                <td><span class="badge bg-light text-dark border">{{ material.category.name }}</span></td>
+                <td>{{ material.unit }}</td>
+                <td>{{ currency_symbol }}{{ "%.2f"|format(material.cost_per_unit) }}</td>
+                <td class="fw-bold {{ 'text-danger' if material.current_stock <= 0 else 'text-success' }}">
+                    {{ material.current_stock }}
+                </td>
+                <td class="text-end">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addStockModal" data-id="{{ material.id }}" data-name="{{ material.name }}" title="הוסף מלאי">
+                            <i class="bi bi-plus-circle"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#setStockModal" data-id="{{ material.id }}" data-name="{{ material.name }}" title="עדכן ספירה">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <a href="{{ url_for('main.edit_raw_material', material_id=material.id) }}" class="btn btn-sm btn-outline-secondary" title="ערוך פרטים">
+                            <i class="bi bi-gear"></i>
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteMaterialModal{{ material.id }}" title="מחק">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
 
-<div class="modal fade" id="addStockModal" tabindex="-1" role="dialog" aria-labelledby="addStockModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+            <!-- Delete Modal (Unique per item) -->
+             <div class="modal fade" id="deleteMaterialModal{{ material.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form method="POST" action="{{ url_for('main.delete_raw_material', material_id=material.id) }}">
+                            <div class="modal-header">
+                                <h5 class="modal-title text-danger">מחיקת חומר גלם</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>האם אתה בטוח שברצונך למחוק את <strong>{{ material.name }}</strong>?</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+                                <button type="submit" class="btn btn-danger">מחק</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Stock Modal (Shared) -->
+<div class="modal fade" id="addStockModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
             <form method="POST" action="{{ url_for('main.update_stock') }}">
                 <input type="hidden" id="add_stock_raw_material_id" name="raw_material_id">
                 <input type="hidden" name="action_type" value="add">
+                <div class="modal-header">
+                    <h5 class="modal-title">הוספת מלאי</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
                 <div class="modal-body">
-                    <p>{{ _('Adding stock for ') }}<strong id="addStockMaterialName"></strong></p>
-                    <div class="form-group">
-                        <label for="add_stock_quantity">{{ _('Quantity') }}</label>
+                    <p>הוספת כמות ל: <strong id="addStockMaterialName"></strong></p>
+                    <div class="mb-3">
+                        <label for="add_stock_quantity" class="form-label">כמות להוספה</label>
                         <input type="number" id="add_stock_quantity" name="quantity" class="form-control" step="0.01" required>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
-                    <button type="submit" class="btn btn-success">Add Stock</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+                    <button type="submit" class="btn btn-success">עדכן מלאי</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="setStockModal" tabindex="-1" role="dialog" aria-labelledby="setStockModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+<!-- Set Stock Modal (Shared) -->
+<div class="modal fade" id="setStockModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
             <form method="POST" action="{{ url_for('main.update_stock') }}">
                 <input type="hidden" id="set_stock_raw_material_id" name="raw_material_id">
                 <input type="hidden" name="action_type" value="set">
+                 <div class="modal-header">
+                    <h5 class="modal-title">ספירת מלאי (עדכון ידני)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
                 <div class="modal-body">
-                    <p>{{ _('Setting stock for ') }}<strong id="setStockMaterialName"></strong></p>
-                    <div class="form-group">
-                        <label for="set_stock_quantity">{{ _('Quantity') }}</label>
+                    <p>עדכון מלאי נוכחי עבור: <strong id="setStockMaterialName"></strong></p>
+                    <div class="mb-3">
+                        <label for="set_stock_quantity" class="form-label">כמות נוכחית בפועל</label>
                         <input type="number" id="set_stock_quantity" name="quantity" class="form-control" step="0.01" required>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
-                    <button type="submit" class="btn btn-warning">Set Stock</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+                    <button type="submit" class="btn btn-warning">עדכן ספירה</button>
                 </div>
             </form>
         </div>
@@ -87,27 +135,34 @@
 </div>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
         // Populate Add Stock Modal
-        $('#addStockModal').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget); // Button that triggered the modal
-            var materialId = button.data('id'); // Extract info from data-* attributes
-            var materialName = button.data('name');
-
-            var modal = $(this);
-            modal.find('#add_stock_raw_material_id').val(materialId); // Populate hidden input
-            modal.find('#addStockMaterialName').text(materialName);  // Populate modal title
+        var addStockModal = document.getElementById('addStockModal');
+        addStockModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var materialId = button.getAttribute('data-id');
+            var materialName = button.getAttribute('data-name');
+            
+            var modalIdInput = addStockModal.querySelector('#add_stock_raw_material_id');
+            var modalNameDisplay = addStockModal.querySelector('#addStockMaterialName');
+            
+            modalIdInput.value = materialId;
+            modalNameDisplay.textContent = materialName;
         });
 
         // Populate Set Stock Modal
-        $('#setStockModal').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget); // Button that triggered the modal
-            var materialId = button.data('id'); // Extract info from data-* attributes
-            var materialName = button.data('name');
-
-            var modal = $(this);
-            modal.find('#set_stock_raw_material_id').val(materialId); // Populate hidden input
-            modal.find('#setStockMaterialName').text(materialName);  // Populate modal title
+        var setStockModal = document.getElementById('setStockModal');
+        setStockModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var materialId = button.getAttribute('data-id');
+            var materialName = button.getAttribute('data-name');
+            
+            var modalIdInput = setStockModal.querySelector('#set_stock_raw_material_id');
+            var modalNameDisplay = setStockModal.querySelector('#setStockMaterialName');
+            
+            modalIdInput.value = materialId;
+            modalNameDisplay.textContent = materialName;
         });
+    });
 </script>
-
 {% endblock %}

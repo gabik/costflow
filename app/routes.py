@@ -153,8 +153,20 @@ def add_labor():
             return redirect(request.referrer)
     return redirect(url_for('main.labor'))
 
-@main_blueprint.route('/labor/delete/<int:labor_id>', methods=['POST'])
-def delete_labor(labor_id):
+@main_blueprint.route('/labor/edit/<int:labor_id>', methods=['GET', 'POST'])
+def edit_labor(labor_id):
+    labor_item = Labor.query.get_or_404(labor_id)
+    if request.method == 'POST':
+        labor_item.name = request.form['name']
+        labor_item.base_hourly_rate = float(request.form['base_hourly_rate'])
+        labor_item.additional_hourly_rate = float(request.form['additional_hourly_rate'])
+        db.session.commit()
+        return redirect(url_for('main.labor'))
+    
+    # Reuse the same template structure? 
+    # Actually, let's create a dedicated edit view or just use a new template. 
+    # For consistency with Raw Materials, I will create 'add_or_edit_labor.html' in the next step.
+    return render_template('add_or_edit_labor.html', labor=labor_item)
     # Fetch the labor entry by its ID
     labor = Labor.query.get_or_404(labor_id)
 
@@ -356,12 +368,12 @@ def edit_product(product_id):
         # Add updated raw materials
         raw_materials = request.form.getlist('raw_material[]')
         raw_material_quantities = request.form.getlist('raw_material_quantity[]')
-        for raw_material_id, quantity in zip(raw_materials, raw_material_quantities):
-            if raw_material_id and quantity:
+        for material_id, quantity in zip(raw_materials, raw_material_quantities):
+            if material_id and quantity: # Check if both are not empty
                 component = ProductComponent(
                     product_id=product.id,
                     component_type='raw_material',
-                    component_id=int(raw_material_id),
+                    component_id=int(material_id),
                     quantity=float(quantity)
                 )
                 db.session.add(component)
@@ -370,7 +382,7 @@ def edit_product(product_id):
         packaging = request.form.getlist('packaging[]')
         packaging_quantities = request.form.getlist('packaging_quantity[]')
         for packaging_id, quantity in zip(packaging, packaging_quantities):
-            if packaging_id and quantity:
+            if packaging_id and quantity: # Check if both are not empty
                 component = ProductComponent(
                     product_id=product.id,
                     component_type='packaging',
@@ -383,7 +395,7 @@ def edit_product(product_id):
         labor = request.form.getlist('labor[]')
         labor_hours = request.form.getlist('labor_hours[]')
         for labor_id, hours in zip(labor, labor_hours):
-            if labor_id and hours:
+            if labor_id and hours: # Check if both are not empty
                 component = ProductComponent(
                     product_id=product.id,
                     component_type='labor',
