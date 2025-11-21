@@ -56,15 +56,25 @@ def add_raw_material():
         name = request.form['name']
         category_id = request.form['category']
         unit = request.form['unit']
-        cost_per_unit = request.form['cost_per_unit']
-        stock = request.form['stock']
+        cost_per_unit = float(request.form['cost_per_unit'])
+        stock = request.form.get('stock', 0) # Optional initial stock
 
         category = Category.query.get(category_id)
         if not category:
             return "Invalid category selected", 400
 
-        new_material = RawMaterial(name=name, category=category.name, unit=unit, cost_per_unit=cost_per_unit, stock=stock)
+        new_material = RawMaterial(name=name, category=category, unit=unit, cost_per_unit=cost_per_unit)
         db.session.add(new_material)
+        db.session.flush() # Get ID for stock log
+
+        if stock:
+            initial_stock_log = StockLog(
+                raw_material_id=new_material.id,
+                action_type='set',
+                quantity=float(stock)
+            )
+            db.session.add(initial_stock_log)
+
         db.session.commit()
 
         # Handle modal submissions
@@ -85,10 +95,12 @@ def edit_raw_material(material_id):
         if not category:
             return "Invalid category selected", 400
 
-        material.category = category.name
+        material.category = category
         material.unit = request.form['unit']
-        material.cost_per_unit = request.form['cost_per_unit']
-        material.stock = request.form['stock']
+        material.cost_per_unit = float(request.form['cost_per_unit'])
+        
+        # Note: Stock is managed via logs, not directly editable here to preserve history
+        
         db.session.commit()
         return redirect(url_for('main.raw_materials'))
 
@@ -129,11 +141,10 @@ def labor():
 def add_labor():
     if request.method == 'POST':
         name = request.form['name']
-        base_hourly_rate = request.form['base_hourly_rate']
-        additional_hourly_rate = request.form['additional_hourly_rate']
-        total_hourly_rate = float(base_hourly_rate) + float(additional_hourly_rate)
+        base_hourly_rate = float(request.form['base_hourly_rate'])
+        additional_hourly_rate = float(request.form['additional_hourly_rate'])
 
-        new_labor = Labor(name=name, base_hourly_rate=base_hourly_rate, additional_hourly_rate=additional_hourly_rate, total_hourly_rate=total_hourly_rate)
+        new_labor = Labor(name=name, base_hourly_rate=base_hourly_rate, additional_hourly_rate=additional_hourly_rate)
         db.session.add(new_labor)
         db.session.commit()
 
@@ -419,6 +430,18 @@ def edit_categories(category_id):
         db.session.commit()
         return redirect(url_for('main.categories'))
     return render_template('categories.html', category=category_item)
+
+@main_blueprint.route('/categories/delete/<int:category_id>', methods=['POST'])
+def delete_category(category_id):
+    category_item = Category.query.get_or_404(category_id)
+    
+    # Optional: Check if category is in use before deleting (prevent FK errors)
+    # if category_item.raw_materials:
+    #    return "Cannot delete category that has associated raw materials", 400
+
+    db.session.delete(category_item)
+    db.session.commit()
+    return redirect(url_for('main.categories'))
 
 @main_blueprint.route('/categories/add_from_modal', methods=['POST'])
 def add_category_from_modal():

@@ -5,12 +5,12 @@
 {% block content %}
 <div class="row mb-5 align-items-center">
     <div class="col-md-8">
-        <h1 class="display-6 fw-bold mb-2">{{ _('Good Morning.') }}</h1>
-        <p class="text-secondary mb-0">{{ _('Here is what is happening in your bakery today.') }}</p>
+        <h1 class="display-6 fw-bold mb-2">בוקר טוב.</h1>
+        <p class="text-secondary mb-0">הנה סקירה של המאפייה שלך להיום.</p>
     </div>
     <div class="col-md-4 text-md-end mt-3 mt-md-0">
         <a href="{{ url_for('main.production') }}" class="btn btn-primary px-4 py-2">
-            <i class="bi bi-plus-lg me-2"></i>{{ _('Log Production') }}
+            <i class="bi bi-plus-lg me-2"></i>יומן ייצור
         </a>
     </div>
 </div>
@@ -21,10 +21,10 @@
         <div class="card h-100">
             <div class="card-body">
                 <i class="bi bi-box-seam display-icon"></i>
-                <h3 class="h5 fw-bold mb-3">{{ _('Products & Recipes') }}</h3>
-                <p class="text-secondary small mb-4">{{ _('Manage your product catalog, recipe costs, and pricing strategies.') }}</p>
+                <h3 class="h5 fw-bold mb-3">מוצרים ומתכונים</h3>
+                <p class="text-secondary small mb-4">ניהול קטלוג מוצרים, עלויות מתכונים ותמחור.</p>
                 <a href="{{ url_for('main.products') }}" class="text-decoration-none fw-bold small stretched-link">
-                    {{ _('View All Products') }} <i class="bi bi-arrow-right ms-1"></i>
+                    לכל המוצרים <i class="bi bi-arrow-left ms-1"></i>
                 </a>
             </div>
         </div>
@@ -35,10 +35,10 @@
         <div class="card h-100">
             <div class="card-body">
                 <i class="bi bi-graph-up-arrow display-icon"></i>
-                <h3 class="h5 fw-bold mb-3">{{ _('Production History') }}</h3>
-                <p class="text-secondary small mb-4">{{ _('Track daily output, monitor trends, and analyze performance.') }}</p>
+                <h3 class="h5 fw-bold mb-3">היסטוריית ייצור</h3>
+                <p class="text-secondary small mb-4">מעקב אחר תפוקה יומית וניתוח ביצועים.</p>
                 <a href="{{ url_for('main.production') }}" class="text-decoration-none fw-bold small stretched-link">
-                    {{ _('View Log') }} <i class="bi bi-arrow-right ms-1"></i>
+                    לצפייה ביומן <i class="bi bi-arrow-left ms-1"></i>
                 </a>
             </div>
         </div>
@@ -49,10 +49,10 @@
         <div class="card h-100">
             <div class="card-body">
                 <i class="bi bi-basket display-icon"></i>
-                <h3 class="h5 fw-bold mb-3">{{ _('Raw Materials') }}</h3>
-                <p class="text-secondary small mb-4">{{ _('Monitor stock levels, update prices, and manage suppliers.') }}</p>
+                <h3 class="h5 fw-bold mb-3">חומרי גלם</h3>
+                <p class="text-secondary small mb-4">מעקב אחר מלאי, עדכון מחירים וניהול ספקים.</p>
                 <a href="{{ url_for('main.raw_materials') }}" class="text-decoration-none fw-bold small stretched-link">
-                    {{ _('Manage Inventory') }} <i class="bi bi-arrow-right ms-1"></i>
+                    ניהול מלאי <i class="bi bi-arrow-left ms-1"></i>
                 </a>
             </div>
         </div>
@@ -64,18 +64,18 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                {{ _('Quick Actions') }}
+                פעולות מהירות
             </div>
             <div class="card-body p-4">
                 <div class="d-flex gap-3 flex-wrap">
                     <a href="{{ url_for('main.add_product') }}" class="btn btn-outline-primary btn-sm px-3">
-                        <i class="bi bi-plus-circle me-2"></i>{{ _('New Product') }}
+                        <i class="bi bi-plus-circle me-2"></i>מוצר חדש
                     </a>
                     <a href="{{ url_for('main.add_raw_material') }}" class="btn btn-outline-primary btn-sm px-3">
-                        <i class="bi bi-plus-circle me-2"></i>{{ _('New Ingredient') }}
+                        <i class="bi bi-plus-circle me-2"></i>חומר גלם חדש
                     </a>
                      <a href="{{ url_for('main.labor') }}" class="btn btn-outline-primary btn-sm px-3">
-                        <i class="bi bi-person-gear me-2"></i>{{ _('Update Labor') }}
+                        <i class="bi bi-person-gear me-2"></i>עדכון שעות
                     </a>
                 </div>
             </div>

@@ -1,58 +1,103 @@
 {% extends "base.html" %}
-{% block title %}{{ _('Edit') if material else _('Add') }} {{ _('Raw Material') }}{% endblock %}
+{% block title %}{{ _('Edit') if material else _('Add') }} {{ _('Raw Material') }} - CostFlow{% endblock %}
+
 {% block content %}
-<h1>{{ _('Edit') if material else _('Add') }} {{ _('Raw Material') }}</h1>
-<form method="POST" class="p-4 bg-white border rounded shadow-sm">
-    <div class="form-group">
-        <label for="category">{{ _('Category') }}</label>
-        <select id="category" name="category" class="form-control" required>
-            {% for category in categories %}
-            <option value="{{ category.id }}" {% if material and material.category == category.name %}selected{% endif %}>
-                {{ category.name }}
-            </option>
-            {% endfor %}
-        </select>
-        <button type="button" class="btn btn-sm btn-outline-success mt-2" data-toggle="modal" data-target="#addCategoryModal">{{ _('New Category') }}</button>
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-6 fw-bold text-primary">{{ 'עריכת חומר גלם' if material else 'הוספת חומר גלם חדש' }}</h1>
     </div>
-    <div class="form-group">
-        <label for="name">Name</label>
-        <input type="text" id="name" name="name" class="form-control" value="{{ material.name if material else '' }}" required>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <form method="POST">
+                    <!-- Name -->
+                    <div class="mb-3">
+                        <label for="name" class="form-label">שם חומר הגלם</label>
+                        <input type="text" id="name" name="name" class="form-control" value="{{ material.name if material else '' }}" placeholder="לדוגמה: קמח לבן" required>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="mb-3">
+                        <label for="category" class="form-label">קטגוריה</label>
+                        <div class="input-group">
+                            <select id="category" name="category" class="form-select" required>
+                                <option value="" disabled selected>בחר קטגוריה...</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {% if material and material.category_id == category.id %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <!-- Unit -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="unit" class="form-label">יחידת מידה</label>
+                                <select id="unit" name="unit" class="form-select" required>
+                                    {% for unit in units %}
+                                    <option value="{{ unit }}" {% if material and material.unit == unit %}selected{% endif %}>{{ unit }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Cost -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="cost_per_unit" class="form-label">מחיר ליחידה (₪)</label>
+                                <input type="number" id="cost_per_unit" name="cost_per_unit" class="form-control" step="0.01" value="{{ material.cost_per_unit if material else '' }}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stock (Only for new items) -->
+                    {% if not material %}
+                    <div class="mb-4">
+                        <label for="stock" class="form-label">מלאי התחלתי</label>
+                        <input type="number" id="stock" name="stock" class="form-control" step="0.01" value="0">
+                        <div class="form-text">ניתן לעדכן מלאי גם לאחר מכן דרך מסך ניהול המלאי.</div>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            {{ 'שמור שינויים' if material else 'הוסף חומר גלם' }}
+                        </button>
+                        <a href="{{ url_for('main.raw_materials') }}" class="btn btn-link text-decoration-none text-secondary">ביטול וחזרה</a>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    <div class="form-group">
-        <label for="unit">{{ _('Unit') }}</label>
-        <select id="unit" name="unit" class="form-control" required>
-            {% for unit in units %}
-            <option value="{{ unit }}" {% if material and material.unit == unit %}selected{% endif %}>{{ unit }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class="form-group">
-        <label for="cost_per_unit">{{ _('Cost Per Unit') }}</label>
-        <input type="number" id="cost_per_unit" name="cost_per_unit" class="form-control" step="0.01" value="{{ material.cost_per_unit if material else '' }}" required>
-    </div>
-    <button type="submit" class="btn btn-primary">{{ _('Save Raw Material') }}</button>
-</form>
+</div>
 
 <!-- Add Category Modal -->
-<div class="modal fade" id="addCategoryModal" tabindex="-1" role="dialog" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
             <form method="POST" action="{{ url_for('main.add_category_from_modal') }}">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addCategoryModalLabel">{{ _('Add New Category') }}</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <h5 class="modal-title" id="addCategoryModalLabel">הוספת קטגוריה חדשה</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label for="new_category_name">{{ _('Category Name') }}</label>
+                    <div class="mb-3">
+                        <label for="new_category_name" class="form-label">שם הקטגוריה</label>
                         <input type="text" id="new_category_name" name="name" class="form-control" required>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
-                    <button type="submit" class="btn btn-primary">{{ _('Add Category') }}</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+                    <button type="submit" class="btn btn-primary">הוסף קטגוריה</button>
                 </div>
             </form>
         </div>

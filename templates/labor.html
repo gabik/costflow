@@ -1,32 +1,109 @@
 {% extends "base.html" %}
-{% block title %}{{ _('Manage Labor') }}{% endblock %}
+{% block title %}{{ _('Manage Labor') }} - CostFlow{% endblock %}
+
 {% block content %}
-<h1>{{ _('Manage Labor') }}</h1>
-<form method="POST" action="{{ url_for('main.add_labor') }}" class="p-4 bg-white border rounded shadow-sm">
-    <div class="form-group">
-        <label for="name">{{ _('Employee Name') }}</label>
-        <input type="text" id="name" name="name" class="form-control" required>
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-6 fw-bold text-primary">ניהול עובדים ועלויות</h1>
+        <p class="text-secondary">מעקב אחר עלויות כוח אדם ושכר שעתי.</p>
     </div>
-    <div class="form-group">
-        <label for="base_hourly_rate">{{ _('Base Hourly Rate') }}</label>
-        <input type="number" id="base_hourly_rate" name="base_hourly_rate" class="form-control" step="0.01" required>
+</div>
+
+<div class="row g-4">
+    <!-- Add New Labor Form -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">הוסף עובד / תפקיד חדש</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('main.add_labor') }}">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">שם עובד / תפקיד</label>
+                        <input type="text" id="name" name="name" class="form-control" placeholder="לדוגמה: אופה ראשי" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="base_hourly_rate" class="form-label">שכר בסיס (₪)</label>
+                        <input type="number" id="base_hourly_rate" name="base_hourly_rate" class="form-control" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="additional_hourly_rate" class="form-label">עלויות מעביד (₪)</label>
+                        <input type="number" id="additional_hourly_rate" name="additional_hourly_rate" class="form-control" step="0.01" required>
+                        <div class="form-text small">ביטוח לאומי, פנסיה, הפרשות סוציאליות וכו'.</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-person-plus-fill me-2"></i> הוסף עובד
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
-    <div class="form-group">
-        <label for="additional_hourly_rate">{{ _('Additional Hourly Rate') }}</label>
-        <input type="number" id="additional_hourly_rate" name="additional_hourly_rate" class="form-control" step="0.01" required>
+
+    <!-- Existing Labor List -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">רשימת עובדים</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>שם</th>
+                            <th>שכר בסיס</th>
+                            <th>תוספות</th>
+                            <th>סה"כ לשעה</th>
+                            <th class="text-end">פעולות</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in labor %}
+                        <tr>
+                            <td class="fw-medium">{{ item.name }}</td>
+                            <td>₪{{ "%.2f"|format(item.base_hourly_rate) }}</td>
+                            <td class="text-muted">+₪{{ "%.2f"|format(item.additional_hourly_rate) }}</td>
+                            <td class="fw-bold text-success">₪{{ "%.2f"|format(item.total_hourly_rate) }}</td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteLaborModal{{ item.id }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+
+                        <!-- Delete Modal -->
+                        <div class="modal fade" id="deleteLaborModal{{ item.id }}" tabindex="-1" aria-labelledby="deleteLaborModalLabel{{ item.id }}" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <form method="POST" action="{{ url_for('main.delete_labor', labor_id=item.id) }}">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title text-danger" id="deleteLaborModalLabel{{ item.id }}">מחיקת עובד</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>האם אתה בטוח שברצונך למחוק את העובד <strong>{{ item.name }}</strong>?</p>
+                                            <p class="small text-muted mb-0">לא ניתן למחוק עובד המשוייך למתכונים קיימים.</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+                                            <button type="submit" class="btn btn-danger">מחק עובד</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        {% if not labor %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">
+                                לא נמצאו עובדים במערכת.
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-    <button type="submit" class="btn btn-success">{{ _('Add Labor') }}</button>
-</form>
-<hr>
-<h2>{{ _('Existing Labor') }}</h2>
-<ul class="list-group">
-    {% for labor in labor %}
-    <li class="list-group-item d-flex justify-content-between align-items-center">
-        {{ labor.name }} - {{ _('Hourly Rate') }}: {{ currency_symbol }}{{ labor.total_hourly_rate }}
-        <form method="POST" action="{{ url_for('main.delete_labor', labor_id=labor.id) }}">
-            <button type="submit" class="btn btn-danger btn-sm">{{ _('Delete') }}</button>
-        </form>
-    </li>
-    {% endfor %}
-</ul>
+</div>
 {% endblock %}
