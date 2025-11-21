@@ -253,7 +253,7 @@
     function addRawMaterialRow(materialId = '', quantity = '') {
         rawMaterialRowIndex++;
         const container = document.getElementById('raw-materials-container');
-        const allRawMaterials = JSON.parse('{{ all_raw_materials | tojson }}');
+        const allRawMaterials = JSON.parse('{{ all_raw_materials | default([]) | tojson }}');
         
         let optionsHtml = '<option value="" disabled selected>בחר חומר גלם...</option>';
         allRawMaterials.forEach(material => {
@@ -282,7 +282,7 @@
     function addPackagingRow(packagingId = '', quantity = '') {
         packagingRowIndex++;
         const container = document.getElementById('packaging-container');
-        const allPackaging = JSON.parse('{{ all_packaging | tojson }}');
+        const allPackaging = JSON.parse('{{ all_packaging | default([]) | tojson }}');
 
         let optionsHtml = '<option value="" disabled selected>בחר אריזה...</option>';
         allPackaging.forEach(pkg => {
@@ -311,7 +311,7 @@
     function addLaborRow(laborId = '', hours = '') {
         laborRowIndex++;
         const container = document.getElementById('labor-container');
-        const allLabor = JSON.parse('{{ all_labor | tojson }}');
+        const allLabor = JSON.parse('{{ all_labor | default([]) | tojson }}');
 
         let optionsHtml = '<option value="" disabled selected>בחר עובד / תפקיד...</option>';
         allLabor.forEach(labor => {

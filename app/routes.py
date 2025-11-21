@@ -298,7 +298,7 @@ def add_product():
         'add_or_edit_product.html',
         product=None,
         product_json=None,
-        raw_materials=all_raw_materials, # Note: template uses 'all_raw_materials' for the JS loop, but 'raw_materials' was passed here originally. I will align it to 'all_raw_materials' in the template call for consistency.
+        all_raw_materials=all_raw_materials,
         all_packaging=all_packaging,
         all_labor=all_labor,
         categories=categories
