@@ -1,80 +1,159 @@
-/* General Styles */
+:root {
+    /* Core Palette - Warm & Clean */
+    --bg-body: #fdfbf7; /* Very light warm cream/white */
+    --bg-card: #ffffff;
+    --text-primary: #2d3436;
+    --text-secondary: #636e72;
+    --primary-color: #2d3436; /* Dark charcoal for primary actions */
+    --accent-color: #e17055; /* Muted Terracotta */
+    --accent-hover: #d65d40;
+    --border-color: #f1f2f6;
+
+    /* Typography */
+    --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f1e8e6;
-    color: #543c52;
-    height: 100%;
+    font-family: var(--font-main);
+    background-color: var(--bg-body);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
 }
 
-/* Navbar */
+/* Navbar - Minimalist & Clean */
 .navbar {
-    background-color: #f55951 !important;
-    color: #543c52 !important;
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    padding: 1rem 0;
 }
 
-.bg-primary {
-    background-color: #edd2cb !important;
+.navbar-brand {
+    color: var(--text-primary) !important;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    font-size: 1.25rem;
 }
 
-.navbar-brand, .nav-link {
-    color: #543c52 !important;
+.nav-link {
+    color: var(--text-secondary) !important;
+    font-weight: 500;
+    font-size: 0.95rem;
+    margin-left: 1rem;
+    transition: color 0.2s ease;
 }
 
-.nav-link:hover {
-    color: #361d32 !important;
+.nav-link:hover, .nav-link.active {
+    color: var(--text-primary) !important;
 }
 
-/* Buttons */
+/* Cards - Soft & Elevated */
+.card {
+    background-color: var(--bg-card);
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.3s ease;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+}
+
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+/* Buttons - Modern & Tactile */
+.btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    transition: all 0.2s ease;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
 .btn-primary {
-    background-color: #543c52;
-    border-color: #543c52;
+    background-color: var(--primary-color);
+    color: white;
 }
 
 .btn-primary:hover {
-    background-color: #361d32;
-    border-color: #361d32;
+    background-color: black;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-.btn-danger {
-    background-color: #f55951;
-    border-color: #f55951;
+.btn-outline-primary {
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    background: transparent;
+    box-shadow: none;
 }
 
-.btn-danger:hover {
-    background-color: #361d32;
-    border-color: #361d32;
+.btn-outline-primary:hover {
+    background-color: var(--bg-body);
+    border-color: var(--text-primary);
+    color: var(--text-primary);
 }
 
-/* Footer */
-footer {
-    background-color: #edd2cb;
-    color: #543c52;
-    padding: 10px 0;
-    text-align: center;
+/* Typography Utilities */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-primary);
+    font-weight: 700;
+    letter-spacing: -0.02em;
 }
 
-/* Tables */
-.table-striped tbody tr:nth-of-type(odd) {
-    background-color: #edd2cb;
+.text-muted {
+    color: #b2bec3 !important;
 }
 
-/* RTL Styles */
-html[dir="rtl"] body {
-    direction: rtl;
-    text-align: right;
+/* Table - Clean Rows */
+.table {
+    margin-bottom: 0;
 }
 
-html[dir="rtl"] .navbar {
-    flex-direction: row-reverse;
+.table thead th {
+    background-color: #f8f9fa;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    border: none;
+    padding: 1rem;
 }
 
-html[dir="rtl"] .navbar-nav {
-    margin-right: auto;
+.table tbody td {
+    padding: 1rem;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+/* Icons */
+.display-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+    opacity: 0.8;
+}
+
+/* RTL Overrides */
+html[dir="rtl"] .nav-link {
     margin-left: 0;
-}
-
-.list-group {
-     padding-right: 0px;
+    margin-right: 1rem;
 }
