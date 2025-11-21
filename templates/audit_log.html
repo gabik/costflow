@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}יומן פעילות - CostFlow{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="display-6 fw-bold text-primary">יומן פעילות מערכת</h1>
+            <p class="text-secondary">מעקב אחר שינויים ופעולות משתמשים.</p>
+        </div>
+        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#resetDbModal">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> איפוס מערכת מלא
+        </button>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>זמן</th>
+                    <th>פעולה</th>
+                    <th>סוג יעד</th>
+                    <th>מזהה יעד</th>
+                    <th>פרטים</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td class="text-muted small" dir="ltr">{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td>
+                        {% if log.action == 'CREATE' %}
+                            <span class="badge bg-success">יצירה</span>
+                        {% elif log.action == 'UPDATE' %}
+                            <span class="badge bg-warning text-dark">עדכון</span>
+                        {% elif log.action == 'DELETE' %}
+                            <span class="badge bg-danger">מחיקה</span>
+                        {% elif log.action == 'RESET' %}
+                            <span class="badge bg-dark">איפוס</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ log.action }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ log.target_type }}</td>
+                    <td>{{ log.target_id if log.target_id else '-' }}</td>
+                    <td>{{ log.details }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">אין רישומים ביומן.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Reset DB Modal -->
+<div class="modal fade" id="resetDbModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('main.reset_db') }}">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">אזהרה: איפוס מערכת</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="fw-bold">פעולה זו תמחק את כל הנתונים במערכת!</p>
+                    <p>כל המוצרים, חומרי הגלם, ההיסטוריה והיומנים יימחקו לצמיתות. לא ניתן לשחזר מידע זה.</p>
+                    <p>האם אתה בטוח שברצונך להמשיך?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+                    <button type="submit" class="btn btn-danger">כן, אפס את המערכת</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

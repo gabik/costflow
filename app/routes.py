@@ -4,12 +4,24 @@ from datetime import datetime, date, timedelta
 from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, current_app
 from sqlalchemy import func
-from .models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog, WeeklyLaborCost
+from .models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog, WeeklyLaborCost, AuditLog
 
 main_blueprint = Blueprint('main', __name__)
 
 # Predefined units for raw materials
 units_list = ["g", "kg", "ml", "l", "piece"]
+
+def log_audit(action, target_type, target_id=None, details=None):
+    try:
+        log = AuditLog(
+            action=action,
+            target_type=target_type,
+            target_id=target_id,
+            details=details
+        )
+        db.session.add(log)
+    except Exception as e:
+        print(f"Failed to log audit: {e}")
 
 # Homepage - Weekly Dashboard
 @main_blueprint.route('/')
@@ -209,6 +221,8 @@ def update_stock():
 
     stock_log = StockLog(raw_material_id=raw_material_id, action_type=action_type, quantity=quantity)
     db.session.add(stock_log)
+    
+    log_audit("UPDATE_STOCK", "RawMaterial", raw_material_id, f"{action_type} {quantity}")
     db.session.commit()
 
     return redirect(url_for('main.raw_materials'))
@@ -344,11 +358,12 @@ def add_product():
             selling_price_per_unit=float(selling_price_per_unit),
             image_filename=image_filename
         )
-        db.session.add(product)
-        db.session.commit()  # Save product to get its ID
-
-        # Process raw materials
-        raw_materials = request.form.getlist('raw_material[]')
+                db.session.add(product)                                                                                                                                 
+                db.session.flush()
+                log_audit("CREATE", "Product", product.id, f"Created product {product.name}")
+                db.session.commit()  # Save product to get its ID                                                                                                       
+                                                                                                                                                                        
+                # Process raw materials        raw_materials = request.form.getlist('raw_material[]')
         raw_material_quantities = request.form.getlist('raw_material_quantity[]')
         for material_id, quantity in zip(raw_materials, raw_material_quantities):
             component = ProductComponent(
@@ -510,6 +525,7 @@ def edit_product(product_id):
                 )
                 db.session.add(component)
 
+        log_audit("UPDATE", "Product", product.id, f"Updated product {product.name}")
         db.session.commit()
         return redirect(url_for('main.products'))
 
@@ -752,7 +768,32 @@ def confirm_inventory_upload():
                 action_type='add',
                 quantity=quantity
             )
-            db.session.add(log)
-            
-    db.session.commit()
-    return redirect(url_for('main.raw_materials'))
+                        db.session.add(log)                                                                                                                                 
+                                                                                                                                                                            
+                log_audit("IMPORT", "Inventory", details=f"Imported {len(items_data)} items from Excel.")
+                db.session.commit()                                                                                                                                         
+                return redirect(url_for('main.raw_materials'))
+
+# ----------------------------
+# Admin Actions
+# ----------------------------
+@main_blueprint.route('/audit_log', methods=['GET'])
+def audit_log():
+    logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).limit(500).all()
+    return render_template('audit_log.html', logs=logs)
+
+@main_blueprint.route('/admin/reset_db', methods=['POST'])
+def reset_db():
+    try:
+        db.drop_all()
+        db.create_all()
+        
+        # Re-seed essential data
+        default_category = Category(name="כללי")
+        db.session.add(default_category)
+        
+        log_audit("RESET", "System", details="Database was fully reset.")
+        db.session.commit()
+        return redirect(url_for('main.index'))
+    except Exception as e:
+        return f"Error resetting DB: {e}", 500
