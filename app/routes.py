@@ -358,12 +358,13 @@ def add_product():
             selling_price_per_unit=float(selling_price_per_unit),
             image_filename=image_filename
         )
-                db.session.add(product)                                                                                                                                 
-                db.session.flush()
-                log_audit("CREATE", "Product", product.id, f"Created product {product.name}")
-                db.session.commit()  # Save product to get its ID                                                                                                       
-                                                                                                                                                                        
-                # Process raw materials        raw_materials = request.form.getlist('raw_material[]')
+        db.session.add(product)
+        db.session.flush()
+        log_audit("CREATE", "Product", product.id, f"Created product {product.name}")
+        db.session.commit()  # Save product to get its ID
+
+        # Process raw materials
+        raw_materials = request.form.getlist('raw_material[]')
         raw_material_quantities = request.form.getlist('raw_material_quantity[]')
         for material_id, quantity in zip(raw_materials, raw_material_quantities):
             component = ProductComponent(
