@@ -31,7 +31,7 @@
                 <form method="POST" action="{{ url_for('main.add_weekly_labor', week_id=week.id) }}">
                     <div class="mb-3">
                         <label for="employee_id" class="form-label">עובד / תפקיד</label>
-                        <select name="employee_id" id="employee_id" class="form-select" required>
+                        <select name="employee_id" id="employee_id" class="form-select select2" required>
                             <option value="" disabled selected>בחר עובד...</option>
                             {% for emp in employees %}
                             <option value="{{ emp.id }}">{{ emp.name }} ({{ currency_symbol }}{{ emp.total_hourly_rate }}/שעה)</option>

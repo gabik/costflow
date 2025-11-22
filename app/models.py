@@ -39,6 +39,7 @@ class RawMaterial(db.Model):
 class Labor(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
+    phone_number = db.Column(db.String(20), nullable=True)
     base_hourly_rate = db.Column(db.Float, nullable=False)
     additional_hourly_rate = db.Column(db.Float, nullable=False)
 
@@ -49,7 +50,11 @@ class Labor(db.Model):
     def to_dict(self):
         return {
             'id': self.id,
-            'name': self.name
+            'name': self.name,
+            'phone_number': self.phone_number,
+            'base_hourly_rate': self.base_hourly_rate,
+            'additional_hourly_rate': self.additional_hourly_rate,
+            'total_hourly_rate': self.total_hourly_rate
         }
 
 class Packaging(db.Model):

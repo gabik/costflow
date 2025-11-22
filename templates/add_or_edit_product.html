@@ -196,6 +196,92 @@
     </div>
 </div>
 
+<script>
+    let rawMaterialRowIndex = 0;
+    let packagingRowIndex = 0;
+
+    // Function to add a new raw material row dynamically
+    function addRawMaterialRow(materialId = '', quantity = '') {
+        rawMaterialRowIndex++;
+        const container = document.getElementById('raw-materials-container');
+        const allRawMaterials = JSON.parse('{{ all_raw_materials | default([]) | tojson }}');
+
+        let optionsHtml = '<option value="" disabled selected>בחר חומר גלם...</option>';
+        allRawMaterials.forEach(material => {
+            const selected = materialId == material.id ? 'selected' : '';
+            optionsHtml += `<option value="${material.id}" ${selected}>${material.name}</option>`;
+        });
+
+        const rowHtml = `
+            <div class="row g-2 mb-2 align-items-center raw-material-row">
+                <div class="col-md-5">
+                    <select name="raw_material[]" class="form-select select2">
+                        ${optionsHtml}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="${quantity}">
+                </div>
+                <div class="col-md-auto">
+                    <button type="button" class="btn btn-outline-danger" onclick="this.closest('.raw-material-row').remove()"><i class="bi bi-x-lg"></i></button>
+                </div>
+            </div>`;
+        
+        // Create a temporary container to turn string into DOM nodes
+        const template = document.createElement('div');
+        template.innerHTML = rowHtml.trim();
+        const rowElement = template.firstChild;
+        
+        container.appendChild(rowElement);
+        
+        // Initialize Select2 on the new select element
+        $(rowElement).find('.select2').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            language: { noResults: () => "לא נמצאו תוצאות" }
+        });
+    }
+
+    // Function to add a new packaging row dynamically
+    function addPackagingRow(packagingId = '', quantity = '') {
+        packagingRowIndex++;
+        const container = document.getElementById('packaging-container');
+        const allPackaging = JSON.parse('{{ all_packaging | default([]) | tojson }}');
+
+        let optionsHtml = '<option value="" disabled selected>בחר אריזה...</option>';
+        allPackaging.forEach(pkg => {
+            const selected = packagingId == pkg.id ? 'selected' : '';
+            optionsHtml += `<option value="${pkg.id}" ${selected}>${pkg.name}</option>`;
+        });
+
+        const rowHtml = `
+            <div class="row g-2 mb-2 align-items-center packaging-row">
+                <div class="col-md-5">
+                    <select name="packaging[]" class="form-select select2">
+                        ${optionsHtml}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="number" name="packaging_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="${quantity}">
+                </div>
+                <div class="col-md-auto">
+                    <button type="button" class="btn btn-outline-danger" onclick="this.closest('.packaging-row').remove()"><i class="bi bi-x-lg"></i></button>
+                </div>
+            </div>`;
+            
+        const template = document.createElement('div');
+        template.innerHTML = rowHtml.trim();
+        const rowElement = template.firstChild;
+        
+        container.appendChild(rowElement);
+
+        $(rowElement).find('.select2').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            language: { noResults: () => "לא נמצאו תוצאות" }
+        });
+    }
+
     // Initialize existing components for editing
     document.addEventListener('DOMContentLoaded', function() {
         const product = JSON.parse('{{ product_json | tojson }}');

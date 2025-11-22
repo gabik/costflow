@@ -240,12 +240,15 @@ def labor():
 def add_labor():
     if request.method == 'POST':
         name = request.form['name']
+        phone_number = request.form.get('phone_number')
         base_hourly_rate = float(request.form['base_hourly_rate'])
         additional_hourly_rate = float(request.form['additional_hourly_rate'])
 
-        new_labor = Labor(name=name, base_hourly_rate=base_hourly_rate, additional_hourly_rate=additional_hourly_rate)
+        new_labor = Labor(name=name, phone_number=phone_number, base_hourly_rate=base_hourly_rate, additional_hourly_rate=additional_hourly_rate)
         db.session.add(new_labor)
         db.session.commit()
+        
+        log_audit("CREATE", "Labor", new_labor.id, f"Created labor entry {new_labor.name}")
 
         # Handle modal submissions
         if request.referrer and 'products/add' in request.referrer:
@@ -253,30 +256,36 @@ def add_labor():
     return redirect(url_for('main.labor'))
 
 @main_blueprint.route('/labor/edit/<int:labor_id>', methods=['GET', 'POST'])
+
 def edit_labor(labor_id):
+
     labor_item = Labor.query.get_or_404(labor_id)
+
     if request.method == 'POST':
+
         labor_item.name = request.form['name']
+
+        labor_item.phone_number = request.form.get('phone_number')
+
         labor_item.base_hourly_rate = float(request.form['base_hourly_rate'])
+
         labor_item.additional_hourly_rate = float(request.form['additional_hourly_rate'])
+
+
+
         db.session.commit()
+
+        log_audit("UPDATE", "Labor", labor_item.id, f"Updated labor entry {labor_item.name}")
+
         return redirect(url_for('main.labor'))
     return render_template('add_or_edit_labor.html', labor=labor_item)
 
 @main_blueprint.route('/labor/delete/<int:labor_id>', methods=['POST'])
 def delete_labor(labor_id):
-    # Fetch the labor entry by its ID
-    labor = Labor.query.get_or_404(labor_id)
-
-    # Check if this labor is used in any product components
-    associated_components = ProductComponent.query.filter_by(component_id=labor_id, component_type='labor').all()
-    if associated_components:
-        return "Cannot delete labor entry; it is associated with existing products.", 400
-
-    # Delete the labor entry
-    db.session.delete(labor)
+    labor_item = Labor.query.get_or_404(labor_id)
+    db.session.delete(labor_item)
     db.session.commit()
-
+    log_audit("DELETE", "Labor", labor_id, f"Deleted labor entry {labor_item.name}")
     return redirect(url_for('main.labor'))
 
 # ----------------------------
