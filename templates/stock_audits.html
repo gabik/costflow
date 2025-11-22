@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+{% block title %}ביקורת מלאי - CostFlow{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-6 fw-bold text-primary">ביקורת מלאי</h1>
+        <p class="text-secondary">
+            מעקב אחר הפרשי מלאי וניתוח אובדנים
+        </p>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card {% if total_negative_variance < 0 %}bg-danger{% else %}bg-success{% endif %} text-white">
+            <div class="card-body">
+                <h6 class="card-title">סך הפרשים כספיים</h6>
+                <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(total_variance_cost) }}</h3>
+                <small>{{ audits|length }} ספירות</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h6 class="card-title">עודפים</h6>
+                <h4 class="mb-0">{{ "%.1f"|format(total_positive_variance) }} יח'</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h6 class="card-title">חוסרים</h6>
+                <h4 class="mb-0">{{ "%.1f"|format(total_negative_variance) }} יח'</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h6 class="card-title">קטגוריות מושפעות</h6>
+                <h4 class="mb-0">{{ category_analysis|length }}</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('main.stock_audits') }}" class="row g-3">
+            <div class="col-md-3">
+                <label for="material_id" class="form-label">חומר גלם</label>
+                <select name="material_id" id="material_id" class="form-select">
+                    <option value="">כל החומרים</option>
+                    {% for material in all_materials %}
+                    <option value="{{ material.id }}" {% if selected_material_id == material.id %}selected{% endif %}>
+                        {{ material.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="date_from" class="form-label">מתאריך</label>
+                <input type="date" name="date_from" id="date_from" class="form-control" value="{{ date_from or '' }}">
+            </div>
+            <div class="col-md-3">
+                <label for="date_to" class="form-label">עד תאריך</label>
+                <input type="date" name="date_to" id="date_to" class="form-control" value="{{ date_to or '' }}">
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="bi bi-funnel me-2"></i>סנן
+                </button>
+                <a href="{{ url_for('main.stock_audits') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Audit History -->
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>היסטוריית ספירות</h5>
+    </div>
+    <div class="card-body">
+        {% if audits %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>תאריך</th>
+                        <th>חומר גלם</th>
+                        <th>קטגוריה</th>
+                        <th>כמות במערכת</th>
+                        <th>כמות בפועל</th>
+                        <th>הפרש</th>
+                        <th>ערך כספי</th>
+                        <th>סופר</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for audit in audits %}
+                    <tr>
+                        <td>{{ audit.audit_date.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td class="fw-medium">{{ audit.raw_material.name if audit.raw_material else 'לא ידוע' }}</td>
+                        <td>
+                            <span class="badge bg-light text-dark border">
+                                {{ audit.raw_material.category.name if audit.raw_material and audit.raw_material.category else 'ללא' }}
+                            </span>
+                        </td>
+                        <td>{{ "%.1f"|format(audit.system_quantity) }}</td>
+                        <td>{{ "%.1f"|format(audit.physical_quantity) }}</td>
+                        <td class="fw-bold {% if audit.variance < 0 %}text-danger{% elif audit.variance > 0 %}text-success{% else %}text-muted{% endif %}">
+                            {{ "%.1f"|format(audit.variance) }}
+                            {% if audit.variance < 0 %}
+                                <i class="bi bi-arrow-down-circle"></i>
+                            {% elif audit.variance > 0 %}
+                                <i class="bi bi-arrow-up-circle"></i>
+                            {% endif %}
+                        </td>
+                        <td class="{% if audit.variance_cost < 0 %}text-danger{% elif audit.variance_cost > 0 %}text-success{% endif %}">
+                            {{ currency_symbol }}{{ "%.2f"|format(audit.variance_cost) }}
+                        </td>
+                        <td>{{ audit.auditor_name or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center">לא נמצאו ספירות מלאי בתקופה המבוקשת</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <!-- Category Analysis -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-pie-chart me-2"></i>ניתוח לפי קטגוריה</h5>
+            </div>
+            <div class="card-body">
+                {% if category_analysis %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>קטגוריה</th>
+                                <th>ספירות</th>
+                                <th>הפרש כמות</th>
+                                <th>ערך כספי</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cat_name, cat_data in category_analysis.items() %}
+                            <tr>
+                                <td class="fw-medium">{{ cat_name }}</td>
+                                <td>{{ cat_data.count }}</td>
+                                <td class="{% if cat_data.total_variance < 0 %}text-danger{% endif %}">
+                                    {{ "%.1f"|format(cat_data.total_variance) }}
+                                </td>
+                                <td class="{% if cat_data.total_variance_cost < 0 %}text-danger{% endif %}">
+                                    {{ currency_symbol }}{{ "%.2f"|format(cat_data.total_variance_cost) }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">אין נתונים להצגה</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Discrepancies -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>חומרים עם הפרשים גבוהים</h5>
+            </div>
+            <div class="card-body">
+                {% if top_discrepancies %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>חומר גלם</th>
+                                <th>ספירות</th>
+                                <th>סך הפרש</th>
+                                <th>ערך כספי</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mat_name, mat_data in top_discrepancies %}
+                            <tr>
+                                <td class="fw-medium">{{ mat_name }}</td>
+                                <td>{{ mat_data.count }}</td>
+                                <td class="{% if mat_data.total_variance < 0 %}text-danger{% endif %}">
+                                    {{ "%.1f"|format(mat_data.total_variance) }}
+                                </td>
+                                <td class="{% if mat_data.total_cost < 0 %}text-danger{% endif %}">
+                                    {{ currency_symbol }}{{ "%.2f"|format(mat_data.total_cost) }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">אין נתונים להצגה</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Insights -->
+{% if audits %}
+<div class="card">
+    <div class="card-header bg-light">
+        <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>תובנות</h5>
+    </div>
+    <div class="card-body">
+        <ul class="list-unstyled mb-0">
+            {% if total_variance_cost < 0 %}
+            <li class="mb-2">
+                <i class="bi bi-exclamation-circle text-danger me-2"></i>
+                סך הפסדים מהפרשי מלאי: <strong>{{ currency_symbol }}{{ "%.2f"|format(abs(total_variance_cost)) }}</strong>
+            </li>
+            {% endif %}
+
+            {% if top_discrepancies %}
+                {% set worst = top_discrepancies[0] %}
+                <li class="mb-2">
+                    <i class="bi bi-x-octagon text-warning me-2"></i>
+                    החומר עם ההפרשים הגבוהים ביותר: <strong>{{ worst[0] }}</strong>
+                    ({{ currency_symbol }}{{ "%.2f"|format(abs(worst[1].total_cost)) }})
+                </li>
+            {% endif %}
+
+            {% if category_analysis %}
+                {% set worst_cat = category_analysis.items()|sort(attribute='1.total_variance_cost')|first %}
+                {% if worst_cat %}
+                <li class="mb-2">
+                    <i class="bi bi-folder-x text-warning me-2"></i>
+                    הקטגוריה הבעייתית ביותר: <strong>{{ worst_cat[0] }}</strong>
+                </li>
+                {% endif %}
+            {% endif %}
+
+            <li class="mb-2">
+                <i class="bi bi-calculator text-info me-2"></i>
+                ממוצע הפרש כספי לספירה: <strong>{{ currency_symbol }}{{ "%.2f"|format(total_variance_cost / audits|length if audits|length > 0 else 0) }}</strong>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endif %}
+
+<style>
+@media print {
+    .navbar, .btn, form {
+        display: none !important;
+    }
+    .card {
+        break-inside: avoid;
+    }
+}
+</style>
+
+{% endblock %}

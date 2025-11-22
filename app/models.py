@@ -179,6 +179,35 @@ class WeeklyLaborEntry(db.Model):
             'cost': self.cost
         }
 
+class StockAudit(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    audit_date = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    raw_material_id = db.Column(db.Integer, db.ForeignKey('raw_material.id'), nullable=False)
+    system_quantity = db.Column(db.Float, nullable=False)  # Calculated stock before audit
+    physical_quantity = db.Column(db.Float, nullable=False)  # Actual count
+    variance = db.Column(db.Float, nullable=False)  # physical - system
+    variance_cost = db.Column(db.Float, nullable=False)  # variance * cost_per_unit
+    auditor_name = db.Column(db.String(100), nullable=True)
+    notes = db.Column(db.Text, nullable=True)
+    stock_log_id = db.Column(db.Integer, db.ForeignKey('stock_log.id'), nullable=True)
+
+    # Relationships
+    raw_material = db.relationship('RawMaterial', backref='stock_audits')
+    stock_log = db.relationship('StockLog', backref='audit')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'audit_date': self.audit_date.strftime('%Y-%m-%d %H:%M:%S'),
+            'raw_material_name': self.raw_material.name if self.raw_material else 'Unknown',
+            'system_quantity': self.system_quantity,
+            'physical_quantity': self.physical_quantity,
+            'variance': self.variance,
+            'variance_cost': self.variance_cost,
+            'auditor_name': self.auditor_name,
+            'notes': self.notes
+        }
+
 class AuditLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)

@@ -6,7 +6,7 @@ from datetime import datetime, date, timedelta
 from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_file
 from sqlalchemy import func, extract, and_
-from .models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, AuditLog
+from .models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, StockAudit, AuditLog
 
 main_blueprint = Blueprint('main', __name__)
 
@@ -126,12 +126,26 @@ def index():
                 'gross_profit': gross_profit
             })
 
+    # Get stock audits for the selected week
+    total_stock_variance = 0
+    stock_audit_count = 0
+    if selected_week:
+        week_audits = StockAudit.query.filter(
+            and_(
+                func.date(StockAudit.audit_date) >= week_start,
+                func.date(StockAudit.audit_date) <= week_end
+            )
+        ).all()
+        total_stock_variance = sum(audit.variance_cost for audit in week_audits)
+        stock_audit_count = len(week_audits)
+
     # Net Profit (Cash Flow view: considers Production Cost as expense)
     net_profit = total_revenue - total_inventory_usage - total_labor
+    adjusted_profit = net_profit - abs(total_stock_variance)
 
-    return render_template('index.html', 
-                           weeks=all_weeks, 
-                           selected_week=selected_week, 
+    return render_template('index.html',
+                           weeks=all_weeks,
+                           selected_week=selected_week,
                            report_data=report_data,
                            total_revenue=total_revenue,
                            total_cogs=total_cogs,
@@ -139,6 +153,9 @@ def index():
                            total_inventory_usage=total_inventory_usage,
                            total_unsold_value=total_unsold_value,
                            net_profit=net_profit,
+                           adjusted_profit=adjusted_profit,
+                           total_stock_variance=total_stock_variance,
+                           stock_audit_count=stock_audit_count,
                            currency_symbol='₪')
 
 # ----------------------------
@@ -256,16 +273,70 @@ def update_stock():
     raw_material_id = request.form['raw_material_id']
     quantity = float(request.form['quantity'])
     action_type = request.form['action_type']  # 'add' or 'set'
+    auditor_name = request.form.get('auditor_name', '')  # Get auditor name if provided
 
     if action_type not in ['add', 'set']:
         return "Invalid action type", 400
 
-    stock_log = StockLog(raw_material_id=raw_material_id, action_type=action_type, quantity=quantity)
-    db.session.add(stock_log)
-    
-    log_audit("UPDATE_STOCK", "RawMaterial", raw_material_id, f"{action_type} {quantity}")
-    db.session.commit()
+    material = RawMaterial.query.get(raw_material_id)
 
+    # If action_type is 'set', calculate current stock and create audit record
+    if action_type == 'set':
+        # Calculate current system stock before the update
+        last_set_log = StockLog.query.filter_by(raw_material_id=raw_material_id, action_type='set') \
+            .order_by(StockLog.timestamp.desc()).first()
+        system_stock = last_set_log.quantity if last_set_log else 0
+
+        # Add "Add Stock" logs after the last "Set Stock"
+        add_logs = StockLog.query.filter(
+            StockLog.raw_material_id == raw_material_id,
+            StockLog.action_type == 'add',
+            StockLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min)
+        ).all()
+        for log in add_logs:
+            system_stock += log.quantity
+
+        # Subtract raw materials used in produced products
+        production_logs = ProductionLog.query.filter(
+            ProductionLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min)
+        ).all()
+
+        for production in production_logs:
+            product = Product.query.get(production.product_id)
+            for component in product.components:
+                if component.component_type == 'raw_material' and component.component_id == int(raw_material_id):
+                    system_stock -= component.quantity * production.quantity_produced
+
+        # Calculate variance and create audit record
+        variance = quantity - system_stock
+        variance_cost = variance * material.cost_per_unit
+
+        # Create the stock log entry first
+        stock_log = StockLog(raw_material_id=raw_material_id, action_type=action_type, quantity=quantity)
+        db.session.add(stock_log)
+        db.session.flush()  # Flush to get the stock_log.id
+
+        # Create stock audit record
+        stock_audit = StockAudit(
+            raw_material_id=raw_material_id,
+            system_quantity=system_stock,
+            physical_quantity=quantity,
+            variance=variance,
+            variance_cost=variance_cost,
+            auditor_name=auditor_name,
+            stock_log_id=stock_log.id
+        )
+        db.session.add(stock_audit)
+
+        log_audit("STOCK_AUDIT", "RawMaterial", raw_material_id,
+                 f"Physical count: {quantity}, System: {system_stock:.2f}, Variance: {variance:.2f} (Cost: {variance_cost:.2f})")
+    else:
+        # For 'add' action, just create the stock log
+        stock_log = StockLog(raw_material_id=raw_material_id, action_type=action_type, quantity=quantity)
+        db.session.add(stock_log)
+        log_audit("UPDATE_STOCK", "RawMaterial", raw_material_id, f"{action_type} {quantity}")
+
+    db.session.commit()
     return redirect(url_for('main.raw_materials'))
 
 # ----------------------------
@@ -1347,6 +1418,36 @@ def weekly_report():
     # Get labor breakdown
     labor_entries = weekly_cost.entries
 
+    # Get stock audits for the week
+    stock_audits = StockAudit.query.filter(
+        and_(
+            func.date(StockAudit.audit_date) >= week_start,
+            func.date(StockAudit.audit_date) <= week_end
+        )
+    ).order_by(StockAudit.audit_date.desc()).all()
+
+    # Calculate stock discrepancy totals
+    total_stock_variance_cost = sum(audit.variance_cost for audit in stock_audits)
+    stock_audit_count = len(stock_audits)
+
+    # Group audits by category
+    audit_by_category = {}
+    for audit in stock_audits:
+        if audit.raw_material and audit.raw_material.category:
+            cat_name = audit.raw_material.category.name
+            if cat_name not in audit_by_category:
+                audit_by_category[cat_name] = {
+                    'count': 0,
+                    'variance': 0,
+                    'variance_cost': 0
+                }
+            audit_by_category[cat_name]['count'] += 1
+            audit_by_category[cat_name]['variance'] += audit.variance
+            audit_by_category[cat_name]['variance_cost'] += audit.variance_cost
+
+    # Calculate adjusted profit (including stock losses)
+    adjusted_profit = total_revenue - total_material_costs - weekly_cost.total_cost - abs(total_stock_variance_cost)
+
     return render_template('weekly_report.html',
                          week_start=week_start,
                          week_end=week_end,
@@ -1357,6 +1458,11 @@ def weekly_report():
                          total_material_costs=total_material_costs,
                          labor_costs=weekly_cost.total_cost,
                          net_profit=total_revenue - total_material_costs - weekly_cost.total_cost,
+                         stock_audits=stock_audits,
+                         total_stock_variance_cost=total_stock_variance_cost,
+                         stock_audit_count=stock_audit_count,
+                         audit_by_category=audit_by_category,
+                         adjusted_profit=adjusted_profit,
                          no_data=False)
 
 # Monthly Report - Aggregating Weekly Reports
@@ -1409,6 +1515,7 @@ def monthly_report():
     total_revenue = 0
     total_labor_costs = 0
     total_material_costs = 0
+    total_stock_variance_cost = 0
 
     for week in weekly_costs:
         week_revenue = 0
@@ -1482,6 +1589,17 @@ def monthly_report():
             week_material_costs += material_cost
             week_sales_count += sale.quantity_sold or 0
 
+        # Get stock audits for this week
+        week_end_date = week.week_start_date + timedelta(days=6)
+        week_audits = StockAudit.query.filter(
+            and_(
+                func.date(StockAudit.audit_date) >= week.week_start_date,
+                func.date(StockAudit.audit_date) <= week_end_date
+            )
+        ).all()
+
+        week_stock_variance_cost = sum(audit.variance_cost for audit in week_audits)
+
         # Add weekly summary
         weekly_summaries.append({
             'week_start': week.week_start_date,
@@ -1489,13 +1607,17 @@ def monthly_report():
             'revenue': week_revenue,
             'material_cost': week_material_costs,
             'labor_cost': week.total_cost,
+            'stock_variance_cost': week_stock_variance_cost,
             'profit': week_revenue - week_material_costs - week.total_cost,
-            'sales_count': week_sales_count
+            'adjusted_profit': week_revenue - week_material_costs - week.total_cost - abs(week_stock_variance_cost),
+            'sales_count': week_sales_count,
+            'audit_count': len(week_audits)
         })
 
         total_revenue += week_revenue
         total_labor_costs += week.total_cost
         total_material_costs += week_material_costs
+        total_stock_variance_cost += week_stock_variance_cost
 
     # Convert sets to counts for category summaries
     for cat in category_summaries.values():
@@ -1524,9 +1646,102 @@ def monthly_report():
                          total_revenue=total_revenue,
                          total_material_costs=total_material_costs,
                          total_labor_costs=total_labor_costs,
+                         total_stock_variance_cost=total_stock_variance_cost,
                          net_profit=total_revenue - total_material_costs - total_labor_costs,
+                         adjusted_profit=total_revenue - total_material_costs - total_labor_costs - abs(total_stock_variance_cost),
                          avg_weekly_revenue=avg_weekly_revenue,
                          avg_weekly_labor=avg_weekly_labor,
                          avg_weekly_material=total_material_costs / num_weeks if num_weeks > 0 else 0,
+                         avg_weekly_stock_variance=total_stock_variance_cost / num_weeks if num_weeks > 0 else 0,
                          num_weeks=num_weeks,
                          no_data=False)
+
+# Stock Audits Page
+@main_blueprint.route('/stock_audits')
+def stock_audits():
+    # Get filter parameters
+    material_id = request.args.get('material_id', type=int)
+    date_from = request.args.get('date_from')
+    date_to = request.args.get('date_to')
+
+    # Base query
+    query = StockAudit.query
+
+    # Apply filters
+    if material_id:
+        query = query.filter_by(raw_material_id=material_id)
+
+    if date_from:
+        date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
+        query = query.filter(StockAudit.audit_date >= date_from_obj)
+
+    if date_to:
+        date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
+        # Add 1 day to include the entire end date
+        date_to_obj = date_to_obj + timedelta(days=1)
+        query = query.filter(StockAudit.audit_date < date_to_obj)
+
+    # Get audits ordered by date
+    audits = query.order_by(StockAudit.audit_date.desc()).all()
+
+    # Calculate totals
+    total_variance_cost = sum(audit.variance_cost for audit in audits)
+    total_positive_variance = sum(audit.variance for audit in audits if audit.variance > 0)
+    total_negative_variance = sum(audit.variance for audit in audits if audit.variance < 0)
+
+    # Get materials for filter dropdown
+    all_materials = RawMaterial.query.order_by(RawMaterial.name).all()
+
+    # Get category-wise analysis
+    category_analysis = {}
+    for audit in audits:
+        if audit.raw_material and audit.raw_material.category:
+            cat_name = audit.raw_material.category.name
+            if cat_name not in category_analysis:
+                category_analysis[cat_name] = {
+                    'count': 0,
+                    'total_variance': 0,
+                    'total_variance_cost': 0,
+                    'materials': set()
+                }
+            category_analysis[cat_name]['count'] += 1
+            category_analysis[cat_name]['total_variance'] += audit.variance
+            category_analysis[cat_name]['total_variance_cost'] += audit.variance_cost
+            category_analysis[cat_name]['materials'].add(audit.raw_material.name)
+
+    # Convert sets to lists for template
+    for cat in category_analysis.values():
+        cat['materials'] = list(cat['materials'])
+
+    # Get top discrepancy materials (worst performers)
+    material_discrepancies = {}
+    for audit in audits:
+        if audit.raw_material:
+            mat_name = audit.raw_material.name
+            if mat_name not in material_discrepancies:
+                material_discrepancies[mat_name] = {
+                    'count': 0,
+                    'total_variance': 0,
+                    'total_cost': 0
+                }
+            material_discrepancies[mat_name]['count'] += 1
+            material_discrepancies[mat_name]['total_variance'] += audit.variance
+            material_discrepancies[mat_name]['total_cost'] += audit.variance_cost
+
+    # Sort by total cost (most negative first)
+    top_discrepancies = sorted(
+        material_discrepancies.items(),
+        key=lambda x: x[1]['total_cost']
+    )[:10]  # Top 10 worst performers
+
+    return render_template('stock_audits.html',
+                         audits=audits,
+                         all_materials=all_materials,
+                         total_variance_cost=total_variance_cost,
+                         total_positive_variance=total_positive_variance,
+                         total_negative_variance=total_negative_variance,
+                         category_analysis=category_analysis,
+                         top_discrepancies=top_discrepancies,
+                         selected_material_id=material_id,
+                         date_from=date_from,
+                         date_to=date_to)

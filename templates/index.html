@@ -37,7 +37,7 @@
 
 {% if selected_week %}
 <!-- Summary Cards -->
-<div class="row row-cols-1 row-cols-md-5 g-3 mb-4">
+<div class="row row-cols-1 row-cols-md-6 g-3 mb-4">
     <!-- Revenue -->
     <div class="col">
         <div class="card border-0 shadow-sm h-100 bg-white">
@@ -111,6 +111,26 @@
                     <span class="text-muted small text-uppercase fw-bold">שווי מלאי שנותר</span>
                 </div>
                 <div class="h3 fw-bold text-dark mb-0">{{ currency_symbol }}{{ "%.0f"|format(total_unsold_value) }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Variance -->
+    <div class="col">
+        <div class="card border-0 shadow-sm h-100 bg-white">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="icon-box bg-light {% if total_stock_variance < 0 %}text-danger{% else %}text-muted{% endif %} rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                        <i class="bi bi-clipboard-check"></i>
+                    </div>
+                    <span class="text-muted small text-uppercase fw-bold">הפרשי מלאי</span>
+                </div>
+                <div class="h3 fw-bold {% if total_stock_variance < 0 %}text-danger{% elif total_stock_variance > 0 %}text-success{% else %}text-muted{% endif %} mb-0">
+                    {{ currency_symbol }}{{ "%.0f"|format(total_stock_variance) }}
+                </div>
+                {% if stock_audit_count > 0 %}
+                <small class="text-muted">{{ stock_audit_count }} ספירות</small>
+                {% endif %}
             </div>
         </div>
     </div>

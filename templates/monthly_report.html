@@ -98,9 +98,10 @@
                         <th>הכנסות</th>
                         <th>עלות חומרים</th>
                         <th>עלות לייבור</th>
-                        <th>רווח</th>
-                        <th>שיעור רווח</th>
-                        <th>מכירות</th>
+                        <th>הפרשי מלאי</th>
+                        <th>רווח נטו</th>
+                        <th>רווח מתואם</th>
+                        <th>ספירות</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -110,18 +111,16 @@
                         <td>{{ currency_symbol }}{{ "%.2f"|format(week.revenue) }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(week.material_cost) }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(week.labor_cost) }}</td>
+                        <td class="{% if week.stock_variance_cost < 0 %}text-danger{% elif week.stock_variance_cost > 0 %}text-success{% endif %}">
+                            {{ currency_symbol }}{{ "%.2f"|format(week.stock_variance_cost) }}
+                        </td>
                         <td class="{% if week.profit > 0 %}text-success{% else %}text-danger{% endif %}">
                             {{ currency_symbol }}{{ "%.2f"|format(week.profit) }}
                         </td>
-                        <td>
-                            <div class="progress" style="height: 20px;">
-                                <div class="progress-bar" role="progressbar"
-                                     style="width: {{ (week.profit / week.revenue * 100) if week.revenue > 0 else 0 }}%">
-                                    {{ "%.1f"|format((week.profit / week.revenue * 100) if week.revenue > 0 else 0) }}%
-                                </div>
-                            </div>
+                        <td class="{% if week.adjusted_profit > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ currency_symbol }}{{ "%.2f"|format(week.adjusted_profit) }}
                         </td>
-                        <td>{{ week.sales_count }}</td>
+                        <td>{{ week.audit_count }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -131,9 +130,12 @@
                         <th>{{ currency_symbol }}{{ "%.2f"|format(total_revenue) }}</th>
                         <th>{{ currency_symbol }}{{ "%.2f"|format(total_material_costs) }}</th>
                         <th>{{ currency_symbol }}{{ "%.2f"|format(total_labor_costs) }}</th>
+                        <th class="{% if total_stock_variance_cost < 0 %}text-danger{% endif %}">
+                            {{ currency_symbol }}{{ "%.2f"|format(total_stock_variance_cost) }}
+                        </th>
                         <th>{{ currency_symbol }}{{ "%.2f"|format(net_profit) }}</th>
-                        <th>{{ "%.1f"|format((net_profit / total_revenue * 100) if total_revenue > 0 else 0) }}%</th>
-                        <th>{{ weekly_summaries|sum(attribute='sales_count') }}</th>
+                        <th>{{ currency_symbol }}{{ "%.2f"|format(adjusted_profit) }}</th>
+                        <th>{{ weekly_summaries|sum(attribute='audit_count') }}</th>
                     </tr>
                 </tfoot>
             </table>
@@ -250,6 +252,14 @@
                         <i class="bi bi-percent text-primary me-2"></i>
                         שיעור רווח חודשי: <strong>{{ "%.1f"|format((net_profit / total_revenue * 100) if total_revenue > 0 else 0) }}%</strong>
                     </li>
+                    {% if total_stock_variance_cost != 0 %}
+                    <li class="mb-2">
+                        <i class="bi bi-clipboard-check text-warning me-2"></i>
+                        הפרשי מלאי חודשיים: <strong class="{% if total_stock_variance_cost < 0 %}text-danger{% endif %}">
+                            {{ currency_symbol }}{{ "%.2f"|format(total_stock_variance_cost) }}
+                        </strong>
+                    </li>
+                    {% endif %}
                 </ul>
             </div>
             <div class="col-md-6">
