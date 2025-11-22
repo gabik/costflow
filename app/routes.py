@@ -207,6 +207,13 @@ def edit_raw_material(material_id):
 @main_blueprint.route('/raw_materials/delete/<int:material_id>', methods=['POST'])
 def delete_raw_material(material_id):
     material = RawMaterial.query.get_or_404(material_id)
+    
+    # Delete related StockLogs
+    StockLog.query.filter_by(raw_material_id=material.id).delete()
+    
+    # Delete related ProductComponents
+    ProductComponent.query.filter_by(component_id=material.id, component_type='raw_material').delete()
+    
     db.session.delete(material)
     db.session.commit()
     return redirect(url_for('main.raw_materials'))

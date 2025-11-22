@@ -47,33 +47,12 @@
                         <a href="{{ url_for('main.edit_raw_material', material_id=material.id) }}" class="btn btn-sm btn-outline-secondary" title="ערוך פרטים">
                             <i class="bi bi-gear"></i>
                         </a>
-                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteMaterialModal{{ material.id }}" title="מחק">
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteMaterialModal" data-id="{{ material.id }}" data-name="{{ material.name }}" title="מחק">
                             <i class="bi bi-trash"></i>
                         </button>
                     </div>
                 </td>
             </tr>
-
-            <!-- Delete Modal (Unique per item) -->
-             <div class="modal fade" id="deleteMaterialModal{{ material.id }}" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <form method="POST" action="{{ url_for('main.delete_raw_material', material_id=material.id) }}">
-                            <div class="modal-header">
-                                <h5 class="modal-title text-danger">מחיקת חומר גלם</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <p>האם אתה בטוח שברצונך למחוק את <strong>{{ material.name }}</strong>?</p>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
-                                <button type="submit" class="btn btn-danger">מחק</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
             {% endfor %}
             </tbody>
         </table>
@@ -134,6 +113,28 @@
     </div>
 </div>
 
+<!-- Delete Material Modal (Shared) -->
+<div class="modal fade" id="deleteMaterialModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" id="deleteMaterialForm">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger">מחיקת חומר גלם</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>האם אתה בטוח שברצונך למחוק את <strong id="deleteMaterialName"></strong>?</p>
+                    <p class="text-danger small">פעולה זו תמחק גם את היסטוריית המלאי של פריט זה.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+                    <button type="submit" class="btn btn-danger">מחק</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Populate Add Stock Modal
@@ -162,6 +163,23 @@
             
             modalIdInput.value = materialId;
             modalNameDisplay.textContent = materialName;
+        });
+
+        // Populate Delete Modal
+        var deleteMaterialModal = document.getElementById('deleteMaterialModal');
+        deleteMaterialModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var materialId = button.getAttribute('data-id');
+            var materialName = button.getAttribute('data-name');
+            
+            var modalNameDisplay = deleteMaterialModal.querySelector('#deleteMaterialName');
+            var form = deleteMaterialModal.querySelector('#deleteMaterialForm');
+            
+            modalNameDisplay.textContent = materialName;
+            // Set form action dynamically
+            // We need the base URL for deletion. A safe way is to construct it or use a JS variable.
+            // Here we assume the route structure is /raw_materials/delete/<id>
+            form.action = '/raw_materials/delete/' + materialId;
         });
     });
 </script>
