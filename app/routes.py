@@ -1428,7 +1428,7 @@ def weekly_report():
 
     total_food_cost = 0
     total_recipes_produced = 0
-    production_details = []
+    production_aggregates = {}  # Aggregate by product_id
 
     for log in production_logs:
         product = log.product
@@ -1443,24 +1443,49 @@ def weekly_report():
             elif component.component_type == 'packaging' and component.packaging:
                 recipe_cost += component.quantity * component.packaging.price_per_unit
 
-        # Total cost for this production run
-        production_cost = recipe_cost * log.quantity_produced
-        total_food_cost += production_cost
+        # Aggregate by product
+        if product.id not in production_aggregates:
+            production_aggregates[product.id] = {
+                'product_name': product.name,
+                'recipes_produced': 0,
+                'cost_per_recipe': recipe_cost,
+                'total_cost': 0,
+                'units_per_recipe': product.products_per_recipe,
+                'production_count': 0  # Track how many times produced
+            }
+
+        production_aggregates[product.id]['recipes_produced'] += log.quantity_produced
+        production_aggregates[product.id]['total_cost'] += recipe_cost * log.quantity_produced
+        production_aggregates[product.id]['production_count'] += 1
+
+        # Update totals
+        total_food_cost += recipe_cost * log.quantity_produced
         total_recipes_produced += log.quantity_produced
 
-        production_details.append({
-            'product_name': product.name,
-            'recipes_produced': log.quantity_produced,
-            'cost_per_recipe': recipe_cost,
-            'total_cost': production_cost,
-            'units_per_recipe': product.products_per_recipe
-        })
+    # Convert aggregates to list for template, sorted by total cost (descending)
+    production_details = sorted(production_aggregates.values(), key=lambda x: x['total_cost'], reverse=True)
 
     # Calculate average food cost per recipe
     avg_food_cost_per_recipe = total_food_cost / total_recipes_produced if total_recipes_produced > 0 else 0
 
-    # Get labor breakdown
-    labor_entries = weekly_cost.entries
+    # Get labor breakdown - aggregate by employee
+    labor_aggregates = {}
+    for entry in weekly_cost.entries:
+        employee_id = entry.employee_id
+        if employee_id not in labor_aggregates:
+            labor_aggregates[employee_id] = {
+                'employee': entry.employee,
+                'employee_name': entry.employee.name if entry.employee else 'עובד לא ידוע',
+                'hours': 0,
+                'cost': 0,
+                'entry_count': 0  # Track how many separate entries
+            }
+        labor_aggregates[employee_id]['hours'] += entry.hours
+        labor_aggregates[employee_id]['cost'] += entry.cost
+        labor_aggregates[employee_id]['entry_count'] += 1
+
+    # Convert to list sorted by cost (highest first)
+    labor_entries = sorted(labor_aggregates.values(), key=lambda x: x['cost'], reverse=True)
 
     # Get stock audits for the week
     stock_audits = StockAudit.query.filter(

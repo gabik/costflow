@@ -108,7 +108,8 @@
                 <thead>
                     <tr>
                         <th>מוצר</th>
-                        <th>מתכונים יוצרו</th>
+                        <th>פעמי ייצור</th>
+                        <th>סך מתכונים</th>
                         <th>יח' למתכון</th>
                         <th>עלות למתכון</th>
                         <th>סך עלות</th>
@@ -118,10 +119,13 @@
                     {% for prod in production_details %}
                     <tr>
                         <td>{{ prod.product_name }}</td>
-                        <td>{{ prod.recipes_produced }}</td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ prod.production_count }}</span>
+                        </td>
+                        <td class="fw-bold">{{ prod.recipes_produced }}</td>
                         <td>{{ prod.units_per_recipe }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(prod.cost_per_recipe) }}</td>
-                        <td class="fw-bold">{{ currency_symbol }}{{ "%.2f"|format(prod.total_cost) }}</td>
+                        <td class="fw-bold text-primary">{{ currency_symbol }}{{ "%.2f"|format(prod.total_cost) }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -246,24 +250,29 @@
                 <thead class="table-light">
                     <tr>
                         <th>עובד</th>
-                        <th>שעות</th>
-                        <th>עלות</th>
+                        <th>פעמי רישום</th>
+                        <th>סך שעות</th>
+                        <th>סך עלות</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for entry in labor_entries %}
                     <tr>
-                        <td class="fw-medium">{{ entry.employee.name if entry.employee else 'עובד לא ידוע' }}</td>
-                        <td>{{ entry.hours }}</td>
-                        <td>{{ currency_symbol }}{{ "%.2f"|format(entry.cost) }}</td>
+                        <td class="fw-medium">{{ entry.employee_name }}</td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ entry.entry_count }}</span>
+                        </td>
+                        <td class="fw-bold">{{ entry.hours }}</td>
+                        <td class="fw-bold text-primary">{{ currency_symbol }}{{ "%.2f"|format(entry.cost) }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot class="table-light">
                     <tr>
                         <th>סה"כ</th>
-                        <th>{{ labor_entries|sum(attribute='hours') }}</th>
-                        <th>{{ currency_symbol }}{{ "%.2f"|format(labor_costs) }}</th>
+                        <th></th>
+                        <th class="fw-bold">{{ labor_entries|sum(attribute='hours') }}</th>
+                        <th class="fw-bold text-primary">{{ currency_symbol }}{{ "%.2f"|format(labor_costs) }}</th>
                     </tr>
                 </tfoot>
             </table>
