@@ -44,6 +44,7 @@ def index():
     total_cogs = 0
     total_inventory_usage = 0
     total_labor = 0
+    total_unsold_value = 0
     
     if selected_week:
         week_start = selected_week.week_start_date
@@ -68,7 +69,6 @@ def index():
         
         # Iterate Products
         all_products = Product.query.all()
-        total_unsold_value = 0
         
         for product in all_products:
             produced_qty = product_production.get(product.id, 0)
