@@ -233,8 +233,8 @@ def update_stock():
 # ----------------------------
 @main_blueprint.route('/labor')
 def labor():
-    labor = Labor.query.all()
-    return render_template('labor.html', labor=labor)
+    labor_list = Labor.query.all()
+    return render_template('labor.html', all_labor=labor_list)
 
 @main_blueprint.route('/labor/add', methods=['GET', 'POST'])
 def add_labor():
