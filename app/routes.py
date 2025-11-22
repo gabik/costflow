@@ -1350,6 +1350,9 @@ def weekly_report():
                              total_revenue=0,
                              labor_costs=0,
                              net_profit=0,
+                             total_food_cost=0,
+                             avg_food_cost_per_recipe=0,
+                             total_recipes_produced=0,
                              no_data=True)
 
     # Get sales data with product and category info
@@ -1415,6 +1418,47 @@ def weekly_report():
         if product.name not in category_summaries[cat_name]['products']:
             category_summaries[cat_name]['products'].append(product.name)
 
+    # Calculate Food Cost from Production
+    production_logs = ProductionLog.query.filter(
+        and_(
+            func.date(ProductionLog.timestamp) >= week_start,
+            func.date(ProductionLog.timestamp) <= week_end
+        )
+    ).all()
+
+    total_food_cost = 0
+    total_recipes_produced = 0
+    production_details = []
+
+    for log in production_logs:
+        product = log.product
+        if not product:
+            continue
+
+        # Calculate prime cost per recipe (food cost)
+        recipe_cost = 0
+        for component in product.components:
+            if component.component_type == 'raw_material' and component.material:
+                recipe_cost += component.quantity * component.material.cost_per_unit
+            elif component.component_type == 'packaging' and component.packaging:
+                recipe_cost += component.quantity * component.packaging.price_per_unit
+
+        # Total cost for this production run
+        production_cost = recipe_cost * log.quantity_produced
+        total_food_cost += production_cost
+        total_recipes_produced += log.quantity_produced
+
+        production_details.append({
+            'product_name': product.name,
+            'recipes_produced': log.quantity_produced,
+            'cost_per_recipe': recipe_cost,
+            'total_cost': production_cost,
+            'units_per_recipe': product.products_per_recipe
+        })
+
+    # Calculate average food cost per recipe
+    avg_food_cost_per_recipe = total_food_cost / total_recipes_produced if total_recipes_produced > 0 else 0
+
     # Get labor breakdown
     labor_entries = weekly_cost.entries
 
@@ -1463,6 +1507,10 @@ def weekly_report():
                          stock_audit_count=stock_audit_count,
                          audit_by_category=audit_by_category,
                          adjusted_profit=adjusted_profit,
+                         total_food_cost=total_food_cost,
+                         avg_food_cost_per_recipe=avg_food_cost_per_recipe,
+                         total_recipes_produced=total_recipes_produced,
+                         production_details=production_details,
                          no_data=False)
 
 # Monthly Report - Aggregating Weekly Reports
@@ -1521,6 +1569,8 @@ def monthly_report():
         week_revenue = 0
         week_sales_count = 0
         week_material_costs = 0
+        week_food_cost = 0
+        week_recipes_produced = 0
 
         # Get sales for this week with actual product objects
         week_sales = WeeklyProductSales.query.filter_by(weekly_cost_id=week.id).all()
@@ -1600,6 +1650,32 @@ def monthly_report():
 
         week_stock_variance_cost = sum(audit.variance_cost for audit in week_audits)
 
+        # Calculate Food Cost from Production for this week
+        week_production_logs = ProductionLog.query.filter(
+            and_(
+                func.date(ProductionLog.timestamp) >= week.week_start_date,
+                func.date(ProductionLog.timestamp) <= week_end_date
+            )
+        ).all()
+
+        for log in week_production_logs:
+            product = log.product
+            if not product:
+                continue
+
+            # Calculate prime cost per recipe (food cost)
+            recipe_cost = 0
+            for component in product.components:
+                if component.component_type == 'raw_material' and component.material:
+                    recipe_cost += component.quantity * component.material.cost_per_unit
+                elif component.component_type == 'packaging' and component.packaging:
+                    recipe_cost += component.quantity * component.packaging.price_per_unit
+
+            # Total cost for this production run
+            production_cost = recipe_cost * log.quantity_produced
+            week_food_cost += production_cost
+            week_recipes_produced += log.quantity_produced
+
         # Add weekly summary
         weekly_summaries.append({
             'week_start': week.week_start_date,
@@ -1609,9 +1685,11 @@ def monthly_report():
             'labor_cost': week.total_cost,
             'stock_variance_cost': week_stock_variance_cost,
             'profit': week_revenue - week_material_costs - week.total_cost,
-            'adjusted_profit': week_revenue - week_material_costs - week.total_cost - abs(week_stock_variance_cost),
+            'adjusted_profit': week_revenue - week_material_costs - week.total_cost - (week_stock_variance_cost if week_stock_variance_cost < 0 else -week_stock_variance_cost),
             'sales_count': week_sales_count,
-            'audit_count': len(week_audits)
+            'audit_count': len(week_audits),
+            'food_cost': week_food_cost,
+            'recipes_produced': week_recipes_produced
         })
 
         total_revenue += week_revenue
@@ -1629,10 +1707,16 @@ def monthly_report():
     product_list = list(product_aggregates.values())
     top_products = sorted(product_list, key=lambda x: x['revenue'], reverse=True)[:10]
 
+    # Calculate total food cost and recipes from summaries
+    total_food_cost = sum(week['food_cost'] for week in weekly_summaries)
+    total_recipes_produced = sum(week['recipes_produced'] for week in weekly_summaries)
+    avg_food_cost_per_recipe = total_food_cost / total_recipes_produced if total_recipes_produced > 0 else 0
+
     # Calculate average metrics
     num_weeks = len(weekly_costs)
     avg_weekly_revenue = total_revenue / num_weeks if num_weeks > 0 else 0
     avg_weekly_labor = total_labor_costs / num_weeks if num_weeks > 0 else 0
+    avg_weekly_food_cost = total_food_cost / num_weeks if num_weeks > 0 else 0
 
     return render_template('monthly_report.html',
                          month=month,
@@ -1648,11 +1732,15 @@ def monthly_report():
                          total_labor_costs=total_labor_costs,
                          total_stock_variance_cost=total_stock_variance_cost,
                          net_profit=total_revenue - total_material_costs - total_labor_costs,
-                         adjusted_profit=total_revenue - total_material_costs - total_labor_costs - abs(total_stock_variance_cost),
+                         adjusted_profit=total_revenue - total_material_costs - total_labor_costs - (total_stock_variance_cost if total_stock_variance_cost < 0 else -total_stock_variance_cost),
                          avg_weekly_revenue=avg_weekly_revenue,
                          avg_weekly_labor=avg_weekly_labor,
                          avg_weekly_material=total_material_costs / num_weeks if num_weeks > 0 else 0,
                          avg_weekly_stock_variance=total_stock_variance_cost / num_weeks if num_weeks > 0 else 0,
+                         avg_weekly_food_cost=avg_weekly_food_cost,
+                         total_food_cost=total_food_cost,
+                         total_recipes_produced=total_recipes_produced,
+                         avg_food_cost_per_recipe=avg_food_cost_per_recipe,
                          num_weeks=num_weeks,
                          no_data=False)
 
