@@ -126,7 +126,8 @@ def index():
                 'gross_profit': gross_profit
             })
 
-    net_profit = total_revenue - total_cogs - total_labor
+    # Net Profit (Cash Flow view: considers Production Cost as expense)
+    net_profit = total_revenue - total_inventory_usage - total_labor
 
     return render_template('index.html', 
                            weeks=all_weeks, 
@@ -880,8 +881,8 @@ def update_weekly_sales(week_id):
                 sale = WeeklyProductSales.query.filter_by(weekly_cost_id=week.id, product_id=product.id).first()
                 
                 if sale:
-                    sale.quantity_sold = new_sold
-                    sale.quantity_waste = new_waste
+                    sale.quantity_sold += new_sold
+                    sale.quantity_waste += new_waste
                 else:
                     sale = WeeklyProductSales(
                         weekly_cost_id=week.id, 
@@ -890,9 +891,11 @@ def update_weekly_sales(week_id):
                         quantity_waste=new_waste
                     )
                     db.session.add(sale)
+                
+                # Stock update removed (availability is calculated dynamically)
         
         db.session.commit()
-        log_audit("UPDATE", "WeeklySales", week.id, f"Updated sales/waste for week {week.week_start_date}")
+        log_audit("UPDATE", "WeeklySales", week.id, f"Added sales/waste for week {week.week_start_date}")
         return redirect(url_for('main.index', week_id=week.id))
 
     # Calculate Production for this week (Limit for sales)

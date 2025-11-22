@@ -25,8 +25,10 @@
                             <th style="width: 60px;">תמונה</th>
                             <th>מוצר</th>
                             <th>יוצר השבוע</th>
-                            <th style="width: 150px;">כמות שנמכרה</th>
-                            <th style="width: 150px;">פחת (נזרק)</th>
+                            <th>נמכר עד כה</th>
+                            <th style="width: 150px;">הוסף מכירה</th>
+                            <th>פחת עד כה</th>
+                            <th style="width: 150px;">הוסף פחת</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -48,11 +50,17 @@
                                 <span class="badge bg-secondary text-white produced-badge">יוצר: {{ produced }}</span>
                                 <span class="badge bg-info text-dark remaining-badge ms-1">נותר: {{ produced - sales.sold - sales.waste }}</span>
                             </td>
-                            <td>
-                                <input type="number" name="sales_{{ product.id }}" class="form-control sales-input" value="{{ sales.sold if sales.sold > 0 else '' }}" min="0" step="1" placeholder="0">
+                            <td class="text-center fw-bold text-success">
+                                {{ sales.sold }}
                             </td>
                             <td>
-                                <input type="number" name="waste_{{ product.id }}" class="form-control waste-input" value="{{ sales.waste if sales.waste > 0 else '' }}" min="0" step="1" placeholder="0">
+                                <input type="number" name="sales_{{ product.id }}" class="form-control sales-input" min="0" step="1" placeholder="0">
+                            </td>
+                            <td class="text-center fw-bold text-danger">
+                                {{ sales.waste }}
+                            </td>
+                            <td>
+                                <input type="number" name="waste_{{ product.id }}" class="form-control waste-input" min="0" step="1" placeholder="0">
                             </td>
                         </tr>
                         {% endfor %}
@@ -63,7 +71,7 @@
             <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                 <a href="{{ url_for('main.index') }}" class="btn btn-secondary me-md-2">ביטול</a>
                 <button type="submit" class="btn btn-primary btn-lg px-5">
-                    <i class="bi bi-save me-2"></i> שמור נתונים
+                    <i class="bi bi-plus-lg me-2"></i> הוסף עדכון
                 </button>
             </div>
         </form>
@@ -80,12 +88,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const wasteInput = row.querySelector('.waste-input');
         
         const produced = parseInt(row.dataset.produced) || 0;
+        const initialSold = parseInt(row.dataset.initialSold) || 0;
+        const initialWaste = parseInt(row.dataset.initialWaste) || 0;
         
         function updateValidation() {
             const currentSold = parseInt(salesInput.value) || 0;
             const currentWaste = parseInt(wasteInput.value) || 0;
             
-            const remaining = produced - currentSold - currentWaste;
+            // Remaining = Produced - (Already Sold + New Sales) - (Already Waste + New Waste)
+            const remaining = produced - (initialSold + currentSold) - (initialWaste + currentWaste);
             
             // Update badge
             remainingBadge.textContent = 'נותר: ' + remaining;
@@ -105,16 +116,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         salesInput.addEventListener('input', updateValidation);
         wasteInput.addEventListener('input', updateValidation);
-        
-        // Initial run
-        updateValidation();
     });
     
     // Prevent submit if invalid
     document.querySelector('form').addEventListener('submit', function(e) {
         if (document.querySelectorAll('.is-invalid').length > 0) {
             e.preventDefault();
-            alert('שים לב: בחלק מהמוצרים הכמות שנמכרה/פחת עולה על הכמות שיוצרה.');
+            alert('שים לב: הכמות שהוזנה עולה על המלאי הזמין שיוצר השבוע.');
         }
     });
 });

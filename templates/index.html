@@ -81,7 +81,7 @@
         </div>
     </div>
 
-    <!-- COGS -->
+    <!-- Production Cost -->
     <div class="col-md-2 col-sm-6">
         <div class="card border-0 shadow-sm h-100 bg-white">
             <div class="card-body p-3">
@@ -89,9 +89,9 @@
                     <div class="icon-box bg-light text-secondary rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
                         <i class="bi bi-box-seam"></i>
                     </div>
-                    <span class="text-muted small text-uppercase fw-bold">עלות מכר</span>
+                    <span class="text-muted small text-uppercase fw-bold">עלות ייצור</span>
                 </div>
-                <div class="h3 fw-bold text-dark mb-0">{{ currency_symbol }}{{ "%.0f"|format(total_cogs) }}</div>
+                <div class="h3 fw-bold text-dark mb-0">{{ currency_symbol }}{{ "%.0f"|format(total_inventory_usage) }}</div>
             </div>
         </div>
     </div>
