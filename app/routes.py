@@ -241,8 +241,11 @@ def add_labor():
     if request.method == 'POST':
         name = request.form['name']
         phone_number = request.form.get('phone_number')
-        base_hourly_rate = float(request.form['base_hourly_rate'])
-        additional_hourly_rate = float(request.form['additional_hourly_rate'])
+        
+        # Handle single total input
+        total_hourly_rate = float(request.form['total_hourly_rate'])
+        base_hourly_rate = total_hourly_rate
+        additional_hourly_rate = 0.0
 
         new_labor = Labor(name=name, phone_number=phone_number, base_hourly_rate=base_hourly_rate, additional_hourly_rate=additional_hourly_rate)
         db.session.add(new_labor)
@@ -267,9 +270,13 @@ def edit_labor(labor_id):
 
         labor_item.phone_number = request.form.get('phone_number')
 
-        labor_item.base_hourly_rate = float(request.form['base_hourly_rate'])
+        
 
-        labor_item.additional_hourly_rate = float(request.form['additional_hourly_rate'])
+        total_hourly_rate = float(request.form['total_hourly_rate'])
+
+        labor_item.base_hourly_rate = total_hourly_rate
+
+        labor_item.additional_hourly_rate = 0.0
 
 
 

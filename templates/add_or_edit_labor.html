@@ -22,16 +22,11 @@
                     <input type="text" id="phone_number" name="phone_number" class="form-control" value="{{ labor.phone_number if labor else '' }}">
                 </div>
                 <div class="mb-3">
-                    <label for="base_hourly_rate" class="form-label">שכר בסיס לשעה (₪)</label>
-                    <input type="number" id="base_hourly_rate" name="base_hourly_rate" class="form-control" step="0.01" value="{{ labor.base_hourly_rate if labor else '' }}" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="additional_hourly_rate" class="form-label">עלויות מעביד (₪)</label>
-                        <input type="number" id="additional_hourly_rate" name="additional_hourly_rate" class="form-control" step="0.01" value="{{ labor.additional_hourly_rate }}" required>
-                        <div class="form-text small">ביטוח לאומי, פנסיה, הפרשות סוציאליות וכו'.</div>
-                    </div>
-                    
-                    <div class="d-grid gap-2 mt-4">
+                    <label for="total_hourly_rate" class="form-label">עלות כוללת לשעה (₪)</label>
+                    <input type="number" id="total_hourly_rate" name="total_hourly_rate" class="form-control" step="0.01" value="{{ labor.total_hourly_rate if labor else '' }}" required>
+                    <div class="form-text small">כולל שכר יסוד ועלויות מעביד.</div>
+                </div>
+                <div class="d-grid gap-2 mt-4">
                         <button type="submit" class="btn btn-primary btn-lg">שמור שינויים</button>
                         <a href="{{ url_for('main.labor') }}" class="btn btn-link text-decoration-none text-secondary">ביטול וחזרה</a>
                     </div>
