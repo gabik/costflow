@@ -55,6 +55,15 @@
         </div>
     </div>
     <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h6 class="card-title">עלות חומרים</h6>
+                <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(total_material_costs) }}</h3>
+                <small>ממוצע שבועי: {{ currency_symbol }}{{ "%.2f"|format(avg_weekly_material) }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
         <div class="card bg-warning text-white">
             <div class="card-body">
                 <h6 class="card-title">עלות לייבור</h6>
@@ -68,16 +77,7 @@
             <div class="card-body">
                 <h6 class="card-title">רווח נטו</h6>
                 <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(net_profit) }}</h3>
-                <small>{{ num_weeks }} שבועות</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <h6 class="card-title">שיעור רווח</h6>
-                <h3 class="mb-0">{{ "%.1f"|format((net_profit / total_revenue * 100) if total_revenue > 0 else 0) }}%</h3>
-                <small>מהמחזור החודשי</small>
+                <small>{{ "%.1f"|format((net_profit / total_revenue * 100) if total_revenue > 0 else 0) }}%</small>
             </div>
         </div>
     </div>
@@ -96,6 +96,7 @@
                     <tr>
                         <th>שבוע</th>
                         <th>הכנסות</th>
+                        <th>עלות חומרים</th>
                         <th>עלות לייבור</th>
                         <th>רווח</th>
                         <th>שיעור רווח</th>
@@ -107,6 +108,7 @@
                     <tr>
                         <td class="fw-medium">{{ week.week_start.strftime('%d/%m') }} - {{ week.week_end.strftime('%d/%m') }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(week.revenue) }}</td>
+                        <td>{{ currency_symbol }}{{ "%.2f"|format(week.material_cost) }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(week.labor_cost) }}</td>
                         <td class="{% if week.profit > 0 %}text-success{% else %}text-danger{% endif %}">
                             {{ currency_symbol }}{{ "%.2f"|format(week.profit) }}
@@ -127,6 +129,7 @@
                     <tr>
                         <th>סה"כ</th>
                         <th>{{ currency_symbol }}{{ "%.2f"|format(total_revenue) }}</th>
+                        <th>{{ currency_symbol }}{{ "%.2f"|format(total_material_costs) }}</th>
                         <th>{{ currency_symbol }}{{ "%.2f"|format(total_labor_costs) }}</th>
                         <th>{{ currency_symbol }}{{ "%.2f"|format(net_profit) }}</th>
                         <th>{{ "%.1f"|format((net_profit / total_revenue * 100) if total_revenue > 0 else 0) }}%</th>
@@ -157,7 +160,8 @@
                         <th>כמות נמכרה</th>
                         <th>כמות פחת</th>
                         <th>הכנסות</th>
-                        <th>% מההכנסות</th>
+                        <th>עלות חומרים</th>
+                        <th>רווח גולמי</th>
                         <th>שבועות פעילים</th>
                     </tr>
                 </thead>
@@ -169,13 +173,9 @@
                         <td>{{ cat_data.quantity_sold }}</td>
                         <td>{{ cat_data.quantity_waste }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(cat_data.revenue) }}</td>
-                        <td>
-                            <div class="progress" style="height: 20px;">
-                                <div class="progress-bar" role="progressbar"
-                                     style="width: {{ (cat_data.revenue / total_revenue * 100) if total_revenue > 0 else 0 }}%">
-                                    {{ "%.1f"|format((cat_data.revenue / total_revenue * 100) if total_revenue > 0 else 0) }}%
-                                </div>
-                            </div>
+                        <td>{{ currency_symbol }}{{ "%.2f"|format(cat_data.material_cost) }}</td>
+                        <td class="{% if cat_data.revenue - cat_data.material_cost > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ currency_symbol }}{{ "%.2f"|format(cat_data.revenue - cat_data.material_cost) }}
                         </td>
                         <td>{{ cat_data.weeks_active }}/{{ num_weeks }}</td>
                     </tr>

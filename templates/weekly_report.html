@@ -46,6 +46,14 @@
         </div>
     </div>
     <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h6 class="card-title">עלות חומרים</h6>
+                <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(total_material_costs) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
         <div class="card bg-warning text-white">
             <div class="card-body">
                 <h6 class="card-title">עלות לייבור</h6>
@@ -58,14 +66,7 @@
             <div class="card-body">
                 <h6 class="card-title">רווח נטו</h6>
                 <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(net_profit) }}</h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <h6 class="card-title">שיעור רווח</h6>
-                <h3 class="mb-0">{{ "%.1f"|format((net_profit / total_revenue * 100) if total_revenue > 0 else 0) }}%</h3>
+                <small>{{ "%.1f"|format((net_profit / total_revenue * 100) if total_revenue > 0 else 0) }}%</small>
             </div>
         </div>
     </div>
@@ -87,7 +88,8 @@
                         <th>כמות נמכרה</th>
                         <th>כמות פחת</th>
                         <th>הכנסות</th>
-                        <th>% מההכנסות</th>
+                        <th>עלות חומרים</th>
+                        <th>רווח גולמי</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -98,13 +100,9 @@
                         <td>{{ cat_data.quantity_sold }}</td>
                         <td>{{ cat_data.quantity_waste }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(cat_data.revenue) }}</td>
-                        <td>
-                            <div class="progress" style="height: 20px;">
-                                <div class="progress-bar" role="progressbar"
-                                     style="width: {{ (cat_data.revenue / total_revenue * 100) if total_revenue > 0 else 0 }}%">
-                                    {{ "%.1f"|format((cat_data.revenue / total_revenue * 100) if total_revenue > 0 else 0) }}%
-                                </div>
-                            </div>
+                        <td>{{ currency_symbol }}{{ "%.2f"|format(cat_data.material_cost) }}</td>
+                        <td class="{% if cat_data.revenue - cat_data.material_cost > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ currency_symbol }}{{ "%.2f"|format(cat_data.revenue - cat_data.material_cost) }}
                         </td>
                     </tr>
                     {% endfor %}
@@ -116,7 +114,8 @@
                         <th>{{ category_summaries.values()|sum(attribute='quantity_sold') }}</th>
                         <th>{{ category_summaries.values()|sum(attribute='quantity_waste') }}</th>
                         <th>{{ currency_symbol }}{{ "%.2f"|format(total_revenue) }}</th>
-                        <th>100%</th>
+                        <th>{{ currency_symbol }}{{ "%.2f"|format(total_material_costs) }}</th>
+                        <th>{{ currency_symbol }}{{ "%.2f"|format(total_revenue - total_material_costs) }}</th>
                     </tr>
                 </tfoot>
             </table>

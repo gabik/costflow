@@ -461,12 +461,12 @@ def add_product():
     return render_template(
         'add_or_edit_product.html',
         product=None,
-        product_json=None,
         all_raw_materials=all_raw_materials,
         all_packaging=all_packaging,
         all_labor=all_labor,
         categories=categories, # For raw material modal
-        product_categories=product_categories # For product form
+        product_categories=product_categories, # For product form
+        units=units_list # For raw material modal
     )
 
 
@@ -581,12 +581,12 @@ def edit_product(product_id):
     return render_template(
         'add_or_edit_product.html',
         product=product,
-        product_json=product.to_dict(),
         all_raw_materials=all_raw_materials,
         all_packaging=all_packaging,
         all_labor=all_labor,
         categories=categories,
-        product_categories=product_categories
+        product_categories=product_categories,
+        units=units_list # For raw material modal
     )
 
 # ----------------------------
@@ -1282,43 +1282,67 @@ def weekly_report():
                              no_data=True)
 
     # Get sales data with product and category info
-    sales_data = db.session.query(
-        Product.name,
-        Product.category_id,
-        Category.name.label('category_name'),
-        Product.selling_price_per_unit,
-        WeeklyProductSales.quantity_sold,
-        WeeklyProductSales.quantity_waste,
-        (WeeklyProductSales.quantity_sold * Product.selling_price_per_unit).label('revenue')
-    ).join(
-        WeeklyProductSales, WeeklyProductSales.product_id == Product.id
-    ).outerjoin(
-        Category, Category.id == Product.category_id
-    ).filter(
-        WeeklyProductSales.weekly_cost_id == weekly_cost.id
-    ).all()
-
-    # Calculate totals and category summaries
+    sales_data = []
     total_revenue = 0
+    total_material_costs = 0
     category_summaries = {}
 
-    for sale in sales_data:
-        total_revenue += sale.revenue or 0
-        cat_name = sale.category_name or 'ללא קטגוריה'
+    # Get all sales for this week
+    week_sales = WeeklyProductSales.query.filter_by(weekly_cost_id=weekly_cost.id).all()
 
+    for sale in week_sales:
+        product = sale.product
+        if not product:
+            continue
+
+        # Calculate prime cost (materials + packaging)
+        prime_cost = 0
+        for component in product.components:
+            if component.component_type == 'raw_material' and component.material:
+                prime_cost += component.quantity * component.material.cost_per_unit
+            elif component.component_type == 'packaging' and component.packaging:
+                prime_cost += component.quantity * component.packaging.price_per_unit
+
+        prime_cost_per_unit = prime_cost / product.products_per_recipe if product.products_per_recipe > 0 else 0
+
+        # Calculate costs for sold and waste quantities
+        material_cost_sold = (sale.quantity_sold or 0) * prime_cost_per_unit
+        material_cost_waste = (sale.quantity_waste or 0) * prime_cost_per_unit
+        revenue = (sale.quantity_sold or 0) * product.selling_price_per_unit
+
+        total_material_costs += material_cost_sold + material_cost_waste
+        total_revenue += revenue
+
+        cat_name = product.category.name if product.category else 'ללא קטגוריה'
+
+        # Add to sales data
+        sales_data.append({
+            'name': product.name,
+            'category_name': cat_name,
+            'selling_price_per_unit': product.selling_price_per_unit,
+            'quantity_sold': sale.quantity_sold,
+            'quantity_waste': sale.quantity_waste,
+            'revenue': revenue,
+            'prime_cost_per_unit': prime_cost_per_unit,
+            'material_cost': material_cost_sold + material_cost_waste
+        })
+
+        # Update category summaries
         if cat_name not in category_summaries:
             category_summaries[cat_name] = {
                 'quantity_sold': 0,
                 'quantity_waste': 0,
                 'revenue': 0,
+                'material_cost': 0,
                 'products': []
             }
 
         category_summaries[cat_name]['quantity_sold'] += sale.quantity_sold or 0
         category_summaries[cat_name]['quantity_waste'] += sale.quantity_waste or 0
-        category_summaries[cat_name]['revenue'] += sale.revenue or 0
-        if sale.name not in category_summaries[cat_name]['products']:
-            category_summaries[cat_name]['products'].append(sale.name)
+        category_summaries[cat_name]['revenue'] += revenue
+        category_summaries[cat_name]['material_cost'] += material_cost_sold + material_cost_waste
+        if product.name not in category_summaries[cat_name]['products']:
+            category_summaries[cat_name]['products'].append(product.name)
 
     # Get labor breakdown
     labor_entries = weekly_cost.entries
@@ -1330,8 +1354,9 @@ def weekly_report():
                          labor_entries=labor_entries,
                          category_summaries=category_summaries,
                          total_revenue=total_revenue,
+                         total_material_costs=total_material_costs,
                          labor_costs=weekly_cost.total_cost,
-                         net_profit=total_revenue - weekly_cost.total_cost,
+                         net_profit=total_revenue - total_material_costs - weekly_cost.total_cost,
                          no_data=False)
 
 # Monthly Report - Aggregating Weekly Reports
@@ -1383,48 +1408,56 @@ def monthly_report():
     weekly_summaries = []
     total_revenue = 0
     total_labor_costs = 0
+    total_material_costs = 0
 
     for week in weekly_costs:
         week_revenue = 0
         week_sales_count = 0
+        week_material_costs = 0
 
-        # Get sales for this week
-        week_sales = db.session.query(
-            Product.id.label('product_id'),
-            Product.name.label('product_name'),
-            Category.name.label('category_name'),
-            Product.selling_price_per_unit,
-            WeeklyProductSales.quantity_sold,
-            WeeklyProductSales.quantity_waste
-        ).join(
-            WeeklyProductSales, WeeklyProductSales.product_id == Product.id
-        ).outerjoin(
-            Category, Category.id == Product.category_id
-        ).filter(
-            WeeklyProductSales.weekly_cost_id == week.id
-        ).all()
+        # Get sales for this week with actual product objects
+        week_sales = WeeklyProductSales.query.filter_by(weekly_cost_id=week.id).all()
 
-        # Process each sale
         for sale in week_sales:
-            product_key = sale.product_id
-            cat_name = sale.category_name or 'ללא קטגוריה'
-            sale_revenue = (sale.quantity_sold or 0) * sale.selling_price_per_unit
+            product = sale.product
+            if not product:
+                continue
+
+            # Calculate prime cost (materials + packaging) for this product
+            prime_cost = 0
+            for component in product.components:
+                if component.component_type == 'raw_material' and component.material:
+                    prime_cost += component.quantity * component.material.cost_per_unit
+                elif component.component_type == 'packaging' and component.packaging:
+                    prime_cost += component.quantity * component.packaging.price_per_unit
+
+            prime_cost_per_unit = prime_cost / product.products_per_recipe if product.products_per_recipe > 0 else 0
+
+            # Calculate costs and revenue
+            material_cost = ((sale.quantity_sold or 0) + (sale.quantity_waste or 0)) * prime_cost_per_unit
+            sale_revenue = (sale.quantity_sold or 0) * product.selling_price_per_unit
+
+            product_key = product.id
+            cat_name = product.category.name if product.category else 'ללא קטגוריה'
 
             # Aggregate by product
             if product_key not in product_aggregates:
                 product_aggregates[product_key] = {
-                    'name': sale.product_name,
+                    'name': product.name,
                     'category_name': cat_name,
-                    'price_per_unit': sale.selling_price_per_unit,
+                    'price_per_unit': product.selling_price_per_unit,
+                    'prime_cost_per_unit': prime_cost_per_unit,
                     'quantity_sold': 0,
                     'quantity_waste': 0,
                     'revenue': 0,
+                    'material_cost': 0,
                     'weeks_active': 0
                 }
 
             product_aggregates[product_key]['quantity_sold'] += sale.quantity_sold or 0
             product_aggregates[product_key]['quantity_waste'] += sale.quantity_waste or 0
             product_aggregates[product_key]['revenue'] += sale_revenue
+            product_aggregates[product_key]['material_cost'] += material_cost
             product_aggregates[product_key]['weeks_active'] += 1
 
             # Aggregate by category
@@ -1433,6 +1466,7 @@ def monthly_report():
                     'quantity_sold': 0,
                     'quantity_waste': 0,
                     'revenue': 0,
+                    'material_cost': 0,
                     'products': set(),
                     'weeks_active': set()
                 }
@@ -1440,10 +1474,12 @@ def monthly_report():
             category_summaries[cat_name]['quantity_sold'] += sale.quantity_sold or 0
             category_summaries[cat_name]['quantity_waste'] += sale.quantity_waste or 0
             category_summaries[cat_name]['revenue'] += sale_revenue
-            category_summaries[cat_name]['products'].add(sale.product_name)
+            category_summaries[cat_name]['material_cost'] += material_cost
+            category_summaries[cat_name]['products'].add(product.name)
             category_summaries[cat_name]['weeks_active'].add(week.week_start_date)
 
             week_revenue += sale_revenue
+            week_material_costs += material_cost
             week_sales_count += sale.quantity_sold or 0
 
         # Add weekly summary
@@ -1451,13 +1487,15 @@ def monthly_report():
             'week_start': week.week_start_date,
             'week_end': week.week_start_date + timedelta(days=6),
             'revenue': week_revenue,
+            'material_cost': week_material_costs,
             'labor_cost': week.total_cost,
-            'profit': week_revenue - week.total_cost,
+            'profit': week_revenue - week_material_costs - week.total_cost,
             'sales_count': week_sales_count
         })
 
         total_revenue += week_revenue
         total_labor_costs += week.total_cost
+        total_material_costs += week_material_costs
 
     # Convert sets to counts for category summaries
     for cat in category_summaries.values():
@@ -1484,9 +1522,11 @@ def monthly_report():
                          category_summaries=category_summaries,
                          top_products=top_products,
                          total_revenue=total_revenue,
+                         total_material_costs=total_material_costs,
                          total_labor_costs=total_labor_costs,
-                         net_profit=total_revenue - total_labor_costs,
+                         net_profit=total_revenue - total_material_costs - total_labor_costs,
                          avg_weekly_revenue=avg_weekly_revenue,
                          avg_weekly_labor=avg_weekly_labor,
+                         avg_weekly_material=total_material_costs / num_weeks if num_weeks > 0 else 0,
                          num_weeks=num_weeks,
                          no_data=False)

@@ -291,19 +291,17 @@
         });
     }
 
-    // Initialize existing components for editing
+    // Initialize empty rows for new products only
     document.addEventListener('DOMContentLoaded', function() {
-        const product = {{ product_json | tojson | safe }};
-        if (product && product.components) {
-            product.components.forEach(component => {
-                if (component.component_type === 'raw_material') {
-                    addRawMaterialRow(component.component_id, component.quantity);
-                } else if (component.component_type === 'packaging') {
-                    addPackagingRow(component.component_id, component.quantity);
-                }
-            });
-        } else { // For new product, add one empty row of each type
+        // Check if this is a new product (no existing rows)
+        const hasExistingMaterials = document.querySelectorAll('.raw-material-row').length > 0;
+        const hasExistingPackaging = document.querySelectorAll('.packaging-row').length > 0;
+
+        // Only add empty rows for new products
+        if (!hasExistingMaterials) {
             addRawMaterialRow();
+        }
+        if (!hasExistingPackaging) {
             addPackagingRow();
         }
     });
