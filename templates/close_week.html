@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}סגירת שבוע - איפוס מלאי{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="text-center mb-5">
+        <i class="bi bi-exclamation-circle display-1 text-warning"></i>
+        <h1 class="display-5 fw-bold mt-3">נמצאו שאריות במלאי מהשבוע הקודם</h1>
+        <p class="lead text-secondary">
+            לשבוע שהסתיים ב-<strong>{{ previous_week.week_start_date.strftime('%d/%m/%Y') }}</strong> נותרו מוצרים שלא נמכרו.
+        </p>
+        <p>האם לאפס את המלאי ולהעביר את היתרה לפחת (הפסד)?</p>
+    </div>
+
+    <div class="card shadow-sm mb-4 border-warning">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>פירוט שאריות</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 bg-white">
+                <thead class="table-light">
+                    <tr>
+                        <th>מוצר</th>
+                        <th class="text-center">כמות שנותרה</th>
+                        <th class="text-end">שווי הפסד (עלות)</th>
+                        <th class="text-end">אובדן הכנסה פוטנציאלית</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in leftovers %}
+                    <tr>
+                        <td class="fw-medium">{{ item.product.name }}</td>
+                        <td class="text-center fw-bold">{{ item.quantity|int }}</td>
+                        <td class="text-end text-danger">{{ currency_symbol }}{{ "%.2f"|format(item.cost_value) }}</td>
+                        <td class="text-end text-muted">{{ currency_symbol }}{{ "%.2f"|format(item.potential_revenue) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-light fw-bold">
+                    <tr>
+                        <td colspan="2" class="text-end">סה"כ:</td>
+                        <td class="text-end text-danger">{{ currency_symbol }}{{ "%.2f"|format(total_loss) }}</td>
+                        <td class="text-end">{{ currency_symbol }}{{ "%.2f"|format(total_potential_revenue) }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <div class="row g-3 justify-content-center">
+        <!-- Approve: Write-off and Start New Week -->
+        <div class="col-md-5">
+            <form method="POST" action="{{ url_for('main.close_week_confirm') }}">
+                <input type="hidden" name="previous_week_id" value="{{ previous_week.id }}">
+                <input type="hidden" name="new_week_start_date" value="{{ new_week_start_date }}">
+                <button type="submit" class="btn btn-danger btn-lg w-100 p-4 shadow-sm">
+                    <div class="h4 mb-1"><i class="bi bi-trash me-2"></i>אשר וזרוק לפחת</div>
+                    <small>הכמות תתווסף לפחת של שבוע שעבר והשבוע החדש יתחיל נקי.</small>
+                </button>
+            </form>
+        </div>
+
+        <!-- Update: Go to Update Sales -->
+        <div class="col-md-5">
+            <a href="{{ url_for('main.update_weekly_sales', week_id=previous_week.id) }}" class="btn btn-outline-primary btn-lg w-100 p-4 shadow-sm text-decoration-none">
+                <div class="h4 mb-1"><i class="bi bi-pencil-square me-2"></i>עדכן מכירות</div>
+                <small>חזור לעדכון נתוני המכירות של השבוע הקודם (אם נמכרו).</small>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

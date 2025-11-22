@@ -64,17 +64,18 @@ def index():
             product_production[log.product_id] = product_production.get(log.product_id, 0) + units_produced
 
         # Map Sales
-        product_sales = {s.product_id: s.quantity_sold for s in selected_week.sales}
+        product_sales = {s.product_id: {'sold': s.quantity_sold, 'waste': s.quantity_waste} for s in selected_week.sales}
         
         # Iterate Products
         all_products = Product.query.all()
+        total_unsold_value = 0
+        
         for product in all_products:
             produced_qty = product_production.get(product.id, 0)
-            sold_qty = product_sales.get(product.id, 0)
+            sales_data = product_sales.get(product.id, {'sold': 0, 'waste': 0})
+            sold_qty = sales_data['sold']
+            waste_qty = sales_data['waste']
             
-            if produced_qty == 0 and sold_qty == 0:
-                continue
-                
             # Calculate Prime Cost (Materials + Packaging)
             prime_cost = 0
             for component in product.components:
@@ -91,20 +92,34 @@ def index():
             # Financials
             revenue = sold_qty * product.selling_price_per_unit
             cogs = sold_qty * prime_cost_per_unit
-            gross_profit = revenue - cogs
+            waste_cost = waste_qty * prime_cost_per_unit # Cost of waste
+            gross_profit = revenue - cogs - waste_cost # Profit is reduced by waste cost
             
             # Inventory Usage Value (what we made)
             inventory_usage_value = produced_qty * prime_cost_per_unit
+            
+            # Available (Unsold)
+            available_qty = produced_qty - sold_qty - waste_qty
+            if available_qty < 0: available_qty = 0 # Should not happen with valid input but safe to clamp
+            
+            # Unsold Value
+            total_unsold_value += available_qty * prime_cost_per_unit
             
             total_revenue += revenue
             total_cogs += cogs
             total_inventory_usage += inventory_usage_value
             
+            # Only add to report if active this week
+            if produced_qty == 0 and sold_qty == 0 and waste_qty == 0:
+                continue
+
             report_data.append({
                 'product_name': product.name,
                 'product_image': product.image_filename,
                 'produced_qty': produced_qty,
                 'sold_qty': sold_qty,
+                'waste_qty': waste_qty,
+                'available_qty': available_qty,
                 'prime_cost': prime_cost_per_unit,
                 'selling_price': product.selling_price_per_unit,
                 'revenue': revenue,
@@ -121,6 +136,7 @@ def index():
                            total_cogs=total_cogs,
                            total_labor=total_labor,
                            total_inventory_usage=total_inventory_usage,
+                           total_unsold_value=total_unsold_value,
                            net_profit=net_profit,
                            currency_symbol='₪')
 
@@ -664,6 +680,72 @@ def weekly_costs():
         date_str = request.form.get('week_start_date')
         if date_str:
             week_start = datetime.strptime(date_str, '%Y-%m-%d').date()
+            
+            # Check for leftovers in previous week unless forced
+            if request.form.get('force_create') != 'true':
+                previous_week = WeeklyLaborCost.query.filter(WeeklyLaborCost.week_start_date < week_start).order_by(WeeklyLaborCost.week_start_date.desc()).first()
+                
+                if previous_week:
+                    # Calculate Leftovers
+                    prev_start = previous_week.week_start_date
+                    prev_end = prev_start + timedelta(days=6)
+                    
+                    logs = ProductionLog.query.filter(
+                        func.date(ProductionLog.timestamp) >= prev_start,
+                        func.date(ProductionLog.timestamp) <= prev_end
+                    ).all()
+                    
+                    product_production = {}
+                    for log in logs:
+                        if log.product:
+                            units = log.quantity_produced * log.product.products_per_recipe
+                            product_production[log.product_id] = product_production.get(log.product_id, 0) + units
+                            
+                    product_sales = {s.product_id: {'sold': s.quantity_sold, 'waste': s.quantity_waste} for s in previous_week.sales}
+                    
+                    leftovers = []
+                    total_loss = 0
+                    total_potential_revenue = 0
+                    
+                    all_products = Product.query.all()
+                    for product in all_products:
+                        produced = product_production.get(product.id, 0)
+                        sales_data = product_sales.get(product.id, {'sold': 0, 'waste': 0})
+                        remaining = produced - sales_data['sold'] - sales_data['waste']
+                        
+                        if remaining > 0:
+                            # Calculate Prime Cost
+                            prime_cost = 0
+                            for component in product.components:
+                                if component.component_type == 'raw_material' and component.material:
+                                    prime_cost += component.quantity * component.material.cost_per_unit
+                                elif component.component_type == 'packaging' and component.packaging:
+                                    prime_cost += component.quantity * component.packaging.price_per_unit
+                            
+                            unit_cost = prime_cost / product.products_per_recipe if product.products_per_recipe else 0
+                            
+                            cost_value = remaining * unit_cost
+                            potential_rev = remaining * product.selling_price_per_unit
+                            
+                            total_loss += cost_value
+                            total_potential_revenue += potential_rev
+                            
+                            leftovers.append({
+                                'product': product,
+                                'quantity': remaining,
+                                'cost_value': cost_value,
+                                'potential_revenue': potential_rev
+                            })
+                    
+                    if leftovers:
+                        return render_template('close_week.html', 
+                                               leftovers=leftovers, 
+                                               previous_week=previous_week, 
+                                               new_week_start_date=date_str,
+                                               total_loss=total_loss,
+                                               total_potential_revenue=total_potential_revenue)
+
+            # Create Week (if no leftovers or forced)
             week = WeeklyLaborCost.query.filter_by(week_start_date=week_start).first()
             if not week:
                 week = WeeklyLaborCost(week_start_date=week_start, total_cost=0)
@@ -673,6 +755,70 @@ def weekly_costs():
 
     weekly_costs = WeeklyLaborCost.query.order_by(WeeklyLaborCost.week_start_date.desc()).all()
     return render_template('weekly_costs.html', weekly_costs=weekly_costs)
+
+@main_blueprint.route('/close_week_confirm', methods=['POST'])
+def close_week_confirm():
+    prev_week_id = request.form.get('previous_week_id')
+    new_week_date = request.form.get('new_week_start_date')
+    
+    prev_week = WeeklyLaborCost.query.get_or_404(prev_week_id)
+    
+    # Add leftovers to waste
+    # We need to re-calculate leftovers or pass them? Re-calculating is safer.
+    # (Copy-paste calculation logic or refactor - I'll refactor slightly by re-querying)
+    
+    prev_start = prev_week.week_start_date
+    prev_end = prev_start + timedelta(days=6)
+    
+    logs = ProductionLog.query.filter(
+        func.date(ProductionLog.timestamp) >= prev_start,
+        func.date(ProductionLog.timestamp) <= prev_end
+    ).all()
+    
+    product_production = {}
+    for log in logs:
+        if log.product:
+            units = log.quantity_produced * log.product.products_per_recipe
+            product_production[log.product_id] = product_production.get(log.product_id, 0) + units
+            
+    product_sales = {s.product_id: s for s in prev_week.sales} # Store object this time
+    
+    all_products = Product.query.all()
+    for product in all_products:
+        produced = product_production.get(product.id, 0)
+        sale_record = product_sales.get(product.id)
+        sold = sale_record.quantity_sold if sale_record else 0
+        waste = sale_record.quantity_waste if sale_record else 0
+        
+        remaining = produced - sold - waste
+        
+        if remaining > 0:
+            if sale_record:
+                sale_record.quantity_waste += remaining
+            else:
+                new_sale = WeeklyProductSales(
+                    weekly_cost_id=prev_week.id,
+                    product_id=product.id,
+                    quantity_sold=0,
+                    quantity_waste=remaining
+                )
+                db.session.add(new_sale)
+    
+    db.session.commit()
+    log_audit("CLOSE_WEEK", "WeeklySales", prev_week.id, f"Closed week {prev_week.week_start_date}. Moved leftovers to waste.")
+    
+    # Create New Week
+    # Redirect to main creation route with force_create=true
+    # return redirect(url_for('main.weekly_costs'), code=307) - 307 preserves POST
+    # Simpler: Just create it here
+    week_start = datetime.strptime(new_week_date, '%Y-%m-%d').date()
+    week = WeeklyLaborCost.query.filter_by(week_start_date=week_start).first()
+    if not week:
+        week = WeeklyLaborCost(week_start_date=week_start, total_cost=0)
+        db.session.add(week)
+        db.session.commit()
+        
+    return redirect(url_for('main.weekly_cost_details', week_id=week.id))
 
 @main_blueprint.route('/weekly_costs/<int:week_id>', methods=['GET'])
 def weekly_cost_details(week_id):
@@ -720,26 +866,55 @@ def update_weekly_sales(week_id):
     
     if request.method == 'POST':
         for product in products:
-            key = f"sales_{product.id}"
-            qty = request.form.get(key)
-            if qty:
-                qty = int(qty)
+            key_sales = f"sales_{product.id}"
+            key_waste = f"waste_{product.id}"
+            
+            new_sold = request.form.get(key_sales)
+            new_waste = request.form.get(key_waste)
+            
+            if new_sold is not None or new_waste is not None:
+                new_sold = int(new_sold) if new_sold else 0
+                new_waste = int(new_waste) if new_waste else 0
+                
                 # Find existing
                 sale = WeeklyProductSales.query.filter_by(weekly_cost_id=week.id, product_id=product.id).first()
+                
                 if sale:
-                    sale.quantity_sold = qty
+                    sale.quantity_sold = new_sold
+                    sale.quantity_waste = new_waste
                 else:
-                    sale = WeeklyProductSales(weekly_cost_id=week.id, product_id=product.id, quantity_sold=qty)
+                    sale = WeeklyProductSales(
+                        weekly_cost_id=week.id, 
+                        product_id=product.id, 
+                        quantity_sold=new_sold,
+                        quantity_waste=new_waste
+                    )
                     db.session.add(sale)
         
         db.session.commit()
-        log_audit("UPDATE", "WeeklySales", week.id, f"Updated sales for week {week.week_start_date}")
+        log_audit("UPDATE", "WeeklySales", week.id, f"Updated sales/waste for week {week.week_start_date}")
         return redirect(url_for('main.index', week_id=week.id))
 
-    # Create a map of existing sales for easy lookup in template
-    sales_map = {s.product_id: s.quantity_sold for s in week.sales}
+    # Calculate Production for this week (Limit for sales)
+    week_start = week.week_start_date
+    week_end = week_start + timedelta(days=6)
     
-    return render_template('update_weekly_sales.html', week=week, products=products, sales_map=sales_map)
+    logs = ProductionLog.query.filter(
+        func.date(ProductionLog.timestamp) >= week_start,
+        func.date(ProductionLog.timestamp) <= week_end
+    ).all()
+    
+    production_map = {}
+    for log in logs:
+        # Ensure we use the product associated with the log to get the recipe multiplier
+        if log.product:
+            units = log.quantity_produced * log.product.products_per_recipe
+            production_map[log.product_id] = production_map.get(log.product_id, 0) + units
+
+    # Create a map of existing sales for easy lookup in template
+    sales_map = {s.product_id: {'sold': s.quantity_sold, 'waste': s.quantity_waste} for s in week.sales}
+    
+    return render_template('update_weekly_sales.html', week=week, products=products, sales_map=sales_map, production_map=production_map)
 # ----------------------------
 # Bulk Inventory Upload
 # ----------------------------
@@ -910,6 +1085,153 @@ def backup_db():
         download_name=filename,
         mimetype='application/json'
     )
+
+@main_blueprint.route('/admin/restore', methods=['POST'])
+def restore_db():
+    if 'backup_file' not in request.files:
+        return "No file uploaded", 400
+        
+    file = request.files['backup_file']
+    if file.filename == '':
+        return "No file selected", 400
+
+    try:
+        data = json.load(file)
+        
+        # Reset DB
+        db.drop_all()
+        db.create_all()
+        
+        # 1. Categories
+        category_map = {} # old_id -> new_instance (or just keep same IDs if we force them)
+        # We will try to keep same IDs to maintain relationships if possible, 
+        # but SQLAlchemy might auto-increment. 
+        # Best effort: Explicitly set ID if the DB allows (Postgres/SQLite usually do if specified).
+        
+        for cat_data in data.get('categories', []):
+            c = Category(id=cat_data['id'], name=cat_data['name'])
+            db.session.add(c)
+            category_map[cat_data['id']] = c
+        db.session.flush()
+
+        # 2. Labor
+        labor_map = {}
+        for l_data in data.get('labor', []):
+            # Check fields (handle old backups vs new schema)
+            l = Labor(
+                id=l_data['id'],
+                name=l_data['name'],
+                phone_number=l_data.get('phone_number'),
+                base_hourly_rate=l_data.get('base_hourly_rate', l_data.get('total_hourly_rate', 0)), # Fallback
+                additional_hourly_rate=l_data.get('additional_hourly_rate', 0)
+            )
+            db.session.add(l)
+            labor_map[l_data['id']] = l
+        db.session.flush()
+
+        # 3. Packaging
+        pkg_map = {}
+        for p_data in data.get('packaging', []):
+            p = Packaging(
+                id=p_data['id'],
+                name=p_data['name'],
+                quantity_per_package=p_data['quantity_per_package'],
+                price_per_package=p_data['price_per_package']
+            )
+            db.session.add(p)
+            pkg_map[p_data['id']] = p
+        db.session.flush()
+
+        # 4. Raw Materials
+        mat_map = {}
+        for m_data in data.get('raw_materials', []):
+            # Handle category link
+            cat_id = None
+            if m_data.get('category'):
+                cat_id = m_data['category']['id']
+            
+            m = RawMaterial(
+                id=m_data['id'],
+                name=m_data['name'],
+                category_id=cat_id,
+                unit=m_data['unit'],
+                cost_per_unit=m_data['cost_per_unit'],
+                current_stock=m_data['current_stock']
+            )
+            db.session.add(m)
+            mat_map[m_data['id']] = m
+        db.session.flush()
+
+        # 5. Products & Components
+        for p_data in data.get('products', []):
+            p = Product(
+                id=p_data['id'],
+                name=p_data['name'],
+                products_per_recipe=p_data['products_per_recipe'],
+                selling_price_per_unit=p_data['selling_price_per_unit'],
+                image_filename=p_data.get('image_filename')
+            )
+            db.session.add(p)
+            db.session.flush()
+            
+            # Components
+            for c_data in p_data.get('components', []):
+                comp = ProductComponent(
+                    product_id=p.id,
+                    component_type=c_data['component_type'],
+                    component_id=c_data['component_id'],
+                    quantity=c_data['quantity']
+                )
+                db.session.add(comp)
+
+        # 6. Weekly Labor Costs & Children
+        for w_data in data.get('weekly_labor_costs', []):
+            w = WeeklyLaborCost(
+                id=w_data['id'],
+                week_start_date=datetime.strptime(w_data['week_start_date'], '%Y-%m-%d').date(),
+                total_cost=w_data['total_cost']
+            )
+            db.session.add(w)
+            db.session.flush()
+            
+            # Entries (if present in backup - backup_db needs to export them! models.py to_dict includes them)
+            for e_data in w_data.get('entries', []):
+                # Need to map employee name to ID? or assuming ID matches?
+                # Entries dict has 'employee_name' but not ID.
+                # Fix: The backup (to_dict) is LOSING foreign keys (ids) and replacing with names/objects!
+                # THIS IS A PROBLEM for restoration.
+                # Ideally we fix to_dict or backup logic.
+                # Workaround: Look up by name.
+                emp_name = e_data.get('employee_name')
+                emp = Labor.query.filter_by(name=emp_name).first()
+                if emp:
+                    entry = WeeklyLaborEntry(
+                        weekly_cost_id=w.id,
+                        employee_id=emp.id,
+                        hours=e_data['hours'],
+                        cost=e_data['cost']
+                    )
+                    db.session.add(entry)
+
+            # Sales
+            for s_data in w_data.get('sales', []):
+                prod_name = s_data.get('product_name')
+                prod = Product.query.filter_by(name=prod_name).first()
+                if prod:
+                    sale = WeeklyProductSales(
+                        weekly_cost_id=w.id,
+                        product_id=prod.id,
+                        quantity_sold=s_data['quantity_sold']
+                    )
+                    db.session.add(sale)
+
+        db.session.commit()
+        log_audit("RESTORE", "System", details="Database restored from backup.")
+        return redirect(url_for('main.index'))
+        
+    except Exception as e:
+        print(f"Restore failed: {e}")
+        return f"Restore failed: {e}", 500
 
 @main_blueprint.route('/audit_log', methods=['GET'])
 def audit_log():

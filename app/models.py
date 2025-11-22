@@ -94,33 +94,23 @@ class Product(db.Model):
 class ProductComponent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
-    component_type = db.Column(db.String(50), nullable=False)  # 'raw_material', 'labor', 'packaging'
+    component_type = db.Column(db.String(20), nullable=False)  # 'raw_material', 'labor', 'packaging'
     component_id = db.Column(db.Integer, nullable=False)
     quantity = db.Column(db.Float, nullable=False)
-    product = db.relationship('Product', backref=db.backref('components', lazy=True))
 
+    product = db.relationship('Product', backref='components')
+    
     @property
     def material(self):
         if self.component_type == 'raw_material':
             return RawMaterial.query.get(self.component_id)
-
-    @property
-    def labor(self):
-        if self.component_type == 'labor':
-            return Labor.query.get(self.component_id)
+        return None
 
     @property
     def packaging(self):
         if self.component_type == 'packaging':
             return Packaging.query.get(self.component_id)
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'component_type': self.component_type,
-            'component_id': self.component_id,
-            'quantity': self.quantity
-        }
+        return None
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -147,6 +137,7 @@ class WeeklyProductSales(db.Model):
     weekly_cost_id = db.Column(db.Integer, db.ForeignKey('weekly_labor_cost.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
     quantity_sold = db.Column(db.Integer, nullable=False, default=0)
+    quantity_waste = db.Column(db.Integer, nullable=False, default=0)
 
     product = db.relationship('Product')
 
@@ -154,7 +145,8 @@ class WeeklyProductSales(db.Model):
         return {
             'id': self.id,
             'product_name': self.product.name if self.product else 'Unknown',
-            'quantity_sold': self.quantity_sold
+            'quantity_sold': self.quantity_sold,
+            'quantity_waste': self.quantity_waste
         }
 
 class WeeklyLaborEntry(db.Model):

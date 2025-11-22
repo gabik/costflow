@@ -12,6 +12,9 @@
             <a href="{{ url_for('main.backup_db') }}" class="btn btn-success">
                 <i class="bi bi-download me-2"></i> גיבוי נתונים
             </a>
+            <button class="btn btn-warning text-dark" data-bs-toggle="modal" data-bs-target="#restoreDbModal">
+                <i class="bi bi-upload me-2"></i> שחזור מגיבוי
+            </button>
             <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#resetDbModal">
                 <i class="bi bi-exclamation-triangle-fill me-2"></i> איפוס מערכת מלא
             </button>
@@ -44,6 +47,8 @@
                             <span class="badge bg-danger">מחיקה</span>
                         {% elif log.action == 'RESET' %}
                             <span class="badge bg-dark">איפוס</span>
+                        {% elif log.action == 'RESTORE' %}
+                            <span class="badge bg-info text-dark">שחזור</span>
                         {% else %}
                             <span class="badge bg-secondary">{{ log.action }}</span>
                         {% endif %}
@@ -59,6 +64,32 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- Restore DB Modal -->
+<div class="modal fade" id="restoreDbModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('main.restore_db') }}" enctype="multipart/form-data">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title text-dark">שחזור מגיבוי</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="fw-bold">פעולה זו תדרוס את כל הנתונים במערכת!</p>
+                    <p>העלה קובץ גיבוי (JSON) לשחזור המצב.</p>
+                    <div class="mb-3">
+                        <label for="backup_file" class="form-label">קובץ גיבוי</label>
+                        <input type="file" class="form-control" name="backup_file" accept=".json" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+                    <button type="submit" class="btn btn-warning">שחזר נתונים</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
