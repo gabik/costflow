@@ -59,7 +59,9 @@ def index():
         # Map Production
         product_production = {}
         for log in logs:
-            product_production[log.product_id] = product_production.get(log.product_id, 0) + log.quantity_produced
+            # Calculate total units based on recipes count * units per recipe
+            units_produced = log.quantity_produced * log.product.products_per_recipe
+            product_production[log.product_id] = product_production.get(log.product_id, 0) + units_produced
 
         # Map Sales
         product_sales = {s.product_id: s.quantity_sold for s in selected_week.sales}
