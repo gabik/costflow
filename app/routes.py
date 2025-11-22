@@ -1,10 +1,12 @@
 import os
 import pandas as pd
+import json
+import io
 from datetime import datetime, date, timedelta
 from werkzeug.utils import secure_filename
-from flask import Blueprint, render_template, request, redirect, url_for, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_file
 from sqlalchemy import func
-from .models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog, WeeklyLaborCost, WeeklyLaborEntry, AuditLog
+from .models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, AuditLog
 
 main_blueprint = Blueprint('main', __name__)
 
@@ -38,39 +40,40 @@ def index():
         selected_week = all_weeks[0]  # Default to latest
 
     report_data = []
-    total_units = 0
-    labor_cost_per_unit = 0
+    total_revenue = 0
+    total_cogs = 0
+    total_inventory_usage = 0
+    total_labor = 0
     
     if selected_week:
         week_start = selected_week.week_start_date
         week_end = week_start + timedelta(days=6)
+        total_labor = selected_week.total_cost
         
-        # 2. Fetch production logs for this week
-        # Note: ProductionLog.timestamp is DateTime, week_start is Date. Cast or compare carefully.
+        # Fetch Production Logs
         logs = ProductionLog.query.filter(
             func.date(ProductionLog.timestamp) >= week_start,
             func.date(ProductionLog.timestamp) <= week_end
         ).all()
         
-        # 3. Calculate Total Units
-        total_units = sum(log.quantity_produced for log in logs)
-        
-        # 4. Calculate Labor Cost Per Unit
-        if total_units > 0:
-            labor_cost_per_unit = selected_week.total_cost / total_units
-            
-        # 5. Build Product Performance Data
-        # Group logs by product to get total qty per product
-        product_quantities = {}
+        # Map Production
+        product_production = {}
         for log in logs:
-            product_quantities[log.product_id] = product_quantities.get(log.product_id, 0) + log.quantity_produced
+            product_production[log.product_id] = product_production.get(log.product_id, 0) + log.quantity_produced
+
+        # Map Sales
+        product_sales = {s.product_id: s.quantity_sold for s in selected_week.sales}
+        
+        # Iterate Products
+        all_products = Product.query.all()
+        for product in all_products:
+            produced_qty = product_production.get(product.id, 0)
+            sold_qty = product_sales.get(product.id, 0)
             
-        for product_id, qty in product_quantities.items():
-            product = Product.query.get(product_id)
-            if not product:
+            if produced_qty == 0 and sold_qty == 0:
                 continue
-            
-            # Calculate Prime Cost (Materials + Packaging only)
+                
+            # Calculate Prime Cost (Materials + Packaging)
             prime_cost = 0
             for component in product.components:
                 if component.component_type == 'raw_material' and component.material:
@@ -78,36 +81,46 @@ def index():
                 elif component.component_type == 'packaging' and component.packaging:
                     prime_cost += component.quantity * component.packaging.price_per_unit
             
-            # Normalize prime cost to per-unit (since components are per recipe)
             if product.products_per_recipe > 0:
                 prime_cost_per_unit = prime_cost / product.products_per_recipe
             else:
                 prime_cost_per_unit = 0
-                
-            total_unit_cost = prime_cost_per_unit + labor_cost_per_unit
             
-            margin_percent = 0
-            if product.selling_price_per_unit > 0:
-                margin_percent = ((product.selling_price_per_unit - total_unit_cost) / product.selling_price_per_unit) * 100
-                
+            # Financials
+            revenue = sold_qty * product.selling_price_per_unit
+            cogs = sold_qty * prime_cost_per_unit
+            gross_profit = revenue - cogs
+            
+            # Inventory Usage Value (what we made)
+            inventory_usage_value = produced_qty * prime_cost_per_unit
+            
+            total_revenue += revenue
+            total_cogs += cogs
+            total_inventory_usage += inventory_usage_value
+            
             report_data.append({
                 'product_name': product.name,
                 'product_image': product.image_filename,
-                'quantity_produced': qty,
+                'produced_qty': produced_qty,
+                'sold_qty': sold_qty,
                 'prime_cost': prime_cost_per_unit,
-                'labor_cost': labor_cost_per_unit,
-                'total_cost': total_unit_cost,
                 'selling_price': product.selling_price_per_unit,
-                'margin_percent': margin_percent,
-                'total_profit': (product.selling_price_per_unit - total_unit_cost) * qty
+                'revenue': revenue,
+                'gross_profit': gross_profit
             })
+
+    net_profit = total_revenue - total_cogs - total_labor
 
     return render_template('index.html', 
                            weeks=all_weeks, 
                            selected_week=selected_week, 
                            report_data=report_data,
-                           total_units=total_units,
-                           labor_cost_per_unit=labor_cost_per_unit)
+                           total_revenue=total_revenue,
+                           total_cogs=total_cogs,
+                           total_labor=total_labor,
+                           total_inventory_usage=total_inventory_usage,
+                           net_profit=net_profit,
+                           currency_symbol='₪')
 
 # ----------------------------
 # Raw Materials Management
@@ -215,6 +228,7 @@ def delete_raw_material(material_id):
     ProductComponent.query.filter_by(component_id=material.id, component_type='raw_material').delete()
     
     db.session.delete(material)
+    log_audit("DELETE", "RawMaterial", material_id, f"Deleted raw material {material.name}")
     db.session.commit()
     return redirect(url_for('main.raw_materials'))
 
@@ -696,6 +710,34 @@ def delete_weekly_labor(week_id, entry_id):
         db.session.commit()
         
     return redirect(url_for('main.weekly_cost_details', week_id=week.id))
+
+@main_blueprint.route('/weekly_sales/<int:week_id>', methods=['GET', 'POST'])
+def update_weekly_sales(week_id):
+    week = WeeklyLaborCost.query.get_or_404(week_id)
+    products = Product.query.all()
+    
+    if request.method == 'POST':
+        for product in products:
+            key = f"sales_{product.id}"
+            qty = request.form.get(key)
+            if qty:
+                qty = int(qty)
+                # Find existing
+                sale = WeeklyProductSales.query.filter_by(weekly_cost_id=week.id, product_id=product.id).first()
+                if sale:
+                    sale.quantity_sold = qty
+                else:
+                    sale = WeeklyProductSales(weekly_cost_id=week.id, product_id=product.id, quantity_sold=qty)
+                    db.session.add(sale)
+        
+        db.session.commit()
+        log_audit("UPDATE", "WeeklySales", week.id, f"Updated sales for week {week.week_start_date}")
+        return redirect(url_for('main.index', week_id=week.id))
+
+    # Create a map of existing sales for easy lookup in template
+    sales_map = {s.product_id: s.quantity_sold for s in week.sales}
+    
+    return render_template('update_weekly_sales.html', week=week, products=products, sales_map=sales_map)
 # ----------------------------
 # Bulk Inventory Upload
 # ----------------------------
@@ -836,6 +878,37 @@ def confirm_inventory_upload():
 # ----------------------------
 # Admin Actions
 # ----------------------------
+@main_blueprint.route('/admin/backup', methods=['GET'])
+def backup_db():
+    data = {
+        'timestamp': datetime.now().isoformat(),
+        'categories': [c.name for c in Category.query.all()], # Simple list for categories if to_dict missing, but let's check. Category has no to_dict in my memory, I'll just export names or dicts.
+        'raw_materials': [m.to_dict() for m in RawMaterial.query.all()],
+        'packaging': [p.to_dict() for p in Packaging.query.all()],
+        'labor': [l.to_dict() for l in Labor.query.all()],
+        'products': [p.to_dict() for p in Product.query.all()],
+        'weekly_labor_costs': [w.to_dict() for w in WeeklyLaborCost.query.all()]
+    }
+    
+    # Handle Category separately if needed or ensure it has to_dict. 
+    # Checking models.py: Category has 'id', 'name'. No to_dict.
+    # I'll do manual dict for category.
+    data['categories'] = [{'id': c.id, 'name': c.name} for c in Category.query.all()]
+
+    json_str = json.dumps(data, indent=4, ensure_ascii=False)
+    mem = io.BytesIO()
+    mem.write(json_str.encode('utf-8'))
+    mem.seek(0)
+    
+    filename = f"costflow_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    
+    return send_file(
+        mem,
+        as_attachment=True,
+        download_name=filename,
+        mimetype='application/json'
+    )
+
 @main_blueprint.route('/audit_log', methods=['GET'])
 def audit_log():
     logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).limit(500).all()

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}עדכון מכירות שבועי - CostFlow{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">דשבורד</a></li>
+                <li class="breadcrumb-item active" aria-current="page">עדכון מכירות ({{ week.week_start_date.strftime('%d/%m') }})</li>
+            </ol>
+        </nav>
+        <h1 class="display-6 fw-bold text-primary">עדכון מכירות שבועי</h1>
+        <p class="text-secondary">הזן את הכמויות שנמכרו השבוע עבור כל מוצר.</p>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="POST">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 60px;">תמונה</th>
+                            <th>מוצר</th>
+                            <th>מחיר מכירה</th>
+                            <th style="width: 150px;">כמות שנמכרה</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td>
+                                {% if product.image_filename %}
+                                    <img src="{{ url_for('static', filename='uploads/products/' + product.image_filename) }}" class="rounded" style="width: 40px; height: 40px; object-fit: cover;">
+                                {% else %}
+                                    <div class="bg-light rounded d-flex align-items-center justify-content-center text-muted border" style="width: 40px; height: 40px;">
+                                        <i class="bi bi-cup-hot"></i>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td class="fw-medium">{{ product.name }}</td>
+                            <td>{{ currency_symbol }}{{ product.selling_price_per_unit }}</td>
+                            <td>
+                                <input type="number" name="sales_{{ product.id }}" class="form-control" value="{{ sales_map.get(product.id, '') }}" min="0" step="1" placeholder="0">
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                <a href="{{ url_for('main.index') }}" class="btn btn-secondary me-md-2">ביטול</a>
+                <button type="submit" class="btn btn-primary btn-lg px-5">
+                    <i class="bi bi-save me-2"></i> שמור מכירות
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

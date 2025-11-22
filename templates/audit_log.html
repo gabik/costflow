@@ -8,9 +8,14 @@
             <h1 class="display-6 fw-bold text-primary">יומן פעילות מערכת</h1>
             <p class="text-secondary">מעקב אחר שינויים ופעולות משתמשים.</p>
         </div>
-        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#resetDbModal">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i> איפוס מערכת מלא
-        </button>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('main.backup_db') }}" class="btn btn-success">
+                <i class="bi bi-download me-2"></i> גיבוי נתונים
+            </a>
+            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#resetDbModal">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> איפוס מערכת מלא
+            </button>
+        </div>
     </div>
 </div>
 

@@ -131,13 +131,30 @@ class WeeklyLaborCost(db.Model):
     week_start_date = db.Column(db.Date, unique=True, nullable=False)
     total_cost = db.Column(db.Float, nullable=False, default=0.0)
     entries = db.relationship('WeeklyLaborEntry', backref='weekly_cost', lazy=True, cascade="all, delete-orphan")
+    sales = db.relationship('WeeklyProductSales', backref='weekly_cost', lazy=True, cascade="all, delete-orphan")
 
     def to_dict(self):
         return {
             'id': self.id,
             'week_start_date': self.week_start_date.strftime('%Y-%m-%d'),
             'total_cost': self.total_cost,
-            'entries': [e.to_dict() for e in self.entries]
+            'entries': [e.to_dict() for e in self.entries],
+            'sales': [s.to_dict() for s in self.sales]
+        }
+
+class WeeklyProductSales(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    weekly_cost_id = db.Column(db.Integer, db.ForeignKey('weekly_labor_cost.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    quantity_sold = db.Column(db.Integer, nullable=False, default=0)
+
+    product = db.relationship('Product')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'product_name': self.product.name if self.product else 'Unknown',
+            'quantity_sold': self.quantity_sold
         }
 
 class WeeklyLaborEntry(db.Model):

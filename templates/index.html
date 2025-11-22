@@ -3,14 +3,14 @@
 {% block title %}דשבורד שבועי - CostFlow{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <div>
         <h1 class="display-6 fw-bold text-primary">דשבורד שבועי</h1>
-        <p class="text-secondary">ניתוח רווחיות שבועי מבוסס עלויות עבודה בפועל.</p>
+        <p class="text-secondary mb-0">ריכוז ביצועים, מכירות ורווחיות.</p>
     </div>
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 align-items-center">
         <form class="d-flex align-items-center">
-            <select name="week_id" class="form-select me-2" onchange="this.form.submit()">
+            <select name="week_id" class="form-select select2 me-2" onchange="this.form.submit()" style="min-width: 200px;">
                 {% for week in weeks %}
                 <option value="{{ week.id }}" {% if selected_week and selected_week.id == week.id %}selected{% endif %}>
                     שבוע {{ week.week_start_date.strftime('%d/%m/%Y') }}
@@ -20,58 +20,99 @@
                 {% endfor %}
             </select>
         </form>
-        <a href="{{ url_for('main.weekly_costs') }}" class="btn btn-outline-primary text-nowrap">
-            <i class="bi bi-gear me-1"></i> נהל עלויות
+        {% if selected_week %}
+        <a href="{{ url_for('main.update_weekly_sales', week_id=selected_week.id) }}" class="btn btn-success text-nowrap">
+            <i class="bi bi-cart-check me-1"></i> עדכון מכירות
         </a>
+        <a href="{{ url_for('main.weekly_cost_details', week_id=selected_week.id) }}" class="btn btn-outline-primary text-nowrap">
+            <i class="bi bi-people me-1"></i> עדכון לייבור
+        </a>
+        {% endif %}
     </div>
 </div>
 
 {% if selected_week %}
-<div class="row g-4 mb-5">
-    <!-- Total Labor -->
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm h-100 bg-light">
-            <div class="card-body text-center">
-                <h6 class="text-muted text-uppercase mb-2">סה"כ עלות עבודה שבועית</h6>
-                <div class="display-6 fw-bold text-primary">{{ currency_symbol }}{{ "%.0f"|format(selected_week.total_cost) }}</div>
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <!-- Revenue -->
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100 bg-white">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-light text-primary rounded-circle p-2 me-2">
+                        <i class="bi bi-currency-dollar"></i>
+                    </div>
+                    <span class="text-muted small text-uppercase fw-bold">הכנסות (מכירות)</span>
+                </div>
+                <div class="h3 fw-bold text-dark mb-0">{{ currency_symbol }}{{ "%.0f"|format(total_revenue) }}</div>
             </div>
         </div>
     </div>
-    <!-- Total Units -->
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm h-100 bg-light">
-            <div class="card-body text-center">
-                <h6 class="text-muted text-uppercase mb-2">יחידות שיוצרו</h6>
-                <div class="display-6 fw-bold">{{ total_units }}</div>
+
+    <!-- Net Profit -->
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100 bg-white">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-light text-success rounded-circle p-2 me-2">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <span class="text-muted small text-uppercase fw-bold">רווח נקי</span>
+                </div>
+                <div class="h3 fw-bold {{ 'text-success' if net_profit >= 0 else 'text-danger' }} mb-0">
+                    {{ currency_symbol }}{{ "%.0f"|format(net_profit) }}
+                </div>
             </div>
         </div>
     </div>
-    <!-- Labor Per Unit -->
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm h-100 bg-light">
-            <div class="card-body text-center">
-                <h6 class="text-muted text-uppercase mb-2">עלות עבודה ליחידה (ממוצע)</h6>
-                <div class="display-6 fw-bold text-success">{{ currency_symbol }}{{ "%.2f"|format(labor_cost_per_unit) }}</div>
+
+    <!-- Labor Cost -->
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100 bg-white">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-light text-warning rounded-circle p-2 me-2">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <span class="text-muted small text-uppercase fw-bold">עלות עבודה (קבוע)</span>
+                </div>
+                <div class="h3 fw-bold text-dark mb-0">{{ currency_symbol }}{{ "%.0f"|format(total_labor) }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COGS -->
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100 bg-white">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-light text-secondary rounded-circle p-2 me-2">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                    <span class="text-muted small text-uppercase fw-bold">עלות מכר (חומרים)</span>
+                </div>
+                <div class="h3 fw-bold text-dark mb-0">{{ currency_symbol }}{{ "%.0f"|format(total_cogs) }}</div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="card shadow-sm">
+<!-- Detailed Table -->
+<div class="card shadow-sm mb-5">
     <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-        <h5 class="mb-0">רווחיות מוצרים (מחושב לשבוע זה)</h5>
+        <h5 class="mb-0">ביצועי מוצרים</h5>
     </div>
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
                 <tr>
                     <th>מוצר</th>
-                    <th class="text-center">כמות</th>
-                    <th class="text-end">עלות חומרים</th>
-                    <th class="text-end">עלות עבודה</th>
-                    <th class="text-end fw-bold">סה"כ עלות</th>
+                    <th class="text-center">יוצר</th>
+                    <th class="text-center">נמכר</th>
                     <th class="text-end">מחיר מכירה</th>
-                    <th class="text-center">רווח</th>
+                    <th class="text-end">עלות חומרים (ליח')</th>
+                    <th class="text-end fw-bold">הכנסה</th>
+                    <th class="text-end fw-bold">רווח גולמי</th>
                 </tr>
             </thead>
             <tbody>
@@ -89,23 +130,25 @@
                             <span class="fw-medium">{{ row.product_name }}</span>
                         </div>
                     </td>
-                    <td class="text-center">{{ row.quantity_produced|int }}</td>
-                    <td class="text-end text-muted">{{ currency_symbol }}{{ "%.2f"|format(row.prime_cost) }}</td>
-                    <td class="text-end text-muted">{{ currency_symbol }}{{ "%.2f"|format(row.labor_cost) }}</td>
-                    <td class="text-end fw-bold">{{ currency_symbol }}{{ "%.2f"|format(row.total_cost) }}</td>
-                    <td class="text-end">{{ currency_symbol }}{{ "%.2f"|format(row.selling_price) }}</td>
                     <td class="text-center">
-                        <span class="badge {{ 'bg-success' if row.margin_percent > 20 else 'bg-warning text-dark' if row.margin_percent > 0 else 'bg-danger' }}">
-                            {{ "%.1f"|format(row.margin_percent) }}%
-                        </span>
+                        <span class="badge bg-light text-dark border">{{ row.produced_qty|int }}</span>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge bg-success">{{ row.sold_qty|int }}</span>
+                    </td>
+                    <td class="text-end">{{ currency_symbol }}{{ "%.2f"|format(row.selling_price) }}</td>
+                    <td class="text-end text-muted">{{ currency_symbol }}{{ "%.2f"|format(row.prime_cost) }}</td>
+                    <td class="text-end fw-bold">{{ currency_symbol }}{{ "%.0f"|format(row.revenue) }}</td>
+                    <td class="text-end {{ 'text-success' if row.gross_profit > 0 else 'text-danger' }}">
+                        {{ currency_symbol }}{{ "%.0f"|format(row.gross_profit) }}
                     </td>
                 </tr>
                 {% else %}
                 <tr>
                     <td colspan="7" class="text-center py-5 text-muted">
                         <i class="bi bi-clipboard-data display-4 d-block mb-3"></i>
-                        לא נמצאו נתוני ייצור לשבוע זה.<br>
-                        <a href="{{ url_for('main.production') }}" class="btn btn-sm btn-primary mt-2">עדכן יומן ייצור</a>
+                        אין נתונים להצגה לשבוע זה.<br>
+                        <small>התחל ע"י הוספת מכירות או ייצור.</small>
                     </td>
                 </tr>
                 {% endfor %}
@@ -117,12 +160,13 @@
 {% else %}
 <div class="text-center py-5">
     <h3>ברוכים הבאים ל-CostFlow</h3>
-    <p class="text-muted">כדי לראות דוח שבועי, אנא הזן תחילה עלויות שבועיות.</p>
-    <a href="{{ url_for('main.weekly_costs') }}" class="btn btn-primary btn-lg mt-3">הוסף עלות שבוע ראשון</a>
+    <p class="text-muted">כדי להתחיל, בחר שבוע קיים או צור שבוע חדש.</p>
+    <a href="{{ url_for('main.weekly_costs') }}" class="btn btn-primary btn-lg mt-3">ניהול שבועות</a>
 </div>
 {% endif %}
 
-<div class="row mt-5">
+<!-- Quick Actions (Restored) -->
+<div class="row mt-4">
     <div class="col-12 mb-3">
         <h5 class="text-muted text-uppercase">פעולות נפוצות</h5>
     </div>
@@ -135,8 +179,8 @@
                     <div class="icon-box bg-light text-primary rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
                         <i class="bi bi-calendar-check display-6"></i>
                     </div>
-                    <h4 class="card-title fw-bold text-dark">עלויות עבודה</h4>
-                    <p class="card-text text-secondary">עדכון שעות עובדים ועלויות שבועיות</p>
+                    <h4 class="card-title fw-bold text-dark">לייבור שבועי</h4>
+                    <p class="card-text text-secondary">ניהול שבועות, שעות עובדים ועלויות</p>
                 </div>
             </div>
         </a>
@@ -157,7 +201,7 @@
         </a>
     </div>
 
-    <!-- Inventory/Products Action -->
+    <!-- Inventory Action -->
     <div class="col-md-4 mb-4">
         <a href="{{ url_for('main.raw_materials') }}" class="text-decoration-none">
             <div class="card shadow-sm h-100 hover-shadow transition-all">
