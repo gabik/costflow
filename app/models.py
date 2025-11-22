@@ -77,14 +77,18 @@ class Packaging(db.Model):
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=True)
     products_per_recipe = db.Column(db.Integer, nullable=False)
     selling_price_per_unit = db.Column(db.Float, nullable=False)
     image_filename = db.Column(db.String(255), nullable=True)
+
+    category = db.relationship('Category', backref='products')
 
     def to_dict(self):
         return {
             'id': self.id,
             'name': self.name,
+            'category_name': self.category.name if self.category else None,
             'products_per_recipe': self.products_per_recipe,
             'selling_price_per_unit': self.selling_price_per_unit,
             'image_filename': self.image_filename,
@@ -112,9 +116,18 @@ class ProductComponent(db.Model):
             return Packaging.query.get(self.component_id)
         return None
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'component_type': self.component_type,
+            'component_id': self.component_id,
+            'quantity': self.quantity
+        }
+
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
+    type = db.Column(db.String(20), nullable=False, default='raw_material') # 'raw_material' or 'product'
 
 class WeeklyLaborCost(db.Model):
     id = db.Column(db.Integer, primary_key=True)

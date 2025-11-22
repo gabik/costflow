@@ -1,99 +1,120 @@
 {% extends "base.html" %}
-{% block title %}{{ _('Manage Categories') }}{% endblock %}
+{% block title %}ניהול קטגוריות - CostFlow{% endblock %}
 
 {% block content %}
 <div class="row mb-4">
-    <div class="col-12">
-        <h1 class="display-6 fw-bold text-primary">ניהול קטגוריות</h1>
-        <p class="text-secondary">הוספה, עריכה ומחיקה של קטגוריות חומרי גלם.</p>
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="display-6 fw-bold text-primary">ניהול קטגוריות</h1>
+            <p class="text-secondary">
+                {% if current_type == 'raw_material' %}
+                סיווג חומרי גלם לקבוצות.
+                {% else %}
+                סיווג מוצרים לקבוצות מכירה.
+                {% endif %}
+            </p>
+        </div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+            <i class="bi bi-plus-lg me-2"></i> קטגוריה חדשה
+        </button>
     </div>
 </div>
 
-<!-- Add New Category Card -->
-<div class="card mb-4 shadow-sm">
-    <div class="card-body">
-        <h5 class="card-title mb-3">הוסף קטגוריה חדשה</h5>
-        <form method="POST" class="d-flex gap-2 align-items-end">
-            <div class="flex-grow-1">
-                <label for="name" class="form-label small text-muted">שם הקטגוריה</label>
-                <input type="text" id="name" name="name" class="form-control" placeholder="לדוגמה: קמחים, מוצרי חלב..." required>
-            </div>
-            <button type="submit" class="btn btn-primary px-4">
-                <i class="bi bi-plus-lg me-1"></i> הוסף
-            </button>
-        </form>
-    </div>
-</div>
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link {{ 'active fw-bold' if current_type == 'raw_material' else '' }}" href="{{ url_for('main.categories', type='raw_material') }}">
+            <i class="bi bi-basket me-2"></i>קטגוריות חומרי גלם
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {{ 'active fw-bold' if current_type == 'product' else '' }}" href="{{ url_for('main.categories', type='product') }}">
+            <i class="bi bi-box-seam me-2"></i>קטגוריות מוצרים
+        </a>
+    </li>
+</ul>
 
-<!-- Existing Categories List -->
 <div class="card shadow-sm">
-    <div class="card-header bg-white">
-        <h5 class="mb-0">קטגוריות קיימות</h5>
-    </div>
-    <ul class="list-group list-group-flush">
-        {% for category in categories %}
-        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
-            <span class="fw-medium">{{ category.name }}</span>
-            
-            <div class="btn-group" role="group">
-                <!-- Edit Button -->
-                <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editCategoryModal{{ category.id }}">
-                    <i class="bi bi-pencil"></i> ערוך
-                </button>
-                <!-- Delete Button -->
-                <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteCategoryModal{{ category.id }}">
-                    <i class="bi bi-trash"></i> מחק
-                </button>
-            </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>שם הקטגוריה</th>
+                    <th class="text-end">פעולות</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for category in categories %}
+                <tr>
+                    <td class="fw-medium">{{ category.name }}</td>
+                    <td class="text-end">
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editCategoryModal{{ category.id }}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <form action="{{ url_for('main.delete_category', category_id=category.id) }}" method="POST" class="d-inline" onsubmit="return confirm('למחוק קטגוריה זו?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
 
-            <!-- Edit Modal -->
-            <div class="modal fade" id="editCategoryModal{{ category.id }}" tabindex="-1" aria-labelledby="editCategoryModalLabel{{ category.id }}" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <form method="POST" action="{{ url_for('main.edit_categories', category_id=category.id) }}">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="editCategoryModalLabel{{ category.id }}">עריכת קטגוריה</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="mb-3">
-                                    <label for="edit-name-{{ category.id }}" class="form-label">שם הקטגוריה</label>
-                                    <input type="text" id="edit-name-{{ category.id }}" name="name" class="form-control" value="{{ category.name }}" required>
+                <!-- Edit Modal (Unique per category) -->
+                <div class="modal fade" id="editCategoryModal{{ category.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form method="POST" action="{{ url_for('main.edit_categories', category_id=category.id) }}">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">עריכת קטגוריה</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
-                                <button type="submit" class="btn btn-primary">שמור שינויים</button>
-                            </div>
-                        </form>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label for="edit_name_{{ category.id }}" class="form-label">שם הקטגוריה</label>
+                                        <input type="text" id="edit_name_{{ category.id }}" name="name" class="form-control" value="{{ category.name }}" required>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+                                    <button type="submit" class="btn btn-primary">שמור שינויים</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
-            </div>
+                {% else %}
+                <tr>
+                    <td colspan="2" class="text-center py-4 text-muted">לא נמצאו קטגוריות.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
-            <!-- Delete Modal -->
-            <div class="modal fade" id="deleteCategoryModal{{ category.id }}" tabindex="-1" aria-labelledby="deleteCategoryModalLabel{{ category.id }}" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <form method="POST" action="{{ url_for('main.delete_category', category_id=category.id) }}">
-                            <div class="modal-header">
-                                <h5 class="modal-title text-danger" id="deleteCategoryModalLabel{{ category.id }}">מחיקת קטגוריה</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <p>האם אתה בטוח שברצונך למחוק את הקטגוריה <strong>{{ category.name }}</strong>?</p>
-                                <p class="small text-muted mb-0">פעולה זו לא ניתנת לביטול.</p>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
-                                <button type="submit" class="btn btn-danger">מחק קטגוריה</button>
-                            </div>
-                        </form>
+<!-- Add Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST">
+                <input type="hidden" name="type" value="{{ current_type }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">הוספת קטגוריה חדשה ({{ 'חומרי גלם' if current_type == 'raw_material' else 'מוצרים' }})</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">שם הקטגוריה</label>
+                        <input type="text" id="name" name="name" class="form-control" required>
                     </div>
                 </div>
-            </div>
-
-        </li>
-        {% endfor %}
-    </ul>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+                    <button type="submit" class="btn btn-primary">הוסף</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}

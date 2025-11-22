@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+{% block title %}דו"ח חודשי - CostFlow{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-6 fw-bold text-primary">דו"ח חודשי</h1>
+        <p class="text-secondary">
+            סיכום ביצועים לחודש {{ month }}/{{ year }}
+            ({{ month_start.strftime('%d/%m/%Y') }} - {{ month_end.strftime('%d/%m/%Y') }})
+        </p>
+    </div>
+</div>
+
+<!-- Month Selector -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <form method="GET" action="{{ url_for('main.monthly_report') }}" class="d-flex gap-2">
+            <select name="month" class="form-select" style="width: 150px;">
+                {% for m in range(1, 13) %}
+                <option value="{{ m }}" {% if m == month %}selected{% endif %}>
+                    {{ ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'][m-1] }}
+                </option>
+                {% endfor %}
+            </select>
+            <input type="number" name="year" value="{{ year }}" min="2020" max="2030" class="form-control" style="width: 100px;">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-search me-2"></i>הצג דו"ח
+            </button>
+        </form>
+    </div>
+    <div class="col-md-6 text-end">
+        <button onclick="window.print()" class="btn btn-outline-secondary">
+            <i class="bi bi-printer me-2"></i>הדפסה
+        </button>
+    </div>
+</div>
+
+{% if no_data %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>
+    לא נמצאו נתונים עבור החודש הנבחר
+</div>
+{% else %}
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h6 class="card-title">סך הכנסות</h6>
+                <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(total_revenue) }}</h3>
+                <small>ממוצע שבועי: {{ currency_symbol }}{{ "%.2f"|format(avg_weekly_revenue) }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h6 class="card-title">עלות לייבור</h6>
+                <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(total_labor_costs) }}</h3>
+                <small>ממוצע שבועי: {{ currency_symbol }}{{ "%.2f"|format(avg_weekly_labor) }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h6 class="card-title">רווח נטו</h6>
+                <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(net_profit) }}</h3>
+                <small>{{ num_weeks }} שבועות</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h6 class="card-title">שיעור רווח</h6>
+                <h3 class="mb-0">{{ "%.1f"|format((net_profit / total_revenue * 100) if total_revenue > 0 else 0) }}%</h3>
+                <small>מהמחזור החודשי</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Weekly Trends -->
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>מגמות שבועיות</h5>
+    </div>
+    <div class="card-body">
+        {% if weekly_summaries %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>שבוע</th>
+                        <th>הכנסות</th>
+                        <th>עלות לייבור</th>
+                        <th>רווח</th>
+                        <th>שיעור רווח</th>
+                        <th>מכירות</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for week in weekly_summaries %}
+                    <tr>
+                        <td class="fw-medium">{{ week.week_start.strftime('%d/%m') }} - {{ week.week_end.strftime('%d/%m') }}</td>
+                        <td>{{ currency_symbol }}{{ "%.2f"|format(week.revenue) }}</td>
+                        <td>{{ currency_symbol }}{{ "%.2f"|format(week.labor_cost) }}</td>
+                        <td class="{% if week.profit > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ currency_symbol }}{{ "%.2f"|format(week.profit) }}
+                        </td>
+                        <td>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar" role="progressbar"
+                                     style="width: {{ (week.profit / week.revenue * 100) if week.revenue > 0 else 0 }}%">
+                                    {{ "%.1f"|format((week.profit / week.revenue * 100) if week.revenue > 0 else 0) }}%
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ week.sales_count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-light">
+                    <tr>
+                        <th>סה"כ</th>
+                        <th>{{ currency_symbol }}{{ "%.2f"|format(total_revenue) }}</th>
+                        <th>{{ currency_symbol }}{{ "%.2f"|format(total_labor_costs) }}</th>
+                        <th>{{ currency_symbol }}{{ "%.2f"|format(net_profit) }}</th>
+                        <th>{{ "%.1f"|format((net_profit / total_revenue * 100) if total_revenue > 0 else 0) }}%</th>
+                        <th>{{ weekly_summaries|sum(attribute='sales_count') }}</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">אין נתונים שבועיים</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Category Performance -->
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0"><i class="bi bi-pie-chart me-2"></i>ביצועי קטגוריות</h5>
+    </div>
+    <div class="card-body">
+        {% if category_summaries %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>קטגוריה</th>
+                        <th>מוצרים</th>
+                        <th>כמות נמכרה</th>
+                        <th>כמות פחת</th>
+                        <th>הכנסות</th>
+                        <th>% מההכנסות</th>
+                        <th>שבועות פעילים</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cat_name, cat_data in category_summaries.items() %}
+                    <tr>
+                        <td class="fw-medium">{{ cat_name }}</td>
+                        <td>{{ cat_data.product_count }}</td>
+                        <td>{{ cat_data.quantity_sold }}</td>
+                        <td>{{ cat_data.quantity_waste }}</td>
+                        <td>{{ currency_symbol }}{{ "%.2f"|format(cat_data.revenue) }}</td>
+                        <td>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar" role="progressbar"
+                                     style="width: {{ (cat_data.revenue / total_revenue * 100) if total_revenue > 0 else 0 }}%">
+                                    {{ "%.1f"|format((cat_data.revenue / total_revenue * 100) if total_revenue > 0 else 0) }}%
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ cat_data.weeks_active }}/{{ num_weeks }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">אין נתוני קטגוריות</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Top 10 Products -->
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0"><i class="bi bi-trophy me-2"></i>10 המוצרים המובילים</h5>
+    </div>
+    <div class="card-body">
+        {% if top_products %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>מוצר</th>
+                        <th>קטגוריה</th>
+                        <th>כמות נמכרה</th>
+                        <th>הכנסות</th>
+                        <th>% מההכנסות</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in top_products %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td class="fw-medium">{{ product.name }}</td>
+                        <td>{{ product.category_name }}</td>
+                        <td>{{ product.quantity_sold }}</td>
+                        <td>{{ currency_symbol }}{{ "%.2f"|format(product.revenue) }}</td>
+                        <td>{{ "%.1f"|format((product.revenue / total_revenue * 100) if total_revenue > 0 else 0) }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">אין נתוני מוצרים</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Monthly Insights -->
+<div class="card">
+    <div class="card-header bg-light">
+        <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>תובנות חודשיות</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="text-primary mb-3">נתונים מרכזיים</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="bi bi-calendar-week text-info me-2"></i>
+                        מספר שבועות פעילים: <strong>{{ num_weeks }}</strong>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-graph-up text-success me-2"></i>
+                        הכנסה שבועית ממוצעת: <strong>{{ currency_symbol }}{{ "%.2f"|format(avg_weekly_revenue) }}</strong>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-percent text-primary me-2"></i>
+                        שיעור רווח חודשי: <strong>{{ "%.1f"|format((net_profit / total_revenue * 100) if total_revenue > 0 else 0) }}%</strong>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h6 class="text-primary mb-3">ביצועים מובילים</h6>
+                <ul class="list-unstyled">
+                    {% if category_summaries %}
+                        {% set best_category = category_summaries.items()|sort(attribute='1.revenue', reverse=True)|first %}
+                        {% if best_category %}
+                        <li class="mb-2">
+                            <i class="bi bi-star-fill text-warning me-2"></i>
+                            קטגוריה מובילה: <strong>{{ best_category[0] }}</strong>
+                            ({{ currency_symbol }}{{ "%.2f"|format(best_category[1].revenue) }})
+                        </li>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if top_products %}
+                        <li class="mb-2">
+                            <i class="bi bi-trophy-fill text-success me-2"></i>
+                            מוצר מוביל: <strong>{{ top_products[0].name }}</strong>
+                            ({{ currency_symbol }}{{ "%.2f"|format(top_products[0].revenue) }})
+                        </li>
+                    {% endif %}
+
+                    {% if weekly_summaries %}
+                        {% set best_week = weekly_summaries|sort(attribute='profit', reverse=True)|first %}
+                        {% if best_week %}
+                        <li class="mb-2">
+                            <i class="bi bi-award-fill text-info me-2"></i>
+                            השבוע הרווחי ביותר: <strong>{{ best_week.week_start.strftime('%d/%m') }}</strong>
+                            ({{ currency_symbol }}{{ "%.2f"|format(best_week.profit) }})
+                        </li>
+                        {% endif %}
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        {% if category_summaries %}
+            {% set total_waste = category_summaries.values()|sum(attribute='quantity_waste') %}
+            {% set total_sold = category_summaries.values()|sum(attribute='quantity_sold') %}
+            {% if total_sold > 0 %}
+            <div class="alert alert-warning mt-3">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>שיעור פחת חודשי:</strong>
+                {{ "%.1f"|format((total_waste / (total_sold + total_waste) * 100) if (total_sold + total_waste) > 0 else 0) }}%
+                ({{ total_waste }} יחידות מתוך {{ total_sold + total_waste }})
+            </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+{% endif %}
+
+<style>
+@media print {
+    .navbar, .btn, form {
+        display: none !important;
+    }
+    .card {
+        break-inside: avoid;
+    }
+    body {
+        font-size: 12px;
+    }
+}
+</style>
+
+{% endblock %}

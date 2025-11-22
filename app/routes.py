@@ -5,7 +5,7 @@ import io
 from datetime import datetime, date, timedelta
 from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_file
-from sqlalchemy import func
+from sqlalchemy import func, extract, and_
 from .models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, AuditLog
 
 main_blueprint = Blueprint('main', __name__)
@@ -393,6 +393,7 @@ def add_product():
     if request.method == 'POST':
         # Extract product-level data
         name = request.form['name']
+        category_id = request.form.get('category_id')
         products_per_recipe = request.form['products_per_recipe']
         selling_price_per_unit = request.form['selling_price_per_unit']
         
@@ -411,6 +412,7 @@ def add_product():
         # Create a new Product entry
         product = Product(
             name=name,
+            category_id=category_id,
             products_per_recipe=int(products_per_recipe),
             selling_price_per_unit=float(selling_price_per_unit),
             image_filename=image_filename
@@ -427,32 +429,20 @@ def add_product():
             component = ProductComponent(
                 product_id=product.id,
                 component_type='raw_material',
-                component_id=int(material_id),
-                quantity=float(quantity)
+                component_id=material_id,
+                quantity=quantity
             )
             db.session.add(component)
 
         # Process packaging
-        packaging = request.form.getlist('packaging[]')
+        packaging_ids = request.form.getlist('packaging[]')
         packaging_quantities = request.form.getlist('packaging_quantity[]')
-        for packaging_id, quantity in zip(packaging, packaging_quantities):
+        for pkg_id, quantity in zip(packaging_ids, packaging_quantities):
             component = ProductComponent(
                 product_id=product.id,
                 component_type='packaging',
-                component_id=int(packaging_id),
-                quantity=float(quantity)
-            )
-            db.session.add(component)
-
-        # Process labor
-        labor = request.form.getlist('labor[]')
-        labor_hours = request.form.getlist('labor_hours[]')
-        for labor_id, hours in zip(labor, labor_hours):
-            component = ProductComponent(
-                product_id=product.id,
-                component_type='labor',
-                component_id=int(labor_id),
-                quantity=float(hours)
+                component_id=pkg_id,
+                quantity=quantity
             )
             db.session.add(component)
 
@@ -461,7 +451,11 @@ def add_product():
 
     # For GET requests, load the data required for the form
     all_raw_materials = [m.to_dict() for m in RawMaterial.query.all()]
-    categories = Category.query.all()
+    categories = Category.query.filter_by(type='raw_material').all() # Keep this for modals?
+    # No, wait. The 'categories' var passed here is used for "Add Raw Material Modal".
+    # I need a separate list for "Product Categories".
+    product_categories = Category.query.filter_by(type='product').all()
+    
     all_packaging = [p.to_dict() for p in Packaging.query.all()]
     all_labor = [labor_item.to_dict() for labor_item in Labor.query.all()]
     return render_template(
@@ -471,8 +465,10 @@ def add_product():
         all_raw_materials=all_raw_materials,
         all_packaging=all_packaging,
         all_labor=all_labor,
-        categories=categories
+        categories=categories, # For raw material modal
+        product_categories=product_categories # For product form
     )
+
 
 @main_blueprint.route('/products/<int:product_id>', methods=['GET'])
 def product_detail(product_id):
@@ -529,6 +525,7 @@ def edit_product(product_id):
 
     if request.method == 'POST':
         product.name = request.form['name']
+        product.category_id = request.form.get('category_id')
         product.products_per_recipe = int(request.form['products_per_recipe'])
         product.selling_price_per_unit = float(request.form['selling_price_per_unit'])
         
@@ -544,44 +541,29 @@ def edit_product(product_id):
         # Clear existing components
         ProductComponent.query.filter_by(product_id=product_id).delete()
 
-        # Add updated raw materials
+        # Process raw materials
         raw_materials = request.form.getlist('raw_material[]')
         raw_material_quantities = request.form.getlist('raw_material_quantity[]')
         for material_id, quantity in zip(raw_materials, raw_material_quantities):
-            if material_id and quantity: # Check if both are not empty
-                component = ProductComponent(
-                    product_id=product.id,
-                    component_type='raw_material',
-                    component_id=int(material_id),
-                    quantity=float(quantity)
-                )
-                db.session.add(component)
+            component = ProductComponent(
+                product_id=product.id,
+                component_type='raw_material',
+                component_id=material_id,
+                quantity=quantity
+            )
+            db.session.add(component)
 
-        # Add updated packaging
-        packaging = request.form.getlist('packaging[]')
+        # Process packaging
+        packaging_ids = request.form.getlist('packaging[]')
         packaging_quantities = request.form.getlist('packaging_quantity[]')
-        for packaging_id, quantity in zip(packaging, packaging_quantities):
-            if packaging_id and quantity: # Check if both are not empty
-                component = ProductComponent(
-                    product_id=product.id,
-                    component_type='packaging',
-                    component_id=int(packaging_id),
-                    quantity=float(quantity)
-                )
-                db.session.add(component)
-
-        # Add updated labor
-        labor = request.form.getlist('labor[]')
-        labor_hours = request.form.getlist('labor_hours[]')
-        for labor_id, hours in zip(labor, labor_hours):
-            if labor_id and hours: # Check if both are not empty
-                component = ProductComponent(
-                    product_id=product.id,
-                    component_type='labor',
-                    component_id=int(labor_id),
-                    quantity=float(hours)
-                )
-                db.session.add(component)
+        for pkg_id, quantity in zip(packaging_ids, packaging_quantities):
+            component = ProductComponent(
+                product_id=product.id,
+                component_type='packaging',
+                component_id=pkg_id,
+                quantity=quantity
+            )
+            db.session.add(component)
 
         log_audit("UPDATE", "Product", product.id, f"Updated product {product.name}")
         db.session.commit()
@@ -591,6 +573,9 @@ def edit_product(product_id):
     all_raw_materials = [m.to_dict() for m in RawMaterial.query.all()]
     all_packaging = [p.to_dict() for p in Packaging.query.all()]
     all_labor = [labor_item.to_dict() for labor_item in Labor.query.all()]
+    
+    categories = Category.query.filter_by(type='raw_material').all()
+    product_categories = Category.query.filter_by(type='product').all()
 
     # Pass both the object (for Jinja server-side) and the dict (for JS client-side)
     return render_template(
@@ -599,7 +584,9 @@ def edit_product(product_id):
         product_json=product.to_dict(),
         all_raw_materials=all_raw_materials,
         all_packaging=all_packaging,
-        all_labor=all_labor
+        all_labor=all_labor,
+        categories=categories,
+        product_categories=product_categories
     )
 
 # ----------------------------
@@ -607,14 +594,20 @@ def edit_product(product_id):
 # ----------------------------
 @main_blueprint.route('/categories', methods=['GET', 'POST'])
 def categories():
+    current_type = request.args.get('type', 'raw_material')
+    
     if request.method == 'POST':
         name = request.form['name']
-        if not Category.query.filter_by(name=name).first():
-            new_category = Category(name=name)
+        type_val = request.form.get('type', 'raw_material')
+        
+        if not Category.query.filter_by(name=name, type=type_val).first():
+            new_category = Category(name=name, type=type_val)
             db.session.add(new_category)
             db.session.commit()
-    all_categories = Category.query.all()
-    return render_template('categories.html', categories=all_categories)
+        return redirect(url_for('main.categories', type=type_val))
+        
+    all_categories = Category.query.filter_by(type=current_type).all()
+    return render_template('categories.html', categories=all_categories, current_type=current_type)
 
 @main_blueprint.route('/categories/edit/<int:category_id>', methods=['GET', 'POST'])
 def edit_categories(category_id):
@@ -1246,13 +1239,254 @@ def reset_db():
     try:
         db.drop_all()
         db.create_all()
-        
+
         # Re-seed essential data
-        default_category = Category(name="כללי")
-        db.session.add(default_category)
-        
+        db.session.add(Category(name="כללי (חומרי גלם)", type='raw_material'))
+        db.session.add(Category(name="כללי (מוצרים)", type='product'))
+
         log_audit("RESET", "System", details="Database was fully reset.")
         db.session.commit()
         return redirect(url_for('main.index'))
     except Exception as e:
         return f"Error resetting DB: {e}", 500
+
+# Weekly Report
+@main_blueprint.route('/reports/weekly')
+def weekly_report():
+    # Get date parameters
+    week_start = request.args.get('week_start')
+
+    if not week_start:
+        # Default to current week start (Sunday)
+        today = date.today()
+        days_since_sunday = (today.weekday() + 1) % 7
+        week_start = today - timedelta(days=days_since_sunday)
+    else:
+        week_start = datetime.strptime(week_start, '%Y-%m-%d').date()
+
+    week_end = week_start + timedelta(days=6)
+
+    # Get the weekly data from WeeklyLaborCost
+    weekly_cost = WeeklyLaborCost.query.filter_by(week_start_date=week_start).first()
+
+    if not weekly_cost:
+        # No data for this week
+        return render_template('weekly_report.html',
+                             week_start=week_start,
+                             week_end=week_end,
+                             sales_data=[],
+                             category_summaries={},
+                             total_revenue=0,
+                             labor_costs=0,
+                             net_profit=0,
+                             no_data=True)
+
+    # Get sales data with product and category info
+    sales_data = db.session.query(
+        Product.name,
+        Product.category_id,
+        Category.name.label('category_name'),
+        Product.selling_price_per_unit,
+        WeeklyProductSales.quantity_sold,
+        WeeklyProductSales.quantity_waste,
+        (WeeklyProductSales.quantity_sold * Product.selling_price_per_unit).label('revenue')
+    ).join(
+        WeeklyProductSales, WeeklyProductSales.product_id == Product.id
+    ).outerjoin(
+        Category, Category.id == Product.category_id
+    ).filter(
+        WeeklyProductSales.weekly_cost_id == weekly_cost.id
+    ).all()
+
+    # Calculate totals and category summaries
+    total_revenue = 0
+    category_summaries = {}
+
+    for sale in sales_data:
+        total_revenue += sale.revenue or 0
+        cat_name = sale.category_name or 'ללא קטגוריה'
+
+        if cat_name not in category_summaries:
+            category_summaries[cat_name] = {
+                'quantity_sold': 0,
+                'quantity_waste': 0,
+                'revenue': 0,
+                'products': []
+            }
+
+        category_summaries[cat_name]['quantity_sold'] += sale.quantity_sold or 0
+        category_summaries[cat_name]['quantity_waste'] += sale.quantity_waste or 0
+        category_summaries[cat_name]['revenue'] += sale.revenue or 0
+        if sale.name not in category_summaries[cat_name]['products']:
+            category_summaries[cat_name]['products'].append(sale.name)
+
+    # Get labor breakdown
+    labor_entries = weekly_cost.entries
+
+    return render_template('weekly_report.html',
+                         week_start=week_start,
+                         week_end=week_end,
+                         sales_data=sales_data,
+                         labor_entries=labor_entries,
+                         category_summaries=category_summaries,
+                         total_revenue=total_revenue,
+                         labor_costs=weekly_cost.total_cost,
+                         net_profit=total_revenue - weekly_cost.total_cost,
+                         no_data=False)
+
+# Monthly Report - Aggregating Weekly Reports
+@main_blueprint.route('/reports/monthly')
+def monthly_report():
+    # Get month and year parameters
+    month = request.args.get('month', type=int)
+    year = request.args.get('year', type=int)
+
+    if not month or not year:
+        # Default to current month
+        today = date.today()
+        month = today.month
+        year = today.year
+
+    # Calculate month start and end
+    month_start = date(year, month, 1)
+    if month == 12:
+        month_end = date(year + 1, 1, 1) - timedelta(days=1)
+    else:
+        month_end = date(year, month + 1, 1) - timedelta(days=1)
+
+    # Get all weekly reports for the month
+    weekly_costs = WeeklyLaborCost.query.filter(
+        and_(
+            WeeklyLaborCost.week_start_date >= month_start,
+            WeeklyLaborCost.week_start_date <= month_end
+        )
+    ).order_by(WeeklyLaborCost.week_start_date).all()
+
+    if not weekly_costs:
+        # No data for this month
+        return render_template('monthly_report.html',
+                             month=month,
+                             year=year,
+                             month_start=month_start,
+                             month_end=month_end,
+                             weekly_summaries=[],
+                             product_totals=[],
+                             category_summaries={},
+                             total_revenue=0,
+                             total_labor_costs=0,
+                             net_profit=0,
+                             no_data=True)
+
+    # Aggregate data from all weeks
+    product_aggregates = {}
+    category_summaries = {}
+    weekly_summaries = []
+    total_revenue = 0
+    total_labor_costs = 0
+
+    for week in weekly_costs:
+        week_revenue = 0
+        week_sales_count = 0
+
+        # Get sales for this week
+        week_sales = db.session.query(
+            Product.id.label('product_id'),
+            Product.name.label('product_name'),
+            Category.name.label('category_name'),
+            Product.selling_price_per_unit,
+            WeeklyProductSales.quantity_sold,
+            WeeklyProductSales.quantity_waste
+        ).join(
+            WeeklyProductSales, WeeklyProductSales.product_id == Product.id
+        ).outerjoin(
+            Category, Category.id == Product.category_id
+        ).filter(
+            WeeklyProductSales.weekly_cost_id == week.id
+        ).all()
+
+        # Process each sale
+        for sale in week_sales:
+            product_key = sale.product_id
+            cat_name = sale.category_name or 'ללא קטגוריה'
+            sale_revenue = (sale.quantity_sold or 0) * sale.selling_price_per_unit
+
+            # Aggregate by product
+            if product_key not in product_aggregates:
+                product_aggregates[product_key] = {
+                    'name': sale.product_name,
+                    'category_name': cat_name,
+                    'price_per_unit': sale.selling_price_per_unit,
+                    'quantity_sold': 0,
+                    'quantity_waste': 0,
+                    'revenue': 0,
+                    'weeks_active': 0
+                }
+
+            product_aggregates[product_key]['quantity_sold'] += sale.quantity_sold or 0
+            product_aggregates[product_key]['quantity_waste'] += sale.quantity_waste or 0
+            product_aggregates[product_key]['revenue'] += sale_revenue
+            product_aggregates[product_key]['weeks_active'] += 1
+
+            # Aggregate by category
+            if cat_name not in category_summaries:
+                category_summaries[cat_name] = {
+                    'quantity_sold': 0,
+                    'quantity_waste': 0,
+                    'revenue': 0,
+                    'products': set(),
+                    'weeks_active': set()
+                }
+
+            category_summaries[cat_name]['quantity_sold'] += sale.quantity_sold or 0
+            category_summaries[cat_name]['quantity_waste'] += sale.quantity_waste or 0
+            category_summaries[cat_name]['revenue'] += sale_revenue
+            category_summaries[cat_name]['products'].add(sale.product_name)
+            category_summaries[cat_name]['weeks_active'].add(week.week_start_date)
+
+            week_revenue += sale_revenue
+            week_sales_count += sale.quantity_sold or 0
+
+        # Add weekly summary
+        weekly_summaries.append({
+            'week_start': week.week_start_date,
+            'week_end': week.week_start_date + timedelta(days=6),
+            'revenue': week_revenue,
+            'labor_cost': week.total_cost,
+            'profit': week_revenue - week.total_cost,
+            'sales_count': week_sales_count
+        })
+
+        total_revenue += week_revenue
+        total_labor_costs += week.total_cost
+
+    # Convert sets to counts for category summaries
+    for cat in category_summaries.values():
+        cat['product_count'] = len(cat['products'])
+        cat['weeks_active'] = len(cat['weeks_active'])
+        cat['products'] = list(cat['products'])  # Convert set to list for template
+
+    # Get top products by revenue
+    product_list = list(product_aggregates.values())
+    top_products = sorted(product_list, key=lambda x: x['revenue'], reverse=True)[:10]
+
+    # Calculate average metrics
+    num_weeks = len(weekly_costs)
+    avg_weekly_revenue = total_revenue / num_weeks if num_weeks > 0 else 0
+    avg_weekly_labor = total_labor_costs / num_weeks if num_weeks > 0 else 0
+
+    return render_template('monthly_report.html',
+                         month=month,
+                         year=year,
+                         month_start=month_start,
+                         month_end=month_end,
+                         weekly_summaries=weekly_summaries,
+                         product_totals=product_list,
+                         category_summaries=category_summaries,
+                         top_products=top_products,
+                         total_revenue=total_revenue,
+                         total_labor_costs=total_labor_costs,
+                         net_profit=total_revenue - total_labor_costs,
+                         avg_weekly_revenue=avg_weekly_revenue,
+                         avg_weekly_labor=avg_weekly_labor,
+                         num_weeks=num_weeks,
+                         no_data=False)

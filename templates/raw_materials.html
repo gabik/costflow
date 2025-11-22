@@ -34,7 +34,7 @@
                 <td>{{ material.unit }}</td>
                 <td>{{ currency_symbol }}{{ "%.2f"|format(material.cost_per_unit) }}</td>
                 <td class="fw-bold {{ 'text-danger' if material.current_stock <= 0 else 'text-success' }}">
-                    {{ material.current_stock }}
+                    {{ material.current_stock | int }}
                 </td>
                 <td class="text-end">
                     <div class="btn-group" role="group">

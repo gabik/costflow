@@ -17,6 +17,15 @@
                     <input type="text" id="name" name="name" class="form-control" value="{{ product.name if product else '' }}" placeholder="לדוגמה: לחם אחיד">
                 </div>
                 <div class="mb-3">
+                    <label for="category_id" class="form-label">קטגוריה</label>
+                    <select name="category_id" id="category_id" class="form-select">
+                        <option value="">ללא קטגוריה</option>
+                        {% for cat in product_categories %}
+                        <option value="{{ cat.id }}" {% if product and product.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
                     <label for="products_per_recipe" class="form-label">כמות מוצרים למתכון (לסיבוב ייצור)</label>
                     <input type="number" id="products_per_recipe" name="products_per_recipe" class="form-control" step="1" value="{{ product.products_per_recipe if product else '' }}">
                 </div>

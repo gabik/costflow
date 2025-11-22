@@ -38,6 +38,15 @@
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('main.products') }}">מוצרים</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('main.raw_materials') }}">חומרי גלם</a></li>
                 <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        דו"חות
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg" aria-labelledby="reportsDropdown" style="border-radius: 12px;">
+                        <li><a class="dropdown-item py-2" href="{{ url_for('main.weekly_report') }}"><i class="bi bi-calendar-week me-2"></i>דו"ח שבועי</a></li>
+                        <li><a class="dropdown-item py-2" href="{{ url_for('main.monthly_report') }}"><i class="bi bi-calendar-month me-2"></i>דו"ח חודשי</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         הגדרות
                     </a>
