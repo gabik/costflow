@@ -204,7 +204,7 @@
     function addRawMaterialRow(materialId = '', quantity = '') {
         rawMaterialRowIndex++;
         const container = document.getElementById('raw-materials-container');
-        const allRawMaterials = JSON.parse('{{ all_raw_materials | default([]) | tojson }}');
+        const allRawMaterials = {{ all_raw_materials | default([]) | tojson | safe }};
 
         let optionsHtml = '<option value="" disabled selected>בחר חומר גלם...</option>';
         allRawMaterials.forEach(material => {
@@ -246,7 +246,7 @@
     function addPackagingRow(packagingId = '', quantity = '') {
         packagingRowIndex++;
         const container = document.getElementById('packaging-container');
-        const allPackaging = JSON.parse('{{ all_packaging | default([]) | tojson }}');
+        const allPackaging = {{ all_packaging | default([]) | tojson | safe }};
 
         let optionsHtml = '<option value="" disabled selected>בחר אריזה...</option>';
         allPackaging.forEach(pkg => {
@@ -284,7 +284,7 @@
 
     // Initialize existing components for editing
     document.addEventListener('DOMContentLoaded', function() {
-        const product = JSON.parse('{{ product_json | tojson }}');
+        const product = {{ product_json | tojson | safe }};
         if (product && product.components) {
             product.components.forEach(component => {
                 if (component.component_type === 'raw_material') {
