@@ -124,13 +124,32 @@ class Category(db.Model):
 class WeeklyLaborCost(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     week_start_date = db.Column(db.Date, unique=True, nullable=False)
-    total_cost = db.Column(db.Float, nullable=False)
+    total_cost = db.Column(db.Float, nullable=False, default=0.0)
+    entries = db.relationship('WeeklyLaborEntry', backref='weekly_cost', lazy=True, cascade="all, delete-orphan")
 
     def to_dict(self):
         return {
             'id': self.id,
             'week_start_date': self.week_start_date.strftime('%Y-%m-%d'),
-            'total_cost': self.total_cost
+            'total_cost': self.total_cost,
+            'entries': [e.to_dict() for e in self.entries]
+        }
+
+class WeeklyLaborEntry(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    weekly_cost_id = db.Column(db.Integer, db.ForeignKey('weekly_labor_cost.id'), nullable=False)
+    employee_id = db.Column(db.Integer, db.ForeignKey('labor.id'), nullable=False)
+    hours = db.Column(db.Float, nullable=False)
+    cost = db.Column(db.Float, nullable=False) # (Rate + Employer Cost) * Hours
+
+    employee = db.relationship('Labor')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'employee_name': self.employee.name if self.employee else 'Unknown',
+            'hours': self.hours,
+            'cost': self.cost
         }
 
 class AuditLog(db.Model):

@@ -123,25 +123,53 @@
 {% endif %}
 
 <div class="row mt-5">
-    <div class="col-12">
-        <div class="card bg-transparent border-0">
-            <div class="card-header border-0 bg-transparent px-0">
-                <h6 class="text-muted text-uppercase">פעולות מהירות</h6>
-            </div>
-            <div class="card-body px-0">
-                <div class="d-flex gap-3 flex-wrap">
-                    <a href="{{ url_for('main.production') }}" class="btn btn-outline-dark">
-                        <i class="bi bi-clipboard-plus me-2"></i>יומן ייצור
-                    </a>
-                    <a href="{{ url_for('main.add_product') }}" class="btn btn-outline-dark">
-                        <i class="bi bi-box-seam me-2"></i>מוצר חדש
-                    </a>
-                    <a href="{{ url_for('main.add_raw_material') }}" class="btn btn-outline-dark">
-                        <i class="bi bi-basket me-2"></i>חומר גלם חדש
-                    </a>
+    <div class="col-12 mb-3">
+        <h5 class="text-muted text-uppercase">פעולות נפוצות</h5>
+    </div>
+    
+    <!-- Weekly Labor Action -->
+    <div class="col-md-4 mb-4">
+        <a href="{{ url_for('main.weekly_costs') }}" class="text-decoration-none">
+            <div class="card shadow-sm h-100 hover-shadow transition-all">
+                <div class="card-body text-center p-4">
+                    <div class="icon-box bg-light text-primary rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                        <i class="bi bi-calendar-check display-6"></i>
+                    </div>
+                    <h4 class="card-title fw-bold text-dark">עלויות עבודה</h4>
+                    <p class="card-text text-secondary">עדכון שעות עובדים ועלויות שבועיות</p>
                 </div>
             </div>
-        </div>
+        </a>
+    </div>
+
+    <!-- Production Action -->
+    <div class="col-md-4 mb-4">
+        <a href="{{ url_for('main.production') }}" class="text-decoration-none">
+            <div class="card shadow-sm h-100 hover-shadow transition-all">
+                <div class="card-body text-center p-4">
+                    <div class="icon-box bg-light text-success rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                        <i class="bi bi-clipboard-plus display-6"></i>
+                    </div>
+                    <h4 class="card-title fw-bold text-dark">יומן ייצור</h4>
+                    <p class="card-text text-secondary">רישום ייצור יומי של מוצרים</p>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Inventory/Products Action -->
+    <div class="col-md-4 mb-4">
+        <a href="{{ url_for('main.raw_materials') }}" class="text-decoration-none">
+            <div class="card shadow-sm h-100 hover-shadow transition-all">
+                <div class="card-body text-center p-4">
+                    <div class="icon-box bg-light text-warning rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                        <i class="bi bi-basket display-6"></i>
+                    </div>
+                    <h4 class="card-title fw-bold text-dark">מלאי וחומרי גלם</h4>
+                    <p class="card-text text-secondary">ניהול רכש, ספקים ומלאי נוכחי</p>
+                </div>
+            </div>
+        </a>
     </div>
 </div>
 {% endblock %}

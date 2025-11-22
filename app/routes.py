@@ -4,7 +4,7 @@ from datetime import datetime, date, timedelta
 from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, current_app
 from sqlalchemy import func
-from .models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog, WeeklyLaborCost, AuditLog
+from .models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog, WeeklyLaborCost, WeeklyLaborEntry, AuditLog
 
 main_blueprint = Blueprint('main', __name__)
 
@@ -622,24 +622,57 @@ def production():
 @main_blueprint.route('/weekly_costs', methods=['GET', 'POST'])
 def weekly_costs():
     if request.method == 'POST':
-        date_str = request.form['week_start_date']
-        total_cost = float(request.form['total_cost'])
-        week_start = datetime.strptime(date_str, '%Y-%m-%d').date()
-
-        # Check if exists
-        existing_entry = WeeklyLaborCost.query.filter_by(week_start_date=week_start).first()
-        if existing_entry:
-            existing_entry.total_cost = total_cost
-        else:
-            new_entry = WeeklyLaborCost(week_start_date=week_start, total_cost=total_cost)
-            db.session.add(new_entry)
-        
-        db.session.commit()
-        return redirect(url_for('main.weekly_costs'))
+        date_str = request.form.get('week_start_date')
+        if date_str:
+            week_start = datetime.strptime(date_str, '%Y-%m-%d').date()
+            week = WeeklyLaborCost.query.filter_by(week_start_date=week_start).first()
+            if not week:
+                week = WeeklyLaborCost(week_start_date=week_start, total_cost=0)
+                db.session.add(week)
+                db.session.commit()
+            return redirect(url_for('main.weekly_cost_details', week_id=week.id))
 
     weekly_costs = WeeklyLaborCost.query.order_by(WeeklyLaborCost.week_start_date.desc()).all()
     return render_template('weekly_costs.html', weekly_costs=weekly_costs)
 
+@main_blueprint.route('/weekly_costs/<int:week_id>', methods=['GET'])
+def weekly_cost_details(week_id):
+    week = WeeklyLaborCost.query.get_or_404(week_id)
+    employees = Labor.query.all()
+    return render_template('weekly_cost_details.html', week=week, employees=employees)
+
+@main_blueprint.route('/weekly_costs/<int:week_id>/add', methods=['POST'])
+def add_weekly_labor(week_id):
+    week = WeeklyLaborCost.query.get_or_404(week_id)
+    employee_id = request.form.get('employee_id')
+    hours = float(request.form.get('hours'))
+    
+    employee = Labor.query.get(employee_id)
+    if employee and hours > 0:
+        cost = employee.total_hourly_rate * hours
+        entry = WeeklyLaborEntry(
+            weekly_cost_id=week.id,
+            employee_id=employee.id,
+            hours=hours,
+            cost=cost
+        )
+        db.session.add(entry)
+        week.total_cost += cost
+        db.session.commit()
+        
+    return redirect(url_for('main.weekly_cost_details', week_id=week.id))
+
+@main_blueprint.route('/weekly_costs/<int:week_id>/delete/<int:entry_id>', methods=['POST'])
+def delete_weekly_labor(week_id, entry_id):
+    week = WeeklyLaborCost.query.get_or_404(week_id)
+    entry = WeeklyLaborEntry.query.get_or_404(entry_id)
+    
+    if entry.weekly_cost_id == week.id:
+        week.total_cost -= entry.cost
+        db.session.delete(entry)
+        db.session.commit()
+        
+    return redirect(url_for('main.weekly_cost_details', week_id=week.id))
 # ----------------------------
 # Bulk Inventory Upload
 # ----------------------------

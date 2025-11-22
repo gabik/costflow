@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}פירוט שבוע {{ week.week_start_date.strftime('%d/%m') }} - CostFlow{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.weekly_costs') }}">עלויות שבועיות</a></li>
+                <li class="breadcrumb-item active" aria-current="page">שבוע {{ week.week_start_date.strftime('%d/%m/%Y') }}</li>
+            </ol>
+        </nav>
+        <h1 class="display-6 fw-bold text-primary">פירוט שעות עבודה</h1>
+    </div>
+    <div class="col-auto text-end">
+        <div class="card bg-light border-0">
+            <div class="card-body py-2 px-4">
+                <span class="text-muted small text-uppercase">סה"כ עלות לשבוע זה</span>
+                <div class="h3 fw-bold text-success mb-0">{{ currency_symbol }}{{ "%.2f"|format(week.total_cost) }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Add Entry Form -->
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white fw-bold">הוספת שעות עובד</div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('main.add_weekly_labor', week_id=week.id) }}">
+                    <div class="mb-3">
+                        <label for="employee_id" class="form-label">עובד / תפקיד</label>
+                        <select name="employee_id" id="employee_id" class="form-select" required>
+                            <option value="" disabled selected>בחר עובד...</option>
+                            {% for emp in employees %}
+                            <option value="{{ emp.id }}">{{ emp.name }} ({{ currency_symbol }}{{ emp.total_hourly_rate }}/שעה)</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="hours" class="form-label">שעות עבודה</label>
+                        <input type="number" name="hours" id="hours" class="form-control" step="0.1" min="0.1" required>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-plus-lg me-2"></i> הוסף לרשימה
+                        </button>
+                    </div>
+                </form>
+                <hr>
+                <div class="text-muted small">
+                    <i class="bi bi-info-circle me-1"></i>
+                    העלות מחושבת אוטומטית לפי תעריף העובד (כולל עלויות מעביד).
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Entries List -->
+    <div class="col-md-8">
+        <div class="card shadow-sm h-100">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>שם העובד</th>
+                                <th class="text-center">שעות</th>
+                                <th class="text-end">עלות מחושבת</th>
+                                <th class="text-end" style="width: 50px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in week.entries %}
+                            <tr>
+                                <td class="fw-medium">{{ entry.employee.name }}</td>
+                                <td class="text-center">{{ entry.hours }}</td>
+                                <td class="text-end">{{ currency_symbol }}{{ "%.2f"|format(entry.cost) }}</td>
+                                <td class="text-end">
+                                    <form method="POST" action="{{ url_for('main.delete_weekly_labor', week_id=week.id, entry_id=entry.id) }}" onsubmit="return confirm('להסיר שורה זו?');">
+                                        <button type="submit" class="btn btn-link text-danger p-0 btn-sm">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5 text-muted">
+                                    עדיין לא הוזנו שעות לשבוע זה.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
