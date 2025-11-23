@@ -63,15 +63,19 @@ $(document).ready(function() {
         language: { noResults: () => "לא נמצאו תוצאות" }
     });
 
-    // Handle product selection change
-    $('#product_id').on('change', function () { // Use 'change' event for Select2
-        const productId = $(this).val(); // Get selected value
+    // Handle product selection change using Select2 specific event
+    $('#product_id').on('select2:select', function (e) {
+        const productId = e.params.data.id;
         if (productId) {
             fetchRecipeData(productId);
-        } else {
-            // Clear summary if no product selected
-            document.getElementById('production_summary').style.display = 'none';
-            currentRecipe = null;
+        }
+    });
+    
+    // Fallback for direct changes or browser autofill
+    $('#product_id').on('change', function () {
+        const productId = $(this).val();
+        if (productId && !currentRecipe) { // Only fetch if not already loaded
+             fetchRecipeData(productId);
         }
     });
 
@@ -83,8 +87,12 @@ $(document).ready(function() {
 });
 
 function fetchRecipeData(productId) {
+    console.log('Fetching recipe for product:', productId);
     fetch(`/api/product_recipe/${productId}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
         .then(data => {
             currentRecipe = data;
             updateProductionDetails();

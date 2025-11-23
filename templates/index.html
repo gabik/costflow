@@ -281,12 +281,25 @@ function handleWeekChange(select) {
                     <p class="card-text text-secondary">ניהול שבועות, שעות עובדים ועלויות</p>
                 </div>
             </div>
-        </a>
-    </div>
-
-
-
-    <!-- Inventory Action -->
+                </a>
+            </div>
+        
+            <!-- Premakes Action -->
+            <div class="col-md-4 mb-4">
+                <a href="{{ url_for('main.premakes') }}" class="text-decoration-none">
+                    <div class="card shadow-sm h-100 hover-shadow transition-all">
+                        <div class="card-body text-center p-4">
+                            <div class="icon-box bg-light text-info rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                                <i class="bi bi-blender display-6"></i>
+                            </div>
+                            <h4 class="card-title fw-bold text-dark">הכנות מקדימות</h4>
+                            <p class="card-text text-secondary">ניהול מתכוני בסיס (Premakes)</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        
+            <!-- Inventory Action -->
     <div class="col-md-4 mb-4">
         <a href="{{ url_for('main.raw_materials') }}" class="text-decoration-none">
             <div class="card shadow-sm h-100 hover-shadow transition-all">
