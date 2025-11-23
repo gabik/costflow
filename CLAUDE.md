@@ -114,3 +114,30 @@ Templates in `templates/` use base template inheritance:
 - `base.html`: Main layout with navigation
 - Feature-specific templates for each route
 - Static assets in `static/css/style.css`
+
+## Recent Changes & Features (Nov 2024)
+
+### 1. Weekly & Monthly Reports
+- Added comprehensive reporting system accessible via dropdown menus
+- Weekly reports (`/reports/weekly`) show sales by category, labor costs, and profitability
+- Monthly reports (`/reports/monthly`) aggregate weekly data for trend analysis
+- Both reports include Hebrew localization and RTL support
+
+### 2. Stock Audit System
+- StockAudit model tracks discrepancies between system stock and physical counts
+- Records auditor name, variance, and financial impact
+- Automatic variance calculation when setting stock (action_type='set')
+- Dedicated audit page (`/stock_audits`) with filtering and analytics
+
+### 3. Food Cost Analytics
+- **Food Cost Tracking**: Calculates total material + packaging costs for production
+- **Weekly Report**: Shows total food cost, average cost per recipe, food cost percentage
+- **Monthly Report**: Includes visual bar chart of weekly food cost trends
+- **Target Indicators**: Color-coded (green: 25-35%, yellow: <25%, red: >35%)
+- **Data Aggregation**: Production and labor data aggregated to avoid duplicate rows
+
+### 4. Key Calculations
+- **Food Cost** = Sum of (raw materials + packaging) × quantity for each recipe
+- **Food Cost %** = (Total food cost / Total revenue) × 100%
+- **Prime Cost** = Raw materials + Packaging (per product)
+- **Net Profit** = Revenue - Material Costs - Labor Costs - Stock Variance

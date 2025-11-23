@@ -5,19 +5,24 @@ db = SQLAlchemy()
 
 class StockLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    raw_material_id = db.Column(db.Integer, db.ForeignKey('raw_material.id'), nullable=False)
+    raw_material_id = db.Column(db.Integer, db.ForeignKey('raw_material.id'), nullable=True)
+    premake_id = db.Column(db.Integer, db.ForeignKey('premake.id'), nullable=True)
     action_type = db.Column(db.String(10), nullable=False)  # 'add' or 'set'
     quantity = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    
     raw_material = db.relationship('RawMaterial', backref='stock_logs')
+    premake = db.relationship('Premake', backref='stock_logs')
 
 class ProductionLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=True)
+    premake_id = db.Column(db.Integer, db.ForeignKey('premake.id'), nullable=True)
     quantity_produced = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     # Relationships
     product = db.relationship('Product', backref='production_logs')
+    premake = db.relationship('Premake', backref='production_logs')
 
 class RawMaterial(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -34,6 +39,54 @@ class RawMaterial(db.Model):
             'category_id': self.category_id,
             'unit': self.unit,
             'cost_per_unit': self.cost_per_unit
+        }
+
+class Premake(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=True)
+    batch_size = db.Column(db.Float, nullable=False) # Yield quantity (e.g., 10.0)
+    unit = db.Column(db.String(50), nullable=False) # Unit of yield (e.g., 'kg')
+    
+    category = db.relationship('Category', backref='premakes')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'category_name': self.category.name if self.category else None,
+            'batch_size': self.batch_size,
+            'unit': self.unit,
+            'components': [c.to_dict() for c in self.components]
+        }
+
+class PremakeComponent(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    premake_id = db.Column(db.Integer, db.ForeignKey('premake.id'), nullable=False)
+    component_type = db.Column(db.String(20), nullable=False)  # 'raw_material', 'packaging'
+    component_id = db.Column(db.Integer, nullable=False)
+    quantity = db.Column(db.Float, nullable=False)
+
+    premake = db.relationship('Premake', backref='components')
+    
+    @property
+    def material(self):
+        if self.component_type == 'raw_material':
+            return RawMaterial.query.get(self.component_id)
+        return None
+
+    @property
+    def packaging(self):
+        if self.component_type == 'packaging':
+            return Packaging.query.get(self.component_id)
+        return None
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'component_type': self.component_type,
+            'component_id': self.component_id,
+            'quantity': self.quantity
         }
 
 class Labor(db.Model):
@@ -98,7 +151,7 @@ class Product(db.Model):
 class ProductComponent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
-    component_type = db.Column(db.String(20), nullable=False)  # 'raw_material', 'labor', 'packaging'
+    component_type = db.Column(db.String(20), nullable=False)  # 'raw_material', 'labor', 'packaging', 'premake'
     component_id = db.Column(db.Integer, nullable=False)
     quantity = db.Column(db.Float, nullable=False)
 
@@ -116,6 +169,12 @@ class ProductComponent(db.Model):
             return Packaging.query.get(self.component_id)
         return None
 
+    @property
+    def premake(self):
+        if self.component_type == 'premake':
+            return Premake.query.get(self.component_id)
+        return None
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -127,7 +186,7 @@ class ProductComponent(db.Model):
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
-    type = db.Column(db.String(20), nullable=False, default='raw_material') # 'raw_material' or 'product'
+    type = db.Column(db.String(20), nullable=False, default='raw_material') # 'raw_material', 'product', 'premake'
 
 class WeeklyLaborCost(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -182,7 +241,8 @@ class WeeklyLaborEntry(db.Model):
 class StockAudit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     audit_date = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    raw_material_id = db.Column(db.Integer, db.ForeignKey('raw_material.id'), nullable=False)
+    raw_material_id = db.Column(db.Integer, db.ForeignKey('raw_material.id'), nullable=True)
+    premake_id = db.Column(db.Integer, db.ForeignKey('premake.id'), nullable=True)
     system_quantity = db.Column(db.Float, nullable=False)  # Calculated stock before audit
     physical_quantity = db.Column(db.Float, nullable=False)  # Actual count
     variance = db.Column(db.Float, nullable=False)  # physical - system
@@ -193,13 +253,14 @@ class StockAudit(db.Model):
 
     # Relationships
     raw_material = db.relationship('RawMaterial', backref='stock_audits')
+    premake = db.relationship('Premake', backref='stock_audits')
     stock_log = db.relationship('StockLog', backref='audit')
 
     def to_dict(self):
         return {
             'id': self.id,
             'audit_date': self.audit_date.strftime('%Y-%m-%d %H:%M:%S'),
-            'raw_material_name': self.raw_material.name if self.raw_material else 'Unknown',
+            'raw_material_name': self.raw_material.name if self.raw_material else (self.premake.name if self.premake else 'Unknown'),
             'system_quantity': self.system_quantity,
             'physical_quantity': self.physical_quantity,
             'variance': self.variance,

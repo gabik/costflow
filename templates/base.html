@@ -35,7 +35,21 @@
             <ul class="navbar-nav ms-auto align-items-center">
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('main.index') }}">ראשי</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('main.production') }}">ייצור</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('main.products') }}">מוצרים</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="productsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        {{ _('Products') }}
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="productsDropdown">
+                        <li><a class="dropdown-item" href="{{ url_for('main.products') }}">{{ _('All Products') }}</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('main.add_product') }}">{{ _('Add Product') }}</a></li>
+                         <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('main.premakes') }}">הכנות מקדימות (Premakes)</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('main.add_premake') }}">הוסף הכנה מקדימה</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('main.categories', type='product') }}">{{ _('Product Categories') }}</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('main.categories', type='premake') }}">קטגוריות הכנות</a></li>
+                    </ul>
+                </li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('main.raw_materials') }}">חומרי גלם</a></li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">

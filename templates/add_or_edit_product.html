@@ -111,6 +111,37 @@
             <i class="bi bi-plus-lg me-2"></i>הוסף אריזה
         </button>
 
+        <!-- Premakes Section -->
+        <h4 class="mb-3 fw-bold">הכנות מקדימות (Premakes)</h4>
+        <div id="premakes-container" class="mb-4">
+            {% if product %}
+                {% for component in product.components %}
+                    {% if component.component_type == 'premake' %}
+                    <div class="row g-2 mb-2 align-items-center premake-row">
+                        <div class="col-md-5">
+                            <select name="premake[]" class="form-select select2-premake">
+                                {% for premake_option in all_premakes %}
+                                    <option value="{{ premake_option.id }}" {% if component.component_id == premake_option.id %}selected{% endif %}>
+                                        {{ premake_option.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="number" name="premake_quantity[]" class="form-control" placeholder="כמות" step="0.001" value="{{ component.quantity }}">
+                        </div>
+                        <div class="col-md-auto">
+                            <button type="button" class="btn btn-outline-danger" onclick="this.closest('.premake-row').remove()"><i class="bi bi-x-lg"></i></button>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        </div>
+        <button type="button" class="btn btn-outline-primary mb-4" onclick="addPremakeRow()">
+            <i class="bi bi-plus-lg me-2"></i>הוסף הכנה מקדימה
+        </button>
+
         <div class="d-grid gap-2 mt-4">
             <button type="submit" class="btn btn-primary btn-lg">
                 {{ 'שמור שינויים' if product else 'הוסף מוצר' }}
@@ -291,11 +322,51 @@
         });
     }
 
+    // Function to add a new premake row dynamically
+    function addPremakeRow(premakeId = '', quantity = '') {
+        const container = document.getElementById('premakes-container');
+        const allPremakes = {{ all_premakes | default([]) | tojson | safe }};
+
+        let optionsHtml = '<option value="" disabled selected>בחר הכנה מקדימה...</option>';
+        allPremakes.forEach(premake => {
+            const selected = premakeId == premake.id ? 'selected' : '';
+            optionsHtml += `<option value="${premake.id}" ${selected}>${premake.name} (${premake.unit})</option>`;
+        });
+
+        const rowHtml = `
+            <div class="row g-2 mb-2 align-items-center premake-row">
+                <div class="col-md-5">
+                    <select name="premake[]" class="form-select select2">
+                        ${optionsHtml}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="number" name="premake_quantity[]" class="form-control" placeholder="כמות" step="0.001" value="${quantity}">
+                </div>
+                <div class="col-md-auto">
+                    <button type="button" class="btn btn-outline-danger" onclick="this.closest('.premake-row').remove()"><i class="bi bi-x-lg"></i></button>
+                </div>
+            </div>`;
+            
+        const template = document.createElement('div');
+        template.innerHTML = rowHtml.trim();
+        const rowElement = template.firstChild;
+        
+        container.appendChild(rowElement);
+
+        $(rowElement).find('.select2').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            language: { noResults: () => "לא נמצאו תוצאות" }
+        });
+    }
+
     // Initialize empty rows for new products only
     document.addEventListener('DOMContentLoaded', function() {
         // Check if this is a new product (no existing rows)
         const hasExistingMaterials = document.querySelectorAll('.raw-material-row').length > 0;
         const hasExistingPackaging = document.querySelectorAll('.packaging-row').length > 0;
+        const hasExistingPremakes = document.querySelectorAll('.premake-row').length > 0;
 
         // Only add empty rows for new products
         if (!hasExistingMaterials) {
@@ -304,6 +375,16 @@
         if (!hasExistingPackaging) {
             addPackagingRow();
         }
+        if (!hasExistingPremakes) {
+           // Optional: Don't force add a premake row, usually optional
+        }
+        
+        // Initialize existing select2s (for edit mode)
+        $('.select2-premake').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            language: { noResults: () => "לא נמצאו תוצאות" }
+        });
     });
 </script>
 {% endblock %}

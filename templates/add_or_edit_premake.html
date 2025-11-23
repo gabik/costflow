@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ 'ערוך' if premake else 'הוסף' }} הכנה מקדימה</h2>
+
+    <form method="POST" class="needs-validation" novalidate>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="name" class="form-label">שם ההכנה</label>
+                    <input type="text" class="form-control" id="name" name="name" value="{{ premake.name if premake else '' }}" required>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="category_id" class="form-label">קטגוריה</label>
+                    <select class="form-select" id="category_id" name="category_id">
+                        <option value="">בחר קטגוריה</option>
+                        {% for category in premake_categories %}
+                        <option value="{{ category.id }}" {% if premake and premake.category_id == category.id %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="batch_size" class="form-label">כמות תוצר (Batch Size)</label>
+                    <input type="number" step="0.01" class="form-control" id="batch_size" name="batch_size" value="{{ premake.batch_size if premake else '' }}" required>
+                    <div class="form-text">כמה יחידות/ק"ג המתכון הזה מניב בסך הכל?</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="unit" class="form-label">יחידת מידה (של התוצר)</label>
+                    <select class="form-select" id="unit" name="unit" required>
+                        {% for u in units %}
+                        <option value="{{ u }}" {% if premake and premake.unit == u %}selected{% endif %}>{{ u }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+        <h4>מרכיבים</h4>
+
+        <!-- Raw Materials Section -->
+        <div class="card mb-3">
+            <div class="card-header bg-light">
+                חומרי גלם
+                <button type="button" class="btn btn-sm btn-primary float-end" onclick="addRawMaterialRow()">
+                    <i class="fas fa-plus"></i> הוסף
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="raw_materials_container">
+                    {% if premake %}
+                        {% for component in premake.components %}
+                            {% if component.component_type == 'raw_material' %}
+                            <div class="row mb-2 raw-material-row">
+                                <div class="col-md-6">
+                                    <select name="raw_material[]" class="form-select select2-material" required>
+                                        <option value="">בחר חומר גלם</option>
+                                        {% for material in all_raw_materials %}
+                                        <option value="{{ material.id }}" {% if material.id == component.component_id %}selected{% endif %}>
+                                            {{ material.name }} ({{ material.unit }}) - {{ material.cost_per_unit }} ₪
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="number" step="0.001" name="raw_material_quantity[]" class="form-control" placeholder="כמות" value="{{ component.quantity }}" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Packaging Section -->
+        <div class="card mb-3">
+            <div class="card-header bg-light">
+                אריזות (Packaging)
+                <button type="button" class="btn btn-sm btn-primary float-end" onclick="addPackagingRow()">
+                    <i class="fas fa-plus"></i> הוסף
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="packaging_container">
+                     {% if premake %}
+                        {% for component in premake.components %}
+                            {% if component.component_type == 'packaging' %}
+                            <div class="row mb-2 packaging-row">
+                                <div class="col-md-6">
+                                    <select name="packaging[]" class="form-select select2-packaging" required>
+                                        <option value="">בחר אריזה</option>
+                                        {% for pkg in all_packaging %}
+                                        <option value="{{ pkg.id }}" {% if pkg.id == component.component_id %}selected{% endif %}>
+                                            {{ pkg.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="number" step="1" name="packaging_quantity[]" class="form-control" placeholder="כמות" value="{{ component.quantity }}" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-success">שמור</button>
+            <a href="{{ url_for('main.premakes') }}" class="btn btn-secondary">ביטול</a>
+        </div>
+    </form>
+</div>
+
+<!-- Templates for JS -->
+<template id="raw-material-row-template">
+    <div class="row mb-2 raw-material-row">
+        <div class="col-md-6">
+            <select name="raw_material[]" class="form-select select2-material" required>
+                <option value="">בחר חומר גלם</option>
+                {% for material in all_raw_materials %}
+                <option value="{{ material.id }}">
+                    {{ material.name }} ({{ material.unit }}) - {{ material.cost_per_unit }} ₪
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <input type="number" step="0.001" name="raw_material_quantity[]" class="form-control" placeholder="כמות" required>
+        </div>
+        <div class="col-md-2">
+            <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    </div>
+</template>
+
+<template id="packaging-row-template">
+    <div class="row mb-2 packaging-row">
+        <div class="col-md-6">
+            <select name="packaging[]" class="form-select select2-packaging" required>
+                <option value="">בחר אריזה</option>
+                {% for pkg in all_packaging %}
+                <option value="{{ pkg.id }}">
+                    {{ pkg.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <input type="number" step="1" name="packaging_quantity[]" class="form-control" placeholder="כמות" required>
+        </div>
+        <div class="col-md-2">
+            <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    </div>
+</template>
+
+<script>
+    function addRawMaterialRow() {
+        const template = document.getElementById('raw-material-row-template');
+        const clone = template.content.cloneNode(true);
+        document.getElementById('raw_materials_container').appendChild(clone);
+        // Re-initialize select2 if used (omitted for simplicity in MVP, but good to have)
+    }
+
+    function addPackagingRow() {
+        const template = document.getElementById('packaging-row-template');
+        const clone = template.content.cloneNode(true);
+        document.getElementById('packaging_container').appendChild(clone);
+    }
+
+    function removeRow(button) {
+        button.closest('.row').remove();
+    }
+</script>
+
+{% endblock %}

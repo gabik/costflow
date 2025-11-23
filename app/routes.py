@@ -6,7 +6,7 @@ from datetime import datetime, date, timedelta
 from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_file
 from sqlalchemy import func, extract, and_
-from .models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, StockAudit, AuditLog
+from .models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, StockAudit, AuditLog, Premake, PremakeComponent
 
 main_blueprint = Blueprint('main', __name__)
 
@@ -452,6 +452,158 @@ def delete_packaging(packaging_id):
     return redirect(url_for('main.packaging'))
 
 # ----------------------------
+# Premakes Management
+# ----------------------------
+@main_blueprint.route('/premakes')
+def premakes():
+    premakes = Premake.query.all()
+    return render_template('premakes.html', premakes=premakes)
+
+@main_blueprint.route('/premakes/add', methods=['GET', 'POST'])
+def add_premake():
+    if request.method == 'POST':
+        name = request.form['name']
+        category_id = request.form.get('category_id')
+        batch_size = float(request.form['batch_size'])
+        unit = request.form['unit']
+        
+        category = Category.query.get(category_id) if category_id else None
+
+        premake = Premake(
+            name=name,
+            category=category,
+            batch_size=batch_size,
+            unit=unit
+        )
+        db.session.add(premake)
+        db.session.flush() # Get ID
+        
+        log_audit("CREATE", "Premake", premake.id, f"Created premake {premake.name}")
+
+        # Process components
+        raw_materials = request.form.getlist('raw_material[]')
+        raw_material_quantities = request.form.getlist('raw_material_quantity[]')
+        for material_id, quantity in zip(raw_materials, raw_material_quantities):
+            component = PremakeComponent(
+                premake_id=premake.id,
+                component_type='raw_material',
+                component_id=material_id,
+                quantity=quantity
+            )
+            db.session.add(component)
+            
+        packaging_ids = request.form.getlist('packaging[]')
+        packaging_quantities = request.form.getlist('packaging_quantity[]')
+        for pkg_id, quantity in zip(packaging_ids, packaging_quantities):
+            component = PremakeComponent(
+                premake_id=premake.id,
+                component_type='packaging',
+                component_id=pkg_id,
+                quantity=quantity
+            )
+            db.session.add(component)
+
+        # Initial Stock Log (start with 0)
+        initial_stock_log = StockLog(
+            premake_id=premake.id,
+            action_type='set',
+            quantity=0
+        )
+        db.session.add(initial_stock_log)
+
+        db.session.commit()
+        return redirect(url_for('main.premakes'))
+
+    all_raw_materials = [m.to_dict() for m in RawMaterial.query.all()]
+    all_packaging = [p.to_dict() for p in Packaging.query.all()]
+    premake_categories = Category.query.filter_by(type='premake').all()
+    categories = Category.query.filter_by(type='raw_material').all() # For raw material modal if needed
+
+    return render_template(
+        'add_or_edit_premake.html',
+        premake=None,
+        all_raw_materials=all_raw_materials,
+        all_packaging=all_packaging,
+        premake_categories=premake_categories,
+        categories=categories,
+        units=units_list
+    )
+
+@main_blueprint.route('/premakes/edit/<int:premake_id>', methods=['GET', 'POST'])
+def edit_premake(premake_id):
+    premake = Premake.query.get_or_404(premake_id)
+
+    if request.method == 'POST':
+        premake.name = request.form['name']
+        premake.category_id = request.form.get('category_id')
+        premake.batch_size = float(request.form['batch_size'])
+        premake.unit = request.form['unit']
+        
+        # Clear existing components
+        PremakeComponent.query.filter_by(premake_id=premake.id).delete()
+        
+        # Process components
+        raw_materials = request.form.getlist('raw_material[]')
+        raw_material_quantities = request.form.getlist('raw_material_quantity[]')
+        for material_id, quantity in zip(raw_materials, raw_material_quantities):
+            component = PremakeComponent(
+                premake_id=premake.id,
+                component_type='raw_material',
+                component_id=material_id,
+                quantity=quantity
+            )
+            db.session.add(component)
+            
+        packaging_ids = request.form.getlist('packaging[]')
+        packaging_quantities = request.form.getlist('packaging_quantity[]')
+        for pkg_id, quantity in zip(packaging_ids, packaging_quantities):
+            component = PremakeComponent(
+                premake_id=premake.id,
+                component_type='packaging',
+                component_id=pkg_id,
+                quantity=quantity
+            )
+            db.session.add(component)
+            
+        log_audit("UPDATE", "Premake", premake.id, f"Updated premake {premake.name}")
+        db.session.commit()
+        return redirect(url_for('main.premakes'))
+
+    all_raw_materials = [m.to_dict() for m in RawMaterial.query.all()]
+    all_packaging = [p.to_dict() for p in Packaging.query.all()]
+    premake_categories = Category.query.filter_by(type='premake').all()
+    categories = Category.query.filter_by(type='raw_material').all()
+
+    return render_template(
+        'add_or_edit_premake.html',
+        premake=premake,
+        all_raw_materials=all_raw_materials,
+        all_packaging=all_packaging,
+        premake_categories=premake_categories,
+        categories=categories,
+        units=units_list
+    )
+
+@main_blueprint.route('/premakes/delete/<int:premake_id>', methods=['POST'])
+def delete_premake(premake_id):
+    premake = Premake.query.get_or_404(premake_id)
+    
+    # Check dependency: ProductComponent
+    if ProductComponent.query.filter_by(component_type='premake', component_id=premake.id).first():
+         return "Cannot delete premake used in products", 400
+
+    # Delete related StockLogs
+    StockLog.query.filter_by(premake_id=premake.id).delete()
+    
+    # Delete related Components
+    PremakeComponent.query.filter_by(premake_id=premake.id).delete()
+    
+    db.session.delete(premake)
+    log_audit("DELETE", "Premake", premake_id, f"Deleted premake {premake.name}")
+    db.session.commit()
+    return redirect(url_for('main.premakes'))
+
+# ----------------------------
 # Products Management
 # ----------------------------
 @main_blueprint.route('/products')
@@ -517,6 +669,18 @@ def add_product():
             )
             db.session.add(component)
 
+        # Process premakes
+        premake_ids = request.form.getlist('premake[]')
+        premake_quantities = request.form.getlist('premake_quantity[]')
+        for premake_id, quantity in zip(premake_ids, premake_quantities):
+            component = ProductComponent(
+                product_id=product.id,
+                component_type='premake',
+                component_id=premake_id,
+                quantity=quantity
+            )
+            db.session.add(component)
+
         db.session.commit()  # Save all components
         return redirect(url_for('main.products'))
 
@@ -529,12 +693,15 @@ def add_product():
     
     all_packaging = [p.to_dict() for p in Packaging.query.all()]
     all_labor = [labor_item.to_dict() for labor_item in Labor.query.all()]
+    all_premakes = [p.to_dict() for p in Premake.query.all()]
+    
     return render_template(
         'add_or_edit_product.html',
         product=None,
         all_raw_materials=all_raw_materials,
         all_packaging=all_packaging,
         all_labor=all_labor,
+        all_premakes=all_premakes,
         categories=categories, # For raw material modal
         product_categories=product_categories, # For product form
         units=units_list # For raw material modal
@@ -582,12 +749,50 @@ def product_detail(product_id):
         for component in ProductComponent.query.filter_by(product_id=product_id, component_type='packaging')
     ]
 
+    # Retrieve premake costs
+    premake_costs = []
+    for component in ProductComponent.query.filter_by(product_id=product_id, component_type='premake'):
+        premake = Premake.query.get(component.component_id)
+        if not premake:
+             continue
+             
+        # Calculate cost per unit of premake
+        premake_total_cost = 0
+        for sub_comp in premake.components:
+             if sub_comp.component_type == 'raw_material':
+                 mat = RawMaterial.query.get(sub_comp.component_id)
+                 if mat:
+                     premake_total_cost += sub_comp.quantity * mat.cost_per_unit
+             elif sub_comp.component_type == 'packaging':
+                 pkg = Packaging.query.get(sub_comp.component_id)
+                 if pkg:
+                     premake_total_cost += sub_comp.quantity * pkg.price_per_unit
+        
+        cost_per_unit_premake = premake_total_cost / premake.batch_size if premake.batch_size > 0 else 0
+        
+        premake_costs.append({
+            'name': premake.name,
+            'quantity': component.quantity,
+            'unit': premake.unit,
+            'price_per_unit': cost_per_unit_premake,
+            'price_per_recipe': component.quantity * cost_per_unit_premake,
+            'price_per_product': (component.quantity * cost_per_unit_premake) / product.products_per_recipe,
+            'components': [
+                 {
+                     'name': c.material.name if c.component_type == 'raw_material' else c.packaging.name,
+                     'quantity': c.quantity,
+                     'unit': c.material.unit if c.component_type == 'raw_material' else 'pcs'
+                 } for c in premake.components
+            ]
+        })
+
     return render_template(
         'product_details.html',
         product=product,
         raw_materials=raw_materials,
         labor_costs=labor_costs,
-        packaging_costs=packaging_costs
+        packaging_costs=packaging_costs,
+        premake_costs=premake_costs
     )
 
 @main_blueprint.route('/products/edit/<int:product_id>', methods=['GET', 'POST'])
@@ -636,6 +841,18 @@ def edit_product(product_id):
             )
             db.session.add(component)
 
+        # Process premakes
+        premake_ids = request.form.getlist('premake[]')
+        premake_quantities = request.form.getlist('premake_quantity[]')
+        for premake_id, quantity in zip(premake_ids, premake_quantities):
+            component = ProductComponent(
+                product_id=product.id,
+                component_type='premake',
+                component_id=premake_id,
+                quantity=quantity
+            )
+            db.session.add(component)
+
         log_audit("UPDATE", "Product", product.id, f"Updated product {product.name}")
         db.session.commit()
         return redirect(url_for('main.products'))
@@ -644,6 +861,7 @@ def edit_product(product_id):
     all_raw_materials = [m.to_dict() for m in RawMaterial.query.all()]
     all_packaging = [p.to_dict() for p in Packaging.query.all()]
     all_labor = [labor_item.to_dict() for labor_item in Labor.query.all()]
+    all_premakes = [p.to_dict() for p in Premake.query.all()]
     
     categories = Category.query.filter_by(type='raw_material').all()
     product_categories = Category.query.filter_by(type='product').all()
@@ -655,6 +873,7 @@ def edit_product(product_id):
         all_raw_materials=all_raw_materials,
         all_packaging=all_packaging,
         all_labor=all_labor,
+        all_premakes=all_premakes,
         categories=categories,
         product_categories=product_categories,
         units=units_list # For raw material modal

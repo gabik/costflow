@@ -20,18 +20,23 @@
     </div>
 </div>
 
-<ul class="nav nav-tabs mb-4">
-    <li class="nav-item">
-        <a class="nav-link {{ 'active fw-bold' if current_type == 'raw_material' else '' }}" href="{{ url_for('main.categories', type='raw_material') }}">
-            <i class="bi bi-basket me-2"></i>קטגוריות חומרי גלם
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link {{ 'active fw-bold' if current_type == 'product' else '' }}" href="{{ url_for('main.categories', type='product') }}">
-            <i class="bi bi-box-seam me-2"></i>קטגוריות מוצרים
-        </a>
-    </li>
-</ul>
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link {{ 'active' if current_type == 'raw_material' else '' }}" href="{{ url_for('main.categories', type='raw_material') }}">
+                חומרי גלם
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ 'active' if current_type == 'product' else '' }}" href="{{ url_for('main.categories', type='product') }}">
+                מוצרים
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ 'active' if current_type == 'premake' else '' }}" href="{{ url_for('main.categories', type='premake') }}">
+                הכנות מקדימות
+            </a>
+        </li>
+    </ul>
 
 <div class="card shadow-sm">
     <div class="table-responsive">
