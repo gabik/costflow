@@ -60,11 +60,14 @@ def calculate_prime_cost(product):
             # Calculate cost of 1 unit of premake
             premake = component.premake
             premake_batch_cost = 0
+            calculated_batch_size = 0
             for pm_comp in premake.components:
                 if pm_comp.component_type == 'raw_material' and pm_comp.material:
                     premake_batch_cost += pm_comp.quantity * pm_comp.material.cost_per_unit
+                calculated_batch_size += pm_comp.quantity
             
-            premake_unit_cost = premake_batch_cost / premake.batch_size if premake.batch_size > 0 else 0
+            effective_batch_size = premake.batch_size if premake.batch_size > 0 else calculated_batch_size
+            premake_unit_cost = premake_batch_cost / effective_batch_size if effective_batch_size > 0 else 0
             total_cost += component.quantity * premake_unit_cost
 
     if product.products_per_recipe > 0:
@@ -945,22 +948,28 @@ def product_detail(product_id):
              
         # Calculate cost per unit of premake
         premake_total_cost = 0
+        calculated_batch_size = 0
         for sub_comp in premake.components:
              if sub_comp.component_type == 'raw_material':
                  mat = RawMaterial.query.get(sub_comp.component_id)
                  if mat:
                      premake_total_cost += sub_comp.quantity * mat.cost_per_unit
+                 calculated_batch_size += sub_comp.quantity
              elif sub_comp.component_type == 'packaging':
                  pkg = Packaging.query.get(sub_comp.component_id)
                  if pkg:
                      premake_total_cost += sub_comp.quantity * pkg.price_per_unit
         
-        cost_per_unit_premake = premake_total_cost / premake.batch_size if premake.batch_size > 0 else 0
+        # Use stored batch size if valid, otherwise use calculated sum
+        effective_batch_size = premake.batch_size if premake.batch_size > 0 else calculated_batch_size
+        
+        cost_per_unit_premake = premake_total_cost / effective_batch_size if effective_batch_size > 0 else 0
         
         premake_costs.append({
             'name': premake.name,
             'quantity': component.quantity,
             'unit': premake.unit,
+            'batch_size': effective_batch_size,
             'price_per_unit': cost_per_unit_premake,
             'price_per_recipe': component.quantity * cost_per_unit_premake,
             'price_per_product': (component.quantity * cost_per_unit_premake) / product.products_per_recipe,
