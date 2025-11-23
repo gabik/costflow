@@ -11,17 +11,25 @@
     </div>
     <div class="form-group mb-3">
         <label for="premake_id" class="form-label">בחר הכנה מקדימה</label>
-        <select id="premake_id" name="premake_id" class="form-select select2" required>
+        <select id="premake_id" name="premake_id" class="form-select select2" required onchange="updateCalculation()">
             <option value="" disabled selected>בחר הכנה...</option>
             {% for premake in premakes %}
-            <option value="{{ premake.id }}">{{ premake.name }} ({{ premake.unit }})</option>
+            <option value="{{ premake.id }}" data-batch-size="{{ premake.batch_size }}" data-unit="{{ premake.unit }}">
+                {{ premake.name }} ({{ premake.unit }})
+            </option>
             {% endfor %}
         </select>
+        <div id="batch_info" class="form-text text-primary mt-1" style="display: none;">
+            גודל באצ' (מתכון): <span id="batch_size_display" class="fw-bold"></span>
+        </div>
     </div>
     <div class="form-group mb-3">
         <label for="quantity_produced">כמות שיוצרה (מספר באצ'ים)</label>
-        <input type="number" id="quantity_produced" name="quantity_produced" class="form-control" step="0.1" required>
+        <input type="number" id="quantity_produced" name="quantity_produced" class="form-control" step="0.1" required oninput="updateCalculation()">
         <div class="form-text">כמה יחידות מתכון (Batches) יוצרו?</div>
+        <div id="total_weight_info" class="alert alert-info mt-2" style="display: none;">
+            סה"כ כמות שנוצרה: <span id="total_weight_display" class="fw-bold"></span>
+        </div>
     </div>
     <button type="submit" class="btn btn-primary">{{ _('Log Production') }}</button>
 </form>
@@ -48,4 +56,45 @@
     {% endfor %}
     </tbody>
 </table>
+
+<script>
+function updateCalculation() {
+    const premakeSelect = document.getElementById('premake_id');
+    const quantityInput = document.getElementById('quantity_produced');
+    
+    const batchInfo = document.getElementById('batch_info');
+    const batchSizeDisplay = document.getElementById('batch_size_display');
+    const totalInfo = document.getElementById('total_weight_info');
+    const totalDisplay = document.getElementById('total_weight_display');
+    
+    const selectedOption = premakeSelect.options[premakeSelect.selectedIndex];
+    
+    if (selectedOption && selectedOption.value) {
+        const batchSize = parseFloat(selectedOption.getAttribute('data-batch-size')) || 0;
+        const unit = selectedOption.getAttribute('data-unit') || '';
+        
+        batchInfo.style.display = 'block';
+        batchSizeDisplay.innerText = `${batchSize} ${unit}`;
+        
+        const quantity = parseFloat(quantityInput.value) || 0;
+        if (quantity > 0) {
+            const total = quantity * batchSize;
+            totalInfo.style.display = 'block';
+            totalDisplay.innerText = `${total.toFixed(2)} ${unit}`;
+        } else {
+            totalInfo.style.display = 'none';
+        }
+    } else {
+        batchInfo.style.display = 'none';
+        totalInfo.style.display = 'none';
+    }
+}
+
+// Bind Select2 change event since standard onchange might not fire immediately with jQuery events
+$(document).ready(function() {
+    $('#premake_id').on('select2:select', function (e) {
+        updateCalculation();
+    });
+});
+</script>
 {% endblock %}
