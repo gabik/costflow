@@ -21,6 +21,7 @@
             <tr>
                 <th>שם</th>
                 <th>קטגוריה</th>
+                <th>כמות באצ'</th>
                 <th>יחידה</th>
                 <th class="text-end">פעולות</th>
             </tr>
@@ -30,6 +31,7 @@
             <tr>
                 <td class="fw-medium">{{ premake.name }}</td>
                 <td>{{ premake.category.name if premake.category else '-' }}</td>
+                <td>{{ "%.2f"|format(premake.batch_size) }}</td>
                 <td>{{ premake.unit }}</td>
                 <td class="text-end">
                     <div class="btn-group">

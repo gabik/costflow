@@ -21,6 +21,8 @@
             <tr>
                 <th style="width: 80px;">תמונה</th>
                 <th>שם המוצר</th>
+                <th>משקל מתכון</th>
+                <th>משקל יחידה</th>
                 <th>עלות ייצור ליחידה</th>
                 <th>מחיר מכירה</th>
                 <th>רווח גולמי</th>
@@ -40,6 +42,24 @@
                     {% endif %}
                 </td>
                 <td class="fw-medium">{{ product.name }}</td>
+                <td>
+                    {% set recipe_weight = namespace(value=0) %}
+                    {% for component in product.components %}
+                        {% if component.component_type == 'raw_material' %}
+                            {% set recipe_weight.value = recipe_weight.value + component.quantity %}
+                        {% elif component.component_type == 'premake' %}
+                            {% set recipe_weight.value = recipe_weight.value + component.quantity %}
+                        {% endif %}
+                    {% endfor %}
+                    {{ "%.2f"|format(recipe_weight.value) }}
+                </td>
+                <td>
+                    {% if product.products_per_recipe > 0 %}
+                        {{ "%.2f"|format(recipe_weight.value / product.products_per_recipe) }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
                 <td>
                     {% set cost = namespace(value=0) %}
                     {% for component in product.components %}

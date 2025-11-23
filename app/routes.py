@@ -4,7 +4,7 @@ import json
 import io
 from datetime import datetime, date, timedelta
 from werkzeug.utils import secure_filename
-from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_file
+from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_file, jsonify
 from sqlalchemy import func, extract, and_
 from .models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, StockAudit, AuditLog, Premake, PremakeComponent
 
@@ -2411,35 +2411,176 @@ def stock_audits():
     for cat in category_analysis.values():
         cat['materials'] = list(cat['materials'])
 
-    # Get top discrepancy materials (worst performers)
-    material_discrepancies = {}
-    for audit in audits:
-        if audit.raw_material:
-            mat_name = audit.raw_material.name
-            if mat_name not in material_discrepancies:
-                material_discrepancies[mat_name] = {
-                    'count': 0,
-                    'total_variance': 0,
-                    'total_cost': 0
-                }
-            material_discrepancies[mat_name]['count'] += 1
-            material_discrepancies[mat_name]['total_variance'] += audit.variance
-            material_discrepancies[mat_name]['total_cost'] += audit.variance_cost
+def calculate_raw_material_current_stock(material_id):
+    """
+    Calculates the current stock of a given raw material based on StockLogs and ProductionLogs.
+    """
+    last_set_log = StockLog.query.filter_by(raw_material_id=material_id, action_type='set') \
+        .order_by(StockLog.timestamp.desc()).first()
+    stock = last_set_log.quantity if last_set_log else 0
 
-    # Sort by total cost (most negative first)
-    top_discrepancies = sorted(
-        material_discrepancies.items(),
-        key=lambda x: x[1]['total_cost']
-    )[:10]  # Top 10 worst performers
+    add_logs = StockLog.query.filter(
+        StockLog.raw_material_id == material_id,
+        StockLog.action_type == 'add',
+        StockLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min)
+    ).all()
+    for log in add_logs:
+        stock += log.quantity
 
-    return render_template('stock_audits.html',
-                         audits=audits,
-                         all_materials=all_materials,
-                         total_variance_cost=total_variance_cost,
-                         total_positive_variance=total_positive_variance,
-                         total_negative_variance=total_negative_variance,
-                         category_analysis=category_analysis,
-                         top_discrepancies=top_discrepancies,
-                         selected_material_id=material_id,
-                         date_from=date_from,
-                         date_to=date_to)
+    # Subtract raw materials used in produced products (both final products and premakes)
+    # Note: This is an expensive operation if not optimized (e.g., pre-calculated sums)
+    # For real-time stock calculation, it means iterating a lot of history. 
+    # Assumes ProductionLogs timestamp is after initial stock or last set. 
+    # We need to consider *all* production up to current point.
+    # Let's just iterate over relevant production logs, but this can be slow.
+    
+    # Filter production logs by material usage
+    production_logs_raw_material_usage = db.session.query(ProductionLog, ProductComponent).\
+        join(ProductComponent, ProductionLog.product_id == ProductComponent.product_id).\
+        filter(
+            ProductComponent.component_type == 'raw_material',
+            ProductComponent.component_id == material_id,
+            ProductionLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min)
+        ).all()
+    
+    for production_log, product_component in production_logs_raw_material_usage:
+        stock -= product_component.quantity * production_log.quantity_produced
+    
+    # Also subtract usage in premake production 
+    production_logs_premake_usage = db.session.query(ProductionLog, PremakeComponent).\
+        join(Premake, ProductionLog.premake_id == Premake.id).\
+        join(PremakeComponent, Premake.id == PremakeComponent.premake_id).\
+        filter(
+            PremakeComponent.component_type == 'raw_material',
+            PremakeComponent.component_id == material_id,
+            ProductionLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min)
+        ).all()
+    
+    for production_log, premake_component in production_logs_premake_usage:
+        stock -= premake_component.quantity * production_log.quantity_produced
+
+    return stock
+
+@main_blueprint.route('/api/product_recipe/<int:product_id>')
+def get_product_recipe(product_id):
+    product = Product.query.get_or_404(product_id)
+    
+    components_data = []
+    for comp in product.components:
+        if comp.component_type == 'raw_material':
+            material = comp.material
+            if material:
+                stock = calculate_raw_material_current_stock(material.id)
+                components_data.append({
+                    'type': 'Raw Material',
+                    'name': material.name,
+                    'qty_per_batch': comp.quantity,
+                    'unit': material.unit,
+                    'current_stock': stock,
+                    'cost_per_unit': material.cost_per_unit
+                })
+        
+        elif comp.component_type == 'premake':
+            premake = comp.premake
+            if premake:
+                stock = calculate_premake_current_stock(premake.id)
+                
+                # Calculate cost per unit for premake
+                cost_per_batch = 0
+                for pm_comp in premake.components:
+                    if pm_comp.component_type == 'raw_material' and pm_comp.material:
+                        cost_per_batch += pm_comp.quantity * pm_comp.material.cost_per_unit
+                cost_per_unit = cost_per_batch / premake.batch_size if premake.batch_size > 0 else 0
+
+                components_data.append({
+                    'type': 'Premake',
+                    'name': premake.name,
+                    'qty_per_batch': comp.quantity,
+                    'unit': premake.unit,
+                    'current_stock': stock,
+                    'cost_per_unit': cost_per_unit
+                })
+
+    return jsonify({
+        'product_name': product.name,
+        'products_per_recipe': product.products_per_recipe,
+        'components': components_data
+    })
+
+@main_blueprint.route('/api/product_recipe/<int:product_id>')
+def get_product_recipe(product_id):
+    product = Product.query.get_or_404(product_id)
+    
+    components_data = []
+    for comp in product.components:
+        if comp.component_type == 'raw_material':
+            material = comp.material
+            if material:
+                # Calculate current stock for this material
+                # (Duplicated logic from raw_materials route for specific item)
+                last_set_log = StockLog.query.filter_by(raw_material_id=material.id, action_type='set') \
+                    .order_by(StockLog.timestamp.desc()).first()
+                stock = last_set_log.quantity if last_set_log else 0
+
+                add_logs = StockLog.query.filter(
+                    StockLog.raw_material_id == material.id,
+                    StockLog.action_type == 'add',
+                    StockLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min)
+                ).all()
+                for log in add_logs:
+                    stock += log.quantity
+
+                # Subtract usage
+                # Note: This is heavy if we iterate ALL logs.
+                # Optimization: Filter logs by date > last_set_log
+                production_logs = ProductionLog.query.filter(
+                    ProductionLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min)
+                ).all()
+
+                for production in production_logs:
+                    if production.product_id:
+                        p = Product.query.get(production.product_id)
+                        for c in p.components:
+                            if c.component_type == 'raw_material' and c.component_id == material.id:
+                                stock -= c.quantity * production.quantity_produced
+                    elif production.premake_id:
+                        pm = Premake.query.get(production.premake_id)
+                        for c in pm.components:
+                            if c.component_type == 'raw_material' and c.component_id == material.id:
+                                stock -= c.quantity * production.quantity_produced
+
+                components_data.append({
+                    'type': 'Raw Material',
+                    'name': material.name,
+                    'qty_per_batch': comp.quantity,
+                    'unit': material.unit,
+                    'current_stock': stock,
+                    'cost_per_unit': material.cost_per_unit
+                })
+        
+        elif comp.component_type == 'premake':
+            premake = comp.premake
+            if premake:
+                stock = calculate_premake_current_stock(premake.id)
+                
+                # Calculate cost per unit for premake
+                cost_per_batch = 0
+                for pm_comp in premake.components:
+                    if pm_comp.component_type == 'raw_material' and pm_comp.material:
+                        cost_per_batch += pm_comp.quantity * pm_comp.material.cost_per_unit
+                cost_per_unit = cost_per_batch / premake.batch_size if premake.batch_size > 0 else 0
+
+                components_data.append({
+                    'type': 'Premake',
+                    'name': premake.name,
+                    'qty_per_batch': comp.quantity,
+                    'unit': premake.unit,
+                    'current_stock': stock,
+                    'cost_per_unit': cost_per_unit
+                })
+
+    return json.dumps({
+        'product_name': product.name,
+        'products_per_recipe': product.products_per_recipe,
+        'components': components_data
+    })

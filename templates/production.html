@@ -18,12 +18,124 @@
             {% endfor %}
         </select>
     </div>
-    <div class="form-group">
-        <label for="quantity_produced">{{ _('Quantity Produced') }}</label>
-        <input type="number" id="quantity_produced" name="quantity_produced" class="form-control" step="1" required>
+    <div class="form-group mb-3">
+        <label for="quantity_produced">{{ _('Quantity Produced') }} (מספר באצ'ים)</label>
+        <input type="number" id="quantity_produced" name="quantity_produced" class="form-control" step="1" required oninput="updateProductionDetails()">
     </div>
-    <button type="submit" class="btn btn-primary">{{ _('Log Production') }}</button>
+    
+    <div id="production_summary" style="display: none;" class="mt-4">
+        <div class="alert alert-info">
+            <h5 class="mb-0">סה"כ יחידות לייצור: <span id="total_units_display" class="fw-bold">0</span></h5>
+        </div>
+        
+        <h5 class="mt-4">פירוט צריכת חומרים והכנות</h5>
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered bg-light">
+                <thead>
+                    <tr>
+                        <th>רכיב</th>
+                        <th>סוג</th>
+                        <th>מלאי נוכחי</th>
+                        <th>צריכה בייצור זה</th>
+                        <th>מלאי לאחר ייצור</th>
+                        <th>עלות</th>
+                    </tr>
+                </thead>
+                <tbody id="components_usage_body">
+                    <!-- Dynamic Rows -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">{{ _('Log Production') }}</button>
 </form>
+
+<script>
+let currentRecipe = null;
+
+$(document).ready(function() {
+    // Initialize Select2
+    $('.select2').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        language: { noResults: () => "לא נמצאו תוצאות" }
+    });
+
+    // Handle product selection change
+    $('#product_id').on('change', function () { // Use 'change' event for Select2
+        const productId = $(this).val(); // Get selected value
+        if (productId) {
+            fetchRecipeData(productId);
+        } else {
+            // Clear summary if no product selected
+            document.getElementById('production_summary').style.display = 'none';
+            currentRecipe = null;
+        }
+    });
+
+    // If a product is pre-selected (e.g., on page load, if editing or re-rendering with value)
+    const initialProductId = $('#product_id').val();
+    if (initialProductId) {
+        fetchRecipeData(initialProductId);
+    }
+});
+
+function fetchRecipeData(productId) {
+    fetch(`/api/product_recipe/${productId}`)
+        .then(response => response.json())
+        .then(data => {
+            currentRecipe = data;
+            updateProductionDetails();
+            document.getElementById('production_summary').style.display = 'block';
+        })
+        .catch(error => console.error('Error loading recipe:', error));
+}
+
+function updateProductionDetails() {
+    if (!currentRecipe) return;
+    
+    const qtyInput = document.getElementById('quantity_produced');
+    const batches = parseFloat(qtyInput.value) || 0;
+    
+    // Update Total Units
+    const totalUnits = batches * currentRecipe.products_per_recipe;
+    document.getElementById('total_units_display').innerText = totalUnits.toFixed(0);
+    
+    // Update Table
+    const tbody = document.getElementById('components_usage_body');
+    tbody.innerHTML = '';
+    
+    let totalRecipeCost = 0;
+
+    currentRecipe.components.forEach(comp => {
+        const usage = comp.qty_per_batch * batches;
+        const stockAfter = comp.current_stock - usage;
+        const cost = usage * comp.cost_per_unit;
+        totalRecipeCost += cost;
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${comp.name}</td>
+            <td>${comp.type === 'Raw Material' ? 'חומר גלם' : 'הכנה'}</td>
+            <td>${comp.current_stock.toFixed(2)} ${comp.unit}</td>
+            <td class="fw-bold">${usage.toFixed(2)} ${comp.unit}</td>
+            <td class="${stockAfter < 0 ? 'text-danger fw-bold' : ''}">${stockAfter.toFixed(2)} ${comp.unit}</td>
+            <td>${cost.toFixed(2)} ₪</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // Add total cost row
+    const totalRow = document.createElement('tr');
+    totalRow.innerHTML = `
+        <td colspan="5" class="text-end fw-bold">סה"כ עלות ייצור</td>
+        <td class="fw-bold">${totalRecipeCost.toFixed(2)} ₪</td>
+    `;
+    tbody.appendChild(totalRow);
+
+}
+</script>
 
 <hr>
 

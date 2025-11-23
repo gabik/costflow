@@ -280,17 +280,23 @@ function handleWeekChange(select) {
 
     <!-- Production Action -->
     <div class="col-md-4 mb-4">
-        <a href="{{ url_for('main.production') }}" class="text-decoration-none">
-            <div class="card shadow-sm h-100 hover-shadow transition-all">
-                <div class="card-body text-center p-4">
-                    <div class="icon-box bg-light text-success rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
-                        <i class="bi bi-clipboard-plus display-6"></i>
-                    </div>
-                    <h4 class="card-title fw-bold text-dark">יומן ייצור</h4>
-                    <p class="card-text text-secondary">רישום ייצור יומי של מוצרים</p>
+        <div class="card shadow-sm h-100 hover-shadow transition-all">
+            <div class="card-body text-center p-4">
+                <div class="icon-box bg-light text-success rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                    <i class="bi bi-clipboard-plus display-6"></i>
+                </div>
+                <h4 class="card-title fw-bold text-dark">יומן ייצור</h4>
+                <p class="card-text text-secondary mb-3">רישום ייצור יומי</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('main.production') }}" class="btn btn-outline-success">
+                        <i class="bi bi-box-seam me-2"></i>מוצרים
+                    </a>
+                    <a href="{{ url_for('main.premake_production') }}" class="btn btn-outline-success">
+                        <i class="bi bi-blender me-2"></i>הכנות מקדימות
+                    </a>
                 </div>
             </div>
-        </a>
+        </div>
     </div>
 
     <!-- Inventory Action -->
