@@ -52,6 +52,31 @@
     <button type="submit" class="btn btn-primary mt-3">{{ _('Log Production') }}</button>
 </form>
 
+<hr>
+
+<!-- Display Recent Production Logs -->
+<h2>{{ _('Recent Production Logs') }}</h2>
+<table class="table table-bordered table-hover">
+    <thead class="thead-dark">
+    <tr>
+        <th>{{ _('Date') }}</th>
+        <th>{{ _('Product') }}</th>
+        <th>{{ _('Quantity Produced') }}</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for log in production_logs %}
+    <tr>
+        <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+        <td>{{ log.product.name }}</td>
+        <td>{{ log.quantity_produced }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block scripts %}
 <script>
 let currentRecipe = null;
 
@@ -146,27 +171,4 @@ function updateProductionDetails() {
 
 }
 </script>
-
-<hr>
-
-<!-- Display Recent Production Logs -->
-<h2>{{ _('Recent Production Logs') }}</h2>
-<table class="table table-bordered table-hover">
-    <thead class="thead-dark">
-    <tr>
-        <th>{{ _('Date') }}</th>
-        <th>{{ _('Product') }}</th>
-        <th>{{ _('Quantity Produced') }}</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% for log in production_logs %}
-    <tr>
-        <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-        <td>{{ log.product.name }}</td>
-        <td>{{ log.quantity_produced }}</td>
-    </tr>
-    {% endfor %}
-    </tbody>
-</table>
 {% endblock %}
