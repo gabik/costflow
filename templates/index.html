@@ -292,9 +292,8 @@ function handleWeekChange(select) {
                             <div class="icon-box bg-light text-info rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
                                 <i class="bi bi-blender display-6"></i>
                             </div>
-                            <h4 class="card-title fw-bold text-dark">הכנות מקדימות</h4>
-                            <p class="card-text text-secondary">ניהול מתכוני בסיס (Premakes)</p>
-                        </div>
+                                                <h4 class="card-title fw-bold text-dark">הכנות מקדימות</h4>
+                                                <p class="card-text text-secondary">ניהול מתכוני בסיס</p>                        </div>
                     </div>
                 </a>
             </div>
@@ -309,6 +308,36 @@ function handleWeekChange(select) {
                     </div>
                     <h4 class="card-title fw-bold text-dark">מלאי וחומרי גלם</h4>
                     <p class="card-text text-secondary">ניהול רכש, ספקים ומלאי נוכחי</p>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Product Production Action -->
+    <div class="col-md-4 mb-4">
+        <a href="{{ url_for('main.production') }}" class="text-decoration-none">
+            <div class="card shadow-sm h-100 hover-shadow transition-all">
+                <div class="card-body text-center p-4">
+                    <div class="icon-box bg-light text-success rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                        <i class="bi bi-box-seam display-6"></i>
+                    </div>
+                    <h4 class="card-title fw-bold text-dark">יומן ייצור מוצרים</h4>
+                    <p class="card-text text-secondary">רישום ייצור יומי של מוצרים</p>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Premake Production Action -->
+    <div class="col-md-4 mb-4">
+        <a href="{{ url_for('main.premake_production') }}" class="text-decoration-none">
+            <div class="card shadow-sm h-100 hover-shadow transition-all">
+                <div class="card-body text-center p-4">
+                    <div class="icon-box bg-light text-primary rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                        <i class="bi bi-blender display-6"></i>
+                    </div>
+                    <h4 class="card-title fw-bold text-dark">יומן ייצור הכנות</h4>
+                    <p class="card-text text-secondary">רישום ייצור יומי של הכנות מקדימות</p>
                 </div>
             </div>
         </a>
