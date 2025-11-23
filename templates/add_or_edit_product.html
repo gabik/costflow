@@ -64,18 +64,23 @@
                     {% set has_premakes = true %}
                     <div class="row g-2 mb-2 align-items-center premake-row">
                         <div class="col-md-5">
-                            <select name="premake[]" class="form-select select2">
+                            <select name="premake[]" class="form-select select2" onchange="handlePremakeChange(this)">
                                 {% for premake_option in all_premakes %}
-                                    <option value="{{ premake_option.id }}" {% if component.component_id == premake_option.id %}selected{% endif %}>
+                                    <option value="{{ premake_option.id }}" data-unit="{{ premake_option.unit }}" {% if component.component_id == premake_option.id %}selected{% endif %}>
                                         {{ premake_option.name }}
                                     </option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <input type="number" name="premake_quantity[]" class="form-control" placeholder="כמות" step="0.001" value="{{ component.quantity }}">
                         </div>
-                        <div class="col-md-auto">
+                        <div class="col-md-3">
+                             <select name="premake_unit[]" class="form-select unit-select">
+                                <option value="kg">kg</option>
+                            </select>
+                        </div>
+                        <div class="col-md-1">
                             <button type="button" class="btn btn-outline-danger" onclick="this.closest('.premake-row').remove()"><i class="bi bi-x-lg"></i></button>
                         </div>
                     </div>
@@ -86,19 +91,24 @@
             {% if not has_premakes %}
              <div class="row g-2 mb-2 align-items-center premake-row">
                 <div class="col-md-5">
-                    <select name="premake[]" class="form-select select2">
+                    <select name="premake[]" class="form-select select2" onchange="handlePremakeChange(this)">
                         <option value="" disabled selected>בחר הכנה מקדימה...</option>
                         {% for premake_option in all_premakes %}
-                            <option value="{{ premake_option.id }}">
+                            <option value="{{ premake_option.id }}" data-unit="{{ premake_option.unit }}">
                                 {{ premake_option.name }}
                             </option>
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <input type="number" name="premake_quantity[]" class="form-control" placeholder="כמות" step="0.001">
                 </div>
-                <div class="col-md-auto">
+                <div class="col-md-3">
+                     <select name="premake_unit[]" class="form-select unit-select">
+                        <option value="kg">kg</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
                     <button type="button" class="btn btn-outline-danger" onclick="this.closest('.premake-row').remove()"><i class="bi bi-x-lg"></i></button>
                 </div>
             </div>
@@ -163,7 +173,9 @@
                     </select>
                 </div>
                 <div class="col-md-1">
-                    <button type="button" class="btn btn-outline-danger" onclick="this.closest('.raw-material-row').remove()"><i class="bi bi-x-lg"></i></button>
+                    <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
                 </div>
             </div>
             {% endif %}
@@ -372,7 +384,6 @@
     </div>
   </div>
 </div>
-{% endblock %}
 
 {% block scripts %}
 <script>
@@ -380,7 +391,7 @@
     let packagingRowIndex = 0;
 
     // Function to add a new raw material row dynamically
-    function addRawMaterialRow(materialId = '', quantity = '') {
+    function addRawMaterialRow(materialId = '', quantity = '', unit = 'kg') {
         rawMaterialRowIndex++;
         const container = document.getElementById('raw-materials-container');
         const allRawMaterials = {{ all_raw_materials | default([]) | tojson | safe }};
@@ -407,11 +418,12 @@
                     </select>
                 </div>
                 <div class="col-md-1">
-                    <button type="button" class="btn btn-outline-danger" onclick="this.closest('.raw-material-row').remove()"><i class="bi bi-x-lg"></i></button>
+                    <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
                 </div>
             </div>`;
         
-        // Create a temporary container to turn string into DOM nodes
         const template = document.createElement('div');
         template.innerHTML = rowHtml.trim();
         const rowElement = template.firstChild;
@@ -424,6 +436,17 @@
             width: '100%',
             language: { noResults: () => "לא נמצאו תוצאות" }
         });
+
+        // Update unit options for the newly added row
+        const newMatSelect = rowElement.querySelector('.select2');
+        const newUnitSelect = rowElement.querySelector('.unit-select');
+        if (newMatSelect && newUnitSelect) {
+            const selectedOption = newMatSelect.options[newMatSelect.selectedIndex];
+            const baseUnit = selectedOption ? selectedOption.getAttribute('data-unit') : null;
+            if (baseUnit) {
+                updateUnitOptions(newUnitSelect, baseUnit, unit);
+            }
+        }
     }
 
     // Function to add a new packaging row dynamically
@@ -467,28 +490,35 @@
     }
 
     // Function to add a new premake row dynamically
-    function addPremakeRow(premakeId = '', quantity = '') {
+    function addPremakeRow(premakeId = '', quantity = '', unit = 'kg') {
         const container = document.getElementById('premakes-container');
         const allPremakes = {{ all_premakes | default([]) | tojson | safe }};
 
         let optionsHtml = '<option value="" disabled selected>בחר הכנה מקדימה...</option>';
         allPremakes.forEach(premake => {
             const selected = premakeId == premake.id ? 'selected' : '';
-            optionsHtml += `<option value="${premake.id}" ${selected}>${premake.name} (${premake.unit})</option>`;
+            optionsHtml += `<option value="${premake.id}" data-unit="${premake.unit}" ${selected}>${premake.name} (${premake.unit})</option>`;
         });
 
         const rowHtml = `
             <div class="row g-2 mb-2 align-items-center premake-row">
                 <div class="col-md-5">
-                    <select name="premake[]" class="form-select select2">
+                    <select name="premake[]" class="form-select select2" onchange="handlePremakeChange(this)">
                         ${optionsHtml}
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <input type="number" name="premake_quantity[]" class="form-control" placeholder="כמות" step="0.001" value="${quantity}">
+                <div class="col-md-3">
+                    <input type="number" name="premake_quantity[]" class="form-control" placeholder="כמות" step="0.001" value="${quantity}" required>
                 </div>
-                <div class="col-md-auto">
-                    <button type="button" class="btn btn-outline-danger" onclick="this.closest('.premake-row').remove()"><i class="bi bi-x-lg"></i></button>
+                <div class="col-md-3">
+                    <select name="premake_unit[]" class="form-select unit-select">
+                        <option value="kg">kg</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
                 </div>
             </div>`;
             
@@ -515,7 +545,20 @@
         updateUnitOptions(unitSelect, baseUnit);
     }
 
-    function updateUnitOptions(selectElement, baseUnit) {
+    function handlePremakeChange(selectElement) {
+        const row = selectElement.closest('.row');
+        const unitSelect = row.querySelector('.unit-select');
+        
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        const baseUnit = selectedOption.getAttribute('data-unit');
+        
+        // For premakes, for now, we only allow kg as requested.
+        // So we just set the unitSelect to kg and make it readonly.
+        unitSelect.innerHTML = '<option value="kg" selected>kg</option>';
+        // unitSelect.disabled = true; // Optional: disable if fixed to kg
+    }
+
+    function updateUnitOptions(selectElement, baseUnit, selectedUnit = null) {
         selectElement.innerHTML = ''; // Clear existing
         
         const options = [];
@@ -531,7 +574,13 @@
             const opt = document.createElement('option');
             opt.value = u;
             opt.textContent = u;
-            if (u === baseUnit) opt.selected = true;
+            // If selectedUnit is provided (for edit mode), try to match it
+            if (selectedUnit && u === selectedUnit) {
+                opt.selected = true;
+            } else if (!selectedUnit && u === baseUnit) {
+                // Otherwise, default to the baseUnit
+                opt.selected = true;
+            }
             selectElement.appendChild(opt);
         });
     }
@@ -548,21 +597,51 @@
         $(document.body).on('select2:select', '.select2', function(e) {
             if (this.name === 'raw_material[]') {
                 handleMaterialChange(this);
+            } else if (this.name === 'premake[]') {
+                handlePremakeChange(this);
             }
         });
         
-        // Update units for existing rows
+        // Update units for existing raw material rows (in case of edit mode)
         document.querySelectorAll('.raw-material-row').forEach(row => {
-            const matSelect = row.querySelector('.select2');
-            const unitSelect = row.querySelector('.unit-select');
+            const matSelect = row.querySelector('select[name="raw_material[]"]');
+            const unitSelect = row.querySelector('select[name="raw_material_unit[]"]');
             if (matSelect && unitSelect) {
                 const selectedOption = matSelect.options[matSelect.selectedIndex];
                 const baseUnit = selectedOption ? selectedOption.getAttribute('data-unit') : null;
+                // For existing rows, we also need to set the unit based on what was saved
+                // However, ProductComponent only saves final quantity, not the display unit.
+                // We can't reliably know what unit was used to input in edit mode.
+                // For now, default to baseUnit.
                 if (baseUnit) {
-                    updateUnitOptions(unitSelect, baseUnit);
+                    updateUnitOptions(unitSelect, baseUnit, unitSelect.value); // Pass current value to try to keep it
                 }
             }
         });
+
+        // For premake rows, ensure kg is selected.
+        document.querySelectorAll('.premake-row').forEach(row => {
+            const unitSelect = row.querySelector('select[name="premake_unit[]"]');
+            if (unitSelect) {
+                unitSelect.innerHTML = '<option value="kg" selected>kg</option>';
+                // unitSelect.disabled = true; // Optional
+            }
+        });
+
+        const hasRawMaterialRows = document.querySelectorAll('.raw-material-row').length > 0;
+        if (!hasRawMaterialRows) {
+            addRawMaterialRow();
+        }
+
+        const hasPackagingRows = document.querySelectorAll('.packaging-row').length > 0;
+        if (!hasPackagingRows) {
+            addPackagingRow();
+        }
+
+        const hasPremakeRows = document.querySelectorAll('.premake-row').length > 0;
+        if (!hasPremakeRows) {
+           addPremakeRow();
+        }
         
         // Handle Add Category Modal Type
         const addCategoryModal = document.getElementById('addCategoryModal');
