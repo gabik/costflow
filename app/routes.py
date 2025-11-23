@@ -51,6 +51,37 @@ def calculate_prime_cost(product):
         return total_cost / product.products_per_recipe
     return 0
 
+def calculate_premake_current_stock(premake_id):
+    """
+    Calculates the current stock of a given premake based on StockLogs and ProductionLogs.
+    """
+    last_set_log = StockLog.query.filter_by(premake_id=premake_id, action_type='set') \
+        .order_by(StockLog.timestamp.desc()).first()
+    stock = last_set_log.quantity if last_set_log else 0
+
+    add_logs = StockLog.query.filter(
+        StockLog.premake_id == premake_id,
+        StockLog.action_type == 'add',
+        StockLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min)
+    ).all()
+    for log in add_logs:
+        stock += log.quantity
+    
+    # Subtract premakes used in produced products
+    production_logs = ProductionLog.query.filter(
+        ProductionLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min),
+        ProductionLog.product_id != None # Only consider product production that consumes premakes
+    ).all()
+
+    for production in production_logs:
+        product = Product.query.get(production.product_id)
+        if product:
+            for component in product.components:
+                if component.component_type == 'premake' and component.component_id == premake_id:
+                    stock -= component.quantity * production.quantity_produced # component.quantity is per recipe
+
+    return stock
+
 # Homepage - Weekly Dashboard
 @main_blueprint.route('/')
 def index():
@@ -122,6 +153,9 @@ def index():
             produced = premake_production.get(premake.id, 0)
             used = premake_usage.get(premake.id, 0)
             
+            # Calculate current stock for premake
+            current_premake_stock = calculate_premake_current_stock(premake.id)
+
             # Calculate Cost Per Unit
             cost_per_batch = 0
             for comp in premake.components:
@@ -134,14 +168,10 @@ def index():
             stock_change = produced - used
             
             # Add NET value change to total inventory usage (cost of goods flow)
-            # If stock increased (+), we spent money creating it.
-            # If stock decreased (-), we used previously spent money (cost was in past).
-            # For "This Week's Expense", we want "Total Produced Value" minus "Double Counting".
-            # Total Inventory Usage = Products Produced Value + (Net Premake Change Value)
             # This accounts for "Unused Premakes" being an expense this week.
             total_inventory_usage += stock_change * cost_per_unit
             
-            if produced == 0 and used == 0:
+            if produced == 0 and used == 0 and current_premake_stock == 0:
                 continue
                 
             premake_report_data.append({
@@ -150,6 +180,7 @@ def index():
                 'produced': produced,
                 'used': used,
                 'stock_change': stock_change,
+                'current_stock': current_premake_stock,
                 'cost_per_unit': cost_per_unit,
                 'total_value_produced': produced * cost_per_unit
             })
@@ -1734,15 +1765,8 @@ def weekly_report():
         if not product:
             continue
 
-        # Calculate prime cost (materials + packaging)
-        prime_cost = 0
-        for component in product.components:
-            if component.component_type == 'raw_material' and component.material:
-                prime_cost += component.quantity * component.material.cost_per_unit
-            elif component.component_type == 'packaging' and component.packaging:
-                prime_cost += component.quantity * component.packaging.price_per_unit
-
-        prime_cost_per_unit = prime_cost / product.products_per_recipe if product.products_per_recipe > 0 else 0
+        # Calculate prime cost (materials + packaging + premakes)
+        prime_cost_per_unit = calculate_prime_cost(product)
 
         # Calculate costs for sold and waste quantities
         material_cost_sold = (sale.quantity_sold or 0) * prime_cost_per_unit
@@ -1801,12 +1825,9 @@ def weekly_report():
             continue
 
         # Calculate prime cost per recipe (food cost)
-        recipe_cost = 0
-        for component in product.components:
-            if component.component_type == 'raw_material' and component.material:
-                recipe_cost += component.quantity * component.material.cost_per_unit
-            elif component.component_type == 'packaging' and component.packaging:
-                recipe_cost += component.quantity * component.packaging.price_per_unit
+        # calculate_prime_cost returns cost per UNIT. We need cost per RECIPE (Batch).
+        prime_cost_per_unit = calculate_prime_cost(product)
+        recipe_cost = prime_cost_per_unit * product.products_per_recipe
 
         # Aggregate by product
         if product.id not in production_aggregates:
@@ -1970,15 +1991,8 @@ def monthly_report():
             if not product:
                 continue
 
-            # Calculate prime cost (materials + packaging) for this product
-            prime_cost = 0
-            for component in product.components:
-                if component.component_type == 'raw_material' and component.material:
-                    prime_cost += component.quantity * component.material.cost_per_unit
-                elif component.component_type == 'packaging' and component.packaging:
-                    prime_cost += component.quantity * component.packaging.price_per_unit
-
-            prime_cost_per_unit = prime_cost / product.products_per_recipe if product.products_per_recipe > 0 else 0
+            # Calculate prime cost (materials + packaging + premakes) for this product
+            prime_cost_per_unit = calculate_prime_cost(product)
 
             # Calculate costs and revenue
             material_cost = ((sale.quantity_sold or 0) + (sale.quantity_waste or 0)) * prime_cost_per_unit
@@ -2054,12 +2068,8 @@ def monthly_report():
                 continue
 
             # Calculate prime cost per recipe (food cost)
-            recipe_cost = 0
-            for component in product.components:
-                if component.component_type == 'raw_material' and component.material:
-                    recipe_cost += component.quantity * component.material.cost_per_unit
-                elif component.component_type == 'packaging' and component.packaging:
-                    recipe_cost += component.quantity * component.packaging.price_per_unit
+            prime_cost_per_unit = calculate_prime_cost(product)
+            recipe_cost = prime_cost_per_unit * product.products_per_recipe
 
             # Total cost for this production run
             production_cost = recipe_cost * log.quantity_produced

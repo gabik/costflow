@@ -224,7 +224,7 @@ function handleWeekChange(select) {
                     <th>שם ההכנה</th>
                     <th class="text-center">יוצר</th>
                     <th class="text-center">שומש (במוצרים)</th>
-                    <th class="text-center">שינוי במלאי</th>
+                    <th class="text-center">במלאי</th>
                     <th class="text-center">עלות ליחידה</th>
                     <th class="text-center">שווי ייצור כולל</th>
                 </tr>
@@ -235,8 +235,8 @@ function handleWeekChange(select) {
                     <td class="fw-medium">{{ item.name }}</td>
                     <td class="text-center">{{ "%.2f" | format(item.produced) }} {{ item.unit }}</td>
                     <td class="text-center">{{ "%.2f" | format(item.used) }} {{ item.unit }}</td>
-                    <td class="text-center fw-bold {{ 'text-success' if item.stock_change > 0 else 'text-danger' if item.stock_change < 0 else '' }}">
-                        {{ "+" if item.stock_change > 0 else "" }}{{ "%.2f" | format(item.stock_change) }} {{ item.unit }}
+                    <td class="text-center fw-bold">
+                        {{ "%.2f" | format(item.current_stock) }} {{ item.unit }}
                     </td>
                     <td class="text-center text-muted">{{ currency_symbol }}{{ "%.2f" | format(item.cost_per_unit) }}</td>
                     <td class="text-center fw-bold">{{ currency_symbol }}{{ "%.2f" | format(item.total_value_produced) }}</td>

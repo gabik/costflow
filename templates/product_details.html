@@ -96,30 +96,6 @@
     </tbody>
 </table>
 
-<h3>{{ _('Labor Costs') }}</h3>
-<table class="table">
-    <thead>
-    <tr>
-        <th>{{ _('Employee Name') }}</th>
-        <th>{{ _('Hours of Labor') }}</th>
-        <th>{{ _('Price Per Hour') }}</th>
-        <th>{{ _('Price Per Recipe') }}</th>
-        <th>{{ _('Price Per Product') }}</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% for component in labor_costs %}
-    <tr>
-        <td>{{ component.name }}</td>
-        <td>{{ component.hours }}</td>
-        <td>{{ currency_symbol }}{{ component.price_per_hour }}</td>
-        <td>{{ currency_symbol }}{{ component.price_per_recipe }}</td>
-        <td>{{ currency_symbol }}{{ component.price_per_product }}</td>
-    </tr>
-    {% endfor %}
-    </tbody>
-</table>
-
     {% if packaging_costs %}
     <div class="card mb-4 shadow-sm">
         <div class="card-header bg-info text-white">
