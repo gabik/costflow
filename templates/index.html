@@ -287,13 +287,14 @@ function handleWeekChange(select) {
                 </div>
                 <h4 class="card-title fw-bold text-dark">יומן ייצור</h4>
                 <p class="card-text text-secondary mb-3">רישום ייצור יומי</p>
-                <div class="d-grid gap-2">
-                    <a href="{{ url_for('main.production') }}" class="btn btn-outline-success">
-                        <i class="bi bi-box-seam me-2"></i>מוצרים
-                    </a>
-                    <a href="{{ url_for('main.premake_production') }}" class="btn btn-outline-success">
-                        <i class="bi bi-blender me-2"></i>הכנות מקדימות
-                    </a>
+                <div class="dropdown">
+                    <button class="btn btn-success dropdown-toggle w-100" type="button" id="productionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        בחר סוג ייצור
+                    </button>
+                    <ul class="dropdown-menu w-100" aria-labelledby="productionDropdown">
+                        <li><a class="dropdown-item" href="{{ url_for('main.production') }}"><i class="bi bi-box-seam me-2"></i>מוצרים</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('main.premake_production') }}"><i class="bi bi-blender me-2"></i>הכנות מקדימות</a></li>
+                    </ul>
                 </div>
             </div>
         </div>
