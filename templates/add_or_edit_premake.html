@@ -59,9 +59,9 @@
                         {% for component in premake.components %}
                             {% if component.component_type == 'raw_material' %}
                                 {% set has_raw_materials = true %}
-                                <div class="row mb-2 raw-material-row">
+                                <div class="row g-2 mb-2 align-items-center raw-material-row">
                                     <div class="col-md-6">
-                                        <select name="raw_material[]" class="form-select select2-material" required>
+                                        <select name="raw_material[]" class="form-select select2" required>
                                             <option value="">בחר חומר גלם</option>
                                             {% for material in all_raw_materials %}
                                             <option value="{{ material.id }}" {% if material.id == component.component_id %}selected{% endif %}>
@@ -74,8 +74,8 @@
                                         <input type="number" step="0.001" name="raw_material_quantity[]" class="form-control" placeholder="כמות" value="{{ component.quantity }}" required>
                                     </div>
                                     <div class="col-md-2">
-                                        <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">
-                                            <i class="fas fa-trash"></i>
+                                        <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)">
+                                            <i class="bi bi-x-lg"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -85,10 +85,10 @@
 
                     {# If no raw materials found (new premake or existing one with none), render one empty row #}
                     {% if not has_raw_materials %}
-                    <div class="row mb-2 raw-material-row">
+                    <div class="row g-2 mb-2 align-items-center raw-material-row">
                         <div class="col-md-6">
-                            <select name="raw_material[]" class="form-select select2-material" required>
-                                <option value="">בחר חומר גלם</option>
+                            <select name="raw_material[]" class="form-select select2" required>
+                                <option value="" disabled selected>בחר חומר גלם...</option>
                                 {% for material in all_raw_materials %}
                                 <option value="{{ material.id }}">
                                     {{ material.name }} ({{ material.unit }}) - {{ material.cost_per_unit }} ₪
@@ -100,8 +100,8 @@
                             <input type="number" step="0.001" name="raw_material_quantity[]" class="form-control" placeholder="כמות" required>
                         </div>
                         <div class="col-md-2">
-                            <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">
-                                <i class="fas fa-trash"></i>
+                            <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)">
+                                <i class="bi bi-x-lg"></i>
                             </button>
                         </div>
                     </div>
@@ -117,42 +117,41 @@
     </form>
 </div>
 
-<!-- Templates for JS -->
-<template id="raw-material-row-template">
-    <div class="row mb-2 raw-material-row">
-        <div class="col-md-6">
-            <select name="raw_material[]" class="form-select select2-material" required>
-                <option value="">בחר חומר גלם</option>
-                {% for material in all_raw_materials %}
-                <option value="{{ material.id }}">
-                    {{ material.name }} ({{ material.unit }}) - {{ material.cost_per_unit }} ₪
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-md-4">
-            <input type="number" step="0.001" name="raw_material_quantity[]" class="form-control" placeholder="כמות" required>
-        </div>
-        <div class="col-md-2">
-            <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
-    </div>
-</template>
-
 <script>
-    function addRawMaterialRow() {
-        const template = document.getElementById('raw-material-row-template');
-        const clone = template.content.cloneNode(true);
+    function addRawMaterialRow(materialId = '', quantity = '') {
         const container = document.getElementById('raw_materials_container');
-        container.appendChild(clone);
+        const allRawMaterials = {{ all_raw_materials | default([]) | tojson | safe }};
+
+        let optionsHtml = '<option value="" disabled selected>בחר חומר גלם...</option>';
+        allRawMaterials.forEach(material => {
+            const selected = materialId == material.id ? 'selected' : '';
+            optionsHtml += `<option value="${material.id}" ${selected}>${material.name} (${material.unit}) - ${material.cost_per_unit} ₪</option>`;
+        });
+
+        const rowHtml = `
+            <div class="row g-2 mb-2 align-items-center raw-material-row">
+                <div class="col-md-6">
+                    <select name="raw_material[]" class="form-select select2">
+                        ${optionsHtml}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="כמות" step="0.001" value="${quantity}" required>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>`;
         
-        // Initialize select2 on the newly added element
-        // We need to find the last added row's select element
-        const newRow = container.lastElementChild;
-        const select = newRow.querySelector('.select2-material');
-        $(select).select2({
+        const template = document.createElement('div');
+        template.innerHTML = rowHtml.trim();
+        const rowElement = template.firstChild;
+        
+        container.appendChild(rowElement);
+        
+        $(rowElement).find('.select2').select2({
             theme: 'bootstrap-5',
             width: '100%',
             language: { noResults: () => "לא נמצאו תוצאות" }
@@ -165,11 +164,16 @@
     
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize select2 for existing rows (server-rendered)
-        $('.select2-material').select2({
+        $('.select2').select2({
             theme: 'bootstrap-5',
             width: '100%',
             language: { noResults: () => "לא נמצאו תוצאות" }
         });
+        
+        const hasRows = document.querySelectorAll('.raw-material-row').length > 0;
+        if (!hasRows) {
+            addRawMaterialRow();
+        }
     });
 </script>
 
