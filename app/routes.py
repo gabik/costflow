@@ -33,6 +33,22 @@ def get_or_create_general_category(type_val):
         db.session.commit()
     return category.id
 
+def convert_to_base_unit(quantity, selected_unit, base_unit):
+    if selected_unit == base_unit:
+        return quantity
+    
+    if selected_unit == 'g' and base_unit == 'kg':
+        return quantity / 1000.0
+    if selected_unit == 'kg' and base_unit == 'g':
+        return quantity * 1000.0
+    
+    if selected_unit == 'ml' and base_unit == 'l':
+        return quantity / 1000.0
+    if selected_unit == 'l' and base_unit == 'ml':
+        return quantity * 1000.0
+        
+    return quantity
+
 def log_audit(action, target_type, target_id=None, details=None):
     try:
         log = AuditLog(
@@ -1166,56 +1182,37 @@ def production():
 def premake_production():
     if request.method == 'POST':
         premake_id = request.form['premake_id']
-        quantity_produced = float(request.form['quantity_produced'])
+        # quantity_produced from form is in UNITS (e.g. kg), but we store BATCHES
+        quantity_units = float(request.form['quantity_produced'])
         
-        # Log production
-        production_log = ProductionLog(premake_id=premake_id, quantity_produced=quantity_produced)
+        premake = Premake.query.get(premake_id)
+        if not premake:
+            return "Premake not found", 404
+            
+        # Convert units (kg) to batches
+        # If batch_size is 10kg and we made 5kg, we made 0.5 batches.
+        if premake.batch_size > 0:
+            quantity_batches = quantity_units / premake.batch_size
+        else:
+            # Fallback if batch size is invalid? 
+            # If batch size 0, we can't calculate batches.
+            # Assume 1 batch = 1 unit? Or error?
+            # Let's assume 1:1 to prevent crash, but this is data error.
+            quantity_batches = quantity_units
+
+        # Log production (store in batches)
+        production_log = ProductionLog(premake_id=premake_id, quantity_produced=quantity_batches)
         db.session.add(production_log)
         
         # Update Stock (Add produced amount to stock)
-        # Note: StockLog usually tracks raw materials. Premake stock tracking logic:
-        # Since premakes can be stock items, we add to their stock.
-        # BUT we also need to DEDUCT the raw materials used!
-        
-        # 1. Deduct Raw Materials
-        premake = Premake.query.get(premake_id)
-        if premake:
-            for comp in premake.components:
-                if comp.component_type == 'raw_material':
-                    # Total needed = component qty per batch * batches produced
-                    needed_qty = comp.quantity * quantity_produced
-                    
-                    # Add stock log for deduction (negative value logic handled by type?)
-                    # System uses 'add' (positive) or 'set'. To deduct, we usually don't have a direct 'subtract' type exposed in UI but backend should handle it.
-                    # Currently stock calculation sums 'add' logs. So we add a negative 'add' log.
-                    
-                    # Wait, routes.py logic: stock = set_log + sum(add_logs) - production_usage
-                    # Raw materials usage is calculated from *Product* production logs.
-                    # Now we have *Premake* production logs consuming raw materials.
-                    
-                    # We need to update raw_materials() calculation to include premake production usage!
-                    # For now, let's just log the Premake Production.
-                    pass
-
-        # 2. Add Premake Stock
-        # Similar logic: StockLog for premake?
-        # StockLog has premake_id. So we can add a log.
-        # 'add' action with positive quantity.
+        # We add the total UNITS produced to stock.
+        # If we made 5kg (0.5 batches * 10kg/batch), we add 5kg.
+        # StockLog stores UNITS.
         stock_log = StockLog(
             premake_id=premake_id,
             action_type='add',
-            quantity=quantity_produced * premake.batch_size # Store total units or batches?
-            # Premake definitions: batch_size is yield.
-            # If I produce 1 batch, I have 'batch_size' units of premake.
-            # Let's store TOTAL UNITS in stock log? 
-            # Or Batches? 
-            # Let's stick to UNITS for consistency with raw materials.
+            quantity=quantity_units
         )
-        # Wait, if premake.unit is 'kg', and batch size is 10kg.
-        # If I produce 1 batch, I add 10kg to stock.
-        # BUT the form asks for "Quantity Produced (Batches)".
-        # So we add (quantity_produced * premake.batch_size)
-        
         db.session.add(stock_log)
         
         db.session.commit()

@@ -24,9 +24,12 @@
         </div>
     </div>
     <div class="form-group mb-3">
-        <label for="quantity_produced">כמות שיוצרה (מספר באצ'ים)</label>
-        <input type="number" id="quantity_produced" name="quantity_produced" class="form-control" step="0.1" required oninput="updateCalculation()">
-        <div class="form-text">כמה יחידות מתכון (Batches) יוצרו?</div>
+        <label for="quantity_produced">כמות שיוצרה</label>
+        <div class="input-group">
+            <input type="number" id="quantity_produced" name="quantity_produced" class="form-control" step="0.1" required oninput="updateCalculation()">
+            <span class="input-group-text">kg</span>
+        </div>
+        <div class="form-text">הכנס את המשקל הכולל שיוצר (בק"ג). המערכת תמיר זאת לבאצ'ים באופן אוטומטי.</div>
         <div id="total_weight_info" class="alert alert-info mt-2" style="display: none;">
             סה"כ כמות שנוצרה: <span id="total_weight_display" class="fw-bold"></span>
         </div>
@@ -43,7 +46,7 @@
     <tr>
         <th>{{ _('Date') }}</th>
         <th>הכנה</th>
-        <th>כמות שיוצרה (Batches)</th>
+        <th>כמות שיוצרה</th>
     </tr>
     </thead>
     <tbody>
@@ -51,7 +54,7 @@
     <tr>
         <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
         <td>{{ log.premake.name }}</td>
-        <td>{{ log.quantity_produced }}</td>
+        <td>{{ "%.2f"|format(log.quantity_produced * log.premake.batch_size) }} {{ log.premake.unit }}</td>
     </tr>
     {% endfor %}
     </tbody>
