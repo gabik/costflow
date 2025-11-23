@@ -11,7 +11,7 @@ from .models import db, RawMaterial, Labor, Packaging, Product, ProductComponent
 main_blueprint = Blueprint('main', __name__)
 
 # Predefined units for raw materials
-units_list = ["g", "kg", "ml", "l", "piece"]
+units_list = ["kg", "g", "ml", "l", "piece"]
 
 def log_audit(action, target_type, target_id=None, details=None):
     try:
@@ -464,10 +464,21 @@ def add_premake():
     if request.method == 'POST':
         name = request.form['name']
         category_id = request.form.get('category_id')
-        batch_size = float(request.form['batch_size'])
-        unit = request.form['unit']
+        unit = request.form.get('unit', 'kg') # Default to kg
         
         category = Category.query.get(category_id) if category_id else None
+        
+        # Process components first to calculate batch size
+        raw_materials = request.form.getlist('raw_material[]')
+        raw_material_quantities = request.form.getlist('raw_material_quantity[]')
+        
+        batch_size = 0
+        components_data = []
+        
+        for material_id, quantity_str in zip(raw_materials, raw_material_quantities):
+            quantity = float(quantity_str)
+            batch_size += quantity
+            components_data.append({'id': material_id, 'qty': quantity})
 
         premake = Premake(
             name=name,
@@ -480,26 +491,13 @@ def add_premake():
         
         log_audit("CREATE", "Premake", premake.id, f"Created premake {premake.name}")
 
-        # Process components
-        raw_materials = request.form.getlist('raw_material[]')
-        raw_material_quantities = request.form.getlist('raw_material_quantity[]')
-        for material_id, quantity in zip(raw_materials, raw_material_quantities):
+        # Add components to DB
+        for item in components_data:
             component = PremakeComponent(
                 premake_id=premake.id,
                 component_type='raw_material',
-                component_id=material_id,
-                quantity=quantity
-            )
-            db.session.add(component)
-            
-        packaging_ids = request.form.getlist('packaging[]')
-        packaging_quantities = request.form.getlist('packaging_quantity[]')
-        for pkg_id, quantity in zip(packaging_ids, packaging_quantities):
-            component = PremakeComponent(
-                premake_id=premake.id,
-                component_type='packaging',
-                component_id=pkg_id,
-                quantity=quantity
+                component_id=item['id'],
+                quantity=item['qty']
             )
             db.session.add(component)
 
@@ -515,7 +513,6 @@ def add_premake():
         return redirect(url_for('main.premakes'))
 
     all_raw_materials = [m.to_dict() for m in RawMaterial.query.all()]
-    all_packaging = [p.to_dict() for p in Packaging.query.all()]
     premake_categories = Category.query.filter_by(type='premake').all()
     categories = Category.query.filter_by(type='raw_material').all() # For raw material modal if needed
 
@@ -523,7 +520,6 @@ def add_premake():
         'add_or_edit_premake.html',
         premake=None,
         all_raw_materials=all_raw_materials,
-        all_packaging=all_packaging,
         premake_categories=premake_categories,
         categories=categories,
         units=units_list
@@ -536,7 +532,6 @@ def edit_premake(premake_id):
     if request.method == 'POST':
         premake.name = request.form['name']
         premake.category_id = request.form.get('category_id')
-        premake.batch_size = float(request.form['batch_size'])
         premake.unit = request.form['unit']
         
         # Clear existing components
@@ -545,7 +540,13 @@ def edit_premake(premake_id):
         # Process components
         raw_materials = request.form.getlist('raw_material[]')
         raw_material_quantities = request.form.getlist('raw_material_quantity[]')
-        for material_id, quantity in zip(raw_materials, raw_material_quantities):
+        
+        batch_size = 0
+        
+        for material_id, quantity_str in zip(raw_materials, raw_material_quantities):
+            quantity = float(quantity_str)
+            batch_size += quantity
+            
             component = PremakeComponent(
                 premake_id=premake.id,
                 component_type='raw_material',
@@ -553,24 +554,14 @@ def edit_premake(premake_id):
                 quantity=quantity
             )
             db.session.add(component)
-            
-        packaging_ids = request.form.getlist('packaging[]')
-        packaging_quantities = request.form.getlist('packaging_quantity[]')
-        for pkg_id, quantity in zip(packaging_ids, packaging_quantities):
-            component = PremakeComponent(
-                premake_id=premake.id,
-                component_type='packaging',
-                component_id=pkg_id,
-                quantity=quantity
-            )
-            db.session.add(component)
+        
+        premake.batch_size = batch_size
             
         log_audit("UPDATE", "Premake", premake.id, f"Updated premake {premake.name}")
         db.session.commit()
         return redirect(url_for('main.premakes'))
 
     all_raw_materials = [m.to_dict() for m in RawMaterial.query.all()]
-    all_packaging = [p.to_dict() for p in Packaging.query.all()]
     premake_categories = Category.query.filter_by(type='premake').all()
     categories = Category.query.filter_by(type='raw_material').all()
 
@@ -578,7 +569,6 @@ def edit_premake(premake_id):
         'add_or_edit_premake.html',
         premake=premake,
         all_raw_materials=all_raw_materials,
-        all_packaging=all_packaging,
         premake_categories=premake_categories,
         categories=categories,
         units=units_list

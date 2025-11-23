@@ -5,6 +5,73 @@
 <p><strong>{{ _('Products Per Recipe:') }}</strong> {{ product.products_per_recipe }}</p>
 <p><strong>{{ _('Selling Price Per Unit:') }}</strong> {{ currency_symbol }}{{ product.selling_price_per_unit }}</p>
 
+    {% if premake_costs %}
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0"><i class="fas fa-blender me-2"></i>הכנות מקדימות</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>שם ההכנה</th>
+                            <th>כמות במתכון</th>
+                            <th>יחידה</th>
+                            <th>עלות ליחידה</th>
+                            <th>עלות למתכון</th>
+                            <th>עלות למוצר</th>
+                            <th>פירוט</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in premake_costs %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ item.unit }}</td>
+                            <td>{{ "%.2f"|format(item.price_per_unit) }} ₪</td>
+                            <td>{{ "%.2f"|format(item.price_per_recipe) }} ₪</td>
+                            <td class="fw-bold">{{ "%.2f"|format(item.price_per_product) }} ₪</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePremake{{ loop.index }}" aria-expanded="false" aria-controls="collapsePremake{{ loop.index }}">
+                                    <i class="fas fa-chevron-down"></i> הרחב
+                                </button>
+                            </td>
+                        </tr>
+                        <tr class="collapse" id="collapsePremake{{ loop.index }}">
+                            <td colspan="7" class="p-0">
+                                <div class="card card-body border-0 bg-light m-2">
+                                    <h6>מרכיבי {{ item.name }}:</h6>
+                                    <table class="table table-sm table-borderless mb-0">
+                                        <thead>
+                                            <tr class="text-muted" style="font-size: 0.9em;">
+                                                <th>מרכיב</th>
+                                                <th>כמות (עבור 1 יחידת הכנה)</th>
+                                                <th>יחידה</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for comp in item.components %}
+                                            <tr>
+                                                <td>{{ comp.name }}</td>
+                                                <td>{{ "%.4f"|format(comp.quantity / item.batch_size if item.batch_size else 0) }}</td>
+                                                <td>{{ comp.unit }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
 <h3>{{ _('Raw Materials') }}</h3>
 <table class="table">
     <thead>
@@ -78,73 +145,6 @@
                             <td>{{ "%.2f"|format(item.price_per_unit) }} ₪</td>
                             <td>{{ "%.2f"|format(item.price_per_recipe) }} ₪</td>
                             <td class="fw-bold">{{ "%.2f"|format(item.price_per_product) }} ₪</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    {% if premake_costs %}
-    <div class="card mb-4 shadow-sm">
-        <div class="card-header bg-warning text-dark">
-            <h5 class="mb-0"><i class="fas fa-blender me-2"></i>הכנות מקדימות (Premakes)</h5>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>שם ההכנה</th>
-                            <th>כמות במתכון</th>
-                            <th>יחידה</th>
-                            <th>עלות ליחידה</th>
-                            <th>עלות למתכון</th>
-                            <th>עלות למוצר</th>
-                            <th>פירוט</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in premake_costs %}
-                        <tr>
-                            <td>{{ item.name }}</td>
-                            <td>{{ item.quantity }}</td>
-                            <td>{{ item.unit }}</td>
-                            <td>{{ "%.2f"|format(item.price_per_unit) }} ₪</td>
-                            <td>{{ "%.2f"|format(item.price_per_recipe) }} ₪</td>
-                            <td class="fw-bold">{{ "%.2f"|format(item.price_per_product) }} ₪</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePremake{{ loop.index }}" aria-expanded="false" aria-controls="collapsePremake{{ loop.index }}">
-                                    <i class="fas fa-chevron-down"></i> הרחב
-                                </button>
-                            </td>
-                        </tr>
-                        <tr class="collapse" id="collapsePremake{{ loop.index }}">
-                            <td colspan="7" class="p-0">
-                                <div class="card card-body border-0 bg-light m-2">
-                                    <h6>מרכיבי {{ item.name }}:</h6>
-                                    <table class="table table-sm table-borderless mb-0">
-                                        <thead>
-                                            <tr class="text-muted" style="font-size: 0.9em;">
-                                                <th>מרכיב</th>
-                                                <th>כמות (עבור 1 יחידת הכנה)</th>
-                                                <th>יחידה</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for comp in item.components %}
-                                            <tr>
-                                                <td>{{ comp.name }}</td>
-                                                <td>{{ "%.4f"|format(comp.quantity / item.batch_size if item.batch_size else 0) }}</td>
-                                                <td>{{ comp.unit }}</td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>

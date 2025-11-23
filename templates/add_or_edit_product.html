@@ -49,6 +49,37 @@
             </div>
         </div>
 
+        <!-- Premakes Section -->
+        <h4 class="mb-3 fw-bold">הכנות מקדימות</h4>
+        <div id="premakes-container" class="mb-4">
+            {% if product %}
+                {% for component in product.components %}
+                    {% if component.component_type == 'premake' %}
+                    <div class="row g-2 mb-2 align-items-center premake-row">
+                        <div class="col-md-5">
+                            <select name="premake[]" class="form-select select2-premake">
+                                {% for premake_option in all_premakes %}
+                                    <option value="{{ premake_option.id }}" {% if component.component_id == premake_option.id %}selected{% endif %}>
+                                        {{ premake_option.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="number" name="premake_quantity[]" class="form-control" placeholder="כמות" step="0.001" value="{{ component.quantity }}">
+                        </div>
+                        <div class="col-md-auto">
+                            <button type="button" class="btn btn-outline-danger" onclick="this.closest('.premake-row').remove()"><i class="bi bi-x-lg"></i></button>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        </div>
+        <button type="button" class="btn btn-outline-primary mb-4" onclick="addPremakeRow()">
+            <i class="bi bi-plus-lg me-2"></i>הוסף הכנה מקדימה
+        </button>
+
         <!-- Raw Materials Section -->
         <h4 class="mb-3 fw-bold">חומרי גלם נדרשים</h4>
         <div id="raw-materials-container" class="mb-4">
@@ -109,37 +140,6 @@
         </div>
         <button type="button" class="btn btn-outline-primary mb-4" onclick="addPackagingRow()">
             <i class="bi bi-plus-lg me-2"></i>הוסף אריזה
-        </button>
-
-        <!-- Premakes Section -->
-        <h4 class="mb-3 fw-bold">הכנות מקדימות (Premakes)</h4>
-        <div id="premakes-container" class="mb-4">
-            {% if product %}
-                {% for component in product.components %}
-                    {% if component.component_type == 'premake' %}
-                    <div class="row g-2 mb-2 align-items-center premake-row">
-                        <div class="col-md-5">
-                            <select name="premake[]" class="form-select select2-premake">
-                                {% for premake_option in all_premakes %}
-                                    <option value="{{ premake_option.id }}" {% if component.component_id == premake_option.id %}selected{% endif %}>
-                                        {{ premake_option.name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <input type="number" name="premake_quantity[]" class="form-control" placeholder="כמות" step="0.001" value="{{ component.quantity }}">
-                        </div>
-                        <div class="col-md-auto">
-                            <button type="button" class="btn btn-outline-danger" onclick="this.closest('.premake-row').remove()"><i class="bi bi-x-lg"></i></button>
-                        </div>
-                    </div>
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
-        </div>
-        <button type="button" class="btn btn-outline-primary mb-4" onclick="addPremakeRow()">
-            <i class="bi bi-plus-lg me-2"></i>הוסף הכנה מקדימה
         </button>
 
         <div class="d-grid gap-2 mt-4">
@@ -376,7 +376,7 @@
             addPackagingRow();
         }
         if (!hasExistingPremakes) {
-           // Optional: Don't force add a premake row, usually optional
+            addPremakeRow();
         }
         
         // Initialize existing select2s (for edit mode)
