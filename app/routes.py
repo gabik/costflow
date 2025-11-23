@@ -780,7 +780,14 @@ def delete_premake(premake_id):
 @main_blueprint.route('/products')
 def products():
     products = Product.query.all()
-    return render_template('products.html', products=products)
+    products_data = []
+    for product in products:
+        cost = calculate_prime_cost(product)
+        products_data.append({
+            'product': product,
+            'prime_cost': cost
+        })
+    return render_template('products.html', products_data=products_data)
 
 @main_blueprint.route('/products/add', methods=['GET', 'POST'])
 def add_product():

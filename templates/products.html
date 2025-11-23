@@ -30,7 +30,8 @@
             </tr>
             </thead>
             <tbody>
-            {% for product in products %}
+            {% for item in products_data %}
+            {% set product = item.product %}
             <tr>
                 <td>
                     {% if product.image_filename %}
@@ -61,37 +62,14 @@
                     {% endif %}
                 </td>
                 <td>
-                    {% set cost = namespace(value=0) %}
-                    {% for component in product.components %}
-                        {% if component.component_type == 'raw_material' %}
-                            {% if component.material %}
-                                {% set cost.value = cost.value + (component.quantity * component.material.cost_per_unit) %}
-                            {% endif %}
-                        {% elif component.component_type == 'labor' %}
-                            {% if component.labor %}
-                                {% set cost.value = cost.value + (component.quantity * component.labor.total_hourly_rate) %}
-                            {% endif %}
-                        {% elif component.component_type == 'packaging' %}
-                            {% if component.packaging %}
-                                {% set cost.value = cost.value + (component.quantity * component.packaging.price_per_unit) %}
-                            {% endif %}
-                        {% endif %}
-                    {% endfor %}
-                    
-                    {% if product.products_per_recipe > 0 %}
-                        {% set unit_price = cost.value / product.products_per_recipe %}
-                        {{ currency_symbol }}{{ "%.2f" | format(unit_price) }}
-                    {% else %}
-                        {{ _('N/A') }}
-                    {% endif %}
+                    {{ currency_symbol }}{{ "%.2f" | format(item.prime_cost) }}
                 </td>
                 <td>
                     {{ currency_symbol }}{{ "%.2f" | format(product.selling_price_per_unit) }}
                 </td>
                 <td>
-                    {% if product.products_per_recipe > 0 and product.selling_price_per_unit > 0 %}
-                        {% set unit_price = cost.value / product.products_per_recipe %}
-                        {% set margin = (product.selling_price_per_unit - unit_price) / product.selling_price_per_unit * 100 %}
+                    {% if product.selling_price_per_unit > 0 %}
+                        {% set margin = (product.selling_price_per_unit - item.prime_cost) / product.selling_price_per_unit * 100 %}
                         <span class="badge {{ 'bg-success' if margin > 20 else 'bg-warning text-dark' if margin > 0 else 'bg-danger' }}">
                             {{ "%.1f" | format(margin) }}%
                         </span>
