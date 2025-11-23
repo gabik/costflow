@@ -270,7 +270,7 @@ function handleWeekChange(select) {
     </div>
     
     <!-- Weekly Labor Action -->
-    <div class="col-md-4 mb-4">
+    <div class="col-md-3 mb-4">
         <a href="{{ url_for('main.weekly_costs') }}" class="text-decoration-none">
             <div class="card shadow-sm h-100 hover-shadow transition-all">
                 <div class="card-body text-center p-4">
@@ -284,22 +284,10 @@ function handleWeekChange(select) {
                 </a>
             </div>
         
-            <!-- Premakes Action -->
-            <div class="col-md-4 mb-4">
-                <a href="{{ url_for('main.premakes') }}" class="text-decoration-none">
-                    <div class="card shadow-sm h-100 hover-shadow transition-all">
-                        <div class="card-body text-center p-4">
-                            <div class="icon-box bg-light text-info rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
-                                <i class="bi bi-blender display-6"></i>
-                            </div>
-                                                <h4 class="card-title fw-bold text-dark">הכנות מקדימות</h4>
-                                                <p class="card-text text-secondary">ניהול מתכוני בסיס</p>                        </div>
-                    </div>
-                </a>
-            </div>
+
         
             <!-- Inventory Action -->
-    <div class="col-md-4 mb-4">
+    <div class="col-md-3 mb-4">
         <a href="{{ url_for('main.raw_materials') }}" class="text-decoration-none">
             <div class="card shadow-sm h-100 hover-shadow transition-all">
                 <div class="card-body text-center p-4">
@@ -314,7 +302,7 @@ function handleWeekChange(select) {
     </div>
 
     <!-- Product Production Action -->
-    <div class="col-md-4 mb-4">
+    <div class="col-md-3 mb-4">
         <a href="{{ url_for('main.production') }}" class="text-decoration-none">
             <div class="card shadow-sm h-100 hover-shadow transition-all">
                 <div class="card-body text-center p-4">
@@ -329,12 +317,12 @@ function handleWeekChange(select) {
     </div>
 
     <!-- Premake Production Action -->
-    <div class="col-md-4 mb-4">
+    <div class="col-md-3 mb-4">
         <a href="{{ url_for('main.premake_production') }}" class="text-decoration-none">
             <div class="card shadow-sm h-100 hover-shadow transition-all">
                 <div class="card-body text-center p-4">
                     <div class="icon-box bg-light text-primary rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
-                        <i class="bi bi-blender display-6"></i>
+                        <i class="bi bi-layers display-6"></i>
                     </div>
                     <h4 class="card-title fw-bold text-dark">יומן ייצור הכנות</h4>
                     <p class="card-text text-secondary">רישום ייצור יומי של הכנות מקדימות</p>
