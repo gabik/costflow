@@ -14,11 +14,17 @@
 <!-- Week Selector -->
 <div class="row mb-4">
     <div class="col-md-6">
-        <form method="GET" action="{{ url_for('main.weekly_report') }}" class="d-flex gap-2">
-            <input type="date" name="week_start" value="{{ week_start }}" class="form-control">
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-search me-2"></i>הצג דו"ח
-            </button>
+        <form method="GET" action="{{ url_for('main.weekly_report') }}" class="d-flex gap-2 align-items-center">
+            <label for="week_start" class="form-label mb-0 text-nowrap">בחר שבוע:</label>
+            <select name="week_start" id="week_start" class="form-select select2" onchange="this.form.submit()">
+                {% for week in weeks %}
+                <option value="{{ week.week_start_date.strftime('%Y-%m-%d') }}" {% if week_start and week_start == week.week_start_date %}selected{% endif %}>
+                    שבוע {{ week.week_start_date.strftime('%d/%m/%Y') }}
+                </option>
+                {% else %}
+                <option disabled>אין שבועות זמינים</option>
+                {% endfor %}
+            </select>
         </form>
     </div>
     <div class="col-md-6 text-end">

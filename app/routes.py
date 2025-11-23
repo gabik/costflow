@@ -121,7 +121,13 @@ def index():
         for log in logs:
             # Calculate total units based on recipes count * units per recipe
             units_produced = log.quantity_produced * log.product.products_per_recipe
-            product_production[log.product_id] = product_production.get(log.product_id, 0) + units_produced
+            
+            if log.product_id not in product_production:
+                product_production[log.product_id] = {'total': 0, 'new': 0}
+            
+            product_production[log.product_id]['total'] += units_produced
+            if not log.is_carryover:
+                product_production[log.product_id]['new'] += units_produced
 
         # Fetch Premake Production Logs
         premake_logs = ProductionLog.query.filter(
@@ -133,12 +139,22 @@ def index():
         premake_production = {}
         for log in premake_logs:
             # Premake quantity is in Batches. Total units = Batches * Batch Size
+            # Premakes carryover via StockLog, not ProductionLog carryover flag usually.
+            # But if we start using is_carryover for premakes (unlikely needed), we'd check it.
+            # For now, assume all premake logs are new production.
             units_produced = log.quantity_produced * log.premake.batch_size
             premake_production[log.premake_id] = premake_production.get(log.premake_id, 0) + units_produced
 
         # Calculate Premake Usage (from Product Production)
         premake_usage = {}
         for log in logs:
+            # Premake usage should technically include usage from Carryover products?
+            # If I carried over 10 products, did I "use" the premake *this week*?
+            # No, I used it last week.
+            # So Premake Usage should ONLY be calculated from NEW production logs.
+            if log.is_carryover:
+                continue
+
             product = log.product
             for component in product.components:
                 if component.component_type == 'premake':
@@ -192,7 +208,10 @@ def index():
         all_products = Product.query.all()
         
         for product in all_products:
-            produced_qty = product_production.get(product.id, 0)
+            prod_data = product_production.get(product.id, {'total': 0, 'new': 0})
+            produced_qty = prod_data['total']
+            produced_qty_new = prod_data['new']
+            
             sales_data = product_sales.get(product.id, {'sold': 0, 'waste': 0})
             sold_qty = sales_data['sold']
             waste_qty = sales_data['waste']
@@ -207,12 +226,14 @@ def index():
             gross_profit = revenue - cogs - waste_cost # Profit is reduced by waste cost
             
             # Inventory Usage Value (what we made)
-            inventory_usage_value = produced_qty * prime_cost_per_unit
+            # ONLY count NEW production for Cost
+            inventory_usage_value = produced_qty_new * prime_cost_per_unit
             
             # Add to total (Products)
             total_inventory_usage += inventory_usage_value
             
             # Available (Unsold)
+            # Count TOTAL (carryover + new) - sold - waste
             available_qty = produced_qty - sold_qty - waste_qty
             if available_qty < 0: available_qty = 0 # Should not happen with valid input but safe to clamp
             
@@ -1285,12 +1306,9 @@ def close_week_confirm():
     product_sales = {s.product_id: s for s in prev_week.sales} 
     
     all_products = Product.query.all()
-    for product in all_products:
-        # Check if user marked this to be kept (not wasted)
-        keep_key = f"keep_product_{product.id}"
-        if keep_key in request.form:
-            continue # Skip wasting
+    new_week_start_dt = datetime.strptime(new_week_date, '%Y-%m-%d')
 
+    for product in all_products:
         produced = product_production.get(product.id, 0)
         sale_record = product_sales.get(product.id)
         sold = sale_record.quantity_sold if sale_record else 0
@@ -1299,6 +1317,23 @@ def close_week_confirm():
         remaining = produced - sold - waste
         
         if remaining > 0:
+            # Check if user marked this to be kept (not wasted)
+            keep_key = f"keep_product_{product.id}"
+            if keep_key in request.form:
+                # Create Carryover Log for New Week
+                # Convert units back to recipe qty
+                if product.products_per_recipe > 0:
+                    qty_recipes = remaining / product.products_per_recipe
+                    
+                    carryover_log = ProductionLog(
+                        product_id=product.id,
+                        quantity_produced=qty_recipes,
+                        timestamp=new_week_start_dt,
+                        is_carryover=True
+                    )
+                    db.session.add(carryover_log)
+                continue # Skip wasting
+
             if sale_record:
                 sale_record.quantity_waste += remaining
             else:
@@ -1815,11 +1850,22 @@ def reset_db():
 # Weekly Report
 @main_blueprint.route('/reports/weekly')
 def weekly_report():
+    # 1. Fetch all weeks for dropdown
+    all_weeks = WeeklyLaborCost.query.order_by(WeeklyLaborCost.week_start_date.desc()).all()
+
     # Get date parameters
     week_start = request.args.get('week_start')
 
     if not week_start:
-        # Default to current week start (Sunday)
+        # Default to current week start (Sunday) if not specified, or the latest available week
+        if all_weeks:
+             # Prefer the latest recorded week if available and no specific date requested
+             # But usually user wants "current context".
+             # Let's stick to requesting specific date, or default to "latest week" if user lands on page without args?
+             # The original logic defaulted to "today's week".
+             # Let's keep "today's week" as default but allow selection from dropdown.
+             pass
+        
         today = date.today()
         days_since_sunday = (today.weekday() + 1) % 7
         week_start = today - timedelta(days=days_since_sunday)
@@ -1834,6 +1880,7 @@ def weekly_report():
     if not weekly_cost:
         # No data for this week
         return render_template('weekly_report.html',
+                             weeks=all_weeks,
                              week_start=week_start,
                              week_end=week_end,
                              sales_data=[],
@@ -2065,6 +2112,7 @@ def weekly_report():
     adjusted_profit = total_revenue - total_material_costs - weekly_cost.total_cost - abs(total_stock_variance_cost)
 
     return render_template('weekly_report.html',
+                         weeks=all_weeks,
                          week_start=week_start,
                          week_end=week_end,
                          sales_data=sales_data,

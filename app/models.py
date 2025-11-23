@@ -20,6 +20,7 @@ class ProductionLog(db.Model):
     premake_id = db.Column(db.Integer, db.ForeignKey('premake.id'), nullable=True)
     quantity_produced = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    is_carryover = db.Column(db.Boolean, default=False, nullable=False)
     # Relationships
     product = db.relationship('Product', backref='production_logs')
     premake = db.relationship('Premake', backref='production_logs')
