@@ -1165,9 +1165,11 @@ def weekly_costs():
                     product_sales = {s.product_id: {'sold': s.quantity_sold, 'waste': s.quantity_waste} for s in previous_week.sales}
                     
                     leftovers = []
+                    premake_leftovers = []
                     total_loss = 0
                     total_potential_revenue = 0
                     
+                    # Product Leftovers
                     all_products = Product.query.all()
                     for product in all_products:
                         produced = product_production.get(product.id, 0)
@@ -1176,16 +1178,9 @@ def weekly_costs():
                         
                         if remaining > 0:
                             # Calculate Prime Cost
-                            prime_cost = 0
-                            for component in product.components:
-                                if component.component_type == 'raw_material' and component.material:
-                                    prime_cost += component.quantity * component.material.cost_per_unit
-                                elif component.component_type == 'packaging' and component.packaging:
-                                    prime_cost += component.quantity * component.packaging.price_per_unit
+                            prime_cost_per_unit = calculate_prime_cost(product)
                             
-                            unit_cost = prime_cost / product.products_per_recipe if product.products_per_recipe else 0
-                            
-                            cost_value = remaining * unit_cost
+                            cost_value = remaining * prime_cost_per_unit
                             potential_rev = remaining * product.selling_price_per_unit
                             
                             total_loss += cost_value
@@ -1197,10 +1192,57 @@ def weekly_costs():
                                 'cost_value': cost_value,
                                 'potential_revenue': potential_rev
                             })
+
+                    # Premake Leftovers (Produced - Used)
+                    # Fetch Premake Production Logs
+                    premake_logs = ProductionLog.query.filter(
+                        func.date(ProductionLog.timestamp) >= prev_start,
+                        func.date(ProductionLog.timestamp) <= prev_end,
+                        ProductionLog.premake_id != None
+                    ).all()
                     
-                    if leftovers:
+                    premake_production_qty = {}
+                    for log in premake_logs:
+                        units_produced = log.quantity_produced * log.premake.batch_size
+                        premake_production_qty[log.premake_id] = premake_production_qty.get(log.premake_id, 0) + units_produced
+
+                    # Calculate Premake Usage from Product Logs
+                    premake_usage_qty = {}
+                    for log in logs:
+                        if log.product:
+                            for component in log.product.components:
+                                if component.component_type == 'premake':
+                                    usage = component.quantity * log.quantity_produced
+                                    premake_usage_qty[component.component_id] = premake_usage_qty.get(component.component_id, 0) + usage
+
+                    all_premakes = Premake.query.all()
+                    for premake in all_premakes:
+                        produced = premake_production_qty.get(premake.id, 0)
+                        used = premake_usage_qty.get(premake.id, 0)
+                        remaining = produced - used
+                        
+                        if remaining > 0:
+                            # Calculate cost per unit
+                            cost_per_batch = 0
+                            for comp in premake.components:
+                                if comp.component_type == 'raw_material' and comp.material:
+                                    cost_per_batch += comp.quantity * comp.material.cost_per_unit
+                            
+                            cost_per_unit = cost_per_batch / premake.batch_size if premake.batch_size > 0 else 0
+                            cost_value = remaining * cost_per_unit
+                            
+                            total_loss += cost_value
+                            
+                            premake_leftovers.append({
+                                'premake': premake,
+                                'quantity': remaining,
+                                'cost_value': cost_value
+                            })
+                    
+                    if leftovers or premake_leftovers:
                         return render_template('close_week.html', 
-                                               leftovers=leftovers, 
+                                               leftovers=leftovers,
+                                               premake_leftovers=premake_leftovers,
                                                previous_week=previous_week, 
                                                new_week_start_date=date_str,
                                                total_loss=total_loss,
@@ -1224,13 +1266,11 @@ def close_week_confirm():
     
     prev_week = WeeklyLaborCost.query.get_or_404(prev_week_id)
     
-    # Add leftovers to waste
-    # We need to re-calculate leftovers or pass them? Re-calculating is safer.
-    # (Copy-paste calculation logic or refactor - I'll refactor slightly by re-querying)
-    
+    # Re-calculate leftovers to ensure data integrity
     prev_start = prev_week.week_start_date
     prev_end = prev_start + timedelta(days=6)
     
+    # 1. Product Leftovers
     logs = ProductionLog.query.filter(
         func.date(ProductionLog.timestamp) >= prev_start,
         func.date(ProductionLog.timestamp) <= prev_end
@@ -1242,10 +1282,15 @@ def close_week_confirm():
             units = log.quantity_produced * log.product.products_per_recipe
             product_production[log.product_id] = product_production.get(log.product_id, 0) + units
             
-    product_sales = {s.product_id: s for s in prev_week.sales} # Store object this time
+    product_sales = {s.product_id: s for s in prev_week.sales} 
     
     all_products = Product.query.all()
     for product in all_products:
+        # Check if user marked this to be kept (not wasted)
+        keep_key = f"keep_product_{product.id}"
+        if keep_key in request.form:
+            continue # Skip wasting
+
         produced = product_production.get(product.id, 0)
         sale_record = product_sales.get(product.id)
         sold = sale_record.quantity_sold if sale_record else 0
@@ -1264,9 +1309,59 @@ def close_week_confirm():
                     quantity_waste=remaining
                 )
                 db.session.add(new_sale)
+
+    # 2. Premake Leftovers
+    # Fetch Premake Production
+    premake_logs = ProductionLog.query.filter(
+        func.date(ProductionLog.timestamp) >= prev_start,
+        func.date(ProductionLog.timestamp) <= prev_end,
+        ProductionLog.premake_id != None
+    ).all()
     
+    premake_production_qty = {}
+    for log in premake_logs:
+        units_produced = log.quantity_produced * log.premake.batch_size
+        premake_production_qty[log.premake_id] = premake_production_qty.get(log.premake_id, 0) + units_produced
+
+    # Calculate Premake Usage from Product Logs (re-using 'logs' fetched above)
+    premake_usage_qty = {}
+    for log in logs:
+        if log.product:
+            for component in log.product.components:
+                if component.component_type == 'premake':
+                    usage = component.quantity * log.quantity_produced
+                    premake_usage_qty[component.component_id] = premake_usage_qty.get(component.component_id, 0) + usage
+
+    all_premakes = Premake.query.all()
+    for premake in all_premakes:
+        # Check if user marked to keep
+        keep_key = f"keep_premake_{premake.id}"
+        if keep_key in request.form:
+            continue # Skip wasting (it stays in stock)
+
+        produced = premake_production_qty.get(premake.id, 0)
+        used = premake_usage_qty.get(premake.id, 0)
+        remaining = produced - used
+        
+        if remaining > 0:
+            # Waste it! Remove from stock.
+            stock_log = StockLog(
+                premake_id=premake.id,
+                action_type='add',
+                quantity=-remaining
+            )
+            db.session.add(stock_log)
+            
+            # Ideally log this as 'waste' somewhere for reporting?
+            # Currently StockLog doesn't have a 'reason' field other than implicit context.
+            # We rely on StockAudit for explicit variance tracking. 
+            # But here we are explicitly dumping stock.
+            # We could add an audit log entry or just accept it as stock reduction.
+            # Since it's "End of Week Waste", maybe we should track it?
+            # For now, just reducing stock is the functional requirement.
+
     db.session.commit()
-    log_audit("CLOSE_WEEK", "WeeklySales", prev_week.id, f"Closed week {prev_week.week_start_date}. Moved leftovers to waste.")
+    log_audit("CLOSE_WEEK", "WeeklySales", prev_week.id, f"Closed week {prev_week.week_start_date}. Processed leftovers.")
     
     # Create New Week
     # Redirect to main creation route with force_create=true
@@ -1873,6 +1968,72 @@ def weekly_report():
     # Convert to list sorted by cost (highest first)
     labor_entries = sorted(labor_aggregates.values(), key=lambda x: x['cost'], reverse=True)
 
+    # ---------------------------------------------------
+    # Premake Activity Analysis
+    # ---------------------------------------------------
+    premake_report_data = []
+    
+    # Fetch Premake Production Logs for the week
+    premake_logs = ProductionLog.query.filter(
+        and_(
+            func.date(ProductionLog.timestamp) >= week_start,
+            func.date(ProductionLog.timestamp) <= week_end,
+            ProductionLog.premake_id != None
+        )
+    ).all()
+    
+    premake_production = {}
+    for log in premake_logs:
+        # Premake quantity is in Batches. Total units = Batches * Batch Size
+        units_produced = log.quantity_produced * log.premake.batch_size
+        premake_production[log.premake_id] = premake_production.get(log.premake_id, 0) + units_produced
+
+    # Calculate Premake Usage (from Product Production Logs already fetched)
+    premake_usage = {}
+    for log in production_logs:
+        product = log.product
+        if not product: continue
+        for component in product.components:
+            if component.component_type == 'premake':
+                # Units used = component qty per recipe * recipes produced
+                # component.quantity is per recipe. log.quantity_produced is recipes (batches).
+                usage = component.quantity * log.quantity_produced
+                premake_usage[component.component_id] = premake_usage.get(component.component_id, 0) + usage
+
+    # Process Premakes for Report
+    all_premakes = Premake.query.all()
+    for premake in all_premakes:
+        produced = premake_production.get(premake.id, 0)
+        used = premake_usage.get(premake.id, 0)
+        
+        # Calculate current stock for premake
+        current_premake_stock = calculate_premake_current_stock(premake.id)
+
+        # Calculate Cost Per Unit
+        cost_per_batch = 0
+        for comp in premake.components:
+            if comp.component_type == 'raw_material' and comp.material:
+                cost_per_batch += comp.quantity * comp.material.cost_per_unit
+        
+        cost_per_unit = cost_per_batch / premake.batch_size if premake.batch_size > 0 else 0
+        
+        # Inventory Value Change (Produced - Used)
+        stock_change = produced - used
+        
+        if produced == 0 and used == 0 and current_premake_stock == 0:
+            continue
+            
+        premake_report_data.append({
+            'name': premake.name,
+            'unit': premake.unit,
+            'produced': produced,
+            'used': used,
+            'stock_change': stock_change,
+            'current_stock': current_premake_stock,
+            'cost_per_unit': cost_per_unit,
+            'total_value_produced': produced * cost_per_unit
+        })
+
     # Get stock audits for the week
     stock_audits = StockAudit.query.filter(
         and_(
@@ -1922,6 +2083,7 @@ def weekly_report():
                          avg_food_cost_per_recipe=avg_food_cost_per_recipe,
                          total_recipes_produced=total_recipes_produced,
                          production_details=production_details,
+                         premake_report_data=premake_report_data,
                          no_data=False)
 
 # Monthly Report - Aggregating Weekly Reports

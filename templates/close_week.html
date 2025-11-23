@@ -12,61 +12,122 @@
         <p>האם לאפס את המלאי ולהעביר את היתרה לפחת (הפסד)?</p>
     </div>
 
-    <div class="card shadow-sm mb-4 border-warning">
-        <div class="card-header bg-warning text-dark">
-            <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>פירוט שאריות</h5>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0 bg-white">
-                <thead class="table-light">
-                    <tr>
-                        <th>מוצר</th>
-                        <th class="text-center">כמות שנותרה</th>
-                        <th class="text-end">שווי הפסד (עלות)</th>
-                        <th class="text-end">אובדן הכנסה פוטנציאלית</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in leftovers %}
-                    <tr>
-                        <td class="fw-medium">{{ item.product.name }}</td>
-                        <td class="text-center fw-bold">{{ item.quantity|int }}</td>
-                        <td class="text-end text-danger">{{ currency_symbol }}{{ "%.2f"|format(item.cost_value) }}</td>
-                        <td class="text-end text-muted">{{ currency_symbol }}{{ "%.2f"|format(item.potential_revenue) }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-                <tfoot class="table-light fw-bold">
-                    <tr>
-                        <td colspan="2" class="text-end">סה"כ:</td>
-                        <td class="text-end text-danger">{{ currency_symbol }}{{ "%.2f"|format(total_loss) }}</td>
-                        <td class="text-end">{{ currency_symbol }}{{ "%.2f"|format(total_potential_revenue) }}</td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-    </div>
+    <form method="POST" action="{{ url_for('main.close_week_confirm') }}" id="closeWeekForm">
+        <input type="hidden" name="previous_week_id" value="{{ previous_week.id }}">
+        <input type="hidden" name="new_week_start_date" value="{{ new_week_start_date }}">
 
-    <div class="row g-3 justify-content-center">
-        <!-- Approve: Write-off and Start New Week -->
-        <div class="col-md-5">
-            <form method="POST" action="{{ url_for('main.close_week_confirm') }}">
-                <input type="hidden" name="previous_week_id" value="{{ previous_week.id }}">
-                <input type="hidden" name="new_week_start_date" value="{{ new_week_start_date }}">
+        {% if leftovers %}
+        <div class="card shadow-sm mb-4 border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-box-seam me-2"></i>שאריות מוצרים</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 bg-white">
+                    <thead class="table-light">
+                        <tr>
+                            <th>מוצר</th>
+                            <th class="text-center">כמות שנותרה</th>
+                            <th class="text-end">שווי הפסד (עלות)</th>
+                            <th class="text-center">העבר לשבוע הבא?</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in leftovers %}
+                        <tr class="leftover-row">
+                            <td class="fw-medium">{{ item.product.name }}</td>
+                            <td class="text-center fw-bold">{{ item.quantity|int }}</td>
+                            <td class="text-end text-danger" data-cost="{{ item.cost_value }}">{{ currency_symbol }}{{ "%.2f"|format(item.cost_value) }}</td>
+                            <td class="text-center">
+                                <div class="form-check d-flex justify-content-center">
+                                    <input class="form-check-input keep-checkbox" type="checkbox" name="keep_product_{{ item.product.id }}" value="1" onchange="updateTotalLoss()">
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if premake_leftovers %}
+        <div class="card shadow-sm mb-4 border-info">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-blender me-2"></i>שאריות הכנות מקדימות</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 bg-white">
+                    <thead class="table-light">
+                        <tr>
+                            <th>הכנה</th>
+                            <th class="text-center">כמות שנותרה</th>
+                            <th class="text-end">שווי (עלות)</th>
+                            <th class="text-center">העבר לשבוע הבא?</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in premake_leftovers %}
+                        <tr class="leftover-row">
+                            <td class="fw-medium">{{ item.premake.name }}</td>
+                            <td class="text-center fw-bold">{{ "%.2f"|format(item.quantity) }} {{ item.premake.unit }}</td>
+                            <td class="text-end text-danger" data-cost="{{ item.cost_value }}">{{ currency_symbol }}{{ "%.2f"|format(item.cost_value) }}</td>
+                            <td class="text-center">
+                                <div class="form-check d-flex justify-content-center">
+                                    <input class="form-check-input keep-checkbox" type="checkbox" name="keep_premake_{{ item.premake.id }}" value="1" onchange="updateTotalLoss()">
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">סך הפסד משוער (מה שלא סומן להעברה):</h4>
+                    <h3 class="text-danger mb-0" id="totalLossDisplay">{{ currency_symbol }}{{ "%.2f"|format(total_loss) }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 justify-content-center">
+            <!-- Approve: Write-off and Start New Week -->
+            <div class="col-md-5">
                 <button type="submit" class="btn btn-danger btn-lg w-100 p-4 shadow-sm">
-                    <div class="h4 mb-1"><i class="bi bi-trash me-2"></i>אשר וזרוק לפחת</div>
-                    <small>הכמות תתווסף לפחת של שבוע שעבר והשבוע החדש יתחיל נקי.</small>
+                    <div class="h4 mb-1"><i class="bi bi-check-circle me-2"></i>אשר וסגור שבוע</div>
+                    <small>פריטים שלא סומנו יועברו לפחת. פריטים מסומנים יישארו במלאי/זמינים.</small>
                 </button>
-            </form>
-        </div>
+            </div>
 
-        <!-- Update: Go to Update Sales -->
-        <div class="col-md-5">
-            <a href="{{ url_for('main.update_weekly_sales', week_id=previous_week.id) }}" class="btn btn-outline-primary btn-lg w-100 p-4 shadow-sm text-decoration-none">
-                <div class="h4 mb-1"><i class="bi bi-pencil-square me-2"></i>עדכן מכירות</div>
-                <small>חזור לעדכון נתוני המכירות של השבוע הקודם (אם נמכרו).</small>
-            </a>
+            <!-- Update: Go to Update Sales -->
+            <div class="col-md-5">
+                <a href="{{ url_for('main.update_weekly_sales', week_id=previous_week.id) }}" class="btn btn-outline-primary btn-lg w-100 p-4 shadow-sm text-decoration-none">
+                    <div class="h4 mb-1"><i class="bi bi-pencil-square me-2"></i>עדכן מכירות</div>
+                    <small>חזור לעדכון נתוני המכירות של השבוע הקודם (אם נמכרו).</small>
+                </a>
+            </div>
         </div>
-    </div>
+    </form>
+
+    <script>
+        function updateTotalLoss() {
+            let totalLoss = 0;
+            const checkboxes = document.querySelectorAll('.keep-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                if (!checkbox.checked) {
+                    const row = checkbox.closest('tr');
+                    const costCell = row.querySelector('[data-cost]');
+                    const cost = parseFloat(costCell.getAttribute('data-cost')) || 0;
+                    totalLoss += cost;
+                }
+            });
+            
+            document.getElementById('totalLossDisplay').innerText = '{{ currency_symbol }}' + totalLoss.toFixed(2);
+        }
+    </script>
 </div>
 {% endblock %}
