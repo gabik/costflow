@@ -40,14 +40,14 @@
                     <div class="row g-3">
                         <!-- Unit -->
                         <div class="col-md-6">
-            <div class="mb-3">
-                <label for="unit" class="form-label">יחידת מידה</label>
-                <select class="form-select" id="unit" name="unit" required>
-                    {% for unit in units %}
-                    <option value="{{ unit }}" {% if (material and material.unit == unit) or (not material and unit == 'kg') %}selected{% endif %}>{{ unit }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+                            <div class="mb-3">
+                                <label for="unit" class="form-label">יחידת מידה</label>
+                                <select class="form-select" id="unit" name="unit" required>
+                                    {% for unit in units %}
+                                    <option value="{{ unit }}" {% if (material and material.unit == unit) or (not material and unit == 'kg') %}selected{% endif %}>{{ unit }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                         </div>
 
                         <!-- Cost -->
