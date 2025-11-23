@@ -212,6 +212,43 @@ function handleWeekChange(select) {
     </div>
 </div>
 
+<!-- Premakes Report -->
+{% if premake_report_data %}
+<h2 class="h4 mb-3 mt-5 fw-bold text-primary">פעילות הכנות מקדימות</h2>
+<div class="card shadow-sm mb-5">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>שם ההכנה</th>
+                    <th class="text-center">יוצר</th>
+                    <th class="text-center">שומש (במוצרים)</th>
+                    <th class="text-center">שינוי במלאי</th>
+                    <th class="text-center">עלות ליחידה</th>
+                    <th class="text-center">שווי ייצור כולל</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in premake_report_data %}
+                <tr>
+                    <td class="fw-medium">{{ item.name }}</td>
+                    <td class="text-center">{{ "%.2f" | format(item.produced) }} {{ item.unit }}</td>
+                    <td class="text-center">{{ "%.2f" | format(item.used) }} {{ item.unit }}</td>
+                    <td class="text-center fw-bold {{ 'text-success' if item.stock_change > 0 else 'text-danger' if item.stock_change < 0 else '' }}">
+                        {{ "+" if item.stock_change > 0 else "" }}{{ "%.2f" | format(item.stock_change) }} {{ item.unit }}
+                    </td>
+                    <td class="text-center text-muted">{{ currency_symbol }}{{ "%.2f" | format(item.cost_per_unit) }}</td>
+                    <td class="text-center fw-bold">{{ currency_symbol }}{{ "%.2f" | format(item.total_value_produced) }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 {% else %}
 <div class="text-center py-5">
     <h3>ברוכים הבאים ל-CostFlow</h3>

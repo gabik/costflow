@@ -25,6 +25,32 @@ def log_audit(action, target_type, target_id=None, details=None):
     except Exception as e:
         print(f"Failed to log audit: {e}")
 
+def calculate_prime_cost(product):
+    """
+    Calculates the prime cost (Materials + Packaging + Premakes) for a single unit of a Product.
+    Includes recursive calculation for Premakes.
+    """
+    total_cost = 0
+    for component in product.components:
+        if component.component_type == 'raw_material' and component.material:
+            total_cost += component.quantity * component.material.cost_per_unit
+        elif component.component_type == 'packaging' and component.packaging:
+            total_cost += component.quantity * component.packaging.price_per_unit
+        elif component.component_type == 'premake' and component.premake:
+            # Calculate cost of 1 unit of premake
+            premake = component.premake
+            premake_batch_cost = 0
+            for pm_comp in premake.components:
+                if pm_comp.component_type == 'raw_material' and pm_comp.material:
+                    premake_batch_cost += pm_comp.quantity * pm_comp.material.cost_per_unit
+            
+            premake_unit_cost = premake_batch_cost / premake.batch_size if premake.batch_size > 0 else 0
+            total_cost += component.quantity * premake_unit_cost
+
+    if product.products_per_recipe > 0:
+        return total_cost / product.products_per_recipe
+    return 0
+
 # Homepage - Weekly Dashboard
 @main_blueprint.route('/')
 def index():
@@ -40,6 +66,7 @@ def index():
         selected_week = all_weeks[0]  # Default to latest
 
     report_data = []
+    premake_report_data = []
     total_revenue = 0
     total_cogs = 0
     total_inventory_usage = 0
@@ -51,10 +78,11 @@ def index():
         week_end = week_start + timedelta(days=6)
         total_labor = selected_week.total_cost
         
-        # Fetch Production Logs
+        # Fetch Product Production Logs
         logs = ProductionLog.query.filter(
             func.date(ProductionLog.timestamp) >= week_start,
-            func.date(ProductionLog.timestamp) <= week_end
+            func.date(ProductionLog.timestamp) <= week_end,
+            ProductionLog.product_id != None
         ).all()
         
         # Map Production
@@ -63,6 +91,68 @@ def index():
             # Calculate total units based on recipes count * units per recipe
             units_produced = log.quantity_produced * log.product.products_per_recipe
             product_production[log.product_id] = product_production.get(log.product_id, 0) + units_produced
+
+        # Fetch Premake Production Logs
+        premake_logs = ProductionLog.query.filter(
+            func.date(ProductionLog.timestamp) >= week_start,
+            func.date(ProductionLog.timestamp) <= week_end,
+            ProductionLog.premake_id != None
+        ).all()
+        
+        premake_production = {}
+        for log in premake_logs:
+            # Premake quantity is in Batches. Total units = Batches * Batch Size
+            units_produced = log.quantity_produced * log.premake.batch_size
+            premake_production[log.premake_id] = premake_production.get(log.premake_id, 0) + units_produced
+
+        # Calculate Premake Usage (from Product Production)
+        premake_usage = {}
+        for log in logs:
+            product = log.product
+            for component in product.components:
+                if component.component_type == 'premake':
+                    # Units used = component qty per recipe * recipes produced
+                    # component.quantity is per recipe. log.quantity_produced is recipes (batches).
+                    usage = component.quantity * log.quantity_produced
+                    premake_usage[component.component_id] = premake_usage.get(component.component_id, 0) + usage
+
+        # Process Premakes for Report and Inventory Value
+        all_premakes = Premake.query.all()
+        for premake in all_premakes:
+            produced = premake_production.get(premake.id, 0)
+            used = premake_usage.get(premake.id, 0)
+            
+            # Calculate Cost Per Unit
+            cost_per_batch = 0
+            for comp in premake.components:
+                if comp.component_type == 'raw_material' and comp.material:
+                    cost_per_batch += comp.quantity * comp.material.cost_per_unit
+            
+            cost_per_unit = cost_per_batch / premake.batch_size if premake.batch_size > 0 else 0
+            
+            # Inventory Value Change (Produced - Used)
+            stock_change = produced - used
+            
+            # Add NET value change to total inventory usage (cost of goods flow)
+            # If stock increased (+), we spent money creating it.
+            # If stock decreased (-), we used previously spent money (cost was in past).
+            # For "This Week's Expense", we want "Total Produced Value" minus "Double Counting".
+            # Total Inventory Usage = Products Produced Value + (Net Premake Change Value)
+            # This accounts for "Unused Premakes" being an expense this week.
+            total_inventory_usage += stock_change * cost_per_unit
+            
+            if produced == 0 and used == 0:
+                continue
+                
+            premake_report_data.append({
+                'name': premake.name,
+                'unit': premake.unit,
+                'produced': produced,
+                'used': used,
+                'stock_change': stock_change,
+                'cost_per_unit': cost_per_unit,
+                'total_value_produced': produced * cost_per_unit
+            })
 
         # Map Sales
         product_sales = {s.product_id: {'sold': s.quantity_sold, 'waste': s.quantity_waste} for s in selected_week.sales}
@@ -76,18 +166,8 @@ def index():
             sold_qty = sales_data['sold']
             waste_qty = sales_data['waste']
             
-            # Calculate Prime Cost (Materials + Packaging)
-            prime_cost = 0
-            for component in product.components:
-                if component.component_type == 'raw_material' and component.material:
-                    prime_cost += component.quantity * component.material.cost_per_unit
-                elif component.component_type == 'packaging' and component.packaging:
-                    prime_cost += component.quantity * component.packaging.price_per_unit
-            
-            if product.products_per_recipe > 0:
-                prime_cost_per_unit = prime_cost / product.products_per_recipe
-            else:
-                prime_cost_per_unit = 0
+            # Calculate Prime Cost (Materials + Packaging + Premakes)
+            prime_cost_per_unit = calculate_prime_cost(product)
             
             # Financials
             revenue = sold_qty * product.selling_price_per_unit
@@ -98,6 +178,9 @@ def index():
             # Inventory Usage Value (what we made)
             inventory_usage_value = produced_qty * prime_cost_per_unit
             
+            # Add to total (Products)
+            total_inventory_usage += inventory_usage_value
+            
             # Available (Unsold)
             available_qty = produced_qty - sold_qty - waste_qty
             if available_qty < 0: available_qty = 0 # Should not happen with valid input but safe to clamp
@@ -107,7 +190,7 @@ def index():
             
             total_revenue += revenue
             total_cogs += cogs
-            total_inventory_usage += inventory_usage_value
+            # total_inventory_usage was updated above
             
             # Only add to report if active this week
             if produced_qty == 0 and sold_qty == 0 and waste_qty == 0:
@@ -147,6 +230,7 @@ def index():
                            weeks=all_weeks,
                            selected_week=selected_week,
                            report_data=report_data,
+                           premake_report_data=premake_report_data,
                            total_revenue=total_revenue,
                            total_cogs=total_cogs,
                            total_labor=total_labor,

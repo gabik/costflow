@@ -1,44 +1,56 @@
 {% extends "base.html" %}
+{% block title %}הכנות מקדימות - CostFlow{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>הכנות מקדימות</h2>
-    <a href="{{ url_for('main.add_premake') }}" class="btn btn-primary">
-        <i class="fas fa-plus"></i> הוסף הכנה מקדימה
-    </a>
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="display-6 fw-bold text-primary">הכנות מקדימות</h1>
+            <p class="text-secondary">ניהול מתכוני בסיס והכנות (Premakes).</p>
+        </div>
+        <a href="{{ url_for('main.add_premake') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i> הוסף הכנה מקדימה
+        </a>
+    </div>
 </div>
 
-<div class="table-responsive">
-    <table class="table table-striped table-hover">
-        <thead>
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
             <tr>
                 <th>שם</th>
                 <th>קטגוריה</th>
                 <th>יחידה</th>
-                <th>פעולות</th>
+                <th class="text-end">פעולות</th>
             </tr>
-        </thead>
-        <tbody>
+            </thead>
+            <tbody>
             {% for premake in premakes %}
             <tr>
-                <td>{{ premake.name }}</td>
+                <td class="fw-medium">{{ premake.name }}</td>
                 <td>{{ premake.category.name if premake.category else '-' }}</td>
                 <td>{{ premake.unit }}</td>
-                <td>
-                    <div class="btn-group" role="group">
-                        <a href="{{ url_for('main.edit_premake', premake_id=premake.id) }}" class="btn btn-sm btn-warning" title="ערוך">
+                <td class="text-end">
+                    <div class="btn-group">
+                        <a href="{{ url_for('main.edit_premake', premake_id=premake.id) }}" class="btn btn-sm btn-outline-secondary" title="ערוך">
                             <i class="bi bi-pencil"></i>
                         </a>
                         <form action="{{ url_for('main.delete_premake', premake_id=premake.id) }}" method="POST" class="d-inline" onsubmit="return confirm('האם אתה בטוח שברצונך למחוק הכנה זו?');">
-                            <button type="submit" class="btn btn-sm btn-danger" title="מחק">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="מחק">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </form>
                     </div>
                 </td>
             </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="text-center py-4 text-muted">לא נמצאו הכנות מקדימות.</td>
+            </tr>
             {% endfor %}
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}

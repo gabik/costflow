@@ -59,7 +59,7 @@
                     {% set has_premakes = true %}
                     <div class="row g-2 mb-2 align-items-center premake-row">
                         <div class="col-md-5">
-                            <select name="premake[]" class="form-select select2-premake">
+                            <select name="premake[]" class="form-select select2">
                                 {% for premake_option in all_premakes %}
                                     <option value="{{ premake_option.id }}" {% if component.component_id == premake_option.id %}selected{% endif %}>
                                         {{ premake_option.name }}
@@ -81,7 +81,7 @@
             {% if not has_premakes %}
              <div class="row g-2 mb-2 align-items-center premake-row">
                 <div class="col-md-5">
-                    <select name="premake[]" class="form-select select2-premake">
+                    <select name="premake[]" class="form-select select2">
                         <option value="" disabled selected>בחר הכנה מקדימה...</option>
                         {% for premake_option in all_premakes %}
                             <option value="{{ premake_option.id }}">
@@ -405,7 +405,7 @@
         const rowHtml = `
             <div class="row g-2 mb-2 align-items-center premake-row">
                 <div class="col-md-5">
-                    <select name="premake[]" class="form-select select2-premake">
+                    <select name="premake[]" class="form-select select2">
                         ${optionsHtml}
                     </select>
                 </div>
@@ -423,7 +423,7 @@
         
         container.appendChild(rowElement);
 
-        $(rowElement).find('.select2-premake').select2({
+        $(rowElement).find('.select2').select2({
             theme: 'bootstrap-5',
             width: '100%',
             language: { noResults: () => "לא נמצאו תוצאות" }
@@ -433,12 +433,6 @@
     // Initialize select2 on existing rows
     document.addEventListener('DOMContentLoaded', function() {
         $('.select2').select2({
-            theme: 'bootstrap-5',
-            width: '100%',
-            language: { noResults: () => "לא נמצאו תוצאות" }
-        });
-        
-        $('.select2-premake').select2({
             theme: 'bootstrap-5',
             width: '100%',
             language: { noResults: () => "לא נמצאו תוצאות" }
