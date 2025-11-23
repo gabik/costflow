@@ -15,14 +15,19 @@
             <div class="col-md-6">
                 <div class="mb-3">
                     <label for="category_id" class="form-label">קטגוריה</label>
-                    <select class="form-select" id="category_id" name="category_id">
-                        <option value="">בחר קטגוריה</option>
-                        {% for category in premake_categories %}
-                        <option value="{{ category.id }}" {% if premake and premake.category_id == category.id %}selected{% endif %}>
-                            {{ category.name }}
-                        </option>
-                        {% endfor %}
-                    </select>
+                    <div class="input-group">
+                        <select class="form-select" id="category_id" name="category_id">
+                            <option value="">בחר קטגוריה</option>
+                            {% for category in premake_categories %}
+                            <option value="{{ category.id }}" {% if premake and premake.category_id == category.id %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#addCategoryModal" data-category-type="premake">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -117,6 +122,27 @@
     </form>
 </div>
 
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+             <div class="modal-header">
+                <h6 class="modal-title">הוסף קטגוריה</h6>
+                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('main.add_category_from_modal') }}" method="POST">
+                    <input type="hidden" name="type" id="categoryTypeInput" value="premake">
+                    <input type="text" name="name" class="form-control mb-2" placeholder="שם קטגוריה" required>
+                    <button type="submit" class="btn btn-sm btn-success w-100">שמור</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
 <script>
     function addRawMaterialRow(materialId = '', quantity = '') {
         const container = document.getElementById('raw_materials_container');
@@ -174,7 +200,19 @@
         if (!hasRows) {
             addRawMaterialRow();
         }
+
+        // Handle Add Category Modal Type
+        const addCategoryModal = document.getElementById('addCategoryModal');
+        if (addCategoryModal) {
+            addCategoryModal.addEventListener('show.bs.modal', event => {
+                const button = event.relatedTarget;
+                const type = button.getAttribute('data-category-type');
+                const modalInput = addCategoryModal.querySelector('#categoryTypeInput');
+                if (modalInput && type) {
+                    modalInput.value = type;
+                }
+            });
+        }
     });
 </script>
-
 {% endblock %}

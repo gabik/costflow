@@ -31,7 +31,7 @@
                                 </option>
                                 {% endfor %}
                             </select>
-                            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addCategoryModal" data-category-type="raw_material">
                                 <i class="bi bi-plus-lg"></i>
                             </button>
                         </div>
@@ -85,6 +85,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="POST" action="{{ url_for('main.add_category_from_modal') }}">
+                <input type="hidden" name="type" id="categoryTypeInput" value="raw_material">
                 <div class="modal-header">
                     <h5 class="modal-title" id="addCategoryModalLabel">הוספת קטגוריה חדשה</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -103,4 +104,22 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addCategoryModal = document.getElementById('addCategoryModal');
+        if (addCategoryModal) {
+            addCategoryModal.addEventListener('show.bs.modal', event => {
+                const button = event.relatedTarget;
+                const type = button.getAttribute('data-category-type');
+                const modalInput = addCategoryModal.querySelector('#categoryTypeInput');
+                if (modalInput && type) {
+                    modalInput.value = type;
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

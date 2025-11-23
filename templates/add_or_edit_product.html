@@ -18,12 +18,17 @@
                 </div>
                 <div class="mb-3">
                     <label for="category_id" class="form-label">קטגוריה</label>
-                    <select name="category_id" id="category_id" class="form-select">
-                        <option value="">ללא קטגוריה</option>
-                        {% for cat in product_categories %}
-                        <option value="{{ cat.id }}" {% if product and product.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
-                        {% endfor %}
-                    </select>
+                    <div class="input-group">
+                        <select name="category_id" id="category_id" class="form-select">
+                            <option value="">ללא קטגוריה</option>
+                            {% for cat in product_categories %}
+                            <option value="{{ cat.id }}" {% if product and product.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#addCategoryModal" data-category-type="product">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="mb-3">
                     <label for="products_per_recipe" class="form-label">כמות מוצרים למתכון (לסיבוב ייצור)</label>
@@ -241,11 +246,16 @@
                     </div>
                     <div class="mb-3">
                         <label for="raw_material_category_modal" class="form-label">קטגוריה</label>
-                        <select id="raw_material_category_modal" name="category" class="form-select" required>
-                            {% for category in categories %}
-                            <option value="{{ category.id }}">{{ category.name }}</option>
-                            {% endfor %}
-                        </select>
+                        <div class="input-group">
+                            <select id="raw_material_category_modal" name="category" class="form-select" required>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#addCategoryModal" data-category-type="raw_material">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label for="raw_material_unit_modal" class="form-label">יחידת מידה</label>
@@ -269,6 +279,25 @@
                     <button type="submit" class="btn btn-primary">הוסף חומר גלם</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Category Modal (Nested) -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+             <div class="modal-header">
+                <h6 class="modal-title">הוסף קטגוריה</h6>
+                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('main.add_category_from_modal') }}" method="POST">
+                    <input type="hidden" name="type" id="categoryTypeInput" value="raw_material">
+                    <input type="text" name="name" class="form-control mb-2" placeholder="שם קטגוריה" required>
+                    <button type="submit" class="btn btn-sm btn-success w-100">שמור</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -305,6 +334,36 @@
     </div>
 </div>
 
+<!-- Add Labor Modal -->
+<div class="modal fade" id="addLaborModal" tabindex="-1" aria-labelledby="addLaborModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addLaborModalLabel">הוסף עובד חדש</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form action="{{ url_for('main.add_labor') }}" method="POST">
+            <div class="mb-3">
+                <label for="labor_name" class="form-label">שם</label>
+                <input type="text" class="form-control" id="labor_name" name="name" required>
+            </div>
+            <div class="mb-3">
+                <label for="phone_number" class="form-label">מספר טלפון (אופציונלי)</label>
+                <input type="text" class="form-control" id="phone_number" name="phone_number">
+            </div>
+            <div class="mb-3">
+                <label for="total_hourly_rate" class="form-label">תעריף שעתי כולל (עלות מעביד)</label>
+                <input type="number" step="0.1" class="form-control" id="total_hourly_rate" name="total_hourly_rate" required>
+            </div>
+            <button type="submit" class="btn btn-primary">שמור עובד</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% block scripts %}
 <script>
     let rawMaterialRowIndex = 0;
     let packagingRowIndex = 0;
@@ -437,6 +496,22 @@
             width: '100%',
             language: { noResults: () => "לא נמצאו תוצאות" }
         });
+        
+        // Handle Add Category Modal Type
+        const addCategoryModal = document.getElementById('addCategoryModal');
+        if (addCategoryModal) {
+            addCategoryModal.addEventListener('show.bs.modal', event => {
+                // Button that triggered the modal
+                const button = event.relatedTarget;
+                // Extract info from data-category-type attribute
+                const type = button.getAttribute('data-category-type');
+                // Update the modal's hidden input
+                const modalInput = addCategoryModal.querySelector('#categoryTypeInput');
+                if (modalInput && type) {
+                    modalInput.value = type;
+                }
+            });
+        }
     });
 </script>
 {% endblock %}

@@ -13,6 +13,26 @@ main_blueprint = Blueprint('main', __name__)
 # Predefined units for raw materials
 units_list = ["kg", "g", "ml", "l", "piece"]
 
+def get_or_create_general_category(type_val):
+    """
+    Returns the ID of a 'General' category for the given type.
+    Creates it if it doesn't exist.
+    """
+    name = "כללי"
+    if type_val == 'raw_material':
+        name = "כללי (חומרי גלם)"
+    elif type_val == 'product':
+        name = "כללי (מוצרים)"
+    elif type_val == 'premake':
+        name = "כללי (הכנות)"
+        
+    category = Category.query.filter_by(name=name, type=type_val).first()
+    if not category:
+        category = Category(name=name, type=type_val)
+        db.session.add(category)
+        db.session.commit()
+    return category.id
+
 def log_audit(action, target_type, target_id=None, details=None):
     try:
         log = AuditLog(
@@ -344,14 +364,17 @@ def raw_materials():
 def add_raw_material():
     if request.method == 'POST':
         name = request.form['name']
-        category_id = request.form['category']
+        category_id = request.form.get('category') # form field is 'category'
+        if not category_id:
+            category_id = get_or_create_general_category('raw_material')
+            
         unit = request.form['unit']
         cost_per_unit = float(request.form['cost_per_unit'])
         stock = request.form.get('stock', 0) # Optional initial stock
 
         category = Category.query.get(category_id)
-        if not category:
-            return "Invalid category selected", 400
+        # if not category:  # Handled by get_or_create or existing valid ID
+        #    return "Invalid category selected", 400
 
         new_material = RawMaterial(name=name, category=category, unit=unit, cost_per_unit=cost_per_unit)
         db.session.add(new_material)
@@ -381,9 +404,13 @@ def edit_raw_material(material_id):
     material = RawMaterial.query.get_or_404(material_id)
     if request.method == 'POST':
         material.name = request.form['name']
-        category = Category.query.get(request.form['category'])
-        if not category:
-            return "Invalid category selected", 400
+        category_id = request.form.get('category')
+        if not category_id:
+            category_id = get_or_create_general_category('raw_material')
+            
+        category = Category.query.get(category_id)
+        # if not category:
+        #    return "Invalid category selected", 400
 
         material.category = category
         material.unit = request.form['unit']
@@ -608,9 +635,12 @@ def add_premake():
     if request.method == 'POST':
         name = request.form['name']
         category_id = request.form.get('category_id')
+        if not category_id:
+            category_id = get_or_create_general_category('premake')
+            
         unit = request.form.get('unit', 'kg') # Default to kg
         
-        category = Category.query.get(category_id) if category_id else None
+        category = Category.query.get(category_id) # if category_id else None (guaranteed by get_or_create)
         
         # Process components first to calculate batch size
         raw_materials = request.form.getlist('raw_material[]')
@@ -620,6 +650,8 @@ def add_premake():
         components_data = []
         
         for material_id, quantity_str in zip(raw_materials, raw_material_quantities):
+            if not material_id or not quantity_str or float(quantity_str) <= 0:
+                continue
             quantity = float(quantity_str)
             batch_size += quantity
             components_data.append({'id': material_id, 'qty': quantity})
@@ -676,6 +708,9 @@ def edit_premake(premake_id):
     if request.method == 'POST':
         premake.name = request.form['name']
         premake.category_id = request.form.get('category_id')
+        if not premake.category_id:
+            premake.category_id = get_or_create_general_category('premake')
+            
         premake.unit = request.form['unit']
         
         # Clear existing components
@@ -688,6 +723,8 @@ def edit_premake(premake_id):
         batch_size = 0
         
         for material_id, quantity_str in zip(raw_materials, raw_material_quantities):
+            if not material_id or not quantity_str or float(quantity_str) <= 0:
+                continue
             quantity = float(quantity_str)
             batch_size += quantity
             
@@ -751,6 +788,9 @@ def add_product():
         # Extract product-level data
         name = request.form['name']
         category_id = request.form.get('category_id')
+        if not category_id:
+            category_id = get_or_create_general_category('product')
+            
         products_per_recipe = request.form['products_per_recipe']
         selling_price_per_unit = request.form['selling_price_per_unit']
         
@@ -783,11 +823,13 @@ def add_product():
         raw_materials = request.form.getlist('raw_material[]')
         raw_material_quantities = request.form.getlist('raw_material_quantity[]')
         for material_id, quantity in zip(raw_materials, raw_material_quantities):
+            if not material_id or not quantity or float(quantity) <= 0:
+                continue
             component = ProductComponent(
                 product_id=product.id,
                 component_type='raw_material',
                 component_id=material_id,
-                quantity=quantity
+                quantity=float(quantity)
             )
             db.session.add(component)
 
@@ -795,11 +837,13 @@ def add_product():
         packaging_ids = request.form.getlist('packaging[]')
         packaging_quantities = request.form.getlist('packaging_quantity[]')
         for pkg_id, quantity in zip(packaging_ids, packaging_quantities):
+            if not pkg_id or not quantity or float(quantity) <= 0:
+                continue
             component = ProductComponent(
                 product_id=product.id,
                 component_type='packaging',
                 component_id=pkg_id,
-                quantity=quantity
+                quantity=float(quantity)
             )
             db.session.add(component)
 
@@ -807,11 +851,13 @@ def add_product():
         premake_ids = request.form.getlist('premake[]')
         premake_quantities = request.form.getlist('premake_quantity[]')
         for premake_id, quantity in zip(premake_ids, premake_quantities):
+            if not premake_id or not quantity or float(quantity) <= 0:
+                continue
             component = ProductComponent(
                 product_id=product.id,
                 component_type='premake',
                 component_id=premake_id,
-                quantity=quantity
+                quantity=float(quantity)
             )
             db.session.add(component)
 
@@ -936,6 +982,9 @@ def edit_product(product_id):
     if request.method == 'POST':
         product.name = request.form['name']
         product.category_id = request.form.get('category_id')
+        if not product.category_id:
+            product.category_id = get_or_create_general_category('product')
+            
         product.products_per_recipe = int(request.form['products_per_recipe'])
         product.selling_price_per_unit = float(request.form['selling_price_per_unit'])
         
@@ -955,11 +1004,13 @@ def edit_product(product_id):
         raw_materials = request.form.getlist('raw_material[]')
         raw_material_quantities = request.form.getlist('raw_material_quantity[]')
         for material_id, quantity in zip(raw_materials, raw_material_quantities):
+            if not material_id or not quantity or float(quantity) <= 0:
+                continue
             component = ProductComponent(
                 product_id=product.id,
                 component_type='raw_material',
                 component_id=material_id,
-                quantity=quantity
+                quantity=float(quantity)
             )
             db.session.add(component)
 
@@ -967,11 +1018,13 @@ def edit_product(product_id):
         packaging_ids = request.form.getlist('packaging[]')
         packaging_quantities = request.form.getlist('packaging_quantity[]')
         for pkg_id, quantity in zip(packaging_ids, packaging_quantities):
+            if not pkg_id or not quantity or float(quantity) <= 0:
+                continue
             component = ProductComponent(
                 product_id=product.id,
                 component_type='packaging',
                 component_id=pkg_id,
-                quantity=quantity
+                quantity=float(quantity)
             )
             db.session.add(component)
 
@@ -979,11 +1032,13 @@ def edit_product(product_id):
         premake_ids = request.form.getlist('premake[]')
         premake_quantities = request.form.getlist('premake_quantity[]')
         for premake_id, quantity in zip(premake_ids, premake_quantities):
+            if not premake_id or not quantity or float(quantity) <= 0:
+                continue
             component = ProductComponent(
                 product_id=product.id,
                 component_type='premake',
                 component_id=premake_id,
-                quantity=quantity
+                quantity=float(quantity)
             )
             db.session.add(component)
 
@@ -1057,16 +1112,18 @@ def delete_category(category_id):
 @main_blueprint.route('/categories/add_from_modal', methods=['POST'])
 def add_category_from_modal():
     name = request.form['name']
+    type_val = request.form.get('type', 'raw_material')
+    
     if not name.strip():
-        return redirect(url_for('main.add_raw_material'))  # Handle empty submissions gracefully
+        return redirect(request.referrer or url_for('main.index'))
 
-    if not Category.query.filter_by(name=name).first():
-        new_category = Category(name=name.strip())
+    if not Category.query.filter_by(name=name, type=type_val).first():
+        new_category = Category(name=name.strip(), type=type_val)
         db.session.add(new_category)
         db.session.commit()
 
-    # Redirect back to the raw materials form
-    return redirect(url_for('main.add_raw_material'))
+    # Redirect back to the previous page
+    return redirect(request.referrer or url_for('main.index'))
 
 # ----------------------------
 # Production Management
