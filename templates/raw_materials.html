@@ -13,9 +13,29 @@
     </div>
 </div>
 
+<!-- Search and Filter -->
+<div class="card shadow-sm mb-4 bg-light border-0">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" id="searchInput" class="form-control border-start-0" placeholder="חפש חומר גלם...">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select id="categoryFilter" class="form-select">
+                    <option value="all">כל הקטגוריות</option>
+                    <!-- Options populated by JS -->
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="card shadow-sm">
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0" id="materialsTable">
             <thead class="table-light">
             <tr>
                 <th>שם</th>
@@ -28,8 +48,8 @@
             </thead>
             <tbody>
             {% for material in materials %}
-            <tr>
-                <td class="fw-medium">{{ material.name }}</td>
+            <tr class="material-row" data-category="{{ material.category.name }}">
+                <td class="fw-medium material-name">{{ material.name }}</td>
                 <td><span class="badge bg-light text-dark border">{{ material.category.name }}</span></td>
                 <td>{{ material.unit }}</td>
                 <td>{{ currency_symbol }}{{ "%.2f"|format(material.cost_per_unit) }}</td>
@@ -138,9 +158,12 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // --- Modal Population ---
         // Populate Add Stock Modal
         var addStockModal = document.getElementById('addStockModal');
         addStockModal.addEventListener('show.bs.modal', function (event) {
@@ -180,11 +203,49 @@
             var form = deleteMaterialModal.querySelector('#deleteMaterialForm');
             
             modalNameDisplay.textContent = materialName;
-            // Set form action dynamically
-            // We need the base URL for deletion. A safe way is to construct it or use a JS variable.
-            // Here we assume the route structure is /raw_materials/delete/<id>
             form.action = '/raw_materials/delete/' + materialId;
         });
+
+        // --- Search and Filter Logic ---
+        const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const rows = document.querySelectorAll('.material-row');
+
+        // Extract unique categories
+        const categories = new Set();
+        rows.forEach(row => {
+            categories.add(row.getAttribute('data-category'));
+        });
+
+        // Populate category dropdown
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category;
+            option.textContent = category;
+            categoryFilter.appendChild(option);
+        });
+
+        function filterTable() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedCategory = categoryFilter.value;
+
+            rows.forEach(row => {
+                const name = row.querySelector('.material-name').textContent.toLowerCase();
+                const category = row.getAttribute('data-category');
+
+                const matchesSearch = name.includes(searchTerm);
+                const matchesCategory = selectedCategory === 'all' || category === selectedCategory;
+
+                if (matchesSearch && matchesCategory) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        searchInput.addEventListener('keyup', filterTable);
+        categoryFilter.addEventListener('change', filterTable);
     });
 </script>
 {% endblock %}
