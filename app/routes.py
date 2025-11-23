@@ -664,16 +664,32 @@ def add_premake():
         # Process components first to calculate batch size
         raw_materials = request.form.getlist('raw_material[]')
         raw_material_quantities = request.form.getlist('raw_material_quantity[]')
+        raw_material_units = request.form.getlist('raw_material_unit[]')
         
         batch_size = 0
         components_data = []
         
-        for material_id, quantity_str in zip(raw_materials, raw_material_quantities):
+        for i in range(len(raw_materials)):
+            material_id = raw_materials[i]
+            quantity_str = raw_material_quantities[i]
+            selected_unit = raw_material_units[i] if i < len(raw_material_units) else None
+            
             if not material_id or not quantity_str or float(quantity_str) <= 0:
                 continue
+            
             quantity = float(quantity_str)
-            batch_size += quantity
-            components_data.append({'id': material_id, 'qty': quantity})
+            
+            material = RawMaterial.query.get(material_id)
+            if not material:
+                continue
+                
+            final_quantity = convert_to_base_unit(quantity, selected_unit, material.unit)
+            
+            # Batch size is sum of base quantities (assuming base units are compatible, e.g. all weight)
+            # If mixed units (kg and l), this sum is weird but standard for MVP.
+            batch_size += final_quantity
+            
+            components_data.append({'id': material_id, 'qty': final_quantity})
 
         premake = Premake(
             name=name,
@@ -738,20 +754,32 @@ def edit_premake(premake_id):
         # Process components
         raw_materials = request.form.getlist('raw_material[]')
         raw_material_quantities = request.form.getlist('raw_material_quantity[]')
+        raw_material_units = request.form.getlist('raw_material_unit[]')
         
         batch_size = 0
         
-        for material_id, quantity_str in zip(raw_materials, raw_material_quantities):
+        for i in range(len(raw_materials)):
+            material_id = raw_materials[i]
+            quantity_str = raw_material_quantities[i]
+            selected_unit = raw_material_units[i] if i < len(raw_material_units) else None
+            
             if not material_id or not quantity_str or float(quantity_str) <= 0:
                 continue
+            
             quantity = float(quantity_str)
-            batch_size += quantity
+            
+            material = RawMaterial.query.get(material_id)
+            if not material:
+                continue
+                
+            final_quantity = convert_to_base_unit(quantity, selected_unit, material.unit)
+            batch_size += final_quantity
             
             component = PremakeComponent(
                 premake_id=premake.id,
                 component_type='raw_material',
                 component_id=material_id,
-                quantity=quantity
+                quantity=final_quantity
             )
             db.session.add(component)
         
@@ -843,19 +871,35 @@ def add_product():
         db.session.add(product)
         db.session.flush()
         log_audit("CREATE", "Product", product.id, f"Created product {product.name}")
-        db.session.commit()  # Save product to get its ID
-
         # Process raw materials
         raw_materials = request.form.getlist('raw_material[]')
         raw_material_quantities = request.form.getlist('raw_material_quantity[]')
-        for material_id, quantity in zip(raw_materials, raw_material_quantities):
+        raw_material_units = request.form.getlist('raw_material_unit[]')
+        
+        # Handle case where units might not be sent if old form used (though we updated templates)
+        # Zip stops at shortest list. If units missing, it might break or skip.
+        # Ensure lists are same length or handle index.
+        # Safest: Iterate by index.
+        for i in range(len(raw_materials)):
+            material_id = raw_materials[i]
+            quantity = raw_material_quantities[i]
+            selected_unit = raw_material_units[i] if i < len(raw_material_units) else None
+            
             if not material_id or not quantity or float(quantity) <= 0:
                 continue
+                
+            # Convert quantity to base unit
+            material = RawMaterial.query.get(material_id)
+            if not material:
+                continue
+                
+            final_quantity = convert_to_base_unit(float(quantity), selected_unit, material.unit)
+            
             component = ProductComponent(
                 product_id=product.id,
                 component_type='raw_material',
                 component_id=material_id,
-                quantity=float(quantity)
+                quantity=final_quantity
             )
             db.session.add(component)
 
@@ -1035,14 +1079,27 @@ def edit_product(product_id):
         # Process raw materials
         raw_materials = request.form.getlist('raw_material[]')
         raw_material_quantities = request.form.getlist('raw_material_quantity[]')
-        for material_id, quantity in zip(raw_materials, raw_material_quantities):
+        raw_material_units = request.form.getlist('raw_material_unit[]')
+        
+        for i in range(len(raw_materials)):
+            material_id = raw_materials[i]
+            quantity = raw_material_quantities[i]
+            selected_unit = raw_material_units[i] if i < len(raw_material_units) else None
+            
             if not material_id or not quantity or float(quantity) <= 0:
                 continue
+                
+            material = RawMaterial.query.get(material_id)
+            if not material:
+                continue
+                
+            final_quantity = convert_to_base_unit(float(quantity), selected_unit, material.unit)
+            
             component = ProductComponent(
                 product_id=product.id,
                 component_type='raw_material',
                 component_id=material_id,
-                quantity=float(quantity)
+                quantity=final_quantity
             )
             db.session.add(component)
 

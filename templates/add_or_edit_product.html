@@ -118,18 +118,23 @@
                     {% set has_raw_materials = true %}
                     <div class="row g-2 mb-2 align-items-center raw-material-row">
                         <div class="col-md-5">
-                            <select name="raw_material[]" class="form-select select2">
+                            <select name="raw_material[]" class="form-select select2" required onchange="handleMaterialChange(this)">
                                 {% for material_option in all_raw_materials %}
-                                    <option value="{{ material_option.id }}" {% if component.component_id == material_option.id %}selected{% endif %}>
+                                    <option value="{{ material_option.id }}" data-unit="{{ material_option.unit }}" {% if component.component_id == material_option.id %}selected{% endif %}>
                                         {{ material_option.name }}
                                     </option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-4">
-                            <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="{{ component.quantity }}">
+                        <div class="col-md-3">
+                            <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="{{ component.quantity }}" required>
                         </div>
-                        <div class="col-md-auto">
+                        <div class="col-md-3">
+                            <select name="raw_material_unit[]" class="form-select unit-select">
+                                <option value="{{ component.material.unit }}" selected>{{ component.material.unit }}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-1">
                             <button type="button" class="btn btn-outline-danger" onclick="this.closest('.raw-material-row').remove()"><i class="bi bi-x-lg"></i></button>
                         </div>
                     </div>
@@ -140,19 +145,24 @@
             {% if not has_raw_materials %}
             <div class="row g-2 mb-2 align-items-center raw-material-row">
                 <div class="col-md-5">
-                    <select name="raw_material[]" class="form-select select2">
+                    <select name="raw_material[]" class="form-select select2" required onchange="handleMaterialChange(this)">
                          <option value="" disabled selected>בחר חומר גלם...</option>
                         {% for material_option in all_raw_materials %}
-                            <option value="{{ material_option.id }}">
+                            <option value="{{ material_option.id }}" data-unit="{{ material_option.unit }}">
                                 {{ material_option.name }}
                             </option>
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="כמות" step="0.01">
+                <div class="col-md-3">
+                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="כמות" step="0.01" required>
                 </div>
-                <div class="col-md-auto">
+                <div class="col-md-3">
+                    <select name="raw_material_unit[]" class="form-select unit-select">
+                        <option value="kg">kg</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
                     <button type="button" class="btn btn-outline-danger" onclick="this.closest('.raw-material-row').remove()"><i class="bi bi-x-lg"></i></button>
                 </div>
             </div>
@@ -378,20 +388,25 @@
         let optionsHtml = '<option value="" disabled selected>בחר חומר גלם...</option>';
         allRawMaterials.forEach(material => {
             const selected = materialId == material.id ? 'selected' : '';
-            optionsHtml += `<option value="${material.id}" ${selected}>${material.name}</option>`;
+            optionsHtml += `<option value="${material.id}" data-unit="${material.unit}" ${selected}>${material.name}</option>`;
         });
 
         const rowHtml = `
             <div class="row g-2 mb-2 align-items-center raw-material-row">
                 <div class="col-md-5">
-                    <select name="raw_material[]" class="form-select select2">
+                    <select name="raw_material[]" class="form-select select2" onchange="handleMaterialChange(this)">
                         ${optionsHtml}
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="${quantity}">
+                <div class="col-md-3">
+                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="${quantity}" required>
                 </div>
-                <div class="col-md-auto">
+                <div class="col-md-3">
+                    <select name="raw_material_unit[]" class="form-select unit-select">
+                        <option value="kg">kg</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
                     <button type="button" class="btn btn-outline-danger" onclick="this.closest('.raw-material-row').remove()"><i class="bi bi-x-lg"></i></button>
                 </div>
             </div>`;
@@ -490,12 +505,63 @@
         });
     }
 
+    function handleMaterialChange(selectElement) {
+        const row = selectElement.closest('.row');
+        const unitSelect = row.querySelector('.unit-select');
+        
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        const baseUnit = selectedOption.getAttribute('data-unit');
+        
+        updateUnitOptions(unitSelect, baseUnit);
+    }
+
+    function updateUnitOptions(selectElement, baseUnit) {
+        selectElement.innerHTML = ''; // Clear existing
+        
+        const options = [];
+        if (baseUnit === 'kg' || baseUnit === 'g') {
+            options.push('kg', 'g');
+        } else if (baseUnit === 'l' || baseUnit === 'ml') {
+            options.push('l', 'ml');
+        } else {
+            options.push(baseUnit);
+        }
+        
+        options.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u;
+            opt.textContent = u;
+            if (u === baseUnit) opt.selected = true;
+            selectElement.appendChild(opt);
+        });
+    }
+
     // Initialize select2 on existing rows
     document.addEventListener('DOMContentLoaded', function() {
         $('.select2').select2({
             theme: 'bootstrap-5',
             width: '100%',
             language: { noResults: () => "לא נמצאו תוצאות" }
+        });
+        
+        // Bind Select2 change event because native onchange doesn't always fire with Select2
+        $(document.body).on('select2:select', '.select2', function(e) {
+            if (this.name === 'raw_material[]') {
+                handleMaterialChange(this);
+            }
+        });
+        
+        // Update units for existing rows
+        document.querySelectorAll('.raw-material-row').forEach(row => {
+            const matSelect = row.querySelector('.select2');
+            const unitSelect = row.querySelector('.unit-select');
+            if (matSelect && unitSelect) {
+                const selectedOption = matSelect.options[matSelect.selectedIndex];
+                const baseUnit = selectedOption ? selectedOption.getAttribute('data-unit') : null;
+                if (baseUnit) {
+                    updateUnitOptions(unitSelect, baseUnit);
+                }
+            }
         });
         
         // Handle Add Category Modal Type

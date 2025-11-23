@@ -66,20 +66,27 @@
                             {% if component.component_type == 'raw_material' %}
                                 {% set has_raw_materials = true %}
                                 <div class="row g-2 mb-2 align-items-center raw-material-row">
-                                    <div class="col-md-6">
-                                        <select name="raw_material[]" class="form-select select2" required>
+                                    <div class="col-md-5">
+                                        <select name="raw_material[]" class="form-select select2-material" required onchange="handleMaterialChange(this)">
                                             <option value="">בחר חומר גלם</option>
                                             {% for material in all_raw_materials %}
-                                            <option value="{{ material.id }}" {% if material.id == component.component_id %}selected{% endif %}>
+                                            <option value="{{ material.id }}" data-unit="{{ material.unit }}" {% if material.id == component.component_id %}selected{% endif %}>
                                                 {{ material.name }} ({{ material.unit }}) - {{ material.cost_per_unit }} ₪
                                             </option>
                                             {% endfor %}
                                         </select>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <input type="number" step="0.001" name="raw_material_quantity[]" class="form-control" placeholder="כמות" value="{{ component.quantity }}" required>
                                     </div>
-                                    <div class="col-md-2">
+                                    <div class="col-md-3">
+                                        <!-- Initial unit is the material's base unit because we store it normalized -->
+                                        <select name="raw_material_unit[]" class="form-select unit-select">
+                                            <!-- Populated via JS or default to base -->
+                                            <option value="{{ component.material.unit }}" selected>{{ component.material.unit }}</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-1">
                                         <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)">
                                             <i class="bi bi-x-lg"></i>
                                         </button>
@@ -92,20 +99,25 @@
                     {# If no raw materials found (new premake or existing one with none), render one empty row #}
                     {% if not has_raw_materials %}
                     <div class="row g-2 mb-2 align-items-center raw-material-row">
-                        <div class="col-md-6">
-                            <select name="raw_material[]" class="form-select select2" required>
+                        <div class="col-md-5">
+                            <select name="raw_material[]" class="form-select select2-material" required onchange="handleMaterialChange(this)">
                                 <option value="" disabled selected>בחר חומר גלם...</option>
                                 {% for material in all_raw_materials %}
-                                <option value="{{ material.id }}">
+                                <option value="{{ material.id }}" data-unit="{{ material.unit }}">
                                     {{ material.name }} ({{ material.unit }}) - {{ material.cost_per_unit }} ₪
                                 </option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <input type="number" step="0.001" name="raw_material_quantity[]" class="form-control" placeholder="כמות" required>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
+                            <select name="raw_material_unit[]" class="form-select unit-select">
+                                <option value="kg">kg</option>
+                            </select>
+                        </div>
+                        <div class="col-md-1">
                             <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)">
                                 <i class="bi bi-x-lg"></i>
                             </button>
@@ -152,20 +164,25 @@
         let optionsHtml = '<option value="" disabled selected>בחר חומר גלם...</option>';
         allRawMaterials.forEach(material => {
             const selected = materialId == material.id ? 'selected' : '';
-            optionsHtml += `<option value="${material.id}" ${selected}>${material.name} (${material.unit}) - ${material.cost_per_unit} ₪</option>`;
+            optionsHtml += `<option value="${material.id}" data-unit="${material.unit}" ${selected}>${material.name} (${material.unit}) - ${material.cost_per_unit} ₪</option>`;
         });
 
         const rowHtml = `
             <div class="row g-2 mb-2 align-items-center raw-material-row">
-                <div class="col-md-6">
-                    <select name="raw_material[]" class="form-select select2">
+                <div class="col-md-5">
+                    <select name="raw_material[]" class="form-select select2-material" onchange="handleMaterialChange(this)">
                         ${optionsHtml}
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="כמות" step="0.001" value="${quantity}" required>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
+                    <select name="raw_material_unit[]" class="form-select unit-select">
+                        <option value="kg">kg</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
                     <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)">
                         <i class="bi bi-x-lg"></i>
                     </button>
@@ -178,7 +195,8 @@
         
         container.appendChild(rowElement);
         
-        $(rowElement).find('.select2').select2({
+        // Initialize Select2
+        $(rowElement).find('.select2-material').select2({
             theme: 'bootstrap-5',
             width: '100%',
             language: { noResults: () => "לא נמצאו תוצאות" }
@@ -188,15 +206,76 @@
     function removeRow(button) {
         button.closest('.row').remove();
     }
+
+    function handleMaterialChange(selectElement) {
+        const row = selectElement.closest('.row');
+        const unitSelect = row.querySelector('.unit-select');
+        
+        // Get selected option's data-unit
+        // If Select2 is used, $(selectElement).find(':selected').data('unit') might be needed if DOM not updated,
+        // but usually 'change' event on select works.
+        // However, Select2 doesn't update the DOM selected attribute on the original select reliably for native properties.
+        // Better to use Select2 data.
+        
+        // If this is triggered by onchange attribute on select element, 'this' is the select.
+        // Try native way first.
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        const baseUnit = selectedOption.getAttribute('data-unit');
+        
+        updateUnitOptions(unitSelect, baseUnit);
+    }
+
+    function updateUnitOptions(selectElement, baseUnit) {
+        selectElement.innerHTML = ''; // Clear existing
+        
+        const options = [];
+        if (baseUnit === 'kg' || baseUnit === 'g') {
+            options.push('kg', 'g');
+        } else if (baseUnit === 'l' || baseUnit === 'ml') {
+            options.push('l', 'ml');
+        } else {
+            options.push(baseUnit); // piece or unknown
+        }
+        
+        options.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u;
+            opt.textContent = u;
+            if (u === baseUnit) opt.selected = true;
+            selectElement.appendChild(opt);
+        });
+    }
     
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize select2 for existing rows (server-rendered)
-        $('.select2').select2({
+        $('.select2-material').select2({
             theme: 'bootstrap-5',
             width: '100%',
             language: { noResults: () => "לא נמצאו תוצאות" }
         });
         
+        // Bind Select2 change event because native onchange doesn't always fire with Select2
+        $(document.body).on('select2:select', '.select2-material', function(e) {
+            handleMaterialChange(this);
+        });
+        
+        // Update units for existing rows (in case of edit mode)
+        document.querySelectorAll('.raw-material-row').forEach(row => {
+            const matSelect = row.querySelector('.select2-material');
+            const unitSelect = row.querySelector('.unit-select');
+            if (matSelect && unitSelect) {
+                const selectedOption = matSelect.options[matSelect.selectedIndex];
+                const baseUnit = selectedOption ? selectedOption.getAttribute('data-unit') : null;
+                if (baseUnit) {
+                    // If editing, we want to keep the currently selected unit (if we knew it).
+                    // But ProductComponent doesn't store the 'display unit'. It stores quantity.
+                    // So we default to baseUnit.
+                    // User can change it.
+                    updateUnitOptions(unitSelect, baseUnit);
+                }
+            }
+        });
+
         const hasRows = document.querySelectorAll('.raw-material-row').length > 0;
         if (!hasRows) {
             addRawMaterialRow();
