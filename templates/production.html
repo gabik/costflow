@@ -38,6 +38,7 @@
                         <th>מלאי נוכחי</th>
                         <th>צריכה בייצור זה</th>
                         <th>מלאי לאחר ייצור</th>
+                        <th>עלות יחידה</th>
                         <th>עלות</th>
                     </tr>
                 </thead>
@@ -121,6 +122,7 @@ function updateProductionDetails() {
             <td>${comp.current_stock.toFixed(2)} ${comp.unit}</td>
             <td class="fw-bold">${usage.toFixed(2)} ${comp.unit}</td>
             <td class="${stockAfter < 0 ? 'text-danger fw-bold' : ''}">${stockAfter.toFixed(2)} ${comp.unit}</td>
+            <td>${comp.cost_per_unit.toFixed(2)} ₪</td>
             <td>${cost.toFixed(2)} ₪</td>
         `;
         tbody.appendChild(tr);
@@ -129,7 +131,7 @@ function updateProductionDetails() {
     // Add total cost row
     const totalRow = document.createElement('tr');
     totalRow.innerHTML = `
-        <td colspan="5" class="text-end fw-bold">סה"כ עלות ייצור</td>
+        <td colspan="6" class="text-end fw-bold">סה"כ עלות ייצור</td>
         <td class="fw-bold">${totalRecipeCost.toFixed(2)} ₪</td>
     `;
     tbody.appendChild(totalRow);

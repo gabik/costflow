@@ -21,9 +21,15 @@
                 <option value="new_week" class="fw-bold text-primary">+ שבוע חדש</option>
             </select>
         </form>
-        <a href="{{ url_for('main.production') }}" class="btn btn-outline-dark text-nowrap">
-            <i class="bi bi-plus-circle me-1"></i> ייצור חדש
-        </a>
+        <div class="dropdown me-2">
+            <button class="btn btn-outline-dark dropdown-toggle text-nowrap" type="button" id="productionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-plus-circle me-1"></i> ייצור חדש
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="productionDropdown">
+                <li><a class="dropdown-item" href="{{ url_for('main.production') }}"><i class="bi bi-box-seam me-2"></i>מוצרים</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('main.premake_production') }}"><i class="bi bi-blender me-2"></i>הכנות מקדימות</a></li>
+            </ul>
+        </div>
         {% if selected_week %}
         <a href="{{ url_for('main.update_weekly_sales', week_id=selected_week.id) }}" class="btn btn-success text-nowrap">
             <i class="bi bi-cart-check me-1"></i> עדכון מכירות
@@ -278,27 +284,7 @@ function handleWeekChange(select) {
         </a>
     </div>
 
-    <!-- Production Action -->
-    <div class="col-md-4 mb-4">
-        <div class="card shadow-sm h-100 hover-shadow transition-all">
-            <div class="card-body text-center p-4">
-                <div class="icon-box bg-light text-success rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
-                    <i class="bi bi-clipboard-plus display-6"></i>
-                </div>
-                <h4 class="card-title fw-bold text-dark">יומן ייצור</h4>
-                <p class="card-text text-secondary mb-3">רישום ייצור יומי</p>
-                <div class="dropdown">
-                    <button class="btn btn-success dropdown-toggle w-100" type="button" id="productionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        בחר סוג ייצור
-                    </button>
-                    <ul class="dropdown-menu w-100" aria-labelledby="productionDropdown">
-                        <li><a class="dropdown-item" href="{{ url_for('main.production') }}"><i class="bi bi-box-seam me-2"></i>מוצרים</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('main.premake_production') }}"><i class="bi bi-blender me-2"></i>הכנות מקדימות</a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Inventory Action -->
     <div class="col-md-4 mb-4">
