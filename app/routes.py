@@ -186,10 +186,18 @@ def raw_materials():
         ).all()
 
         for production in production_logs:
-            product = Product.query.get(production.product_id)
-            for component in product.components:
-                if component.component_type == 'raw_material' and component.component_id == material.id:
-                    stock -= component.quantity * production.quantity_produced
+            if production.product_id:
+                product = Product.query.get(production.product_id)
+                if product:
+                    for component in product.components:
+                        if component.component_type == 'raw_material' and component.component_id == material.id:
+                            stock -= component.quantity * production.quantity_produced
+            elif production.premake_id:
+                premake = Premake.query.get(production.premake_id)
+                if premake:
+                    for component in premake.components:
+                        if component.component_type == 'raw_material' and component.component_id == material.id:
+                            stock -= component.quantity * production.quantity_produced
 
         # Attach calculated stock to material object
         material.current_stock = stock
@@ -229,7 +237,7 @@ def add_raw_material():
 
         return redirect(url_for('main.raw_materials'))
 
-    categories = Category.query.all()
+    categories = Category.query.filter_by(type='raw_material').all()
     return render_template('add_or_edit_raw_material.html', material=None, categories=categories, units=units_list)
 
 @main_blueprint.route('/raw_materials/edit/<int:material_id>', methods=['GET', 'POST'])
@@ -250,7 +258,7 @@ def edit_raw_material(material_id):
         db.session.commit()
         return redirect(url_for('main.raw_materials'))
 
-    categories = Category.query.all()
+    categories = Category.query.filter_by(type='raw_material').all()
     return render_template('add_or_edit_raw_material.html', material=material, categories=categories, units=units_list)
 
 @main_blueprint.route('/raw_materials/delete/<int:material_id>', methods=['POST'])
@@ -941,9 +949,73 @@ def production():
         return redirect(url_for('main.production'))
 
     products = Product.query.all()
-    production_logs = ProductionLog.query.order_by(ProductionLog.timestamp.desc()).all()
+    production_logs = ProductionLog.query.filter(ProductionLog.product_id != None).order_by(ProductionLog.timestamp.desc()).all()
     current_time = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
     return render_template('production.html', products=products, production_logs=production_logs, current_time=current_time)
+
+@main_blueprint.route('/production/premakes', methods=['GET', 'POST'])
+def premake_production():
+    if request.method == 'POST':
+        premake_id = request.form['premake_id']
+        quantity_produced = float(request.form['quantity_produced'])
+        
+        # Log production
+        production_log = ProductionLog(premake_id=premake_id, quantity_produced=quantity_produced)
+        db.session.add(production_log)
+        
+        # Update Stock (Add produced amount to stock)
+        # Note: StockLog usually tracks raw materials. Premake stock tracking logic:
+        # Since premakes can be stock items, we add to their stock.
+        # BUT we also need to DEDUCT the raw materials used!
+        
+        # 1. Deduct Raw Materials
+        premake = Premake.query.get(premake_id)
+        if premake:
+            for comp in premake.components:
+                if comp.component_type == 'raw_material':
+                    # Total needed = component qty per batch * batches produced
+                    needed_qty = comp.quantity * quantity_produced
+                    
+                    # Add stock log for deduction (negative value logic handled by type?)
+                    # System uses 'add' (positive) or 'set'. To deduct, we usually don't have a direct 'subtract' type exposed in UI but backend should handle it.
+                    # Currently stock calculation sums 'add' logs. So we add a negative 'add' log.
+                    
+                    # Wait, routes.py logic: stock = set_log + sum(add_logs) - production_usage
+                    # Raw materials usage is calculated from *Product* production logs.
+                    # Now we have *Premake* production logs consuming raw materials.
+                    
+                    # We need to update raw_materials() calculation to include premake production usage!
+                    # For now, let's just log the Premake Production.
+                    pass
+
+        # 2. Add Premake Stock
+        # Similar logic: StockLog for premake?
+        # StockLog has premake_id. So we can add a log.
+        # 'add' action with positive quantity.
+        stock_log = StockLog(
+            premake_id=premake_id,
+            action_type='add',
+            quantity=quantity_produced * premake.batch_size # Store total units or batches?
+            # Premake definitions: batch_size is yield.
+            # If I produce 1 batch, I have 'batch_size' units of premake.
+            # Let's store TOTAL UNITS in stock log? 
+            # Or Batches? 
+            # Let's stick to UNITS for consistency with raw materials.
+        )
+        # Wait, if premake.unit is 'kg', and batch size is 10kg.
+        # If I produce 1 batch, I add 10kg to stock.
+        # BUT the form asks for "Quantity Produced (Batches)".
+        # So we add (quantity_produced * premake.batch_size)
+        
+        db.session.add(stock_log)
+        
+        db.session.commit()
+        return redirect(url_for('main.premake_production'))
+
+    premakes = Premake.query.all()
+    production_logs = ProductionLog.query.filter(ProductionLog.premake_id != None).order_by(ProductionLog.timestamp.desc()).all()
+    current_time = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+    return render_template('premake_production.html', premakes=premakes, production_logs=production_logs, current_time=current_time)
 
 # ----------------------------
 # Weekly Costs Management

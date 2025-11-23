@@ -34,7 +34,15 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto align-items-center">
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('main.index') }}">ראשי</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('main.production') }}">ייצור</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="productionDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        ייצור
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="productionDropdown">
+                        <li><a class="dropdown-item" href="{{ url_for('main.production') }}">מוצרים</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('main.premake_production') }}">הכנות מקדימות</a></li>
+                    </ul>
+                </li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('main.products') }}">{{ _('Products') }}</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('main.premakes') }}">הכנות מקדימות</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('main.raw_materials') }}">חומרי גלם</a></li>

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}יומן ייצור הכנות מקדימות{% endblock %}
+{% block content %}
+<h1>יומן ייצור הכנות מקדימות</h1>
+
+<!-- Form to Log New Premake Production -->
+<form method="POST" class="p-4 bg-white border rounded shadow-sm">
+    <div class="form-group mb-3">
+        <label for="timestamp">{{ _('Timestamp') }}</label>
+        <input type="datetime-local" id="timestamp" name="timestamp" class="form-control" value="{{ current_time }}" required>
+    </div>
+    <div class="form-group mb-3">
+        <label for="premake_id" class="form-label">בחר הכנה מקדימה</label>
+        <select id="premake_id" name="premake_id" class="form-select select2" required>
+            <option value="" disabled selected>בחר הכנה...</option>
+            {% for premake in premakes %}
+            <option value="{{ premake.id }}">{{ premake.name }} ({{ premake.unit }})</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group mb-3">
+        <label for="quantity_produced">כמות שיוצרה (מספר באצ'ים)</label>
+        <input type="number" id="quantity_produced" name="quantity_produced" class="form-control" step="0.1" required>
+        <div class="form-text">כמה יחידות מתכון (Batches) יוצרו?</div>
+    </div>
+    <button type="submit" class="btn btn-primary">{{ _('Log Production') }}</button>
+</form>
+
+<hr>
+
+<!-- Display Recent Production Logs -->
+<h2>היסטוריית ייצור הכנות</h2>
+<table class="table table-bordered table-hover">
+    <thead class="table-dark">
+    <tr>
+        <th>{{ _('Date') }}</th>
+        <th>הכנה</th>
+        <th>כמות שיוצרה (Batches)</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for log in production_logs %}
+    <tr>
+        <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+        <td>{{ log.premake.name }}</td>
+        <td>{{ log.quantity_produced }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

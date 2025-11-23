@@ -52,9 +52,11 @@
         <!-- Premakes Section -->
         <h4 class="mb-3 fw-bold">הכנות מקדימות</h4>
         <div id="premakes-container" class="mb-4">
+            {% set has_premakes = false %}
             {% if product %}
                 {% for component in product.components %}
                     {% if component.component_type == 'premake' %}
+                    {% set has_premakes = true %}
                     <div class="row g-2 mb-2 align-items-center premake-row">
                         <div class="col-md-5">
                             <select name="premake[]" class="form-select select2-premake">
@@ -75,6 +77,27 @@
                     {% endif %}
                 {% endfor %}
             {% endif %}
+
+            {% if not has_premakes %}
+             <div class="row g-2 mb-2 align-items-center premake-row">
+                <div class="col-md-5">
+                    <select name="premake[]" class="form-select select2-premake">
+                        <option value="" disabled selected>בחר הכנה מקדימה...</option>
+                        {% for premake_option in all_premakes %}
+                            <option value="{{ premake_option.id }}">
+                                {{ premake_option.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="number" name="premake_quantity[]" class="form-control" placeholder="כמות" step="0.001">
+                </div>
+                <div class="col-md-auto">
+                    <button type="button" class="btn btn-outline-danger" onclick="this.closest('.premake-row').remove()"><i class="bi bi-x-lg"></i></button>
+                </div>
+            </div>
+            {% endif %}
         </div>
         <button type="button" class="btn btn-outline-primary mb-4" onclick="addPremakeRow()">
             <i class="bi bi-plus-lg me-2"></i>הוסף הכנה מקדימה
@@ -83,12 +106,14 @@
         <!-- Raw Materials Section -->
         <h4 class="mb-3 fw-bold">חומרי גלם נדרשים</h4>
         <div id="raw-materials-container" class="mb-4">
+            {% set has_raw_materials = false %}
             {% if product %}
                 {% for component in product.components %}
                     {% if component.component_type == 'raw_material' %}
+                    {% set has_raw_materials = true %}
                     <div class="row g-2 mb-2 align-items-center raw-material-row">
                         <div class="col-md-5">
-                            <select name="raw_material[]" class="form-select">
+                            <select name="raw_material[]" class="form-select select2">
                                 {% for material_option in all_raw_materials %}
                                     <option value="{{ material_option.id }}" {% if component.component_id == material_option.id %}selected{% endif %}>
                                         {{ material_option.name }}
@@ -106,6 +131,27 @@
                     {% endif %}
                 {% endfor %}
             {% endif %}
+
+            {% if not has_raw_materials %}
+            <div class="row g-2 mb-2 align-items-center raw-material-row">
+                <div class="col-md-5">
+                    <select name="raw_material[]" class="form-select select2">
+                         <option value="" disabled selected>בחר חומר גלם...</option>
+                        {% for material_option in all_raw_materials %}
+                            <option value="{{ material_option.id }}">
+                                {{ material_option.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="כמות" step="0.01">
+                </div>
+                <div class="col-md-auto">
+                    <button type="button" class="btn btn-outline-danger" onclick="this.closest('.raw-material-row').remove()"><i class="bi bi-x-lg"></i></button>
+                </div>
+            </div>
+            {% endif %}
         </div>
         <button type="button" class="btn btn-outline-primary mb-4" onclick="addRawMaterialRow()">
             <i class="bi bi-plus-lg me-2"></i>הוסף חומר גלם
@@ -114,12 +160,14 @@
         <!-- Packaging Section -->
         <h4 class="mb-3 fw-bold">אריזות נדרשות</h4>
         <div id="packaging-container" class="mb-4">
+            {% set has_packaging = false %}
             {% if product %}
                 {% for component in product.components %}
                     {% if component.component_type == 'packaging' %}
+                    {% set has_packaging = true %}
                     <div class="row g-2 mb-2 align-items-center packaging-row">
                         <div class="col-md-5">
-                            <select name="packaging[]" class="form-select">
+                            <select name="packaging[]" class="form-select select2">
                                 {% for packaging_option in all_packaging %}
                                     <option value="{{ packaging_option.id }}" {% if component.component_id == packaging_option.id %}selected{% endif %}>
                                         {{ packaging_option.name }}
@@ -136,6 +184,27 @@
                     </div>
                     {% endif %}
                 {% endfor %}
+            {% endif %}
+
+            {% if not has_packaging %}
+            <div class="row g-2 mb-2 align-items-center packaging-row">
+                <div class="col-md-5">
+                    <select name="packaging[]" class="form-select select2">
+                        <option value="" disabled selected>בחר אריזה...</option>
+                        {% for packaging_option in all_packaging %}
+                            <option value="{{ packaging_option.id }}">
+                                {{ packaging_option.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="number" name="packaging_quantity[]" class="form-control" placeholder="כמות" step="0.01">
+                </div>
+                <div class="col-md-auto">
+                    <button type="button" class="btn btn-outline-danger" onclick="this.closest('.packaging-row').remove()"><i class="bi bi-x-lg"></i></button>
+                </div>
+            </div>
             {% endif %}
         </div>
         <button type="button" class="btn btn-outline-primary mb-4" onclick="addPackagingRow()">
@@ -336,7 +405,7 @@
         const rowHtml = `
             <div class="row g-2 mb-2 align-items-center premake-row">
                 <div class="col-md-5">
-                    <select name="premake[]" class="form-select select2">
+                    <select name="premake[]" class="form-select select2-premake">
                         ${optionsHtml}
                     </select>
                 </div>
@@ -354,32 +423,21 @@
         
         container.appendChild(rowElement);
 
-        $(rowElement).find('.select2').select2({
+        $(rowElement).find('.select2-premake').select2({
             theme: 'bootstrap-5',
             width: '100%',
             language: { noResults: () => "לא נמצאו תוצאות" }
         });
     }
 
-    // Initialize empty rows for new products only
+    // Initialize select2 on existing rows
     document.addEventListener('DOMContentLoaded', function() {
-        // Check if this is a new product (no existing rows)
-        const hasExistingMaterials = document.querySelectorAll('.raw-material-row').length > 0;
-        const hasExistingPackaging = document.querySelectorAll('.packaging-row').length > 0;
-        const hasExistingPremakes = document.querySelectorAll('.premake-row').length > 0;
-
-        // Only add empty rows for new products
-        if (!hasExistingMaterials) {
-            addRawMaterialRow();
-        }
-        if (!hasExistingPackaging) {
-            addPackagingRow();
-        }
-        if (!hasExistingPremakes) {
-            addPremakeRow();
-        }
+        $('.select2').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            language: { noResults: () => "לא נמצאו תוצאות" }
+        });
         
-        // Initialize existing select2s (for edit mode)
         $('.select2-premake').select2({
             theme: 'bootstrap-5',
             width: '100%',

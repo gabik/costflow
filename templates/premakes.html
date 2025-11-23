@@ -27,11 +27,11 @@
                 <td>
                     <div class="btn-group" role="group">
                         <a href="{{ url_for('main.edit_premake', premake_id=premake.id) }}" class="btn btn-sm btn-warning" title="ערוך">
-                            <i class="fas fa-edit"></i>
+                            <i class="bi bi-pencil"></i>
                         </a>
                         <form action="{{ url_for('main.delete_premake', premake_id=premake.id) }}" method="POST" class="d-inline" onsubmit="return confirm('האם אתה בטוח שברצונך למחוק הכנה זו?');">
                             <button type="submit" class="btn btn-sm btn-danger" title="מחק">
-                                <i class="fas fa-trash"></i>
+                                <i class="bi bi-trash"></i>
                             </button>
                         </form>
                     </div>
