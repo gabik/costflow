@@ -26,8 +26,8 @@
                 <i class="bi bi-plus-circle me-1"></i> ייצור חדש
             </button>
             <ul class="dropdown-menu" aria-labelledby="productionDropdown">
-                <li><a class="dropdown-item" href="{{ url_for('main.production') }}"><i class="bi bi-box-seam me-2"></i>מוצרים</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('main.premake_production') }}"><i class="bi bi-blender me-2"></i>הכנות מקדימות</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('production.production') }}"><i class="bi bi-box-seam me-2"></i>מוצרים</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('production.premake_production') }}"><i class="bi bi-blender me-2"></i>הכנות מקדימות</a></li>
             </ul>
         </div>
         {% if selected_week %}
@@ -303,7 +303,7 @@ function handleWeekChange(select) {
 
     <!-- Product Production Action -->
     <div class="col-md-3 mb-4">
-        <a href="{{ url_for('main.production') }}" class="text-decoration-none">
+        <a href="{{ url_for('production.production') }}" class="text-decoration-none">
             <div class="card shadow-sm h-100 hover-shadow transition-all">
                 <div class="card-body text-center p-4">
                     <div class="icon-box bg-light text-success rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
@@ -318,7 +318,7 @@ function handleWeekChange(select) {
 
     <!-- Premake Production Action -->
     <div class="col-md-3 mb-4">
-        <a href="{{ url_for('main.premake_production') }}" class="text-decoration-none">
+        <a href="{{ url_for('production.premake_production') }}" class="text-decoration-none">
             <div class="card shadow-sm h-100 hover-shadow transition-all">
                 <div class="card-body text-center p-4">
                     <div class="icon-box bg-light text-primary rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
