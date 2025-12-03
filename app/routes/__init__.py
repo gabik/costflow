@@ -5,3 +5,4 @@ from .labor import labor_blueprint
 from .packaging import packaging_blueprint
 from .production import production_blueprint
 from .weekly_costs import weekly_costs_blueprint
+from .reports import reports_blueprint

@@ -14,7 +14,7 @@
 <!-- Week Selector -->
 <div class="row mb-4">
     <div class="col-md-6">
-        <form method="GET" action="{{ url_for('main.weekly_report') }}" class="d-flex gap-2 align-items-center">
+        <form method="GET" action="{{ url_for('reports.weekly_report') }}" class="d-flex gap-2 align-items-center">
             <label for="week_start" class="form-label mb-0 text-nowrap">בחר שבוע:</label>
             <select name="week_start" id="week_start" class="form-select select2" onchange="this.form.submit()">
                 {% for week in weeks %}
@@ -82,7 +82,7 @@
 <div class="card mb-4">
     <div class="card-header bg-light d-flex justify-content-between align-items-center">
         <h5 class="mb-0"><i class="bi bi-calculator me-2"></i>ניתוח עלות מזון (Food Cost)</h5>
-        <a href="{{ url_for('main.monthly_report') }}" class="btn btn-sm btn-outline-primary">
+        <a href="{{ url_for('reports.monthly_report') }}" class="btn btn-sm btn-outline-primary">
             <i class="bi bi-bar-chart-line me-1"></i>מגמות חודשיות
         </a>
     </div>
