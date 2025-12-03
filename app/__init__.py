@@ -37,7 +37,7 @@ def create_app():
     db.init_app(app)
 
     # Register blueprints
-    from .routes import main_blueprint, admin_blueprint, categories_blueprint, labor_blueprint, packaging_blueprint, production_blueprint, weekly_costs_blueprint, reports_blueprint
+    from .routes import main_blueprint, admin_blueprint, categories_blueprint, labor_blueprint, packaging_blueprint, production_blueprint, weekly_costs_blueprint, reports_blueprint, inventory_blueprint
     app.register_blueprint(main_blueprint)
     app.register_blueprint(admin_blueprint)
     app.register_blueprint(categories_blueprint)
@@ -46,6 +46,7 @@ def create_app():
     app.register_blueprint(production_blueprint)
     app.register_blueprint(weekly_costs_blueprint)
     app.register_blueprint(reports_blueprint)
+    app.register_blueprint(inventory_blueprint)
 
     with app.app_context():
         db.create_all()

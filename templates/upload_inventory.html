@@ -35,7 +35,7 @@
         <h5 class="mb-0">סקירת נתונים ואישור שינויים</h5>
     </div>
     <div class="card-body">
-        <form method="POST" action="{{ url_for('main.confirm_inventory_upload') }}">
+        <form method="POST" action="{{ url_for('inventory.confirm_inventory_upload') }}">
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
@@ -94,7 +94,7 @@
             </div>
             
             <div class="mt-4 d-flex justify-content-end gap-2">
-                <a href="{{ url_for('main.upload_inventory') }}" class="btn btn-secondary">ביטול</a>
+                <a href="{{ url_for('inventory.upload_inventory') }}" class="btn btn-secondary">ביטול</a>
                 <button type="submit" class="btn btn-success btn-lg">
                     <i class="bi bi-check-lg me-2"></i> אשר ועדכן מלאי
                 </button>
