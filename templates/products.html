@@ -8,7 +8,7 @@
             <h1 class="display-6 fw-bold text-primary">מוצרים</h1>
             <p class="text-secondary">ניהול מוצרים, מתכונים ועלויות.</p>
         </div>
-        <a href="{{ url_for('main.add_product') }}" class="btn btn-primary">
+        <a href="{{ url_for('products.add_product') }}" class="btn btn-primary">
             <i class="bi bi-plus-lg me-2"></i> הוסף מוצר חדש
         </a>
     </div>
@@ -79,10 +79,10 @@
                 </td>
                 <td class="text-end">
                     <div class="btn-group">
-                        <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary" title="צפה בפרטים">
+                        <a href="{{ url_for('products.product_detail', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary" title="צפה בפרטים">
                             <i class="bi bi-eye"></i>
                         </a>
-                        <a href="{{ url_for('main.edit_product', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary" title="ערוך">
+                        <a href="{{ url_for('products.edit_product', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary" title="ערוך">
                             <i class="bi bi-pencil"></i>
                         </a>
                     </div>

@@ -82,6 +82,12 @@ class PremakeComponent(db.Model):
             return Packaging.query.get(self.component_id)
         return None
 
+    @property
+    def premake(self):
+        if self.component_type == 'premake':
+            return Premake.query.get(self.component_id)
+        return None
+
     def to_dict(self):
         return {
             'id': self.id,

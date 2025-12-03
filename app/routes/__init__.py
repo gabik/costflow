@@ -7,3 +7,4 @@ from .production import production_blueprint
 from .weekly_costs import weekly_costs_blueprint
 from .reports import reports_blueprint
 from .inventory import inventory_blueprint
+from .products import products_blueprint
