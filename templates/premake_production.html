@@ -138,10 +138,13 @@ function updateCalculation() {
 }
 
 // Bind Select2 change event since standard onchange might not fire immediately with jQuery events
-$(document).ready(function() {
-    $('#premake_id').on('select2:select', function (e) {
-        updateCalculation();
-    });
+document.addEventListener('DOMContentLoaded', function() {
+    // Ensure jQuery is available for Select2 events if needed
+    if (typeof $ !== 'undefined') {
+        $('#premake_id').on('select2:select', function (e) {
+            updateCalculation();
+        });
+    }
 
     // Handle Edit Premake Production Modal show event
     var editPremakeProductionModal = document.getElementById('editPremakeProductionModal');
