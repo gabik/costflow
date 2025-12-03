@@ -60,16 +60,7 @@
             </div>
             <div class="card-body">
                 <div id="raw_materials_container">
-                    {% set raw_material_components = [] %}
-                    {% if premake %}
-                        {% for component in premake.components %}
-                            {% if component.component_type == 'raw_material' %}
-                                {% set _ = raw_material_components.append(component) %}
-                            {% endif %}
-                        {% endfor %}
-                    {% endif %}
-
-                    {% for component in raw_material_components %}
+                    {% for component in premake_components %}
                         <div class="row g-2 mb-2 align-items-center raw-material-row">
                             <div class="col-md-5">
                                 <select name="raw_material[]" class="form-select select2-material" required onchange="handleMaterialChange(this)">
@@ -97,10 +88,7 @@
                                 </button>
                             </div>
                         </div>
-                    {% endfor %}
-
-                    {# If no raw materials found (new premake or existing one with none), render one empty row #}
-                    {% if not raw_material_components %}
+                    {% else %}
                     <div class="row g-2 mb-2 align-items-center raw-material-row">
                         <div class="col-md-5">
                             <select name="raw_material[]" class="form-select select2-material" required onchange="handleMaterialChange(this)">
@@ -126,7 +114,7 @@
                             </button>
                         </div>
                     </div>
-                    {% endif %}
+                    {% endfor %}
                 </div>
             </div>
         </div>
