@@ -6,7 +6,7 @@
     <div class="col">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ url_for('main.weekly_costs') }}">עלויות שבועיות</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('weekly_costs.weekly_costs') }}">עלויות שבועיות</a></li>
                 <li class="breadcrumb-item active" aria-current="page">שבוע {{ week.week_start_date.strftime('%d/%m/%Y') }}</li>
             </ol>
         </nav>
@@ -28,7 +28,7 @@
         <div class="card shadow-sm h-100">
             <div class="card-header bg-white fw-bold">הוספת שעות עובד</div>
             <div class="card-body">
-                <form method="POST" action="{{ url_for('main.add_weekly_labor', week_id=week.id) }}">
+                <form method="POST" action="{{ url_for('weekly_costs.add_weekly_labor', week_id=week.id) }}">
                     <div class="mb-3">
                         <label for="employee_id" class="form-label">עובד / תפקיד</label>
                         <select name="employee_id" id="employee_id" class="form-select select2" required>
@@ -78,7 +78,7 @@
                                 <td class="text-center">{{ entry.hours }}</td>
                                 <td class="text-end">{{ currency_symbol }}{{ "%.2f"|format(entry.cost) }}</td>
                                 <td class="text-end">
-                                    <form method="POST" action="{{ url_for('main.delete_weekly_labor', week_id=week.id, entry_id=entry.id) }}" onsubmit="return confirm('להסיר שורה זו?');">
+                                    <form method="POST" action="{{ url_for('weekly_costs.delete_weekly_labor', week_id=week.id, entry_id=entry.id) }}" onsubmit="return confirm('להסיר שורה זו?');">
                                         <button type="submit" class="btn btn-link text-danger p-0 btn-sm">
                                             <i class="bi bi-trash"></i>
                                         </button>

@@ -32,7 +32,7 @@
                     <td class="text-success fw-bold">{{ currency_symbol }}{{ "%.2f"|format(week.total_cost) }}</td>
                     <td>{{ week.entries|length }}</td>
                     <td class="text-end">
-                        <a href="{{ url_for('main.weekly_cost_details', week_id=week.id) }}" class="btn btn-sm btn-outline-primary">
+                        <a href="{{ url_for('weekly_costs.weekly_cost_details', week_id=week.id) }}" class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-pencil me-1"></i> פרטים ועדכון
                         </a>
                     </td>

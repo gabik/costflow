@@ -31,10 +31,10 @@
             </ul>
         </div>
         {% if selected_week %}
-        <a href="{{ url_for('main.update_weekly_sales', week_id=selected_week.id) }}" class="btn btn-success text-nowrap">
+        <a href="{{ url_for('weekly_costs.update_weekly_sales', week_id=selected_week.id) }}" class="btn btn-success text-nowrap">
             <i class="bi bi-cart-check me-1"></i> עדכון מכירות
         </a>
-        <a href="{{ url_for('main.weekly_cost_details', week_id=selected_week.id) }}" class="btn btn-outline-primary text-nowrap">
+        <a href="{{ url_for('weekly_costs.weekly_cost_details', week_id=selected_week.id) }}" class="btn btn-outline-primary text-nowrap">
             <i class="bi bi-people me-1"></i> עדכון לייבור
         </a>
         {% endif %}
@@ -145,7 +145,7 @@
 <script>
 function handleWeekChange(select) {
     if (select.value === 'new_week') {
-        window.location.href = "{{ url_for('main.weekly_costs') }}";
+        window.location.href = "{{ url_for('weekly_costs.weekly_costs') }}";
     } else {
         document.getElementById('weekSelectorForm').submit();
     }
@@ -259,7 +259,7 @@ function handleWeekChange(select) {
 <div class="text-center py-5">
     <h3>ברוכים הבאים ל-CostFlow</h3>
     <p class="text-muted">כדי להתחיל, בחר שבוע קיים או צור שבוע חדש.</p>
-    <a href="{{ url_for('main.weekly_costs') }}" class="btn btn-primary btn-lg mt-3">ניהול שבועות</a>
+    <a href="{{ url_for('weekly_costs.weekly_costs') }}" class="btn btn-primary btn-lg mt-3">ניהול שבועות</a>
 </div>
 {% endif %}
 
@@ -271,7 +271,7 @@ function handleWeekChange(select) {
     
     <!-- Weekly Labor Action -->
     <div class="col-md-3 mb-4">
-        <a href="{{ url_for('main.weekly_costs') }}" class="text-decoration-none">
+        <a href="{{ url_for('weekly_costs.weekly_costs') }}" class="text-decoration-none">
             <div class="card shadow-sm h-100 hover-shadow transition-all">
                 <div class="card-body text-center p-4">
                     <div class="icon-box bg-light text-primary rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">

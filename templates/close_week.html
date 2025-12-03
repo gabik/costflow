@@ -12,7 +12,7 @@
         <p>האם לאפס את המלאי ולהעביר את היתרה לפחת (הפסד)?</p>
     </div>
 
-    <form method="POST" action="{{ url_for('main.close_week_confirm') }}" id="closeWeekForm">
+    <form method="POST" action="{{ url_for('weekly_costs.close_week_confirm') }}" id="closeWeekForm">
         <input type="hidden" name="previous_week_id" value="{{ previous_week.id }}">
         <input type="hidden" name="new_week_start_date" value="{{ new_week_start_date }}">
 
@@ -104,7 +104,7 @@
 
             <!-- Update: Go to Update Sales -->
             <div class="col-md-5">
-                <a href="{{ url_for('main.update_weekly_sales', week_id=previous_week.id) }}" class="btn btn-outline-primary btn-lg w-100 p-4 shadow-sm text-decoration-none">
+                <a href="{{ url_for('weekly_costs.update_weekly_sales', week_id=previous_week.id) }}" class="btn btn-outline-primary btn-lg w-100 p-4 shadow-sm text-decoration-none">
                     <div class="h4 mb-1"><i class="bi bi-pencil-square me-2"></i>עדכן מכירות</div>
                     <small>חזור לעדכון נתוני המכירות של השבוע הקודם (אם נמכרו).</small>
                 </a>
