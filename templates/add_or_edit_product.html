@@ -645,20 +645,7 @@
             }
         });
 
-        const hasRawMaterialRows = document.querySelectorAll('.raw-material-row').length > 0;
-        if (!hasRawMaterialRows) {
-            addRawMaterialRow();
-        }
 
-        const hasPackagingRows = document.querySelectorAll('.packaging-row').length > 0;
-        if (!hasPackagingRows) {
-            addPackagingRow();
-        }
-
-        const hasPremakeRows = document.querySelectorAll('.premake-row').length > 0;
-        if (!hasPremakeRows) {
-           addPremakeRow();
-        }
         
         // Handle Add Category Modal Type
         const addCategoryModal = document.getElementById('addCategoryModal');
