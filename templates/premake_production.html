@@ -59,7 +59,7 @@
         <td>
             <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editPremakeProductionModal" 
                     data-log-id="{{ log.id }}" data-premake-name="{{ log.premake.name }}" 
-                    data-quantity-units="{{ "%.2f"|format(log.quantity_produced * log.premake.batch_size) }}" data-unit="{{ log.premake.unit }}">
+                    data-quantity-units="{{ '%.2f'|format(log.quantity_produced * log.premake.batch_size) }}" data-unit="{{ log.premake.unit }}">
                 {{ _('Edit') }}
             </button>
             <form action="{{ url_for('production.delete_premake_production_log', log_id=log.id) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ _('Are you sure you want to delete this premake production log?') }}');">
@@ -144,25 +144,35 @@ $(document).ready(function() {
 
     // Handle Edit Premake Production Modal show event
     var editPremakeProductionModal = document.getElementById('editPremakeProductionModal');
-    editPremakeProductionModal.addEventListener('show.bs.modal', function (event) {
-        var button = event.relatedTarget; // Button that triggered the modal
-        var logId = button.getAttribute('data-log-id');
-        var premakeName = button.getAttribute('data-premake-name');
-        var quantityUnits = button.getAttribute('data-quantity-units');
-        var unit = button.getAttribute('data-unit');
+    if (editPremakeProductionModal) {
+        editPremakeProductionModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            
+            // Use dataset for cleaner access
+            var logId = button.dataset.logId;
+            var premakeName = button.dataset.premakeName;
+            var quantityUnits = button.dataset.quantityUnits;
+            var unit = button.dataset.unit;
 
-        var modalTitle = editPremakeProductionModal.querySelector('.modal-title');
-        var editPremakeNameInput = editPremakeProductionModal.querySelector('#edit_premake_name');
-        var editPremakeQuantityInput = editPremakeProductionModal.querySelector('#edit_premake_quantity_produced');
-        var editPremakeUnitDisplay = editPremakeProductionModal.querySelector('#edit_premake_unit_display');
-        var editForm = editPremakeProductionModal.querySelector('#editPremakeProductionForm');
+            console.log("Edit Modal Open:", { logId, premakeName, quantityUnits, unit });
 
-        modalTitle.textContent = `{{ _('Edit Premake Production Quantity for') }} ${premakeName}`;
-        editPremakeNameInput.value = premakeName;
-        editPremakeQuantityInput.value = quantityUnits;
-        editPremakeUnitDisplay.textContent = unit;
-        editForm.action = `{{ url_for('production.edit_premake_production_log', log_id=0) }}`.replace('0', logId);
-    });
+            var modalTitle = editPremakeProductionModal.querySelector('.modal-title');
+            var editPremakeNameInput = editPremakeProductionModal.querySelector('#edit_premake_name');
+            var editPremakeQuantityInput = editPremakeProductionModal.querySelector('#edit_premake_quantity_produced');
+            var editPremakeUnitDisplay = editPremakeProductionModal.querySelector('#edit_premake_unit_display');
+            var editForm = editPremakeProductionModal.querySelector('#editPremakeProductionForm');
+
+            if (modalTitle) modalTitle.textContent = `{{ _('Edit Premake Production Quantity for') }} ${premakeName}`;
+            if (editPremakeNameInput) editPremakeNameInput.value = premakeName;
+            if (editPremakeQuantityInput) editPremakeQuantityInput.value = quantityUnits;
+            if (editPremakeUnitDisplay) editPremakeUnitDisplay.textContent = unit;
+            
+            if (editForm) {
+                var actionUrl = "{{ url_for('production.edit_premake_production_log', log_id=0) }}";
+                editForm.action = actionUrl.replace('0', logId);
+            }
+        });
+    }
 });
 </script>
 {% endblock %}
