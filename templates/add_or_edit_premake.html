@@ -72,11 +72,11 @@
                     {% for component in raw_material_components %}
                         <div class="row g-2 mb-2 align-items-center raw-material-row">
                             <div class="col-md-5">
-                                <select name="raw_material[]" class="form-select select2-material" required onchange="handleMaterialChange(this)">
+                                <select name="raw_material[]" class="form-select select2" required onchange="handleMaterialChange(this)">
                                     <option value="">בחר חומר גלם</option>
-                                    {% for material in all_raw_materials %}
-                                    <option value="{{ material.id }}" data-unit="{{ material.unit }}" {% if material.id == component.component_id %}selected{% endif %}>
-                                        {{ material.name }} ({{ material.unit }}) - {{ material.cost_per_unit }} ₪
+                                    {% for mat_opt in all_raw_materials %}
+                                    <option value="{{ mat_opt.id }}" data-unit="{{ mat_opt.unit }}" {% if mat_opt.id == component.component_id %}selected{% endif %}>
+                                        {{ mat_opt.name }} ({{ mat_opt.unit }}) - {{ mat_opt.cost_per_unit }} ₪
                                     </option>
                                     {% endfor %}
                                 </select>
@@ -103,11 +103,11 @@
                     {% if not raw_material_components %}
                     <div class="row g-2 mb-2 align-items-center raw-material-row">
                         <div class="col-md-5">
-                            <select name="raw_material[]" class="form-select select2-material" required onchange="handleMaterialChange(this)">
+                            <select name="raw_material[]" class="form-select select2" required onchange="handleMaterialChange(this)">
                                 <option value="" disabled selected>בחר חומר גלם...</option>
-                                {% for material in all_raw_materials %}
-                                <option value="{{ material.id }}" data-unit="{{ material.unit }}">
-                                    {{ material.name }} ({{ material.unit }}) - {{ material.cost_per_unit }} ₪
+                                {% for mat_opt in all_raw_materials %}
+                                <option value="{{ mat_opt.id }}" data-unit="{{ mat_opt.unit }}">
+                                    {{ mat_opt.name }} ({{ mat_opt.unit }}) - {{ mat_opt.cost_per_unit }} ₪
                                 </option>
                                 {% endfor %}
                             </select>
@@ -173,7 +173,7 @@
         const rowHtml = `
             <div class="row g-2 mb-2 align-items-center raw-material-row">
                 <div class="col-md-5">
-                    <select name="raw_material[]" class="form-select select2-material" onchange="handleMaterialChange(this)">
+                    <select name="raw_material[]" class="form-select select2" onchange="handleMaterialChange(this)">
                         ${optionsHtml}
                     </select>
                 </div>
@@ -199,7 +199,7 @@
         container.appendChild(rowElement);
         
         // Initialize Select2
-        $(rowElement).find('.select2-material').select2({
+        $(rowElement).find('.select2').select2({
             theme: 'bootstrap-5',
             width: '100%',
             language: { noResults: () => "לא נמצאו תוצאות" }
@@ -214,14 +214,6 @@
         const row = selectElement.closest('.row');
         const unitSelect = row.querySelector('.unit-select');
         
-        // Get selected option's data-unit
-        // If Select2 is used, $(selectElement).find(':selected').data('unit') might be needed if DOM not updated,
-        // but usually 'change' event on select works.
-        // However, Select2 doesn't update the DOM selected attribute on the original select reliably for native properties.
-        // Better to use Select2 data.
-        
-        // If this is triggered by onchange attribute on select element, 'this' is the select.
-        // Try native way first.
         const selectedOption = selectElement.options[selectElement.selectedIndex];
         const baseUnit = selectedOption.getAttribute('data-unit');
         
@@ -251,20 +243,20 @@
     
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize select2 for existing rows (server-rendered)
-        $('.select2-material').select2({
+        $('.select2').select2({
             theme: 'bootstrap-5',
             width: '100%',
             language: { noResults: () => "לא נמצאו תוצאות" }
         });
         
         // Bind Select2 change event because native onchange doesn't always fire with Select2
-        $(document.body).on('select2:select', '.select2-material', function(e) {
+        $(document.body).on('select2:select', '.select2', function(e) {
             handleMaterialChange(this);
         });
         
         // Update units for existing rows (in case of edit mode)
         document.querySelectorAll('.raw-material-row').forEach(row => {
-            const matSelect = row.querySelector('.select2-material');
+            const matSelect = row.querySelector('.select2');
             const unitSelect = row.querySelector('.unit-select');
             if (matSelect && unitSelect) {
                 const selectedOption = matSelect.options[matSelect.selectedIndex];
