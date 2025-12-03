@@ -60,44 +60,47 @@
             </div>
             <div class="card-body">
                 <div id="raw_materials_container">
-                    {% set has_raw_materials = false %}
+                    {% set raw_material_components = [] %}
                     {% if premake %}
                         {% for component in premake.components %}
                             {% if component.component_type == 'raw_material' %}
-                                {% set has_raw_materials = true %}
-                                <div class="row g-2 mb-2 align-items-center raw-material-row">
-                                    <div class="col-md-5">
-                                        <select name="raw_material[]" class="form-select select2-material" required onchange="handleMaterialChange(this)">
-                                            <option value="">בחר חומר גלם</option>
-                                            {% for material in all_raw_materials %}
-                                            <option value="{{ material.id }}" data-unit="{{ material.unit }}" {% if material.id == component.component_id %}selected{% endif %}>
-                                                {{ material.name }} ({{ material.unit }}) - {{ material.cost_per_unit }} ₪
-                                            </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <input type="number" step="0.001" name="raw_material_quantity[]" class="form-control" placeholder="כמות" value="{{ component.quantity }}" required>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <!-- Initial unit is the material's base unit because we store it normalized -->
-                                        <select name="raw_material_unit[]" class="form-select unit-select">
-                                            <!-- Populated via JS or default to base -->
-                                            <option value="{{ component.material.unit }}" selected>{{ component.material.unit }}</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-1">
-                                        <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)">
-                                            <i class="bi bi-x-lg"></i>
-                                        </button>
-                                    </div>
-                                </div>
+                                {% set _ = raw_material_components.append(component) %}
                             {% endif %}
                         {% endfor %}
                     {% endif %}
 
+                    {% for component in raw_material_components %}
+                        <div class="row g-2 mb-2 align-items-center raw-material-row">
+                            <div class="col-md-5">
+                                <select name="raw_material[]" class="form-select select2-material" required onchange="handleMaterialChange(this)">
+                                    <option value="">בחר חומר גלם</option>
+                                    {% for material in all_raw_materials %}
+                                    <option value="{{ material.id }}" data-unit="{{ material.unit }}" {% if material.id == component.component_id %}selected{% endif %}>
+                                        {{ material.name }} ({{ material.unit }}) - {{ material.cost_per_unit }} ₪
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="number" step="0.001" name="raw_material_quantity[]" class="form-control" placeholder="כמות" value="{{ component.quantity }}" required>
+                            </div>
+                            <div class="col-md-3">
+                                <!-- Initial unit is the material's base unit because we store it normalized -->
+                                <select name="raw_material_unit[]" class="form-select unit-select">
+                                    <!-- Populated via JS or default to base -->
+                                    <option value="{{ component.material.unit }}" selected>{{ component.material.unit }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-1">
+                                <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
+
                     {# If no raw materials found (new premake or existing one with none), render one empty row #}
-                    {% if not has_raw_materials %}
+                    {% if not raw_material_components %}
                     <div class="row g-2 mb-2 align-items-center raw-material-row">
                         <div class="col-md-5">
                             <select name="raw_material[]" class="form-select select2-material" required onchange="handleMaterialChange(this)">
