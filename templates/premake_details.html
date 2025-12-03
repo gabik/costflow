@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}פרטי הכנה מקדימה - {{ premake.name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="display-6 fw-bold text-primary">{{ premake.name }}</h1>
+            <p class="text-secondary">פרטי מתכון ועלויות</p>
+        </div>
+        <div>
+            <a href="{{ url_for('main.edit_premake', premake_id=premake.id) }}" class="btn btn-outline-primary">
+                <i class="bi bi-pencil me-2"></i>ערוך
+            </a>
+            <a href="{{ url_for('main.premakes') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-right me-2"></i>חזרה לרשימה
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Summary Card -->
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">סיכום עלויות</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>גודל באצ'</span>
+                        <span class="fw-bold">{{ "%.2f"|format(premake.batch_size) }} {{ premake.unit }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>עלות כוללת לבאצ'</span>
+                        <span class="fw-bold">{{ currency_symbol }}{{ "%.2f"|format(total_cost) }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center bg-light">
+                        <span>עלות ליחידה (1 {{ premake.unit }})</span>
+                        <span class="fw-bold text-primary">{{ currency_symbol }}{{ "%.2f"|format(cost_per_unit) }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ingredients Table -->
+    <div class="col-md-8">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">מרכיבים</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>חומר גלם</th>
+                            <th>כמות</th>
+                            <th>מחיר ליחידה</th>
+                            <th>סה"כ עלות</th>
+                            <th>% מהעלות</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in components_data %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td>{{ "%.3f"|format(item.quantity) }} {{ item.unit }}</td>
+                            <td>{{ currency_symbol }}{{ "%.2f"|format(item.cost_per_unit) }}</td>
+                            <td class="fw-bold">{{ currency_symbol }}{{ "%.2f"|format(item.total_cost) }}</td>
+                            <td style="width: 25%;">
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2 small text-muted">{{ "%.1f"|format(item.cost_percentage) }}%</span>
+                                    <div class="progress flex-grow-1" style="height: 5px;">
+                                        <div class="progress-bar" role="progressbar" style="width: {{ item.cost_percentage }}%"></div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% if not components_data %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">אין מרכיבים להכנה זו.</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

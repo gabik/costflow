@@ -821,6 +821,38 @@ def delete_premake(premake_id):
     db.session.commit()
     return redirect(url_for('main.premakes'))
 
+@main_blueprint.route('/premakes/<int:premake_id>', methods=['GET'])
+def premake_detail(premake_id):
+    premake = Premake.query.get_or_404(premake_id)
+    
+    components_data = []
+    total_cost = 0
+    
+    for component in premake.components:
+        if component.component_type == 'raw_material' and component.material:
+            cost = component.quantity * component.material.cost_per_unit
+            total_cost += cost
+            components_data.append({
+                'name': component.material.name,
+                'quantity': component.quantity,
+                'unit': component.material.unit,
+                'cost_per_unit': component.material.cost_per_unit,
+                'total_cost': cost
+            })
+    
+    # Add percentage
+    for item in components_data:
+        item['cost_percentage'] = (item['total_cost'] / total_cost * 100) if total_cost > 0 else 0
+        
+    cost_per_unit = total_cost / premake.batch_size if premake.batch_size > 0 else 0
+    
+    return render_template('premake_details.html', 
+                           premake=premake, 
+                           components_data=components_data, 
+                           total_cost=total_cost, 
+                           cost_per_unit=cost_per_unit,
+                           currency_symbol='₪')
+
 # ----------------------------
 # Products Management
 # ----------------------------
