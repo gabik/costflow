@@ -1,5 +1,5 @@
 from datetime import datetime
-from .models import db, Category, AuditLog, StockLog, ProductionLog, Product, Premake
+from ..models import db, Category, AuditLog, StockLog, ProductionLog, Product, Premake
 
 # Predefined units for raw materials
 units_list = ["kg", "g", "ml", "l", "piece"]
