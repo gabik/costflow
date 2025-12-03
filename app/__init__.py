@@ -37,10 +37,11 @@ def create_app():
     db.init_app(app)
 
     # Register blueprints
-    from .routes import main_blueprint, admin_blueprint, categories_blueprint
+    from .routes import main_blueprint, admin_blueprint, categories_blueprint, labor_blueprint
     app.register_blueprint(main_blueprint)
     app.register_blueprint(admin_blueprint)
     app.register_blueprint(categories_blueprint)
+    app.register_blueprint(labor_blueprint)
 
     with app.app_context():
         db.create_all()

@@ -17,7 +17,7 @@
                 <h5 class="mb-0">הוסף עובד / תפקיד חדש</h5>
             </div>
             <div class="card-body">
-                <form method="POST" action="{{ url_for('main.add_labor') }}">
+                <form method="POST" action="{{ url_for('labor.add_labor') }}">
                     <div class="mb-3">
                         <label for="name" class="form-label">שם עובד / תפקיד</label>
                         <input type="text" id="name" name="name" class="form-control" placeholder="לדוגמה: אופה ראשי" required>
@@ -62,10 +62,10 @@
                             <td>{{ labor_item.phone_number if labor_item.phone_number else '-' }}</td>
                             <td class="text-success fw-bold">{{ currency_symbol }}{{ "%.2f"|format(labor_item.total_hourly_rate) }}</td>
                             <td class="text-end">
-                                <a href="{{ url_for('main.edit_labor', labor_id=labor_item.id) }}" class="btn btn-sm btn-outline-primary me-2">
+                                <a href="{{ url_for('labor.edit_labor', labor_id=labor_item.id) }}" class="btn btn-sm btn-outline-primary me-2">
                                     <i class="bi bi-pencil"></i> ערוך
                                 </a>
-                                <form action="{{ url_for('main.delete_labor', labor_id=labor_item.id) }}" method="POST" class="d-inline" onsubmit="return confirm('האם אתה בטוח שברצונך למחוק את {{ labor_item.name }}?\nפעולה זו אינה הפיכה.');">
+                                <form action="{{ url_for('labor.delete_labor', labor_id=labor_item.id) }}" method="POST" class="d-inline" onsubmit="return confirm('האם אתה בטוח שברצונך למחוק את {{ labor_item.name }}?\nפעולה זו אינה הפיכה.');">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">
                                         <i class="bi bi-trash"></i> מחק
                                     </button>
