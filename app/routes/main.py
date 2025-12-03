@@ -388,10 +388,12 @@ def update_stock():
         ).all()
 
         for production in production_logs:
-            product = Product.query.get(production.product_id)
-            for component in product.components:
-                if component.component_type == 'raw_material' and component.component_id == int(raw_material_id):
-                    system_stock -= component.quantity * production.quantity_produced
+            if production.product_id:
+                product = Product.query.get(production.product_id)
+                if product:
+                    for component in product.components:
+                        if component.component_type == 'raw_material' and component.component_id == int(raw_material_id):
+                            system_stock -= component.quantity * production.quantity_produced
 
         # Calculate variance and create audit record
         variance = quantity - system_stock
