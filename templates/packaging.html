@@ -8,7 +8,7 @@
             <h1 class="display-6 fw-bold text-primary">{{ _('Manage Packaging') }}</h1>
             <p class="text-secondary">ניהול סוגי אריזות ומחירים.</p>
         </div>
-        <a href="{{ url_for('main.add_packaging') }}" class="btn btn-primary">
+        <a href="{{ url_for('packaging.add_packaging') }}" class="btn btn-primary">
             <i class="bi bi-plus-lg me-2"></i> {{ _('Add Packaging') }}
         </a>
     </div>
@@ -35,10 +35,10 @@
                 <td>{{ currency_symbol }}{{ (packaging.price_per_package / packaging.quantity_per_package) | round(2) }}</td>
                 <td class="text-end">
                     <div class="btn-group">
-                        <a href="{{ url_for('main.edit_packaging', packaging_id=packaging.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('Edit') }}">
+                        <a href="{{ url_for('packaging.edit_packaging', packaging_id=packaging.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('Edit') }}">
                             <i class="bi bi-pencil"></i>
                         </a>
-                        <form method="POST" action="{{ url_for('main.delete_packaging', packaging_id=packaging.id) }}" class="d-inline" onsubmit="return confirm('האם אתה בטוח שברצונך למחוק פריט זה?');">
+                        <form method="POST" action="{{ url_for('packaging.delete_packaging', packaging_id=packaging.id) }}" class="d-inline" onsubmit="return confirm('האם אתה בטוח שברצונך למחוק פריט זה?');">
                             <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ _('Delete') }}">
                                 <i class="bi bi-trash"></i>
                             </button>
