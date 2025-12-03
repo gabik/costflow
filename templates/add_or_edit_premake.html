@@ -147,7 +147,7 @@
                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form action="{{ url_for('main.add_category_from_modal') }}" method="POST">
+                <form action="{{ url_for('categories.add_category_from_modal') }}" method="POST">
                     <input type="hidden" name="type" id="categoryTypeInput" value="premake">
                     <input type="text" name="name" class="form-control mb-2" placeholder="שם קטגוריה" required>
                     <button type="submit" class="btn btn-sm btn-success w-100">שמור</button>

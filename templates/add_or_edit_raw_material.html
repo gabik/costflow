@@ -84,7 +84,7 @@
 <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" action="{{ url_for('main.add_category_from_modal') }}">
+            <form method="POST" action="{{ url_for('categories.add_category_from_modal') }}">
                 <input type="hidden" name="type" id="categoryTypeInput" value="raw_material">
                 <div class="modal-header">
                     <h5 class="modal-title" id="addCategoryModalLabel">הוספת קטגוריה חדשה</h5>

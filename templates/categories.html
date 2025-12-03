@@ -22,17 +22,17 @@
 
     <ul class="nav nav-tabs mb-4">
         <li class="nav-item">
-            <a class="nav-link {{ 'active' if current_type == 'raw_material' else '' }}" href="{{ url_for('main.categories', type='raw_material') }}">
+            <a class="nav-link {{ 'active' if current_type == 'raw_material' else '' }}" href="{{ url_for('categories.categories', type='raw_material') }}">
                 חומרי גלם
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{ 'active' if current_type == 'product' else '' }}" href="{{ url_for('main.categories', type='product') }}">
+            <a class="nav-link {{ 'active' if current_type == 'product' else '' }}" href="{{ url_for('categories.categories', type='product') }}">
                 מוצרים
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link {{ 'active' if current_type == 'premake' else '' }}" href="{{ url_for('main.categories', type='premake') }}">
+            <a class="nav-link {{ 'active' if current_type == 'premake' else '' }}" href="{{ url_for('categories.categories', type='premake') }}">
                 הכנות מקדימות
             </a>
         </li>
@@ -56,7 +56,7 @@
                             <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editCategoryModal{{ category.id }}">
                                 <i class="bi bi-pencil"></i>
                             </button>
-                            <form action="{{ url_for('main.delete_category', category_id=category.id) }}" method="POST" class="d-inline" onsubmit="return confirm('למחוק קטגוריה זו?');">
+                            <form action="{{ url_for('categories.delete_category', category_id=category.id) }}" method="POST" class="d-inline" onsubmit="return confirm('למחוק קטגוריה זו?');">
                                 <button type="submit" class="btn btn-sm btn-outline-danger">
                                     <i class="bi bi-trash"></i>
                                 </button>
@@ -69,7 +69,7 @@
                 <div class="modal fade" id="editCategoryModal{{ category.id }}" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
-                            <form method="POST" action="{{ url_for('main.edit_categories', category_id=category.id) }}">
+                            <form method="POST" action="{{ url_for('categories.edit_categories', category_id=category.id) }}">
                                 <div class="modal-header">
                                     <h5 class="modal-title">עריכת קטגוריה</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
