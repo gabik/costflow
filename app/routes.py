@@ -620,6 +620,7 @@ def add_premake():
         return redirect(url_for('main.premakes'))
 
     all_raw_materials = [m.to_dict() for m in RawMaterial.query.all()]
+    print(f"DEBUG: add_premake - Found {len(all_raw_materials)} raw materials")
     premake_categories = Category.query.filter_by(type='premake').all()
     categories = Category.query.filter_by(type='raw_material').all() # For raw material modal if needed
 
@@ -687,6 +688,7 @@ def edit_premake(premake_id):
         return redirect(url_for('main.premakes'))
 
     all_raw_materials = [m.to_dict() for m in RawMaterial.query.all()]
+    print(f"DEBUG: edit_premake - Found {len(all_raw_materials)} raw materials")
     premake_categories = Category.query.filter_by(type='premake').all()
     categories = Category.query.filter_by(type='raw_material').all()
     
