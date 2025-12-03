@@ -627,7 +627,6 @@ def add_premake():
     return render_template(
         'add_or_edit_premake.html',
         premake=None,
-        premake_components=[],
         all_raw_materials=all_raw_materials,
         premake_categories=premake_categories,
         categories=categories,
@@ -691,13 +690,10 @@ def edit_premake(premake_id):
     print(f"DEBUG: edit_premake - Found {len(all_raw_materials)} raw materials")
     premake_categories = Category.query.filter_by(type='premake').all()
     categories = Category.query.filter_by(type='raw_material').all()
-    
-    premake_components = [c for c in premake.components if c.component_type == 'raw_material']
 
     return render_template(
         'add_or_edit_premake.html',
         premake=premake,
-        premake_components=premake_components,
         all_raw_materials=all_raw_materials,
         premake_categories=premake_categories,
         categories=categories,
