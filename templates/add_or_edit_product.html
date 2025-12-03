@@ -57,38 +57,41 @@
         <!-- Premakes Section -->
         <h4 class="mb-3 fw-bold">הכנות מקדימות</h4>
         <div id="premakes-container" class="mb-4">
-            {% set has_premakes = false %}
+            {% set premake_components = [] %}
             {% if product %}
                 {% for component in product.components %}
                     {% if component.component_type == 'premake' %}
-                    {% set has_premakes = true %}
-                    <div class="row g-2 mb-2 align-items-center premake-row">
-                        <div class="col-md-5">
-                            <select name="premake[]" class="form-select select2" onchange="handlePremakeChange(this)">
-                                {% for premake_option in all_premakes %}
-                                    <option value="{{ premake_option.id }}" data-unit="{{ premake_option.unit }}" {% if component.component_id == premake_option.id %}selected{% endif %}>
-                                        {{ premake_option.name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <input type="number" name="premake_quantity[]" class="form-control" placeholder="כמות" step="0.001" value="{{ component.quantity }}">
-                        </div>
-                        <div class="col-md-3">
-                             <select name="premake_unit[]" class="form-select unit-select">
-                                <option value="kg">kg</option>
-                            </select>
-                        </div>
-                        <div class="col-md-1">
-                            <button type="button" class="btn btn-outline-danger" onclick="this.closest('.premake-row').remove()"><i class="bi bi-x-lg"></i></button>
-                        </div>
-                    </div>
+                        {% set _ = premake_components.append(component) %}
                     {% endif %}
                 {% endfor %}
             {% endif %}
 
-            {% if not has_premakes %}
+            {% for component in premake_components %}
+            <div class="row g-2 mb-2 align-items-center premake-row">
+                <div class="col-md-5">
+                    <select name="premake[]" class="form-select select2" onchange="handlePremakeChange(this)">
+                        {% for premake_option in all_premakes %}
+                            <option value="{{ premake_option.id }}" data-unit="{{ premake_option.unit }}" {% if component.component_id == premake_option.id %}selected{% endif %}>
+                                {{ premake_option.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="number" name="premake_quantity[]" class="form-control" placeholder="כמות" step="0.001" value="{{ component.quantity }}">
+                </div>
+                <div class="col-md-3">
+                        <select name="premake_unit[]" class="form-select unit-select">
+                        <option value="kg">kg</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)"><i class="bi bi-x-lg"></i></button>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if not premake_components %}
              <div class="row g-2 mb-2 align-items-center premake-row">
                 <div class="col-md-5">
                     <select name="premake[]" class="form-select select2" onchange="handlePremakeChange(this)">
@@ -109,7 +112,7 @@
                     </select>
                 </div>
                 <div class="col-md-1">
-                    <button type="button" class="btn btn-outline-danger" onclick="this.closest('.premake-row').remove()"><i class="bi bi-x-lg"></i></button>
+                    <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)"><i class="bi bi-x-lg"></i></button>
                 </div>
             </div>
             {% endif %}
@@ -121,38 +124,41 @@
         <!-- Raw Materials Section -->
         <h4 class="mb-3 fw-bold">חומרי גלם נדרשים</h4>
         <div id="raw-materials-container" class="mb-4">
-            {% set has_raw_materials = false %}
+            {% set raw_material_components = [] %}
             {% if product %}
                 {% for component in product.components %}
                     {% if component.component_type == 'raw_material' %}
-                    {% set has_raw_materials = true %}
-                    <div class="row g-2 mb-2 align-items-center raw-material-row">
-                        <div class="col-md-5">
-                            <select name="raw_material[]" class="form-select select2" required onchange="handleMaterialChange(this)">
-                                {% for material_option in all_raw_materials %}
-                                    <option value="{{ material_option.id }}" data-unit="{{ material_option.unit }}" {% if component.component_id == material_option.id %}selected{% endif %}>
-                                        {{ material_option.name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="{{ component.quantity }}" required>
-                        </div>
-                        <div class="col-md-3">
-                            <select name="raw_material_unit[]" class="form-select unit-select">
-                                <option value="{{ component.material.unit }}" selected>{{ component.material.unit }}</option>
-                            </select>
-                        </div>
-                        <div class="col-md-1">
-                            <button type="button" class="btn btn-outline-danger" onclick="this.closest('.raw-material-row').remove()"><i class="bi bi-x-lg"></i></button>
-                        </div>
-                    </div>
+                        {% set _ = raw_material_components.append(component) %}
                     {% endif %}
                 {% endfor %}
             {% endif %}
 
-            {% if not has_raw_materials %}
+            {% for component in raw_material_components %}
+            <div class="row g-2 mb-2 align-items-center raw-material-row">
+                <div class="col-md-5">
+                    <select name="raw_material[]" class="form-select select2" required onchange="handleMaterialChange(this)">
+                        {% for material_option in all_raw_materials %}
+                            <option value="{{ material_option.id }}" data-unit="{{ material_option.unit }}" {% if component.component_id == material_option.id %}selected{% endif %}>
+                                {{ material_option.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="{{ component.quantity }}" required>
+                </div>
+                <div class="col-md-3">
+                    <select name="raw_material_unit[]" class="form-select unit-select">
+                        <option value="{{ component.material.unit }}" selected>{{ component.material.unit }}</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)"><i class="bi bi-x-lg"></i></button>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if not raw_material_components %}
             <div class="row g-2 mb-2 align-items-center raw-material-row">
                 <div class="col-md-5">
                     <select name="raw_material[]" class="form-select select2" required onchange="handleMaterialChange(this)">
@@ -187,33 +193,36 @@
         <!-- Packaging Section -->
         <h4 class="mb-3 fw-bold">אריזות נדרשות</h4>
         <div id="packaging-container" class="mb-4">
-            {% set has_packaging = false %}
+            {% set packaging_components = [] %}
             {% if product %}
                 {% for component in product.components %}
                     {% if component.component_type == 'packaging' %}
-                    {% set has_packaging = true %}
-                    <div class="row g-2 mb-2 align-items-center packaging-row">
-                        <div class="col-md-5">
-                            <select name="packaging[]" class="form-select select2">
-                                {% for packaging_option in all_packaging %}
-                                    <option value="{{ packaging_option.id }}" {% if component.component_id == packaging_option.id %}selected{% endif %}>
-                                        {{ packaging_option.name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <input type="number" name="packaging_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="{{ component.quantity }}">
-                        </div>
-                        <div class="col-md-auto">
-                            <button type="button" class="btn btn-outline-danger" onclick="this.closest('.packaging-row').remove()"><i class="bi bi-x-lg"></i></button>
-                        </div>
-                    </div>
+                        {% set _ = packaging_components.append(component) %}
                     {% endif %}
                 {% endfor %}
             {% endif %}
 
-            {% if not has_packaging %}
+            {% for component in packaging_components %}
+            <div class="row g-2 mb-2 align-items-center packaging-row">
+                <div class="col-md-5">
+                    <select name="packaging[]" class="form-select select2">
+                        {% for packaging_option in all_packaging %}
+                            <option value="{{ packaging_option.id }}" {% if component.component_id == packaging_option.id %}selected{% endif %}>
+                                {{ packaging_option.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="number" name="packaging_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="{{ component.quantity }}">
+                </div>
+                <div class="col-md-auto">
+                    <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)"><i class="bi bi-x-lg"></i></button>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if not packaging_components %}
             <div class="row g-2 mb-2 align-items-center packaging-row">
                 <div class="col-md-5">
                     <select name="packaging[]" class="form-select select2">
@@ -229,7 +238,7 @@
                     <input type="number" name="packaging_quantity[]" class="form-control" placeholder="כמות" step="0.01">
                 </div>
                 <div class="col-md-auto">
-                    <button type="button" class="btn btn-outline-danger" onclick="this.closest('.packaging-row').remove()"><i class="bi bi-x-lg"></i></button>
+                    <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)"><i class="bi bi-x-lg"></i></button>
                 </div>
             </div>
             {% endif %}
@@ -391,6 +400,10 @@
 
 {% block scripts %}
 <script>
+    function removeRow(button) {
+        button.closest('.row').remove();
+    }
+
     let rawMaterialRowIndex = 0;
     let packagingRowIndex = 0;
 
