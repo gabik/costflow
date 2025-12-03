@@ -157,14 +157,7 @@ document.addEventListener('DOMContentLoaded', function() {
             var quantityUnits = button.dataset.quantityUnits;
             var unit = button.dataset.unit;
 
-            if (editForm) {
-                var actionUrl = "{{ url_for('production.edit_premake_production_log', log_id=0) }}";
-                editForm.action = actionUrl.replace('0', logId);
-            }
-        });
-    }
-});
-</script>
+            var modalTitle = editPremakeProductionModal.querySelector('.modal-title');
             var editPremakeNameInput = editPremakeProductionModal.querySelector('#edit_premake_name');
             var editPremakeQuantityInput = editPremakeProductionModal.querySelector('#edit_premake_quantity_produced');
             var editPremakeUnitDisplay = editPremakeProductionModal.querySelector('#edit_premake_unit_display');
