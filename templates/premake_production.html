@@ -81,7 +81,6 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div id="debug-info" class="alert alert-warning d-none"></div>
                     <div class="mb-3">
                         <label for="edit_premake_name" class="form-label">{{ _('Premake') }}</label>
                         <input type="text" class="form-control" id="edit_premake_name" readonly>
@@ -158,16 +157,14 @@ document.addEventListener('DOMContentLoaded', function() {
             var quantityUnits = button.dataset.quantityUnits;
             var unit = button.dataset.unit;
 
-            console.log("Edit Modal Open:", { logId, premakeName, quantityUnits, unit });
-
-            // Debug visualizer
-            var debugEl = document.getElementById('debug-info');
-            if (debugEl) {
-                debugEl.innerHTML = `LogID: ${logId}<br>Name: ${premakeName}<br>Qty: ${quantityUnits}<br>Unit: ${unit}`;
-                debugEl.classList.remove('d-none');
+            if (editForm) {
+                var actionUrl = "{{ url_for('production.edit_premake_production_log', log_id=0) }}";
+                editForm.action = actionUrl.replace('0', logId);
             }
-
-            var modalTitle = editPremakeProductionModal.querySelector('.modal-title');
+        });
+    }
+});
+</script>
             var editPremakeNameInput = editPremakeProductionModal.querySelector('#edit_premake_name');
             var editPremakeQuantityInput = editPremakeProductionModal.querySelector('#edit_premake_quantity_produced');
             var editPremakeUnitDisplay = editPremakeProductionModal.querySelector('#edit_premake_unit_display');
