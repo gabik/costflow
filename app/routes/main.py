@@ -681,7 +681,12 @@ def add_product():
                 # Let's prepend timestamp for uniqueness.
                 timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
                 filename = f"{timestamp}_{filename}"
-                file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+                
+                upload_folder = current_app.config['UPLOAD_FOLDER']
+                if not os.path.exists(upload_folder):
+                    os.makedirs(upload_folder)
+                    
+                file.save(os.path.join(upload_folder, filename))
                 image_filename = filename
 
         # Create a new Product entry
@@ -894,7 +899,12 @@ def edit_product(product_id):
                 filename = secure_filename(file.filename)
                 timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
                 filename = f"{timestamp}_{filename}"
-                file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+                
+                upload_folder = current_app.config['UPLOAD_FOLDER']
+                if not os.path.exists(upload_folder):
+                    os.makedirs(upload_folder)
+                    
+                file.save(os.path.join(upload_folder, filename))
                 product.image_filename = filename
 
         # Clear existing components
