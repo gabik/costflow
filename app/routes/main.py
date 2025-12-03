@@ -2305,6 +2305,14 @@ def stock_audits():
     for cat in category_analysis.values():
         cat['materials'] = list(cat['materials'])
 
+    return render_template('stock_audits.html',
+                         audits=audits,
+                         all_materials=all_materials,
+                         total_variance_cost=total_variance_cost,
+                         total_positive_variance=total_positive_variance,
+                         total_negative_variance=total_negative_variance,
+                         category_analysis=category_analysis)
+
 def calculate_raw_material_current_stock(material_id):
     """
     Calculates the current stock of a given raw material based on StockLogs and ProductionLogs.
