@@ -81,6 +81,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <div id="debug-info" class="alert alert-warning d-none"></div>
                     <div class="mb-3">
                         <label for="edit_premake_name" class="form-label">{{ _('Premake') }}</label>
                         <input type="text" class="form-control" id="edit_premake_name" readonly>
@@ -155,6 +156,13 @@ $(document).ready(function() {
             var unit = button.dataset.unit;
 
             console.log("Edit Modal Open:", { logId, premakeName, quantityUnits, unit });
+
+            // Debug visualizer
+            var debugEl = document.getElementById('debug-info');
+            if (debugEl) {
+                debugEl.innerHTML = `LogID: ${logId}<br>Name: ${premakeName}<br>Qty: ${quantityUnits}<br>Unit: ${unit}`;
+                debugEl.classList.remove('d-none');
+            }
 
             var modalTitle = editPremakeProductionModal.querySelector('.modal-title');
             var editPremakeNameInput = editPremakeProductionModal.querySelector('#edit_premake_name');
