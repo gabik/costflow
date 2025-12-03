@@ -2305,6 +2305,7 @@ def stock_audits():
     for cat in category_analysis.values():
         cat['materials'] = list(cat['materials'])
 
+    print("DEBUG: Returning from stock_audits")
     return render_template('stock_audits.html',
                          audits=audits,
                          all_materials=all_materials,
