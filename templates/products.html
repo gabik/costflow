@@ -85,6 +85,11 @@
                         <a href="{{ url_for('products.edit_product', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary" title="ערוך">
                             <i class="bi bi-pencil"></i>
                         </a>
+                        <form action="{{ url_for('products.migrate_to_premake', product_id=product.id) }}" method="POST" class="d-inline" onsubmit="return confirm('פעולה זו תהפוך את המוצר להכנה מקדימה, תעביר את המלאי ותמחק את המוצר המקורי. האם להמשיך?');">
+                            <button type="submit" class="btn btn-sm btn-outline-warning" title="הפוך להכנה מקדימה">
+                                <i class="bi bi-arrow-repeat"></i>
+                            </button>
+                        </form>
                     </div>
                 </td>
             </tr>

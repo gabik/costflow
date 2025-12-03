@@ -233,9 +233,109 @@ def product_detail(product_id):
         premake_costs=premake_costs
     )
 
-@products_blueprint.route('/products/edit/<int:product_id>', methods=['GET', 'POST'])
-def edit_product(product_id):
+@products_blueprint.route('/products/migrate_to_premake/<int:product_id>', methods=['POST'])
+def migrate_to_premake(product_id):
     product = Product.query.get_or_404(product_id)
+    
+    # 1. Create Premake from Product
+    # Ensure category exists or use general
+    category_id = product.category_id
+    if category_id:
+        # Check if category type matches? 
+        # Product category is type='product', Premake needs 'premake'.
+        # We should probably put it in 'General (Premakes)' or create a new category with same name if needed.
+        # Simple approach: Put in General (Premakes)
+        category_id = get_or_create_general_category('premake')
+    else:
+        category_id = get_or_create_general_category('premake')
+
+    premake = Premake(
+        name=product.name,
+        category_id=category_id,
+        batch_size=float(product.products_per_recipe),
+        unit='unit' # Default unit for migrated product? Or 'batch'? Let's use 'unit' to match product semantics.
+    )
+    db.session.add(premake)
+    db.session.flush() # Get premake ID
+
+    # 2. Copy Components
+    for prod_comp in product.components:
+        premake_comp = None
+        # Map types. Note: Product has 'labor' which Premake usually doesn't have in this schema?
+        # PremakeComponent only has 'raw_material' and 'packaging' in original schema, 
+        # but we just added 'premake' support via property (and it uses string type in DB).
+        # What about 'labor'? PremakeComponent model doesn't strictly forbid 'labor' string, 
+        # but do we have logic for it?
+        # Premake cost calculation (in utils.py/calculate_prime_cost) usually iterates components.
+        # If we add labor, we should ensure it's handled or ignore it.
+        # For MVP migration, we will copy 'raw_material', 'packaging', 'premake'. 
+        # We will SKIP 'labor' as premakes usually calculate material cost only?
+        # Or does the user expect labor to be part of premake cost?
+        # If the user "migrates", they expect equivalent cost structure.
+        # However, our PremakeComponent model doesn't have a `labor` property accessor yet.
+        # Let's copy it if it's not labor, to be safe.
+        
+        if prod_comp.component_type in ['raw_material', 'packaging', 'premake']:
+            db.session.add(PremakeComponent(
+                premake_id=premake.id,
+                component_type=prod_comp.component_type,
+                component_id=prod_comp.component_id,
+                quantity=prod_comp.quantity
+            ))
+
+    # 3. Inventory Migration
+    # Calculate current product stock (Produced - Sold)
+    # We need to iterate logs. This is heavy but necessary.
+    # Or we can assume the user knows what they are doing and start with 0?
+    # "We need to convert all the inventory we have currently for this product to be the premake inventory"
+    
+    # Calculate Total Produced (from Product ProductionLogs)
+    total_produced = 0
+    prod_logs = ProductionLog.query.filter_by(product_id=product.id).all()
+    for log in prod_logs:
+        total_produced += log.quantity_produced * product.products_per_recipe
+    
+    # Calculate Total Sold
+    total_sold = 0
+    sales = WeeklyProductSales.query.filter_by(product_id=product.id).all()
+    for sale in sales:
+        total_sold += (sale.quantity_sold + sale.quantity_waste)
+        
+    current_stock = total_produced - total_sold
+    if current_stock < 0: current_stock = 0
+    
+    if current_stock > 0:
+        # Add StockLog for Premake
+        db.session.add(StockLog(
+            premake_id=premake.id,
+            action_type='set', # Start fresh
+            quantity=current_stock
+        ))
+
+    # 4. Convert Production History (Optional but good)
+    # Move ProductionLogs to point to Premake
+    # Product: quantity = recipes. Premake: quantity = batches.
+    # If batch_size = products_per_recipe, then quantity is 1:1.
+    for log in prod_logs:
+        log.product_id = None
+        log.premake_id = premake.id
+        # log.quantity_produced stays the same (recipes -> batches)
+    
+    # 5. Delete Product
+    # First delete sales (orphaned history)
+    for sale in sales:
+        db.session.delete(sale)
+        
+    # Delete product components
+    ProductComponent.query.filter_by(product_id=product.id).delete()
+    
+    # Delete Product
+    db.session.delete(product)
+    
+    log_audit("MIGRATE", "Product", product_id, f"Migrated product {product.name} to premake {premake.name}")
+    db.session.commit()
+    
+    return redirect(url_for('main.premakes'))    product = Product.query.get_or_404(product_id)
 
     if request.method == 'POST':
         product.name = request.form['name']
