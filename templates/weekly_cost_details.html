@@ -34,7 +34,7 @@
                         <select name="employee_id" id="employee_id" class="form-select select2" required>
                             <option value="" disabled selected>בחר עובד...</option>
                             {% for emp in employees %}
-                            <option value="{{ emp.id }}">{{ emp.name }} ({{ currency_symbol }}{{ emp.total_hourly_rate }}/שעה)</option>
+                            <option value="{{ emp.id }}">{{ emp.name }} ({{ currency_symbol }}{{ "%.2f"|format(emp.total_hourly_rate) }}/שעה)</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -75,7 +75,7 @@
                             {% for entry in week.entries %}
                             <tr>
                                 <td class="fw-medium">{{ entry.employee.name }}</td>
-                                <td class="text-center">{{ entry.hours }}</td>
+                                <td class="text-center">{{ "%.2f"|format(entry.hours) }}</td>
                                 <td class="text-end">{{ currency_symbol }}{{ "%.2f"|format(entry.cost) }}</td>
                                 <td class="text-end">
                                     <form method="POST" action="{{ url_for('weekly_costs.delete_weekly_labor', week_id=week.id, entry_id=entry.id) }}" onsubmit="return confirm('להסיר שורה זו?');">

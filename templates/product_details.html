@@ -3,7 +3,7 @@
 {% block content %}
 <h1>{{ product.name }}</h1>
 <p><strong>{{ _('Products Per Recipe:') }}</strong> {{ product.products_per_recipe }}</p>
-<p><strong>{{ _('Selling Price Per Unit:') }}</strong> {{ currency_symbol }}{{ product.selling_price_per_unit }}</p>
+<p><strong>{{ _('Selling Price Per Unit:') }}</strong> {{ currency_symbol }}{{ "%.2f"|format(product.selling_price_per_unit) }}</p>
 
     {% if premake_costs %}
     <div class="card mb-4 shadow-sm">
@@ -28,7 +28,7 @@
                         {% for item in premake_costs %}
                         <tr>
                             <td>{{ item.name }}</td>
-                            <td>{{ item.quantity }}</td>
+                            <td>{{ "%.2f"|format(item.quantity) }}</td>
                             <td>{{ item.unit }}</td>
                             <td>{{ "%.2f"|format(item.price_per_unit) }} ₪</td>
                             <td>{{ "%.2f"|format(item.price_per_recipe) }} ₪</td>
@@ -87,10 +87,10 @@
     {% for component in raw_materials %}
     <tr>
         <td>{{ component.name }}</td>
-        <td>{{ component.quantity }}</td>
-        <td>{{ currency_symbol }}{{ component.price_per_unit }}</td>
-        <td>{{ currency_symbol }}{{ component.price_per_recipe }}</td>
-        <td>{{ currency_symbol }}{{ component.price_per_product }}</td>
+        <td>{{ "%.2f"|format(component.quantity) }}</td>
+        <td>{{ currency_symbol }}{{ "%.2f"|format(component.price_per_unit) }}</td>
+        <td>{{ currency_symbol }}{{ "%.2f"|format(component.price_per_recipe) }}</td>
+        <td>{{ currency_symbol }}{{ "%.2f"|format(component.price_per_product) }}</td>
     </tr>
     {% endfor %}
     </tbody>
@@ -117,7 +117,7 @@
                         {% for item in packaging_costs %}
                         <tr>
                             <td>{{ item.name }}</td>
-                            <td>{{ item.quantity }}</td>
+                            <td>{{ "%.2f"|format(item.quantity) }}</td>
                             <td>{{ "%.2f"|format(item.price_per_unit) }} ₪</td>
                             <td>{{ "%.2f"|format(item.price_per_recipe) }} ₪</td>
                             <td class="fw-bold">{{ "%.2f"|format(item.price_per_product) }} ₪</td>

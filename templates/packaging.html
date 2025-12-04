@@ -30,8 +30,8 @@
             {% for packaging in packaging %}
             <tr>
                 <td class="fw-medium">{{ packaging.name }}</td>
-                <td>{{ packaging.quantity_per_package }}</td>
-                <td>{{ currency_symbol }}{{ packaging.price_per_package }}</td>
+                <td>{{ "%.2f"|format(packaging.quantity_per_package) }}</td>
+                <td>{{ currency_symbol }}{{ "%.2f"|format(packaging.price_per_package) }}</td>
                 <td>{{ currency_symbol }}{{ (packaging.price_per_package / packaging.quantity_per_package) | round(2) }}</td>
                 <td class="text-end">
                     <div class="btn-group">

@@ -76,13 +76,13 @@
                                     <option value="">בחר חומר גלם</option>
                                     {% for mat_opt in all_raw_materials %}
                                     <option value="{{ mat_opt.id }}" data-unit="{{ mat_opt.unit }}" {% if mat_opt.id == component.component_id %}selected{% endif %}>
-                                        {{ mat_opt.name }} ({{ mat_opt.unit }}) - {{ mat_opt.cost_per_unit }} ₪
+                                        {{ mat_opt.name }} ({{ mat_opt.unit }}) - {{ "%.2f"|format(mat_opt.cost_per_unit) }} ₪
                                     </option>
                                     {% endfor %}
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <input type="number" step="0.001" name="raw_material_quantity[]" class="form-control" placeholder="כמות" value="{{ component.quantity }}" required>
+                                <input type="number" step="0.001" name="raw_material_quantity[]" class="form-control" placeholder="כמות" value="{{ "%.3f"|format(component.quantity) }}" required>
                             </div>
                             <div class="col-md-3">
                                 <!-- Initial unit is the material's base unit because we store it normalized -->
@@ -163,7 +163,7 @@
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <input type="number" step="0.001" name="premake_quantity[]" class="form-control" placeholder="כמות" value="{{ component.quantity }}" required>
+                                <input type="number" step="0.001" name="premake_quantity[]" class="form-control" placeholder="כמות" value="{{ "%.3f"|format(component.quantity) }}" required>
                             </div>
                             <div class="col-md-3">
                                 <span class="form-control-plaintext">{{ component.nested_premake.unit if component.nested_premake else '' }}</span>

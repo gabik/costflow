@@ -70,7 +70,7 @@
     <tr>
         <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
         <td>{{ log.product.name }}</td>
-        <td>{{ log.quantity_produced }}</td>
+        <td>{{ "%.2f"|format(log.quantity_produced) }}</td>
         <td>
             <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProductionModal" 
                     data-log-id="{{ log.id }}" data-product-name="{{ log.product.name }}" data-quantity="{{ log.quantity_produced }}">

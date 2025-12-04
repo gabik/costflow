@@ -305,7 +305,7 @@
                         <td>
                             <span class="badge bg-light text-dark border">{{ entry.entry_count }}</span>
                         </td>
-                        <td class="fw-bold">{{ entry.hours }}</td>
+                        <td class="fw-bold">{{ "%.2f"|format(entry.hours) }}</td>
                         <td class="fw-bold text-primary">{{ currency_symbol }}{{ "%.2f"|format(entry.cost) }}</td>
                     </tr>
                     {% endfor %}
