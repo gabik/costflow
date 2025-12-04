@@ -220,3 +220,22 @@ Templates in `templates/` use base template inheritance:
 - Circular dependencies in nested premakes are prevented at the UI level (self-reference check)
 - Stock calculations support both 'add' (incremental) and 'set' (absolute) operations
 - Hebrew is the default language with RTL support throughout the application
+
+## Recent Changes (December 2024)
+
+### Route Organization Refactoring
+- **Completed migration of routes to separate blueprint files** for better code organization:
+  - All admin routes moved from `main.py` to `app/routes/admin.py`
+  - Raw materials routes moved to `app/routes/raw_materials.py`
+  - Each functional area now has its own dedicated blueprint module
+  - Template URL references updated to use correct blueprint namespaces
+
+### Removed Features
+- **Migrate Products functionality** (`/admin/migrate_products`) - Completely removed as no longer needed
+
+### UI Improvements
+- **Added search and category filtering** to:
+  - Raw Materials page - Live search by name, filter by category dropdown
+  - Premakes page - Live search by name, filter by category dropdown
+  - Both include responsive filter cards with Bootstrap styling
+  - JavaScript-based client-side filtering for instant results
