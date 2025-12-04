@@ -5,7 +5,7 @@ import io
 from datetime import datetime, date, timedelta
 from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_file, jsonify
-from sqlalchemy import func, extract, and_
+from sqlalchemy import func, extract, and_, text
 from ..models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, StockAudit, AuditLog, Premake, PremakeComponent
 from .utils import units_list, get_or_create_general_category, convert_to_base_unit, log_audit, calculate_prime_cost, calculate_premake_current_stock
 
@@ -889,6 +889,254 @@ def reset_db():
         return redirect(url_for('main.index'))
     except Exception as e:
         return f"Error resetting DB: {e}", 500
+
+@main_blueprint.route('/admin/migrate_products', methods=['GET', 'POST'])
+def migrate_products():
+    """Run database migration to add product migration fields via HTTP."""
+
+    if request.method == 'GET':
+        # Check current database status
+        try:
+            # Try to query using new columns
+            test_query = db.session.execute(text(
+                "SELECT COUNT(*) FROM product WHERE is_migrated = TRUE"
+            )).scalar()
+            already_migrated = True
+            migrated_count = test_query
+        except:
+            already_migrated = False
+            migrated_count = 0
+
+        # Count products with old naming convention
+        try:
+            old_style_count = Product.query.filter(
+                Product.name.contains("(Migrated to Premake:")
+            ).count()
+        except:
+            old_style_count = 0
+
+        return f"""
+        <html>
+        <head>
+            <title>Migration Status</title>
+            <style>
+                body {{ font-family: Arial; margin: 40px; }}
+                .status {{ padding: 20px; background: #f0f0f0; border-radius: 5px; }}
+                .form {{ margin-top: 20px; }}
+                input {{ margin: 10px; padding: 10px; }}
+                button {{ padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }}
+                button:hover {{ background: #0056b3; }}
+            </style>
+        </head>
+        <body>
+            <h1>Product Migration Tool</h1>
+            <div class="status">
+                <h2>Current Status:</h2>
+                <p>Migration columns exists: {'YES' if already_migrated else 'NO'}</p>
+                <p>Products marked as migrated: {migrated_count}</p>
+                <p>Products with old naming: {old_style_count}</p>
+            </div>
+
+            <div class="form">
+                <h2>Run Migration</h2>
+                <form method="POST">
+                    <label>Secret Key: <input type="password" name="secret" required></label><br>
+                    <button type="submit">Execute Migration</button>
+                </form>
+            </div>
+
+            <div style="margin-top: 30px; padding: 10px; background: #fff3cd; border: 1px solid #ffc107;">
+                <strong>Note:</strong> Default secret is 'migrate2024'. You can set MIGRATION_SECRET environment variable for custom secret.
+            </div>
+        </body>
+        </html>
+        """
+
+    # POST - Execute migration
+    import os
+    from sqlalchemy import text
+    from sqlalchemy.exc import ProgrammingError, OperationalError
+
+    secret = request.form.get('secret', '')
+    expected_secret = os.environ.get('MIGRATION_SECRET', 'migrate2024')
+
+    if secret != expected_secret:
+        return "Invalid secret key", 403
+
+    results = []
+
+    try:
+        # Detect database type
+        db_url = str(db.engine.url)
+        is_postgres = 'postgresql' in db_url or 'postgres' in db_url
+        is_sqlite = 'sqlite' in db_url
+
+        results.append(f"Database type: {'PostgreSQL' if is_postgres else 'SQLite' if is_sqlite else 'Unknown'}")
+        results.append(f"Database URL: {db_url.split('@')[-1] if '@' in db_url else db_url}")
+
+        # Step 1: Add columns
+        results.append("\n=== Adding columns ===")
+
+        # Add is_migrated column
+        try:
+            if is_postgres:
+                db.session.execute(text('ALTER TABLE product ADD COLUMN is_migrated BOOLEAN DEFAULT FALSE'))
+            else:  # SQLite
+                db.session.execute(text('ALTER TABLE product ADD COLUMN is_migrated BOOLEAN DEFAULT 0'))
+            db.session.commit()
+            results.append("✓ Added is_migrated column")
+        except (ProgrammingError, OperationalError) as e:
+            db.session.rollback()
+            if 'already exists' in str(e).lower() or 'duplicate' in str(e).lower():
+                results.append("- is_migrated column already exists")
+            else:
+                raise
+
+        # Add migrated_to_premake_id column
+        try:
+            if is_postgres:
+                db.session.execute(text('ALTER TABLE product ADD COLUMN migrated_to_premake_id INTEGER REFERENCES premake(id)'))
+            else:  # SQLite
+                db.session.execute(text('ALTER TABLE product ADD COLUMN migrated_to_premake_id INTEGER'))
+            db.session.commit()
+            results.append("✓ Added migrated_to_premake_id column")
+        except (ProgrammingError, OperationalError) as e:
+            db.session.rollback()
+            if 'already exists' in str(e).lower() or 'duplicate' in str(e).lower():
+                results.append("- migrated_to_premake_id column already exists")
+            else:
+                raise
+
+        # Add original_prime_cost column
+        try:
+            if is_postgres:
+                db.session.execute(text('ALTER TABLE product ADD COLUMN original_prime_cost FLOAT'))
+            else:  # SQLite
+                db.session.execute(text('ALTER TABLE product ADD COLUMN original_prime_cost REAL'))
+            db.session.commit()
+            results.append("✓ Added original_prime_cost column")
+        except (ProgrammingError, OperationalError) as e:
+            db.session.rollback()
+            if 'already exists' in str(e).lower() or 'duplicate' in str(e).lower():
+                results.append("- original_prime_cost column already exists")
+            else:
+                raise
+
+        # Step 2: Update existing NULL values
+        results.append("\n=== Updating NULL values ===")
+        try:
+            if is_postgres:
+                db.session.execute(text('UPDATE product SET is_migrated = FALSE WHERE is_migrated IS NULL'))
+            else:  # SQLite
+                db.session.execute(text('UPDATE product SET is_migrated = 0 WHERE is_migrated IS NULL'))
+            db.session.commit()
+            results.append("✓ Updated NULL is_migrated values")
+        except Exception as e:
+            db.session.rollback()
+            results.append(f"✗ Error updating NULL values: {str(e)}")
+
+        # Step 3: Find and fix products with old naming convention
+        results.append("\n=== Fixing migrated products ===")
+
+        migrated_products = Product.query.filter(
+            Product.name.contains("(Migrated to Premake:")
+        ).all()
+
+        if migrated_products:
+            results.append(f"Found {len(migrated_products)} products to fix")
+
+            for product in migrated_products:
+                start = product.name.find("(Migrated to Premake: ")
+                if start != -1:
+                    # Extract original name
+                    original_name = product.name[:start].strip()
+
+                    # Extract premake name
+                    premake_part = product.name[start + len("(Migrated to Premake: "):]
+                    end = premake_part.find(")")
+                    if end != -1:
+                        premake_name = premake_part[:end]
+
+                        # Find the premake
+                        premake = Premake.query.filter_by(name=premake_name).first()
+
+                        # Calculate original cost if components still exist
+                        original_cost = 0
+                        if product.components:
+                            try:
+                                original_cost = calculate_prime_cost(product)
+                            except:
+                                pass
+
+                        # Update the product
+                        product.name = original_name
+                        product.is_migrated = True
+                        product.migrated_to_premake_id = premake.id if premake else None
+                        product.original_prime_cost = original_cost
+
+                        results.append(f"  ✓ Fixed: {original_name}")
+                        if premake:
+                            results.append(f"    → Linked to premake: {premake_name}")
+                        else:
+                            results.append(f"    ⚠ Could not find premake: {premake_name}")
+
+            db.session.commit()
+            results.append(f"✓ Successfully fixed {len(migrated_products)} products")
+        else:
+            results.append("No products need fixing")
+
+        # Step 4: Final verification
+        results.append("\n=== Verification ===")
+        migrated_count = Product.query.filter_by(is_migrated=True).count()
+        non_migrated_count = Product.query.filter_by(is_migrated=False).count()
+        old_style = Product.query.filter(Product.name.contains("(Migrated to Premake:")).count()
+
+        results.append(f"Migrated products: {migrated_count}")
+        results.append(f"Non-migrated products: {non_migrated_count}")
+        results.append(f"Products with old naming: {old_style}")
+
+        if old_style == 0:
+            results.append("\n✅ Migration completed successfully!")
+        else:
+            results.append("\n⚠ Some products still have old naming convention")
+
+        # Format results as HTML
+        html_results = "<br>".join(results).replace("\n", "<br>")
+
+        return f"""
+        <html>
+        <head>
+            <title>Migration Results</title>
+            <style>
+                body {{ font-family: Arial; margin: 40px; }}
+                .results {{ padding: 20px; background: #f0f0f0; border-radius: 5px; font-family: monospace; white-space: pre-wrap; }}
+                .success {{ color: green; }}
+                .warning {{ color: orange; }}
+                .error {{ color: red; }}
+                a {{ display: inline-block; margin-top: 20px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; }}
+                a:hover {{ background: #0056b3; }}
+            </style>
+        </head>
+        <body>
+            <h1>Migration Results</h1>
+            <div class="results">{html_results}</div>
+            <a href="/">Return to Dashboard</a>
+        </body>
+        </html>
+        """
+
+    except Exception as e:
+        return f"""
+        <html>
+        <head><title>Migration Failed</title></head>
+        <body>
+            <h1>Migration Failed</h1>
+            <p style="color: red;">{str(e)}</p>
+            <pre>{db.session.rollback() or ''}</pre>
+            <a href="/">Return to Dashboard</a>
+        </body>
+        </html>
+        """, 500
 
 # Weekly Report
 @main_blueprint.route('/stock_audits')
