@@ -40,13 +40,14 @@ def add_product():
         category_id = request.form.get('category_id')
         if not category_id:
             category_id = get_or_create_general_category('product')
-            
+
         products_per_recipe = request.form['products_per_recipe']
         selling_price_per_unit = request.form['selling_price_per_unit']
 
         # Products are always products (not premakes)
         is_product = True
         is_premake = False
+        is_preproduct = 'is_preproduct' in request.form  # Check if checkbox is checked
         batch_size = None
 
         image_filename = None
@@ -73,6 +74,7 @@ def add_product():
             image_filename=image_filename,
             is_product=is_product,
             is_premake=is_premake,
+            is_preproduct=is_preproduct,
             batch_size=batch_size
         )
         db.session.add(product)
@@ -133,6 +135,20 @@ def add_product():
             )
             db.session.add(component)
 
+        # Process preproducts
+        preproduct_ids = request.form.getlist('preproduct[]')
+        preproduct_quantities = request.form.getlist('preproduct_quantity[]')
+        for preproduct_id, quantity in zip(preproduct_ids, preproduct_quantities):
+            if not preproduct_id or not quantity or float(quantity) <= 0:
+                continue
+            component = ProductComponent(
+                product_id=product.id,
+                component_type='product',
+                component_id=preproduct_id,
+                quantity=float(quantity)
+            )
+            db.session.add(component)
+
         db.session.commit()  # Save all components
         return redirect(url_for('products.products'))
 
@@ -146,7 +162,10 @@ def add_product():
 
     # Get products that can be used as premakes
     all_premakes = [p.to_dict() for p in Product.query.filter_by(is_premake=True).all()]
-    
+
+    # Get products that can be used as preproducts (components)
+    all_preproducts = [p.to_dict() for p in Product.query.filter_by(is_preproduct=True).all()]
+
     return render_template(
         'add_or_edit_product.html',
         product=None,
@@ -154,6 +173,7 @@ def add_product():
         all_packaging=all_packaging,
         all_labor=all_labor,
         all_premakes=all_premakes,
+        all_preproducts=all_preproducts,
         categories=categories, # For raw material modal
         product_categories=product_categories, # For product form
         units=units_list # For raw material modal
@@ -261,13 +281,35 @@ def product_detail(product_id):
             'components': components_list
         })
 
+    # Retrieve preproduct costs
+    preproduct_costs = []
+    for component in ProductComponent.query.filter_by(product_id=product_id, component_type='product'):
+        # Get preproduct from Product model
+        preproduct = Product.query.filter_by(id=component.component_id, is_preproduct=True).first()
+
+        if not preproduct:
+            continue
+
+        # Calculate prime cost for the preproduct
+        preproduct_unit_cost = calculate_prime_cost(preproduct)
+
+        preproduct_costs.append({
+            'name': preproduct.name,
+            'quantity': component.quantity,
+            'unit': getattr(preproduct, 'unit', 'unit'),
+            'price_per_unit': preproduct_unit_cost,
+            'price_per_recipe': component.quantity * preproduct_unit_cost,
+            'price_per_product': (component.quantity * preproduct_unit_cost) / product.products_per_recipe if product.products_per_recipe > 0 else 0
+        })
+
     return render_template(
         'product_details.html',
         product=product,
         raw_materials=raw_materials,
         labor_costs=labor_costs,
         packaging_costs=packaging_costs,
-        premake_costs=premake_costs
+        premake_costs=premake_costs,
+        preproduct_costs=preproduct_costs
     )
 
 @products_blueprint.route('/products/migrate_to_premake/<int:product_id>', methods=['POST'])
@@ -328,6 +370,8 @@ def edit_product(product_id):
         product.selling_price_per_unit = float(request.form['selling_price_per_unit'])
 
         # Don't change the is_product/is_premake flags - keep them as they were
+        # But do update is_preproduct
+        product.is_preproduct = 'is_preproduct' in request.form
         
         if 'image' in request.files:
             file = request.files['image']
@@ -401,6 +445,20 @@ def edit_product(product_id):
             )
             db.session.add(component)
 
+        # Process preproducts
+        preproduct_ids = request.form.getlist('preproduct[]')
+        preproduct_quantities = request.form.getlist('preproduct_quantity[]')
+        for preproduct_id, quantity in zip(preproduct_ids, preproduct_quantities):
+            if not preproduct_id or not quantity or float(quantity) <= 0:
+                continue
+            component = ProductComponent(
+                product_id=product.id,
+                component_type='product',
+                component_id=preproduct_id,
+                quantity=float(quantity)
+            )
+            db.session.add(component)
+
         log_audit("UPDATE", "Product", product.id, f"Updated product {product.name}")
         db.session.commit()
         return redirect(url_for('products.products'))
@@ -412,7 +470,10 @@ def edit_product(product_id):
 
     # Get products that can be used as premakes
     all_premakes = [p.to_dict() for p in Product.query.filter_by(is_premake=True).all()]
-    
+
+    # Get products that can be used as preproducts (components)
+    all_preproducts = [p.to_dict() for p in Product.query.filter_by(is_preproduct=True).all()]
+
     categories = Category.query.filter_by(type='raw_material').all()
     product_categories = Category.query.filter_by(type='product').all()
 
@@ -424,6 +485,7 @@ def edit_product(product_id):
         all_packaging=all_packaging,
         all_labor=all_labor,
         all_premakes=all_premakes,
+        all_preproducts=all_preproducts,
         categories=categories,
         product_categories=product_categories,
         units=units_list # For raw material modal

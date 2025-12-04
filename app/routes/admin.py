@@ -313,3 +313,162 @@ def migrate_add_unit_field():
             'error': str(e),
             'message': 'Migration failed. Please check server logs.'
         }), 500
+
+@admin_blueprint.route('/admin/migrate/fix-premake-units', methods=['GET', 'POST'])
+def migrate_fix_premake_units():
+    """Migration endpoint to fix NULL units for premakes."""
+    if request.method == 'GET':
+        return """
+        <html>
+        <head><title>Migration: Fix Premake Units</title></head>
+        <body style="font-family: Arial; max-width: 600px; margin: 50px auto; padding: 20px;">
+            <h1>Database Migration: Fix Premake Units</h1>
+            <p>This migration will:</p>
+            <ul>
+                <li>Update all premakes with NULL unit to 'kg'</li>
+                <li>Add is_preproduct column if missing</li>
+            </ul>
+            <form method="POST">
+                <button type="submit" style="padding: 10px 20px; font-size: 16px; background: #007bff; color: white; border: none; cursor: pointer;">
+                    Run Migration
+                </button>
+            </form>
+        </body>
+        </html>
+        """
+
+    try:
+        messages = []
+
+        # Fix NULL units for premakes
+        with db.engine.connect() as conn:
+            result = conn.execute(text(
+                "UPDATE product SET unit = 'kg' "
+                "WHERE is_premake = 1 AND unit IS NULL"
+            ))
+            conn.commit()
+            messages.append(f"✓ Updated {result.rowcount} premakes with NULL unit to 'kg'")
+
+        # Check if is_preproduct column exists
+        inspector = db.inspect(db.engine)
+        columns = [col['name'] for col in inspector.get_columns('product')]
+
+        if 'is_preproduct' not in columns:
+            with db.engine.connect() as conn:
+                conn.execute(text("ALTER TABLE product ADD COLUMN is_preproduct BOOLEAN DEFAULT 0"))
+                conn.commit()
+                messages.append("✓ Added 'is_preproduct' column")
+        else:
+            messages.append("'is_preproduct' column already exists")
+
+        log_audit("MIGRATE", "System", details=f"Ran fix-premake-units migration: {', '.join(messages)}")
+
+        return jsonify({
+            'status': 'success',
+            'messages': messages
+        }), 200
+
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'message': 'Migration failed. Please check server logs.'
+        }), 500
+
+@admin_blueprint.route('/admin/migrate/unified-cleanup', methods=['GET', 'POST'])
+def migrate_unified_cleanup():
+    """Consolidated migration endpoint for all Product model updates."""
+    if request.method == 'GET':
+        return """
+        <html>
+        <head><title>Migration: Unified Product Cleanup</title></head>
+        <body style="font-family: Arial; max-width: 600px; margin: 50px auto; padding: 20px;">
+            <h1>Database Migration: Unified Product Cleanup</h1>
+            <p>This migration will apply all necessary Product model updates:</p>
+            <ul>
+                <li>Add 'unit' column with 'kg' default for premakes</li>
+                <li>Add 'is_product', 'is_premake', 'is_preproduct' columns</li>
+                <li>Add 'batch_size' column</li>
+                <li>Make 'selling_price_per_unit' nullable</li>
+                <li>Create preproduct category if missing</li>
+            </ul>
+            <form method="POST">
+                <button type="submit" style="padding: 10px 20px; font-size: 16px; background: #007bff; color: white; border: none; cursor: pointer;">
+                    Run Complete Migration
+                </button>
+            </form>
+        </body>
+        </html>
+        """
+
+    try:
+        messages = []
+        inspector = db.inspect(db.engine)
+        columns = [col['name'] for col in inspector.get_columns('product')]
+
+        # Add is_product column if missing
+        if 'is_product' not in columns:
+            with db.engine.connect() as conn:
+                conn.execute(text("ALTER TABLE product ADD COLUMN is_product BOOLEAN DEFAULT 1"))
+                conn.commit()
+                messages.append("✓ Added 'is_product' column")
+
+        # Add is_premake column if missing
+        if 'is_premake' not in columns:
+            with db.engine.connect() as conn:
+                conn.execute(text("ALTER TABLE product ADD COLUMN is_premake BOOLEAN DEFAULT 0"))
+                conn.commit()
+                messages.append("✓ Added 'is_premake' column")
+
+        # Add is_preproduct column if missing
+        if 'is_preproduct' not in columns:
+            with db.engine.connect() as conn:
+                conn.execute(text("ALTER TABLE product ADD COLUMN is_preproduct BOOLEAN DEFAULT 0"))
+                conn.commit()
+                messages.append("✓ Added 'is_preproduct' column")
+
+        # Add unit column if missing
+        if 'unit' not in columns:
+            with db.engine.connect() as conn:
+                conn.execute(text("ALTER TABLE product ADD COLUMN unit VARCHAR(20)"))
+                conn.commit()
+                messages.append("✓ Added 'unit' column")
+
+        # Add batch_size column if missing
+        if 'batch_size' not in columns:
+            with db.engine.connect() as conn:
+                conn.execute(text("ALTER TABLE product ADD COLUMN batch_size FLOAT"))
+                conn.commit()
+                messages.append("✓ Added 'batch_size' column")
+
+        # Fix NULL units for premakes
+        with db.engine.connect() as conn:
+            result = conn.execute(text(
+                "UPDATE product SET unit = 'kg' "
+                "WHERE is_premake = 1 AND unit IS NULL"
+            ))
+            if result.rowcount > 0:
+                conn.commit()
+                messages.append(f"✓ Updated {result.rowcount} premakes with NULL unit to 'kg'")
+            else:
+                conn.commit()
+                messages.append("No premakes with NULL unit found")
+
+        # Create preproduct category if missing
+        from .utils import get_or_create_general_category
+        get_or_create_general_category('preproduct')
+        messages.append("✓ Ensured preproduct category exists")
+
+        log_audit("MIGRATE", "System", details=f"Ran unified-cleanup migration: {', '.join(messages)}")
+
+        return jsonify({
+            'status': 'success',
+            'messages': messages
+        }), 200
+
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'message': 'Migration failed. Please check server logs.'
+        }), 500

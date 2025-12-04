@@ -147,6 +147,7 @@ class Product(db.Model):
     # Unified product/premake fields
     is_product = db.Column(db.Boolean, default=True, nullable=False)
     is_premake = db.Column(db.Boolean, default=False, nullable=False)
+    is_preproduct = db.Column(db.Boolean, default=False, nullable=False)  # Can be sold AND used as component
     batch_size = db.Column(db.Float, nullable=True)  # From Premake model
     unit = db.Column(db.String(20), nullable=True)  # Unit of measurement ('kg', 'L', 'piece', etc.)
 
@@ -169,6 +170,7 @@ class Product(db.Model):
             'components': [c.to_dict() for c in self.components],
             'is_product': self.is_product,
             'is_premake': self.is_premake,
+            'is_preproduct': self.is_preproduct,
             'batch_size': self.batch_size,
             'unit': self.unit,
             'is_migrated': self.is_migrated,
@@ -179,12 +181,12 @@ class Product(db.Model):
 class ProductComponent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
-    component_type = db.Column(db.String(20), nullable=False)  # 'raw_material', 'labor', 'packaging', 'premake'
+    component_type = db.Column(db.String(20), nullable=False)  # 'raw_material', 'labor', 'packaging', 'premake', 'product'
     component_id = db.Column(db.Integer, nullable=False)
     quantity = db.Column(db.Float, nullable=False)
 
     product = db.relationship('Product', backref='components')
-    
+
     @property
     def material(self):
         if self.component_type == 'raw_material':
@@ -201,6 +203,12 @@ class ProductComponent(db.Model):
     def premake(self):
         if self.component_type == 'premake':
             return Premake.query.get(self.component_id)
+        return None
+
+    @property
+    def preproduct(self):
+        if self.component_type == 'product':
+            return Product.query.get(self.component_id)
         return None
 
     def to_dict(self):

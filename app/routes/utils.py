@@ -16,7 +16,10 @@ def get_or_create_general_category(type_val):
         name = "כללי (מוצרים)"
     elif type_val == 'premake':
         name = "כללי (הכנות)"
-        
+    elif type_val == 'preproduct':
+        name = "מוצרים מקדימים"
+        type_val = 'product'  # Preproducts use 'product' type in database
+
     category = Category.query.filter_by(name=name, type=type_val).first()
     if not category:
         category = Category(name=name, type=type_val)
@@ -102,8 +105,8 @@ def calculate_premake_cost_per_unit(premake, visited=None):
 
 def calculate_prime_cost(product):
     """
-    Calculates the prime cost (Materials + Packaging + Premakes) for a single unit of a Product.
-    Includes recursive calculation for Premakes.
+    Calculates the prime cost (Materials + Packaging + Premakes + Preproducts) for a single unit of a Product.
+    Includes recursive calculation for Premakes and Preproducts.
     Works with both old Premake model and new unified Product model.
     """
     # For migrated products, use stored original cost
@@ -132,11 +135,17 @@ def calculate_prime_cost(product):
             if not premake and hasattr(component, 'premake') and component.premake:
                 premake = component.premake
 
-
             if premake:
                 # Use the recursive function to calculate premake cost
                 premake_unit_cost = calculate_premake_cost_per_unit(premake)
                 total_cost += component.quantity * premake_unit_cost
+        elif component.component_type == 'product':
+            # Handle preproduct components
+            preproduct = Product.query.filter_by(id=component.component_id, is_preproduct=True).first()
+            if preproduct:
+                # Recursively calculate the prime cost of the preproduct
+                preproduct_unit_cost = calculate_prime_cost(preproduct)
+                total_cost += component.quantity * preproduct_unit_cost
 
     if hasattr(product, 'products_per_recipe') and product.products_per_recipe > 0:
         return total_cost / product.products_per_recipe

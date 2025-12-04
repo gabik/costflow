@@ -38,6 +38,15 @@
                     <label for="selling_price_per_unit" class="form-label">מחיר מכירה ליחידה (₪)</label>
                     <input type="number" id="selling_price_per_unit" name="selling_price_per_unit" class="form-control" step="0.01" value="{{ product.selling_price_per_unit if product else '' }}">
                 </div>
+                <div class="mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="is_preproduct" name="is_preproduct"
+                               {% if product and product.is_preproduct %}checked{% endif %}>
+                        <label class="form-check-label" for="is_preproduct">
+                            <strong>מוצר מקדים</strong> - ניתן למכירה וגם לשימוש כרכיב במוצרים אחרים
+                        </label>
+                    </div>
+                </div>
             </div>
             <div class="col-md-4 text-center">
                 <label class="form-label d-block">תמונת מוצר</label>
@@ -119,6 +128,73 @@
         </div>
         <button type="button" class="btn btn-outline-primary mb-4" onclick="addPremakeRow()">
             <i class="bi bi-plus-lg me-2"></i>הוסף הכנה מקדימה
+        </button>
+
+        <!-- Preproducts Section -->
+        <h4 class="mb-3 fw-bold">מוצרים מקדימים</h4>
+        <div id="preproducts-container" class="mb-4">
+            {% set preproduct_components = [] %}
+            {% if product %}
+                {% for component in product.components %}
+                    {% if component.component_type == 'product' %}
+                        {% set _ = preproduct_components.append(component) %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+
+            {% for component in preproduct_components %}
+            <div class="row g-2 mb-2 align-items-center preproduct-row">
+                <div class="col-md-5">
+                    <select name="preproduct[]" class="form-select select2" onchange="handlePreproductChange(this)">
+                        {% for preproduct_option in all_preproducts %}
+                            <option value="{{ preproduct_option.id }}" data-unit="{{ preproduct_option.unit or 'יחידה' }}" {% if component.component_id == preproduct_option.id %}selected{% endif %}>
+                                {{ preproduct_option.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="number" name="preproduct_quantity[]" class="form-control" placeholder="כמות" step="0.001" value="{{ component.quantity }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="preproduct_unit[]" class="form-select unit-select">
+                        <option value="יחידה">יחידה</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)"><i class="bi bi-x-lg"></i></button>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if not preproduct_components %}
+            <div class="row g-2 mb-2 align-items-center preproduct-row">
+                <div class="col-md-5">
+                    <select name="preproduct[]" class="form-select select2" onchange="handlePreproductChange(this)">
+                        <option value="" disabled selected>בחר מוצר מקדים...</option>
+                        {% for preproduct_option in all_preproducts %}
+                            <option value="{{ preproduct_option.id }}" data-unit="{{ preproduct_option.unit or 'יחידה' }}">
+                                {{ preproduct_option.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="number" name="preproduct_quantity[]" class="form-control" placeholder="כמות" step="0.001">
+                </div>
+                <div class="col-md-3">
+                    <select name="preproduct_unit[]" class="form-select unit-select">
+                        <option value="יחידה">יחידה</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)"><i class="bi bi-x-lg"></i></button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <button type="button" class="btn btn-outline-primary mb-4" onclick="addPreproductRow()">
+            <i class="bi bi-plus-lg me-2"></i>הוסף מוצר מקדים
         </button>
 
         <!-- Raw Materials Section -->
@@ -565,14 +641,68 @@
     function handlePremakeChange(selectElement) {
         const row = selectElement.closest('.row');
         const unitSelect = row.querySelector('.unit-select');
-        
+
         const selectedOption = selectElement.options[selectElement.selectedIndex];
         const baseUnit = selectedOption.getAttribute('data-unit');
-        
+
         // For premakes, for now, we only allow kg as requested.
         // So we just set the unitSelect to kg and make it readonly.
         unitSelect.innerHTML = '<option value="kg" selected>kg</option>';
         // unitSelect.disabled = true; // Optional: disable if fixed to kg
+    }
+
+    function addPreproductRow(preproductId = '', quantity = '', unit = 'יחידה') {
+        const container = document.getElementById('preproducts-container');
+        const allPreproducts = {{ all_preproducts | default([]) | tojson | safe }};
+
+        let optionsHtml = '<option value="" disabled selected>בחר מוצר מקדים...</option>';
+        allPreproducts.forEach(preproduct => {
+            const selected = preproductId == preproduct.id ? 'selected' : '';
+            const productUnit = preproduct.unit || 'יחידה';
+            optionsHtml += `<option value="${preproduct.id}" data-unit="${productUnit}" ${selected}>${preproduct.name}</option>`;
+        });
+
+        const rowHtml = `
+            <div class="row g-2 mb-2 align-items-center preproduct-row">
+                <div class="col-md-5">
+                    <select name="preproduct[]" class="form-select select2" onchange="handlePreproductChange(this)">
+                        ${optionsHtml}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="number" name="preproduct_quantity[]" class="form-control" placeholder="כמות" step="0.001" value="${quantity}">
+                </div>
+                <div class="col-md-3">
+                    <select name="preproduct_unit[]" class="form-select unit-select">
+                        <option value="${unit}">${unit}</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)"><i class="bi bi-x-lg"></i></button>
+                </div>
+            </div>`;
+
+        const template = document.createElement('div');
+        template.innerHTML = rowHtml.trim();
+        const rowElement = template.firstChild;
+
+        container.appendChild(rowElement);
+
+        $(rowElement).find('.select2').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            language: { noResults: () => "לא נמצאו תוצאות" }
+        });
+    }
+
+    function handlePreproductChange(selectElement) {
+        const row = selectElement.closest('.row');
+        const unitSelect = row.querySelector('.unit-select');
+
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        const baseUnit = selectedOption.getAttribute('data-unit') || 'יחידה';
+
+        unitSelect.innerHTML = `<option value="${baseUnit}">${baseUnit}</option>`;
     }
 
     function updateUnitOptions(selectElement, baseUnit, selectedUnit = null) {
