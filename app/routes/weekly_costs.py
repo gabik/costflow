@@ -44,7 +44,8 @@ def weekly_costs():
                     total_potential_revenue = 0
                     
                     # Product Leftovers
-                    all_products = Product.query.all()
+                    # Filter out migrated products
+                    all_products = Product.query.filter(~Product.name.contains("(Migrated to Premake:")).all()
                     for product in all_products:
                         produced = product_production.get(product.id, 0)
                         sales_data = product_sales.get(product.id, {'sold': 0, 'waste': 0})
@@ -156,9 +157,10 @@ def close_week_confirm():
             units = log.quantity_produced * log.product.products_per_recipe
             product_production[log.product_id] = product_production.get(log.product_id, 0) + units
             
-    product_sales = {s.product_id: s for s in prev_week.sales} 
-    
-    all_products = Product.query.all()
+    product_sales = {s.product_id: s for s in prev_week.sales}
+
+    # Filter out migrated products
+    all_products = Product.query.filter(~Product.name.contains("(Migrated to Premake:")).all()
     new_week_start_dt = datetime.strptime(new_week_date, '%Y-%m-%d')
 
     for product in all_products:
@@ -295,7 +297,8 @@ def delete_weekly_labor(week_id, entry_id):
 @weekly_costs_blueprint.route('/weekly_sales/<int:week_id>', methods=['GET', 'POST'])
 def update_weekly_sales(week_id):
     week = WeeklyLaborCost.query.get_or_404(week_id)
-    products = Product.query.all()
+    # Filter out migrated products
+    products = Product.query.filter(~Product.name.contains("(Migrated to Premake:")).all()
     
     if request.method == 'POST':
         for product in products:

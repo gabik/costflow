@@ -21,7 +21,8 @@ def production():
 
         return redirect(url_for('production.production'))
 
-    products = Product.query.all()
+    # Filter out migrated products (those with "(Migrated to Premake:" in their name)
+    products = Product.query.filter(~Product.name.contains("(Migrated to Premake:")).all()
     production_logs = ProductionLog.query.filter(ProductionLog.product_id != None).order_by(ProductionLog.timestamp.desc()).all()
     current_time = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
     return render_template('production.html', products=products, production_logs=production_logs, current_time=current_time)

@@ -321,17 +321,21 @@ def migrate_to_premake(product_id):
         log.premake_id = premake.id
         # log.quantity_produced stays the same (recipes -> batches)
     
-    # 5. Delete Product
+    # 5. Handle Product Migration
     # Keep sales history for historical reporting (don't delete WeeklyProductSales)
     # This preserves the ability to see past sales of products that have been migrated
-    # for sale in sales:
-    #     db.session.delete(sale)
-        
-    # Delete product components
+
+    # Delete product components to prevent further use in production
+    # but keep the product record itself for historical reporting
     ProductComponent.query.filter_by(product_id=product.id).delete()
-    
-    # Delete Product
-    db.session.delete(product)
+
+    # Option: Mark product as migrated by clearing its components and possibly renaming
+    # The product stays in the database but becomes unusable for new production
+    # This maintains referential integrity with WeeklyProductSales
+    product.name = f"{product.name} (Migrated to Premake: {premake.name})"
+
+    # Note: We're NOT deleting the product to preserve foreign key relationships
+    # db.session.delete(product)  # REMOVED to prevent foreign key violations
     
     log_audit("MIGRATE", "Product", product_id, f"Migrated product {product.name} to premake {premake.name}")
     db.session.commit()
