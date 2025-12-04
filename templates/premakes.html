@@ -8,7 +8,7 @@
             <h1 class="display-6 fw-bold text-primary">הכנות מקדימות</h1>
             <p class="text-secondary">ניהול מתכוני בסיס והכנות (Premakes).</p>
         </div>
-        <a href="{{ url_for('main.add_premake') }}" class="btn btn-primary">
+        <a href="{{ url_for('premakes.add_premake') }}" class="btn btn-primary">
             <i class="bi bi-plus-lg me-2"></i> הוסף הכנה מקדימה
         </a>
     </div>
@@ -55,13 +55,13 @@
                 <td>{{ premake.unit }}</td>
                 <td class="text-end">
                     <div class="btn-group">
-                        <a href="{{ url_for('main.premake_detail', premake_id=premake.id) }}" class="btn btn-sm btn-outline-secondary" title="צפה בפרטים">
+                        <a href="{{ url_for('premakes.premake_detail', premake_id=premake.id) }}" class="btn btn-sm btn-outline-secondary" title="צפה בפרטים">
                             <i class="bi bi-eye"></i>
                         </a>
-                        <a href="{{ url_for('main.edit_premake', premake_id=premake.id) }}" class="btn btn-sm btn-outline-secondary" title="ערוך">
+                        <a href="{{ url_for('premakes.edit_premake', premake_id=premake.id) }}" class="btn btn-sm btn-outline-secondary" title="ערוך">
                             <i class="bi bi-pencil"></i>
                         </a>
-                        <form action="{{ url_for('main.delete_premake', premake_id=premake.id) }}" method="POST" class="d-inline" onsubmit="return confirm('האם אתה בטוח שברצונך למחוק הכנה זו?');">
+                        <form action="{{ url_for('premakes.delete_premake', premake_id=premake.id) }}" method="POST" class="d-inline" onsubmit="return confirm('האם אתה בטוח שברצונך למחוק הכנה זו?');">
                             <button type="submit" class="btn btn-sm btn-outline-danger" title="מחק">
                                 <i class="bi bi-trash"></i>
                             </button>

@@ -9,10 +9,10 @@
             <p class="text-secondary">פרטי מתכון ועלויות</p>
         </div>
         <div>
-            <a href="{{ url_for('main.edit_premake', premake_id=premake.id) }}" class="btn btn-outline-primary">
+            <a href="{{ url_for('premakes.edit_premake', premake_id=premake.id) }}" class="btn btn-outline-primary">
                 <i class="bi bi-pencil me-2"></i>ערוך
             </a>
-            <a href="{{ url_for('main.premakes') }}" class="btn btn-outline-secondary">
+            <a href="{{ url_for('premakes.premakes') }}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-right me-2"></i>חזרה לרשימה
             </a>
         </div>

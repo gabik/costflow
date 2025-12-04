@@ -363,7 +363,7 @@ msgstr "מחיר ליחידה"
 #: templates/product_details.html:15 templates/product_details.html:39
 #: templates/product_details.html:63
 msgid "Price Per Recipe"
-msgstr "מוצרים למתכון"
+msgstr "מחיר למתכון"
 
 #: templates/product_details.html:16 templates/product_details.html:40
 #: templates/product_details.html:64
