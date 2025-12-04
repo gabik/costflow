@@ -1,168 +1,385 @@
 {% extends "base.html" %}
-{% block title %}{{ _('Product Details') }}{% endblock %}
+{% block title %}{{ product.name }} - פירוט מוצר{% endblock %}
 {% block content %}
-<h1>{{ product.name }}</h1>
-<p><strong>{{ _('Products Per Recipe:') }}</strong> {{ product.products_per_recipe }}</p>
-<p><strong>{{ _('Selling Price Per Unit:') }}</strong> {{ currency_symbol }}{{ "%.2f"|format(product.selling_price_per_unit) }}</p>
 
-    {% if premake_costs %}
-    <div class="card mb-4 shadow-sm">
-        <div class="card-header bg-warning text-dark">
-            <h5 class="mb-0"><i class="fas fa-blender me-2"></i>הכנות מקדימות</h5>
+<!-- Product Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1 class="display-6 fw-bold">
+                {{ product.name }}
+                {% if product.is_preproduct %}
+                    <span class="badge bg-info ms-2" style="font-size: 0.4em;">
+                        <i class="bi bi-arrows-collapse-vertical"></i> מוצר מקדים
+                    </span>
+                {% endif %}
+            </h1>
+            <a href="{{ url_for('products.edit_product', product_id=product.id) }}" class="btn btn-outline-primary">
+                <i class="bi bi-pencil me-2"></i>ערוך מוצר
+            </a>
         </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>שם ההכנה</th>
-                            <th>כמות במתכון</th>
-                            <th>יחידה</th>
-                            <th>עלות ליחידה</th>
-                            <th>עלות למתכון</th>
-                            <th>עלות למוצר</th>
-                            <th>פירוט</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in premake_costs %}
-                        <tr>
-                            <td>{{ item.name }}</td>
-                            <td>{{ "%.2f"|format(item.quantity) }}</td>
-                            <td>{{ item.unit }}</td>
-                            <td>{{ "%.2f"|format(item.price_per_unit) }} ₪</td>
-                            <td>{{ "%.2f"|format(item.price_per_recipe) }} ₪</td>
-                            <td class="fw-bold">{{ "%.2f"|format(item.price_per_product) }} ₪</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePremake{{ loop.index }}" aria-expanded="false" aria-controls="collapsePremake{{ loop.index }}">
-                                    <i class="fas fa-chevron-down"></i> הרחב
-                                </button>
-                            </td>
-                        </tr>
-                        <tr class="collapse" id="collapsePremake{{ loop.index }}">
-                            <td colspan="7" class="p-0">
-                                <div class="card card-body border-0 bg-light m-2">
-                                    <h6>מרכיבי {{ item.name }}:</h6>
-                                    <table class="table table-sm table-borderless mb-0">
-                                        <thead>
-                                            <tr class="text-muted" style="font-size: 0.9em;">
-                                                <th>מרכיב</th>
-                                                <th>כמות (עבור 1 יחידת הכנה)</th>
-                                                <th>יחידה</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for comp in item.components %}
-                                            <tr>
-                                                <td>{{ comp.name }}</td>
-                                                <td>{{ "%.4f"|format(comp.quantity / item.batch_size if item.batch_size else 0) }}</td>
-                                                <td>{{ comp.unit }}</td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+
+        <!-- Product Info Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-box text-primary mb-2" style="font-size: 2rem;"></i>
+                        <h6 class="text-muted mb-1">כמות למתכון</h6>
+                        <h4 class="mb-0">{{ product.products_per_recipe }}</h4>
+                        <small class="text-muted">יחידות</small>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-    {% endif %}
-
-    {% if preproduct_costs %}
-    <div class="card mb-4 shadow-sm">
-        <div class="card-header bg-info text-white">
-            <h5 class="mb-0"><i class="fas fa-box me-2"></i>מוצרים מקדימים</h5>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>שם המוצר</th>
-                            <th>כמות במתכון</th>
-                            <th>יחידה</th>
-                            <th>עלות ליחידה</th>
-                            <th>עלות למתכון</th>
-                            <th>עלות למוצר</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in preproduct_costs %}
-                        <tr>
-                            <td>{{ item.name }}</td>
-                            <td>{{ "%.2f"|format(item.quantity) }}</td>
-                            <td>{{ item.unit }}</td>
-                            <td>{{ "%.2f"|format(item.price_per_unit) }} ₪</td>
-                            <td>{{ "%.2f"|format(item.price_per_recipe) }} ₪</td>
-                            <td class="fw-bold">{{ "%.2f"|format(item.price_per_product) }} ₪</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-currency-exchange text-success mb-2" style="font-size: 2rem;"></i>
+                        <h6 class="text-muted mb-1">מחיר מכירה ליחידה</h6>
+                        <h4 class="mb-0">₪{{ "%.2f"|format(product.selling_price_per_unit) }}</h4>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-    {% endif %}
-
-<h3>{{ _('Raw Materials') }}</h3>
-<table class="table">
-    <thead>
-    <tr>
-        <th>{{ _('Raw Material') }}</th>
-        <th>{{ _('Amount in Recipe') }}</th>
-        <th>{{ _('Price Per Unit') }}</th>
-        <th>{{ _('Price Per Recipe') }}</th>
-        <th>{{ _('Price Per Product') }}</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% for component in raw_materials %}
-    <tr>
-        <td>{{ component.name }}</td>
-        <td>{{ "%.2f"|format(component.quantity) }}</td>
-        <td>{{ currency_symbol }}{{ "%.2f"|format(component.price_per_unit) }}</td>
-        <td>{{ currency_symbol }}{{ "%.2f"|format(component.price_per_recipe) }}</td>
-        <td>{{ currency_symbol }}{{ "%.2f"|format(component.price_per_product) }}</td>
-    </tr>
-    {% endfor %}
-    </tbody>
-</table>
-
-    {% if packaging_costs %}
-    <div class="card mb-4 shadow-sm">
-        <div class="card-header bg-info text-white">
-            <h5 class="mb-0"><i class="fas fa-box-open me-2"></i>עלויות אריזה</h5>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>שם האריזה</th>
-                            <th>כמות</th>
-                            <th>מחיר לאריזה</th>
-                            <th>מחיר למתכון</th>
-                            <th>מחיר למוצר</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-calculator text-warning mb-2" style="font-size: 2rem;"></i>
+                        <h6 class="text-muted mb-1">עלות ייצור ליחידה</h6>
+                        {% set total_cost_per_product = namespace(value=0) %}
+                        {% for item in raw_materials %}
+                            {% set total_cost_per_product.value = total_cost_per_product.value + item.price_per_product %}
+                        {% endfor %}
                         {% for item in packaging_costs %}
-                        <tr>
-                            <td>{{ item.name }}</td>
-                            <td>{{ "%.2f"|format(item.quantity) }}</td>
-                            <td>{{ "%.2f"|format(item.price_per_unit) }} ₪</td>
-                            <td>{{ "%.2f"|format(item.price_per_recipe) }} ₪</td>
-                            <td class="fw-bold">{{ "%.2f"|format(item.price_per_product) }} ₪</td>
-                        </tr>
+                            {% set total_cost_per_product.value = total_cost_per_product.value + item.price_per_product %}
                         {% endfor %}
+                        {% for item in premake_costs %}
+                            {% set total_cost_per_product.value = total_cost_per_product.value + item.price_per_product %}
+                        {% endfor %}
+                        {% for item in preproduct_costs %}
+                            {% set total_cost_per_product.value = total_cost_per_product.value + item.price_per_product %}
+                        {% endfor %}
+                        <h4 class="mb-0">₪{{ "%.2f"|format(total_cost_per_product.value) }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-graph-up-arrow text-info mb-2" style="font-size: 2rem;"></i>
+                        <h6 class="text-muted mb-1">רווח גולמי ליחידה</h6>
+                        <h4 class="mb-0 {% if product.selling_price_per_unit - total_cost_per_product.value > 0 %}text-success{% else %}text-danger{% endif %}">
+                            ₪{{ "%.2f"|format(product.selling_price_per_unit - total_cost_per_product.value) }}
+                        </h4>
+                        <small class="text-muted">{{ "%.1f"|format(((product.selling_price_per_unit - total_cost_per_product.value) / product.selling_price_per_unit * 100) if product.selling_price_per_unit > 0 else 0) }}%</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Components Section -->
+<h4 class="mb-3 fw-bold">מרכיבי המוצר</h4>
+
+<!-- Raw Materials -->
+{% if raw_materials %}
+<div class="card mb-3">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 d-flex align-items-center">
+            <i class="bi bi-egg-fried text-primary me-2"></i>
+            חומרי גלם
+            <span class="badge bg-primary ms-auto">{{ raw_materials|length }} פריטים</span>
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">חומר גלם</th>
+                        <th>כמות במתכון</th>
+                        <th>מחיר ליחידה</th>
+                        <th>עלות למתכון</th>
+                        <th class="text-end">עלות למוצר</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for component in raw_materials %}
+                    <tr>
+                        <td>{{ component.name }}</td>
+                        <td>{{ "%.2f"|format(component.quantity) }}</td>
+                        <td>₪{{ "%.2f"|format(component.price_per_unit) }}</td>
+                        <td>₪{{ "%.2f"|format(component.price_per_recipe) }}</td>
+                        <td class="text-end fw-bold">₪{{ "%.2f"|format(component.price_per_product) }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="table-light">
+                        <td colspan="4" class="text-end fw-bold">סה"כ חומרי גלם:</td>
+                        <td class="text-end fw-bold">
+                            {% set raw_total = namespace(value=0) %}
+                            {% for item in raw_materials %}
+                                {% set raw_total.value = raw_total.value + item.price_per_product %}
+                            {% endfor %}
+                            ₪{{ "%.2f"|format(raw_total.value) }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Premakes -->
+{% if premake_costs %}
+<div class="card mb-3">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 d-flex align-items-center">
+            <i class="bi bi-layers text-warning me-2"></i>
+            הכנות מקדימות
+            <span class="badge bg-warning text-dark ms-auto">{{ premake_costs|length }} פריטים</span>
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">הכנה</th>
+                        <th>כמות במתכון</th>
+                        <th>יחידה</th>
+                        <th>עלות ליחידה</th>
+                        <th>עלות למתכון</th>
+                        <th class="text-end">עלות למוצר</th>
+                        <th style="width: 50px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in premake_costs %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>{{ "%.2f"|format(item.quantity) }}</td>
+                        <td>{{ item.unit }}</td>
+                        <td>₪{{ "%.2f"|format(item.price_per_unit) }}</td>
+                        <td>₪{{ "%.2f"|format(item.price_per_recipe) }}</td>
+                        <td class="text-end fw-bold">₪{{ "%.2f"|format(item.price_per_product) }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-link p-0" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#collapsePremake{{ loop.index }}" aria-expanded="false">
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr class="collapse" id="collapsePremake{{ loop.index }}">
+                        <td colspan="7" class="p-0">
+                            <div class="bg-light p-3">
+                                <h6 class="mb-2">מרכיבי {{ item.name }}:</h6>
+                                <table class="table table-sm mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>מרכיב</th>
+                                            <th>כמות ליחידה</th>
+                                            <th>יחידה</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for comp in item.components %}
+                                        <tr>
+                                            <td>{{ comp.name }}</td>
+                                            <td>{{ "%.4f"|format(comp.quantity / item.batch_size if item.batch_size else 0) }}</td>
+                                            <td>{{ comp.unit }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="table-light">
+                        <td colspan="5" class="text-end fw-bold">סה"כ הכנות מקדימות:</td>
+                        <td class="text-end fw-bold" colspan="2">
+                            {% set premake_total = namespace(value=0) %}
+                            {% for item in premake_costs %}
+                                {% set premake_total.value = premake_total.value + item.price_per_product %}
+                            {% endfor %}
+                            ₪{{ "%.2f"|format(premake_total.value) }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Preproducts -->
+{% if preproduct_costs %}
+<div class="card mb-3">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 d-flex align-items-center">
+            <i class="bi bi-arrows-collapse-vertical text-info me-2"></i>
+            מוצרים מקדימים
+            <span class="badge bg-info ms-auto">{{ preproduct_costs|length }} פריטים</span>
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">מוצר מקדים</th>
+                        <th>כמות במתכון</th>
+                        <th>יחידה</th>
+                        <th>עלות ליחידה</th>
+                        <th>עלות למתכון</th>
+                        <th class="text-end">עלות למוצר</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in preproduct_costs %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>{{ "%.2f"|format(item.quantity) }}</td>
+                        <td>{{ item.unit }}</td>
+                        <td>₪{{ "%.2f"|format(item.price_per_unit) }}</td>
+                        <td>₪{{ "%.2f"|format(item.price_per_recipe) }}</td>
+                        <td class="text-end fw-bold">₪{{ "%.2f"|format(item.price_per_product) }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="table-light">
+                        <td colspan="5" class="text-end fw-bold">סה"כ מוצרים מקדימים:</td>
+                        <td class="text-end fw-bold">
+                            {% set preproduct_total = namespace(value=0) %}
+                            {% for item in preproduct_costs %}
+                                {% set preproduct_total.value = preproduct_total.value + item.price_per_product %}
+                            {% endfor %}
+                            ₪{{ "%.2f"|format(preproduct_total.value) }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Packaging -->
+{% if packaging_costs %}
+<div class="card mb-3">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 d-flex align-items-center">
+            <i class="bi bi-box-seam text-secondary me-2"></i>
+            אריזות
+            <span class="badge bg-secondary ms-auto">{{ packaging_costs|length }} פריטים</span>
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">אריזה</th>
+                        <th>כמות</th>
+                        <th>מחיר לאריזה</th>
+                        <th>עלות למתכון</th>
+                        <th class="text-end">עלות למוצר</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in packaging_costs %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>{{ "%.2f"|format(item.quantity) }}</td>
+                        <td>₪{{ "%.2f"|format(item.price_per_unit) }}</td>
+                        <td>₪{{ "%.2f"|format(item.price_per_recipe) }}</td>
+                        <td class="text-end fw-bold">₪{{ "%.2f"|format(item.price_per_product) }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="table-light">
+                        <td colspan="4" class="text-end fw-bold">סה"כ אריזות:</td>
+                        <td class="text-end fw-bold">
+                            {% set packaging_total = namespace(value=0) %}
+                            {% for item in packaging_costs %}
+                                {% set packaging_total.value = packaging_total.value + item.price_per_product %}
+                            {% endfor %}
+                            ₪{{ "%.2f"|format(packaging_total.value) }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Cost Summary -->
+<div class="card border-primary">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">
+            <i class="bi bi-calculator me-2"></i>סיכום עלויות
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <table class="table table-sm">
+                    <tbody>
+                        {% if raw_materials %}
+                        <tr>
+                            <td>חומרי גלם:</td>
+                            <td class="text-end">₪{{ "%.2f"|format(raw_total.value if raw_total is defined else 0) }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if premake_costs %}
+                        <tr>
+                            <td>הכנות מקדימות:</td>
+                            <td class="text-end">₪{{ "%.2f"|format(premake_total.value if premake_total is defined else 0) }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if preproduct_costs %}
+                        <tr>
+                            <td>מוצרים מקדימים:</td>
+                            <td class="text-end">₪{{ "%.2f"|format(preproduct_total.value if preproduct_total is defined else 0) }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if packaging_costs %}
+                        <tr>
+                            <td>אריזות:</td>
+                            <td class="text-end">₪{{ "%.2f"|format(packaging_total.value if packaging_total is defined else 0) }}</td>
+                        </tr>
+                        {% endif %}
+                        <tr class="table-primary fw-bold">
+                            <td>סה"כ עלות למוצר:</td>
+                            <td class="text-end">₪{{ "%.2f"|format(total_cost_per_product.value) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <table class="table table-sm">
+                    <tbody>
+                        <tr>
+                            <td>מחיר מכירה:</td>
+                            <td class="text-end">₪{{ "%.2f"|format(product.selling_price_per_unit) }}</td>
+                        </tr>
+                        <tr>
+                            <td>עלות ייצור:</td>
+                            <td class="text-end">₪{{ "%.2f"|format(total_cost_per_product.value) }}</td>
+                        </tr>
+                        <tr class="{% if product.selling_price_per_unit - total_cost_per_product.value > 0 %}table-success{% else %}table-danger{% endif %} fw-bold">
+                            <td>רווח גולמי:</td>
+                            <td class="text-end">₪{{ "%.2f"|format(product.selling_price_per_unit - total_cost_per_product.value) }}</td>
+                        </tr>
+                        <tr>
+                            <td>אחוז רווח:</td>
+                            <td class="text-end">{{ "%.1f"|format(((product.selling_price_per_unit - total_cost_per_product.value) / product.selling_price_per_unit * 100) if product.selling_price_per_unit > 0 else 0) }}%</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-    {% endif %}
+</div>
+
 {% endblock %}
