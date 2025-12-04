@@ -1,5 +1,5 @@
 from datetime import datetime
-from ..models import db, Category, AuditLog, StockLog, ProductionLog, Product, Premake
+from ..models import db, Category, AuditLog, StockLog, ProductionLog, Product
 
 # Predefined units for raw materials
 units_list = ["kg", "g", "ml", "l", "piece"]
@@ -80,13 +80,6 @@ def calculate_premake_cost_per_unit(premake):
             if not nested_premake and hasattr(pm_comp, 'nested_premake'):
                 nested_premake = pm_comp.nested_premake
 
-            # If still no nested premake, try old Premake model
-            if not nested_premake:
-                try:
-                    nested_premake = Premake.query.get(pm_comp.component_id)
-                except:
-                    pass
-
             if nested_premake:
                 # Recursive call for nested premakes
                 nested_cost_per_unit = calculate_premake_cost_per_unit(nested_premake)
@@ -127,12 +120,6 @@ def calculate_prime_cost(product):
             if not premake and hasattr(component, 'premake') and component.premake:
                 premake = component.premake
 
-            # Try old Premake model if still no premake
-            if not premake:
-                try:
-                    premake = Premake.query.get(component.component_id)
-                except:
-                    pass
 
             if premake:
                 # Use the recursive function to calculate premake cost

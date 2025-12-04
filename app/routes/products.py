@@ -212,44 +212,63 @@ def product_detail(product_id):
     # Retrieve premake costs
     premake_costs = []
     for component in ProductComponent.query.filter_by(product_id=product_id, component_type='premake'):
-        premake = Premake.query.get(component.component_id)
+        # Try unified Product model first
+        premake = Product.query.filter_by(id=component.component_id, is_premake=True).first()
+
+        # Fallback to old Premake model if needed
         if not premake:
-             continue
-             
-        # Calculate cost per unit of premake
-        premake_total_cost = 0
-        calculated_batch_size = 0
-        for sub_comp in premake.components:
-             if sub_comp.component_type == 'raw_material':
-                 mat = RawMaterial.query.get(sub_comp.component_id)
-                 if mat:
-                     premake_total_cost += sub_comp.quantity * mat.cost_per_unit
-                 calculated_batch_size += sub_comp.quantity
-             elif sub_comp.component_type == 'packaging':
-                 pkg = Packaging.query.get(sub_comp.component_id)
-                 if pkg:
-                     premake_total_cost += sub_comp.quantity * pkg.price_per_unit
-        
-        # Use stored batch size if valid, otherwise use calculated sum
-        effective_batch_size = premake.batch_size if premake.batch_size > 0 else calculated_batch_size
-        
-        cost_per_unit_premake = premake_total_cost / effective_batch_size if effective_batch_size > 0 else 0
-        
+            try:
+                premake = Premake.query.get(component.component_id)
+            except:
+                pass
+
+        if not premake:
+            continue
+
+        # Calculate cost per unit of premake using utility function
+        premake_unit_cost = calculate_premake_cost_per_unit(premake)
+
+        # Get effective batch size
+        effective_batch_size = premake.batch_size if hasattr(premake, 'batch_size') and premake.batch_size and premake.batch_size > 0 else 1
+
+        # Build components list with proper null checks
+        components_list = []
+        for c in premake.components:
+            comp_data = {'quantity': c.quantity}
+
+            if c.component_type == 'raw_material' and c.material:
+                comp_data['name'] = c.material.name
+                comp_data['unit'] = c.material.unit
+            elif c.component_type == 'packaging' and c.packaging:
+                comp_data['name'] = c.packaging.name
+                comp_data['unit'] = 'pcs'
+            elif c.component_type == 'premake':
+                # Handle nested premake
+                nested = Product.query.filter_by(id=c.component_id, is_premake=True).first()
+                if not nested:
+                    try:
+                        nested = Premake.query.get(c.component_id)
+                    except:
+                        pass
+                if nested:
+                    comp_data['name'] = nested.name
+                    comp_data['unit'] = getattr(nested, 'unit', 'unit')
+                else:
+                    continue
+            else:
+                continue
+
+            components_list.append(comp_data)
+
         premake_costs.append({
             'name': premake.name,
             'quantity': component.quantity,
-            'unit': premake.unit,
+            'unit': getattr(premake, 'unit', 'unit'),
             'batch_size': effective_batch_size,
-            'price_per_unit': cost_per_unit_premake,
-            'price_per_recipe': component.quantity * cost_per_unit_premake,
-            'price_per_product': (component.quantity * cost_per_unit_premake) / product.products_per_recipe,
-            'components': [
-                 {
-                     'name': c.material.name if c.component_type == 'raw_material' else c.packaging.name,
-                     'quantity': c.quantity,
-                     'unit': c.material.unit if c.component_type == 'raw_material' else 'pcs'
-                 } for c in premake.components
-            ]
+            'price_per_unit': premake_unit_cost,
+            'price_per_recipe': component.quantity * premake_unit_cost,
+            'price_per_product': (component.quantity * premake_unit_cost) / product.products_per_recipe if product.products_per_recipe > 0 else 0,
+            'components': components_list
         })
 
     return render_template(

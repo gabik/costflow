@@ -1,6 +1,6 @@
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for
-from ..models import db, Product, ProductionLog, Premake, StockLog
+from ..models import db, Product, ProductionLog, StockLog
 from .utils import log_audit
 
 production_blueprint = Blueprint('production', __name__)
@@ -55,36 +55,13 @@ def premake_production():
         # quantity_produced from form is in UNITS (e.g. kg), but we store BATCHES
         quantity_units = float(request.form['quantity_produced'])
 
-        # Try unified model first, then fallback to old Premake
-        premake = None
-        batch_size = 0
-
-        try:
-            # Try to get as Product with is_premake=True
-            premake = Product.query.filter_by(id=premake_id, is_premake=True).first()
-            if premake:
-                batch_size = premake.batch_size or 1
-            else:
-                # Try old Premake model
-                try:
-                    from ..models import Premake
-                    old_premake = Premake.query.get(premake_id)
-                    if old_premake:
-                        premake = old_premake
-                        batch_size = old_premake.batch_size
-                except:
-                    pass
-        except:
-            # Fallback for pre-migration
-            try:
-                from ..models import Premake
-                premake = Premake.query.get(premake_id)
-                batch_size = premake.batch_size if premake else 0
-            except:
-                pass
+        # Get premake from unified Product model
+        premake = Product.query.filter_by(id=premake_id, is_premake=True).first()
 
         if not premake:
             return "Premake not found", 404
+
+        batch_size = premake.batch_size or 1
 
         # Convert units (kg) to batches
         if batch_size > 0:
@@ -93,26 +70,16 @@ def premake_production():
             quantity_batches = quantity_units
 
         # Log production - use product_id for unified model
-        if isinstance(premake, Product):
-            production_log = ProductionLog(product_id=premake_id, quantity_produced=quantity_batches)
-        else:
-            production_log = ProductionLog(premake_id=premake_id, quantity_produced=quantity_batches)
-
+        # Create production log for unified model
+        production_log = ProductionLog(product_id=premake_id, quantity_produced=quantity_batches)
         db.session.add(production_log)
         db.session.flush()
 
         # Update Stock - use product_id for unified model
-        if isinstance(premake, Product):
-            stock_log = StockLog(
-                product_id=premake_id,
-                action_type='add',
-                quantity=quantity_units
-            )
-        else:
-            stock_log = StockLog(
-                premake_id=premake_id,
-                action_type='add',
-                quantity=quantity_units
+        stock_log = StockLog(
+            product_id=premake_id,
+            action_type='add',
+            quantity=quantity_units
             )
         db.session.add(stock_log)
 
@@ -120,17 +87,8 @@ def premake_production():
         return redirect(url_for('production.premake_production'))
 
     # Get premakes - try unified model first
-    premakes = []
-    try:
-        # Get products that are premakes
-        premakes = Product.query.filter_by(is_premake=True).all()
-    except:
-        # Fallback to old Premake model
-        try:
-            from ..models import Premake
-            premakes = Premake.query.all()
-        except:
-            premakes = []
+    # Get products that are premakes
+    premakes = Product.query.filter_by(is_premake=True).all()
 
     # Get production logs - handle both old and new
     production_logs = ProductionLog.query.filter(
@@ -147,8 +105,14 @@ def premake_production():
 def edit_premake_production_log(log_id):
     log = ProductionLog.query.get_or_404(log_id)
     new_quantity_units = float(request.form['quantity_produced'])
-    
-    premake = log.premake
+
+    # Get premake from product relationship (unified model)
+    premake = log.product if log.product and log.product.is_premake else None
+    if not premake:
+        # Try using premake_id for backward compatibility
+        if hasattr(log, 'premake_id') and log.premake_id:
+            premake = Product.query.filter_by(id=log.premake_id, is_premake=True).first()
+
     if not premake:
         return "Premake not found", 404
 
@@ -176,8 +140,8 @@ def edit_premake_production_log(log_id):
     
     if diff_units != 0:
         correction_log = StockLog(
-            premake_id=premake.id,
-            action_type='add', # Negative add reduces stock
+            product_id=premake.id,  # Using product_id for unified model
+            action_type='add',  # Negative add reduces stock
             quantity=diff_units
         )
         db.session.add(correction_log)
@@ -192,11 +156,16 @@ def delete_premake_production_log(log_id):
     log = ProductionLog.query.get_or_404(log_id)
     
     # Revert stock
-    premake = log.premake
+    # Get premake from product relationship (unified model)
+    premake = log.product if log.product and log.product.is_premake else None
+    if not premake and hasattr(log, 'premake_id') and log.premake_id:
+        # Try using premake_id for backward compatibility
+        premake = Product.query.filter_by(id=log.premake_id, is_premake=True).first()
+
     if premake:
-        qty_units = log.quantity_produced * premake.batch_size
+        qty_units = log.quantity_produced * (premake.batch_size or 1)
         revert_log = StockLog(
-            premake_id=premake.id,
+            product_id=premake.id,  # Using product_id for unified model
             action_type='add',
             quantity=-qty_units
         )

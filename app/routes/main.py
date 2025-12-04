@@ -6,7 +6,7 @@ from datetime import datetime, date, timedelta
 from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_file, jsonify
 from sqlalchemy import func, extract, and_, text
-from ..models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, StockAudit, AuditLog, Premake, PremakeComponent
+from ..models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, StockAudit, AuditLog
 from .utils import units_list, get_or_create_general_category, convert_to_base_unit, log_audit, calculate_prime_cost, calculate_premake_current_stock
 from .raw_materials import calculate_raw_material_current_stock
 
@@ -208,8 +208,6 @@ def index():
             report_data.append({
                 'product_name': product.name,
                 'product_image': product.image_filename,
-                'is_migrated': product.is_migrated if hasattr(product, 'is_migrated') else False,
-                'migrated_to_premake': product.migrated_to_premake.name if hasattr(product, 'migrated_to_premake') and product.migrated_to_premake else None,
                 'produced_qty': produced_qty,
                 'sold_qty': sold_qty,
                 'waste_qty': waste_qty,

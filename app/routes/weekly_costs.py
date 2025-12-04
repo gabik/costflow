@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template, request, redirect, url_for
 from sqlalchemy import func
-from ..models import db, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, Product, ProductionLog, Premake, Labor, StockLog
+from ..models import db, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, Product, ProductionLog, Labor, StockLog
 from .utils import log_audit, calculate_prime_cost
 
 weekly_costs_blueprint = Blueprint('weekly_costs', __name__)

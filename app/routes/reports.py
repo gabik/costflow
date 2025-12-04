@@ -1,7 +1,7 @@
 from datetime import datetime, date, timedelta
 from flask import Blueprint, render_template, request
 from sqlalchemy import func, and_
-from ..models import WeeklyLaborCost, WeeklyProductSales, ProductionLog, Premake, StockAudit
+from ..models import WeeklyLaborCost, WeeklyProductSales, ProductionLog, StockAudit
 from .utils import calculate_prime_cost, calculate_premake_current_stock
 
 reports_blueprint = Blueprint('reports', __name__)
@@ -74,8 +74,6 @@ def weekly_report():
         # Add to sales data
         sales_data.append({
             'name': product.name,
-            'is_migrated': product.is_migrated if hasattr(product, 'is_migrated') else False,
-            'migrated_to_premake': product.migrated_to_premake.name if hasattr(product, 'migrated_to_premake') and product.migrated_to_premake else None,
             'category_name': cat_name,
             'selling_price_per_unit': product.selling_price_per_unit,
             'quantity_sold': sale.quantity_sold,

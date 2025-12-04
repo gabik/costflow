@@ -1,6 +1,6 @@
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for
-from ..models import db, RawMaterial, StockLog, ProductComponent, PremakeComponent, StockAudit, Category, Product, Premake, ProductionLog
+from ..models import db, RawMaterial, StockLog, ProductComponent, StockAudit, Category, Product, ProductionLog
 from .utils import log_audit, get_or_create_general_category, units_list
 
 raw_materials_blueprint = Blueprint('raw_materials', __name__)
