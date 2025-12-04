@@ -285,12 +285,41 @@ def premake_detail(premake_id):
             cost = component.quantity * component.material.cost_per_unit
             total_cost += cost
             components_data.append({
+                'type': 'raw_material',
                 'name': component.material.name,
                 'quantity': component.quantity,
                 'unit': component.material.unit,
                 'cost_per_unit': component.material.cost_per_unit,
                 'total_cost': cost
             })
+        elif component.component_type == 'packaging' and component.packaging:
+            cost = component.quantity * component.packaging.price_per_unit
+            total_cost += cost
+            components_data.append({
+                'type': 'packaging',
+                'name': component.packaging.name,
+                'quantity': component.quantity,
+                'unit': 'pcs',
+                'cost_per_unit': component.packaging.price_per_unit,
+                'total_cost': cost
+            })
+        elif component.component_type == 'premake':
+            # Handle nested premakes - get the Product with is_premake=True
+            nested_premake = Product.query.filter_by(id=component.component_id, is_premake=True).first()
+            if nested_premake:
+                # Calculate nested premake cost using utility function
+                from .utils import calculate_premake_cost_per_unit
+                nested_cost_per_unit = calculate_premake_cost_per_unit(nested_premake)
+                cost = component.quantity * nested_cost_per_unit
+                total_cost += cost
+                components_data.append({
+                    'type': 'premake',
+                    'name': nested_premake.name,
+                    'quantity': component.quantity,
+                    'unit': getattr(nested_premake, 'unit', 'unit'),
+                    'cost_per_unit': nested_cost_per_unit,
+                    'total_cost': cost
+                })
 
     # Add percentage
     for item in components_data:

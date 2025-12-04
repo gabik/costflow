@@ -55,7 +55,7 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>חומר גלם</th>
+                            <th>רכיב</th>
                             <th>כמות</th>
                             <th>מחיר ליחידה</th>
                             <th>סה"כ עלות</th>
@@ -65,7 +65,16 @@
                     <tbody>
                         {% for item in components_data %}
                         <tr>
-                            <td>{{ item.name }}</td>
+                            <td>
+                                {% if item.type == 'premake' %}
+                                    <span class="badge bg-warning text-dark me-2">הכנה</span>
+                                {% elif item.type == 'packaging' %}
+                                    <span class="badge bg-info text-white me-2">אריזה</span>
+                                {% else %}
+                                    <span class="badge bg-success text-white me-2">חומר גלם</span>
+                                {% endif %}
+                                {{ item.name }}
+                            </td>
                             <td>{{ "%.3f"|format(item.quantity) }} {{ item.unit }}</td>
                             <td>{{ currency_symbol }}{{ "%.2f"|format(item.cost_per_unit) }}</td>
                             <td class="fw-bold">{{ currency_symbol }}{{ "%.2f"|format(item.total_cost) }}</td>
