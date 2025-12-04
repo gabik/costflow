@@ -52,11 +52,23 @@ def log_audit(action, target_type, target_id=None, details=None):
     except Exception as e:
         print(f"Failed to log audit: {e}")
 
-def calculate_premake_cost_per_unit(premake):
+def calculate_premake_cost_per_unit(premake, visited=None):
     """
     Recursively calculates the cost per unit of a premake.
     Works with both old Premake model and new unified Product model.
+    Includes cycle detection to prevent infinite recursion.
     """
+    if visited is None:
+        visited = set()
+
+    # Check for cycles
+    premake_id = premake.id if hasattr(premake, 'id') else id(premake)
+    if premake_id in visited:
+        # Cycle detected, return 0 to break the cycle
+        return 0
+
+    visited.add(premake_id)
+
     premake_batch_cost = 0
     calculated_batch_size = 0
 
@@ -81,8 +93,8 @@ def calculate_premake_cost_per_unit(premake):
                 nested_premake = pm_comp.nested_premake
 
             if nested_premake:
-                # Recursive call for nested premakes
-                nested_cost_per_unit = calculate_premake_cost_per_unit(nested_premake)
+                # Recursive call for nested premakes with visited set
+                nested_cost_per_unit = calculate_premake_cost_per_unit(nested_premake, visited.copy())
                 premake_batch_cost += pm_comp.quantity * nested_cost_per_unit
 
     effective_batch_size = premake.batch_size if hasattr(premake, 'batch_size') and premake.batch_size and premake.batch_size > 0 else calculated_batch_size
