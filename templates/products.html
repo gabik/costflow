@@ -42,7 +42,14 @@
                         </div>
                     {% endif %}
                 </td>
-                <td class="fw-medium">{{ product.name }}</td>
+                <td class="fw-medium">
+                    {{ product.name }}
+                    {% if product.is_preproduct %}
+                        <span class="badge bg-info ms-2" title="מוצר מקדים - ניתן למכירה וגם לשימוש כרכיב">
+                            <i class="bi bi-box-seam"></i>
+                        </span>
+                    {% endif %}
+                </td>
                 <td>
                     {% set recipe_weight = namespace(value=0) %}
                     {% for component in product.components %}
