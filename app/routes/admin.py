@@ -237,14 +237,14 @@ def migrate_add_unit_field():
         # Add is_product column if missing
         if 'is_product' not in columns:
             with db.engine.connect() as conn:
-                conn.execute(text("ALTER TABLE product ADD COLUMN is_product BOOLEAN DEFAULT 1"))
+                conn.execute(text("ALTER TABLE product ADD COLUMN is_product BOOLEAN DEFAULT TRUE"))
                 conn.commit()
                 messages.append("✓ Added 'is_product' column")
 
         # Add is_premake column if missing
         if 'is_premake' not in columns:
             with db.engine.connect() as conn:
-                conn.execute(text("ALTER TABLE product ADD COLUMN is_premake BOOLEAN DEFAULT 0"))
+                conn.execute(text("ALTER TABLE product ADD COLUMN is_premake BOOLEAN DEFAULT FALSE"))
                 conn.commit()
                 messages.append("✓ Added 'is_premake' column")
 
@@ -259,7 +259,7 @@ def migrate_add_unit_field():
                 try:
                     # Try to set based on is_premake flag if column exists
                     if 'is_premake' in inspector.get_columns('product'):
-                        conn.execute(text("UPDATE product SET unit = 'kg' WHERE is_premake = 1 AND unit IS NULL"))
+                        conn.execute(text("UPDATE product SET unit = 'kg' WHERE is_premake = TRUE AND unit IS NULL"))
                         conn.commit()
                         messages.append("✓ Set default unit 'kg' for existing premakes")
                 except:
@@ -344,7 +344,7 @@ def migrate_fix_premake_units():
         with db.engine.connect() as conn:
             result = conn.execute(text(
                 "UPDATE product SET unit = 'kg' "
-                "WHERE is_premake = 1 AND unit IS NULL"
+                "WHERE is_premake = TRUE AND unit IS NULL"
             ))
             conn.commit()
             messages.append(f"✓ Updated {result.rowcount} premakes with NULL unit to 'kg'")
@@ -355,7 +355,7 @@ def migrate_fix_premake_units():
 
         if 'is_preproduct' not in columns:
             with db.engine.connect() as conn:
-                conn.execute(text("ALTER TABLE product ADD COLUMN is_preproduct BOOLEAN DEFAULT 0"))
+                conn.execute(text("ALTER TABLE product ADD COLUMN is_preproduct BOOLEAN DEFAULT FALSE"))
                 conn.commit()
                 messages.append("✓ Added 'is_preproduct' column")
         else:
@@ -409,21 +409,21 @@ def migrate_unified_cleanup():
         # Add is_product column if missing
         if 'is_product' not in columns:
             with db.engine.connect() as conn:
-                conn.execute(text("ALTER TABLE product ADD COLUMN is_product BOOLEAN DEFAULT 1"))
+                conn.execute(text("ALTER TABLE product ADD COLUMN is_product BOOLEAN DEFAULT TRUE"))
                 conn.commit()
                 messages.append("✓ Added 'is_product' column")
 
         # Add is_premake column if missing
         if 'is_premake' not in columns:
             with db.engine.connect() as conn:
-                conn.execute(text("ALTER TABLE product ADD COLUMN is_premake BOOLEAN DEFAULT 0"))
+                conn.execute(text("ALTER TABLE product ADD COLUMN is_premake BOOLEAN DEFAULT FALSE"))
                 conn.commit()
                 messages.append("✓ Added 'is_premake' column")
 
         # Add is_preproduct column if missing
         if 'is_preproduct' not in columns:
             with db.engine.connect() as conn:
-                conn.execute(text("ALTER TABLE product ADD COLUMN is_preproduct BOOLEAN DEFAULT 0"))
+                conn.execute(text("ALTER TABLE product ADD COLUMN is_preproduct BOOLEAN DEFAULT FALSE"))
                 conn.commit()
                 messages.append("✓ Added 'is_preproduct' column")
 
@@ -445,7 +445,7 @@ def migrate_unified_cleanup():
         with db.engine.connect() as conn:
             result = conn.execute(text(
                 "UPDATE product SET unit = 'kg' "
-                "WHERE is_premake = 1 AND unit IS NULL"
+                "WHERE is_premake = TRUE AND unit IS NULL"
             ))
             if result.rowcount > 0:
                 conn.commit()
