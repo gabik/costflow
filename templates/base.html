@@ -45,7 +45,7 @@
                 </li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('products.products') }}">{{ _('Products') }}</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('main.premakes') }}">הכנות מקדימות</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('main.raw_materials') }}">חומרי גלם</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('raw_materials.raw_materials') }}">חומרי גלם</a></li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         דו"חות
@@ -68,7 +68,7 @@
                         <li><a class="dropdown-item py-2" href="{{ url_for('main.stock_audits') }}">ביקורת מלאי</a></li>
                         <li><a class="dropdown-item py-2" href="{{ url_for('inventory.upload_inventory') }}">טעינת מלאי מקובץ</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item py-2 text-danger" href="{{ url_for('main.audit_log') }}">יומן פעילות / איפוס</a></li>
+                        <li><a class="dropdown-item py-2 text-danger" href="{{ url_for('admin.audit_log') }}">יומן פעילות / איפוס</a></li>
                     </ul>
                 </li>
             </ul>

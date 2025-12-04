@@ -9,7 +9,7 @@
             <p class="text-secondary">מעקב אחר שינויים ופעולות משתמשים.</p>
         </div>
         <div class="d-flex gap-2">
-            <a href="{{ url_for('main.backup_db') }}" class="btn btn-success">
+            <a href="{{ url_for('admin.backup_db') }}" class="btn btn-success">
                 <i class="bi bi-download me-2"></i> גיבוי נתונים
             </a>
             <button class="btn btn-warning text-dark" data-bs-toggle="modal" data-bs-target="#restoreDbModal">
@@ -71,7 +71,7 @@
 <div class="modal fade" id="restoreDbModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" action="{{ url_for('main.restore_db') }}" enctype="multipart/form-data">
+            <form method="POST" action="{{ url_for('admin.restore_db') }}" enctype="multipart/form-data">
                 <div class="modal-header bg-warning">
                     <h5 class="modal-title text-dark">שחזור מגיבוי</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -97,7 +97,7 @@
 <div class="modal fade" id="resetDbModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" action="{{ url_for('main.reset_db') }}">
+            <form method="POST" action="{{ url_for('admin.reset_db') }}">
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title">אזהרה: איפוס מערכת</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>

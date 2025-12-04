@@ -7,7 +7,7 @@
             <h1 class="display-6 fw-bold text-primary">ניהול חומרי גלם</h1>
             <p class="text-secondary">מעקב אחר מלאי, עלויות וספקים.</p>
         </div>
-        <a href="{{ url_for('main.add_raw_material') }}" class="btn btn-primary">
+        <a href="{{ url_for('raw_materials.add_raw_material') }}" class="btn btn-primary">
             <i class="bi bi-plus-lg me-2"></i> הוסף חומר גלם
         </a>
     </div>
@@ -64,7 +64,7 @@
                         <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#setStockModal" data-id="{{ material.id }}" data-name="{{ material.name }}" title="עדכן ספירה">
                             <i class="bi bi-pencil-square"></i>
                         </button>
-                        <a href="{{ url_for('main.edit_raw_material', material_id=material.id) }}" class="btn btn-sm btn-outline-secondary" title="ערוך פרטים">
+                        <a href="{{ url_for('raw_materials.edit_raw_material', material_id=material.id) }}" class="btn btn-sm btn-outline-secondary" title="ערוך פרטים">
                             <i class="bi bi-gear"></i>
                         </a>
                         <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteMaterialModal" data-id="{{ material.id }}" data-name="{{ material.name }}" title="מחק">
@@ -83,7 +83,7 @@
 <div class="modal fade" id="addStockModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" action="{{ url_for('main.update_stock') }}">
+            <form method="POST" action="{{ url_for('raw_materials.update_stock') }}">
                 <input type="hidden" id="add_stock_raw_material_id" name="raw_material_id">
                 <input type="hidden" name="action_type" value="add">
                 <div class="modal-header">
@@ -110,7 +110,7 @@
 <div class="modal fade" id="setStockModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" action="{{ url_for('main.update_stock') }}">
+            <form method="POST" action="{{ url_for('raw_materials.update_stock') }}">
                 <input type="hidden" id="set_stock_raw_material_id" name="raw_material_id">
                 <input type="hidden" name="action_type" value="set">
                  <div class="modal-header">
