@@ -6,13 +6,15 @@ db = SQLAlchemy()
 class StockLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     raw_material_id = db.Column(db.Integer, db.ForeignKey('raw_material.id'), nullable=True)
-    premake_id = db.Column(db.Integer, db.ForeignKey('premake.id'), nullable=True)
+    premake_id = db.Column(db.Integer, db.ForeignKey('premake.id'), nullable=True)  # Will be deprecated
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=True)  # New unified field
     action_type = db.Column(db.String(10), nullable=False)  # 'add' or 'set'
     quantity = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    
+
     raw_material = db.relationship('RawMaterial', backref='stock_logs')
-    premake = db.relationship('Premake', backref='stock_logs')
+    premake = db.relationship('Premake', backref='stock_logs')  # Will be deprecated
+    product = db.relationship('Product', backref='stock_logs', foreign_keys=[product_id])
 
 class ProductionLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -142,6 +144,11 @@ class Product(db.Model):
     selling_price_per_unit = db.Column(db.Float, nullable=False)
     image_filename = db.Column(db.String(255), nullable=True)
 
+    # Unified product/premake fields
+    is_product = db.Column(db.Boolean, default=True, nullable=False)
+    is_premake = db.Column(db.Boolean, default=False, nullable=False)
+    batch_size = db.Column(db.Float, nullable=True)  # From Premake model
+
     # Migration fields
     is_migrated = db.Column(db.Boolean, default=False, nullable=False)
     migrated_to_premake_id = db.Column(db.Integer, db.ForeignKey('premake.id'), nullable=True)
@@ -159,6 +166,9 @@ class Product(db.Model):
             'selling_price_per_unit': self.selling_price_per_unit,
             'image_filename': self.image_filename,
             'components': [c.to_dict() for c in self.components],
+            'is_product': self.is_product,
+            'is_premake': self.is_premake,
+            'batch_size': self.batch_size,
             'is_migrated': self.is_migrated,
             'migrated_to_premake_id': self.migrated_to_premake_id,
             'original_prime_cost': self.original_prime_cost
@@ -258,7 +268,8 @@ class StockAudit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     audit_date = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     raw_material_id = db.Column(db.Integer, db.ForeignKey('raw_material.id'), nullable=True)
-    premake_id = db.Column(db.Integer, db.ForeignKey('premake.id'), nullable=True)
+    premake_id = db.Column(db.Integer, db.ForeignKey('premake.id'), nullable=True)  # Will be deprecated
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=True)  # New unified field
     system_quantity = db.Column(db.Float, nullable=False)  # Calculated stock before audit
     physical_quantity = db.Column(db.Float, nullable=False)  # Actual count
     variance = db.Column(db.Float, nullable=False)  # physical - system
@@ -269,7 +280,8 @@ class StockAudit(db.Model):
 
     # Relationships
     raw_material = db.relationship('RawMaterial', backref='stock_audits')
-    premake = db.relationship('Premake', backref='stock_audits')
+    premake = db.relationship('Premake', backref='stock_audits')  # Will be deprecated
+    product = db.relationship('Product', backref='stock_audits', foreign_keys=[product_id])
     stock_log = db.relationship('StockLog', backref='audit')
 
     def to_dict(self):

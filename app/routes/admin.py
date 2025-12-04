@@ -1,7 +1,7 @@
 import json
 import io
 from datetime import datetime
-from flask import Blueprint, request, send_file, redirect, url_for, render_template
+from flask import Blueprint, request, send_file, redirect, url_for, render_template, jsonify
 from ..models import db, Category, RawMaterial, Packaging, Labor, Product, ProductComponent, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, AuditLog
 from .utils import log_audit
 
@@ -201,3 +201,195 @@ def reset_db():
         return redirect(url_for('main.index'))
     except Exception as e:
         return f"Reset failed: {e}", 500
+
+@admin_blueprint.route('/admin/migrate_premakes', methods=['GET', 'POST'])
+def migrate_premakes_to_products():
+    """Endpoint to migrate Premakes to unified Product model"""
+    from ..models import Product, Premake, PremakeComponent, ProductComponent, StockLog, ProductionLog, StockAudit
+    from sqlalchemy import text
+
+    if request.method == 'GET':
+        # Show migration status page
+        try:
+            premake_count = Premake.query.count()
+        except:
+            premake_count = 0
+
+        try:
+            product_count = Product.query.count()
+        except:
+            product_count = 0
+
+        # Check if migration already done
+        migration_done = False
+        try:
+            # Try to check if columns exist by accessing them
+            products_with_flags = Product.query.filter(
+                (Product.is_premake == True) | (Product.batch_size != None)
+            ).count()
+            migration_done = products_with_flags > 0 and premake_count > 0
+        except:
+            # Columns don't exist yet, migration not done
+            migration_done = False
+
+        return render_template('migrate_premakes.html',
+                              premake_count=premake_count,
+                              product_count=product_count,
+                              migration_done=migration_done)
+
+    # POST - Run migration
+    try:
+        print("Starting migration: Unifying Products and Premakes...")
+
+        # Step 1: Add new columns to Product table if they don't exist
+        with db.engine.connect() as conn:
+            result = conn.execute(text("PRAGMA table_info(product)"))
+            columns = [row[1] for row in result]
+
+            if 'is_product' not in columns:
+                conn.execute(text("ALTER TABLE product ADD COLUMN is_product BOOLEAN DEFAULT 1"))
+                conn.commit()
+
+            if 'is_premake' not in columns:
+                conn.execute(text("ALTER TABLE product ADD COLUMN is_premake BOOLEAN DEFAULT 0"))
+                conn.commit()
+
+            if 'batch_size' not in columns:
+                conn.execute(text("ALTER TABLE product ADD COLUMN batch_size FLOAT"))
+                conn.commit()
+
+        # Step 2: Set is_product=True for all existing products
+        Product.query.update({Product.is_product: True, Product.is_premake: False})
+        db.session.commit()
+
+        # Step 3: Migrate all Premake records to Product table
+        premakes = Premake.query.all()
+        premake_id_mapping = {}
+
+        for premake in premakes:
+            new_product = Product(
+                name=premake.name,
+                category_id=premake.category_id,
+                products_per_recipe=1,
+                selling_price_per_unit=0,
+                is_product=False,
+                is_premake=True,
+                batch_size=premake.batch_size
+            )
+            db.session.add(new_product)
+            db.session.flush()
+            premake_id_mapping[premake.id] = new_product.id
+
+        db.session.commit()
+
+        # Step 4: Migrate PremakeComponent records to ProductComponent
+        premake_components = PremakeComponent.query.all()
+
+        for comp in premake_components:
+            if comp.premake_id in premake_id_mapping:
+                component_id = comp.component_id
+                if comp.component_type == 'premake' and comp.component_id in premake_id_mapping:
+                    component_id = premake_id_mapping[comp.component_id]
+
+                new_component = ProductComponent(
+                    product_id=premake_id_mapping[comp.premake_id],
+                    component_type=comp.component_type,
+                    component_id=component_id,
+                    quantity=comp.quantity
+                )
+                db.session.add(new_component)
+
+        db.session.commit()
+
+        # Step 5: Update ProductComponent records where component_type='premake'
+        product_components = ProductComponent.query.filter_by(component_type='premake').all()
+
+        for comp in product_components:
+            if comp.component_id in premake_id_mapping:
+                comp.component_id = premake_id_mapping[comp.component_id]
+
+        db.session.commit()
+
+        # Step 6: Update StockLog references
+        with db.engine.connect() as conn:
+            result = conn.execute(text("PRAGMA table_info(stock_log)"))
+            columns = [row[1] for row in result]
+
+            if 'product_id' not in columns:
+                conn.execute(text("ALTER TABLE stock_log ADD COLUMN product_id INTEGER"))
+                conn.commit()
+
+        stock_logs = StockLog.query.filter(StockLog.premake_id != None).all()
+        for log in stock_logs:
+            if log.premake_id in premake_id_mapping:
+                db.session.execute(
+                    text("UPDATE stock_log SET product_id = :product_id WHERE id = :log_id"),
+                    {"product_id": premake_id_mapping[log.premake_id], "log_id": log.id}
+                )
+
+        db.session.commit()
+
+        # Step 7: Update ProductionLog references
+        production_logs = ProductionLog.query.filter(ProductionLog.premake_id != None).all()
+
+        for log in production_logs:
+            if log.premake_id in premake_id_mapping:
+                if not log.product_id:
+                    log.product_id = premake_id_mapping[log.premake_id]
+
+        db.session.commit()
+
+        # Step 8: Update StockAudit references
+        with db.engine.connect() as conn:
+            result = conn.execute(text("PRAGMA table_info(stock_audit)"))
+            columns = [row[1] for row in result]
+
+            if 'product_id' not in columns:
+                conn.execute(text("ALTER TABLE stock_audit ADD COLUMN product_id INTEGER"))
+                conn.commit()
+
+        stock_audits = StockAudit.query.filter(StockAudit.premake_id != None).all()
+
+        for audit in stock_audits:
+            if audit.premake_id in premake_id_mapping:
+                db.session.execute(
+                    text("UPDATE stock_audit SET product_id = :product_id WHERE id = :audit_id"),
+                    {"product_id": premake_id_mapping[audit.premake_id], "audit_id": audit.id}
+                )
+
+        db.session.commit()
+
+        # Step 9: Update Product.migrated_to_premake_id references
+        with db.engine.connect() as conn:
+            result = conn.execute(text("PRAGMA table_info(product)"))
+            columns = [row[1] for row in result]
+
+            if 'migrated_to_product_id' not in columns:
+                conn.execute(text("ALTER TABLE product ADD COLUMN migrated_to_product_id INTEGER"))
+                conn.commit()
+
+        products_with_migration = Product.query.filter(Product.migrated_to_premake_id != None).all()
+
+        for product in products_with_migration:
+            if product.migrated_to_premake_id in premake_id_mapping:
+                db.session.execute(
+                    text("UPDATE product SET migrated_to_product_id = :new_id WHERE id = :product_id"),
+                    {"new_id": premake_id_mapping[product.migrated_to_premake_id], "product_id": product.id}
+                )
+
+        db.session.commit()
+
+        log_audit("MIGRATE", "System", details=f"Migrated {len(premakes)} premakes to unified Product model")
+
+        return jsonify({
+            "success": True,
+            "message": f"Successfully migrated {len(premakes)} premakes",
+            "mapping": premake_id_mapping
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500

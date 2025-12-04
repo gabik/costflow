@@ -55,6 +55,7 @@ def log_audit(action, target_type, target_id=None, details=None):
 def calculate_premake_cost_per_unit(premake):
     """
     Recursively calculates the cost per unit of a premake.
+    Works with both old Premake model and new unified Product model.
     """
     premake_batch_cost = 0
     calculated_batch_size = 0
@@ -65,18 +66,40 @@ def calculate_premake_cost_per_unit(premake):
             calculated_batch_size += pm_comp.quantity
         elif pm_comp.component_type == 'packaging' and pm_comp.packaging:
             premake_batch_cost += pm_comp.quantity * pm_comp.packaging.price_per_unit
-        elif pm_comp.component_type == 'premake' and pm_comp.nested_premake:
-            # Recursive call for nested premakes
-            nested_cost_per_unit = calculate_premake_cost_per_unit(pm_comp.nested_premake)
-            premake_batch_cost += pm_comp.quantity * nested_cost_per_unit
+        elif pm_comp.component_type == 'premake':
+            # Handle both old and new models for nested premakes
+            nested_premake = None
 
-    effective_batch_size = premake.batch_size if premake.batch_size > 0 else calculated_batch_size
+            # Try to get nested premake from unified Product model first
+            if isinstance(premake, Product):
+                nested_product = Product.query.filter_by(id=pm_comp.component_id, is_premake=True).first()
+                if nested_product:
+                    nested_premake = nested_product
+
+            # Fallback to property accessor for old model
+            if not nested_premake and hasattr(pm_comp, 'nested_premake'):
+                nested_premake = pm_comp.nested_premake
+
+            # If still no nested premake, try old Premake model
+            if not nested_premake:
+                try:
+                    nested_premake = Premake.query.get(pm_comp.component_id)
+                except:
+                    pass
+
+            if nested_premake:
+                # Recursive call for nested premakes
+                nested_cost_per_unit = calculate_premake_cost_per_unit(nested_premake)
+                premake_batch_cost += pm_comp.quantity * nested_cost_per_unit
+
+    effective_batch_size = premake.batch_size if hasattr(premake, 'batch_size') and premake.batch_size and premake.batch_size > 0 else calculated_batch_size
     return premake_batch_cost / effective_batch_size if effective_batch_size > 0 else 0
 
 def calculate_prime_cost(product):
     """
     Calculates the prime cost (Materials + Packaging + Premakes) for a single unit of a Product.
     Includes recursive calculation for Premakes.
+    Works with both old Premake model and new unified Product model.
     """
     # For migrated products, use stored original cost
     if hasattr(product, 'is_migrated') and product.is_migrated:
@@ -88,31 +111,86 @@ def calculate_prime_cost(product):
             total_cost += component.quantity * component.material.cost_per_unit
         elif component.component_type == 'packaging' and component.packaging:
             total_cost += component.quantity * component.packaging.price_per_unit
-        elif component.component_type == 'premake' and component.premake:
-            # Use the recursive function to calculate premake cost
-            premake_unit_cost = calculate_premake_cost_per_unit(component.premake)
-            total_cost += component.quantity * premake_unit_cost
+        elif component.component_type == 'premake':
+            # Handle both old and new models for premakes
+            premake = None
 
-    if product.products_per_recipe > 0:
+            # Try unified Product model first
+            try:
+                premake_product = Product.query.filter_by(id=component.component_id, is_premake=True).first()
+                if premake_product:
+                    premake = premake_product
+            except:
+                pass
+
+            # Fallback to component.premake property for old model
+            if not premake and hasattr(component, 'premake') and component.premake:
+                premake = component.premake
+
+            # Try old Premake model if still no premake
+            if not premake:
+                try:
+                    premake = Premake.query.get(component.component_id)
+                except:
+                    pass
+
+            if premake:
+                # Use the recursive function to calculate premake cost
+                premake_unit_cost = calculate_premake_cost_per_unit(premake)
+                total_cost += component.quantity * premake_unit_cost
+
+    if hasattr(product, 'products_per_recipe') and product.products_per_recipe > 0:
         return total_cost / product.products_per_recipe
     return 0
 
 def calculate_premake_current_stock(premake_id):
     """
     Calculates the current stock of a given premake based on StockLogs and ProductionLogs.
+    Works with both old Premake model (using premake_id) and new unified Product model (using product_id).
     """
-    last_set_log = StockLog.query.filter_by(premake_id=premake_id, action_type='set') \
-        .order_by(StockLog.timestamp.desc()).first()
+    from sqlalchemy import or_
+
+    # Check if this is a unified Product with is_premake=True
+    is_unified_product = False
+    try:
+        product = Product.query.filter_by(id=premake_id, is_premake=True).first()
+        if product:
+            is_unified_product = True
+    except:
+        pass
+
+    # Get last 'set' action
+    last_set_log = None
+    if is_unified_product:
+        # Check both fields for unified model
+        last_set_log = StockLog.query.filter(
+            or_(StockLog.product_id == premake_id, StockLog.premake_id == premake_id),
+            StockLog.action_type == 'set'
+        ).order_by(StockLog.timestamp.desc()).first()
+    else:
+        # Old model - check premake_id only
+        last_set_log = StockLog.query.filter_by(premake_id=premake_id, action_type='set') \
+            .order_by(StockLog.timestamp.desc()).first()
+
     stock = last_set_log.quantity if last_set_log else 0
 
-    add_logs = StockLog.query.filter(
-        StockLog.premake_id == premake_id,
-        StockLog.action_type == 'add',
-        StockLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min)
-    ).all()
+    # Get all 'add' actions after last set
+    if is_unified_product:
+        add_logs = StockLog.query.filter(
+            or_(StockLog.product_id == premake_id, StockLog.premake_id == premake_id),
+            StockLog.action_type == 'add',
+            StockLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min)
+        ).all()
+    else:
+        add_logs = StockLog.query.filter(
+            StockLog.premake_id == premake_id,
+            StockLog.action_type == 'add',
+            StockLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min)
+        ).all()
+
     for log in add_logs:
         stock += log.quantity
-    
+
     # Subtract premakes used in produced products
     production_logs = ProductionLog.query.filter(
         ProductionLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min),

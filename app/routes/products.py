@@ -12,8 +12,17 @@ products_blueprint = Blueprint('products', __name__)
 # ----------------------------
 @products_blueprint.route('/products')
 def products():
-    # Only show non-migrated products
-    products = Product.query.filter_by(is_migrated=False).all()
+    # Show products that can be sold (is_product=True), including hybrids
+    # First check if new columns exist
+    try:
+        products = Product.query.filter(
+            Product.is_product == True,
+            Product.is_migrated == False
+        ).all()
+    except:
+        # Fallback for pre-migration
+        products = Product.query.filter_by(is_migrated=False).all()
+
     products_data = []
     for product in products:
         cost = calculate_prime_cost(product)
@@ -34,7 +43,12 @@ def add_product():
             
         products_per_recipe = request.form['products_per_recipe']
         selling_price_per_unit = request.form['selling_price_per_unit']
-        
+
+        # Get hybrid flags
+        is_product = request.form.get('is_product', 'on') == 'on'  # Default True
+        is_premake = request.form.get('is_premake', 'off') == 'on'  # Default False
+        batch_size = request.form.get('batch_size', type=float) if is_premake else None
+
         image_filename = None
         if 'image' in request.files:
             file = request.files['image']
@@ -56,7 +70,10 @@ def add_product():
             category_id=category_id,
             products_per_recipe=int(products_per_recipe),
             selling_price_per_unit=float(selling_price_per_unit),
-            image_filename=image_filename
+            image_filename=image_filename,
+            is_product=is_product,
+            is_premake=is_premake,
+            batch_size=batch_size
         )
         db.session.add(product)
         db.session.flush()
@@ -126,7 +143,17 @@ def add_product():
     
     all_packaging = [p.to_dict() for p in Packaging.query.all()]
     all_labor = [labor_item.to_dict() for labor_item in Labor.query.all()]
-    all_premakes = [p.to_dict() for p in Premake.query.all()]
+
+    # Get products that can be used as premakes
+    try:
+        all_premakes = [p.to_dict() for p in Product.query.filter_by(is_premake=True).all()]
+    except:
+        # Fallback for pre-migration
+        try:
+            from ..models import Premake
+            all_premakes = [p.to_dict() for p in Premake.query.all()]
+        except:
+            all_premakes = []
     
     return render_template(
         'add_or_edit_product.html',
@@ -439,7 +466,17 @@ def edit_product(product_id):
     all_raw_materials = [m.to_dict() for m in RawMaterial.query.all()]
     all_packaging = [p.to_dict() for p in Packaging.query.all()]
     all_labor = [labor_item.to_dict() for labor_item in Labor.query.all()]
-    all_premakes = [p.to_dict() for p in Premake.query.all()]
+
+    # Get products that can be used as premakes
+    try:
+        all_premakes = [p.to_dict() for p in Product.query.filter_by(is_premake=True).all()]
+    except:
+        # Fallback for pre-migration
+        try:
+            from ..models import Premake
+            all_premakes = [p.to_dict() for p in Premake.query.all()]
+        except:
+            all_premakes = []
     
     categories = Category.query.filter_by(type='raw_material').all()
     product_categories = Category.query.filter_by(type='product').all()

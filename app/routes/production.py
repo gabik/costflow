@@ -54,38 +54,92 @@ def premake_production():
         premake_id = request.form['premake_id']
         # quantity_produced from form is in UNITS (e.g. kg), but we store BATCHES
         quantity_units = float(request.form['quantity_produced'])
-        
-        premake = Premake.query.get(premake_id)
+
+        # Try unified model first, then fallback to old Premake
+        premake = None
+        batch_size = 0
+
+        try:
+            # Try to get as Product with is_premake=True
+            premake = Product.query.filter_by(id=premake_id, is_premake=True).first()
+            if premake:
+                batch_size = premake.batch_size or 1
+            else:
+                # Try old Premake model
+                try:
+                    from ..models import Premake
+                    old_premake = Premake.query.get(premake_id)
+                    if old_premake:
+                        premake = old_premake
+                        batch_size = old_premake.batch_size
+                except:
+                    pass
+        except:
+            # Fallback for pre-migration
+            try:
+                from ..models import Premake
+                premake = Premake.query.get(premake_id)
+                batch_size = premake.batch_size if premake else 0
+            except:
+                pass
+
         if not premake:
             return "Premake not found", 404
-            
+
         # Convert units (kg) to batches
-        if premake.batch_size > 0:
-            quantity_batches = quantity_units / premake.batch_size
+        if batch_size > 0:
+            quantity_batches = quantity_units / batch_size
         else:
             quantity_batches = quantity_units
 
-        # Log production (store in batches)
-        production_log = ProductionLog(premake_id=premake_id, quantity_produced=quantity_batches)
+        # Log production - use product_id for unified model
+        if isinstance(premake, Product):
+            production_log = ProductionLog(product_id=premake_id, quantity_produced=quantity_batches)
+        else:
+            production_log = ProductionLog(premake_id=premake_id, quantity_produced=quantity_batches)
+
         db.session.add(production_log)
-        db.session.flush() # Get ID
-        
-        # Update Stock (Add produced amount to stock)
-        # We add the total UNITS produced to stock.
-        stock_log = StockLog(
-            premake_id=premake_id,
-            action_type='add',
-            quantity=quantity_units,
-            # We might want to link this stock log to the production log in future, 
-            # but for now just implicit by time.
-        )
+        db.session.flush()
+
+        # Update Stock - use product_id for unified model
+        if isinstance(premake, Product):
+            stock_log = StockLog(
+                product_id=premake_id,
+                action_type='add',
+                quantity=quantity_units
+            )
+        else:
+            stock_log = StockLog(
+                premake_id=premake_id,
+                action_type='add',
+                quantity=quantity_units
+            )
         db.session.add(stock_log)
-        
+
         db.session.commit()
         return redirect(url_for('production.premake_production'))
 
-    premakes = Premake.query.all()
-    production_logs = ProductionLog.query.filter(ProductionLog.premake_id != None).order_by(ProductionLog.timestamp.desc()).all()
+    # Get premakes - try unified model first
+    premakes = []
+    try:
+        # Get products that are premakes
+        premakes = Product.query.filter_by(is_premake=True).all()
+    except:
+        # Fallback to old Premake model
+        try:
+            from ..models import Premake
+            premakes = Premake.query.all()
+        except:
+            premakes = []
+
+    # Get production logs - handle both old and new
+    production_logs = ProductionLog.query.filter(
+        (ProductionLog.premake_id != None) |
+        (ProductionLog.product_id.in_(
+            db.session.query(Product.id).filter_by(is_premake=True)
+        ) if hasattr(Product, 'is_premake') else False)
+    ).order_by(ProductionLog.timestamp.desc()).all()
+
     current_time = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
     return render_template('premake_production.html', premakes=premakes, production_logs=production_logs, current_time=current_time)
 

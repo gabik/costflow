@@ -34,9 +34,40 @@
                     <label for="products_per_recipe" class="form-label">כמות מוצרים למתכון (לסיבוב ייצור)</label>
                     <input type="number" id="products_per_recipe" name="products_per_recipe" class="form-control" step="1" value="{{ product.products_per_recipe if product else '' }}">
                 </div>
-                <div class="mb-4">
+                <div class="mb-3">
                     <label for="selling_price_per_unit" class="form-label">מחיר מכירה ליחידה (₪)</label>
                     <input type="number" id="selling_price_per_unit" name="selling_price_per_unit" class="form-control" step="0.01" value="{{ product.selling_price_per_unit if product else '' }}">
+                </div>
+
+                <!-- Hybrid Product/Premake Options -->
+                <div class="mb-4">
+                    <label class="form-label">סוג הפריט</label>
+                    <div class="border rounded p-3">
+                        <div class="form-check mb-2">
+                            <input type="checkbox" class="form-check-input" id="is_product" name="is_product"
+                                {% if not product or (product and (not product.is_product is defined or product.is_product)) %}checked{% endif %}>
+                            <label class="form-check-label" for="is_product">
+                                <span class="text-success">📦</span> מוצר למכירה - ניתן למכור ללקוחות
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input type="checkbox" class="form-check-input" id="is_premake" name="is_premake"
+                                {% if product and product.is_premake is defined and product.is_premake %}checked{% endif %}
+                                onchange="toggleBatchSize(this)">
+                            <label class="form-check-label" for="is_premake">
+                                <span class="text-warning">🧪</span> הכנה מקדימה - ניתן להשתמש כרכיב במוצרים אחרים
+                            </label>
+                        </div>
+                        <div id="batch_size_field" style="display: {% if product and product.is_premake is defined and product.is_premake %}block{% else %}none{% endif %}">
+                            <label for="batch_size" class="form-label mt-2">גודל אצ' (כמות יוצאת)</label>
+                            <input type="number" id="batch_size" name="batch_size" class="form-control" step="0.001"
+                                value="{{ product.batch_size if product and product.batch_size else '' }}"
+                                placeholder="לדוגמה: 10.5">
+                        </div>
+                        <small class="text-muted">
+                            <span class="text-info">🔄</span> סימון שתי האפשרויות יוצר פריט היברידי - גם למכירה וגם לשימוש כרכיב
+                        </small>
+                    </div>
                 </div>
             </div>
             <div class="col-md-4 text-center">
@@ -402,6 +433,15 @@
 <script>
     function removeRow(button) {
         button.closest('.row').remove();
+    }
+
+    function toggleBatchSize(checkbox) {
+        const batchSizeField = document.getElementById('batch_size_field');
+        if (checkbox.checked) {
+            batchSizeField.style.display = 'block';
+        } else {
+            batchSizeField.style.display = 'none';
+        }
     }
 
     let rawMaterialRowIndex = 0;

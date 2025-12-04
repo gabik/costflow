@@ -21,6 +21,7 @@
             <tr>
                 <th style="width: 80px;">תמונה</th>
                 <th>שם המוצר</th>
+                <th style="width: 50px;">סוג</th>
                 <th>משקל מתכון</th>
                 <th>משקל יחידה</th>
                 <th>עלות ייצור ליחידה</th>
@@ -43,6 +44,19 @@
                     {% endif %}
                 </td>
                 <td class="fw-medium">{{ product.name }}</td>
+                <td class="text-center">
+                    {% if product.is_product is defined and product.is_premake is defined %}
+                        {% if product.is_product and product.is_premake %}
+                            <span title="היברידי - ניתן למכירה ולשימוש כרכיב" class="text-info fs-5">🔄</span>
+                        {% elif product.is_premake %}
+                            <span title="הכנה מקדימה בלבד" class="text-warning fs-5">🧪</span>
+                        {% else %}
+                            <span title="מוצר למכירה בלבד" class="text-success fs-5">📦</span>
+                        {% endif %}
+                    {% else %}
+                        <span title="מוצר למכירה בלבד" class="text-success fs-5">📦</span>
+                    {% endif %}
+                </td>
                 <td>
                     {% set recipe_weight = namespace(value=0) %}
                     {% for component in product.components %}
