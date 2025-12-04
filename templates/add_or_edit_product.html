@@ -43,7 +43,7 @@
                 <label class="form-label d-block">תמונת מוצר</label>
                 <div class="mb-3">
                     {% if product and product.image_filename %}
-                        <img src="{{ url_for('static', filename='uploads/products/' + product.image_filename) }}" alt="Current Image" class="img-thumbnail mb-2" style="max-height: 150px;">
+                        <img src="{{ url_for('main.serve_image', filename=product.image_filename) }}" alt="Current Image" class="img-thumbnail mb-2" style="max-height: 150px;">
                     {% else %}
                         <div class="bg-light d-flex align-items-center justify-content-center border rounded mb-2" style="height: 150px;">
                             <i class="bi bi-image text-muted display-4"></i>

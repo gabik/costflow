@@ -28,8 +28,25 @@ def create_app():
     app.config['BABEL_DEFAULT_LOCALE'] = 'he'
     app.config['BABEL_SUPPORTED_LOCALES'] = ['en', 'he']
     app.config['BABEL_TRANSLATION_DIRECTORIES'] = '../translations'
-    app.config['UPLOAD_FOLDER'] = os.path.join(app.static_folder, 'uploads', 'products')
+
+    # Use /images as the persistent volume for product images (production)
+    # or /tmp/images for local development
+    if os.path.exists('/images'):
+        app.config['UPLOAD_FOLDER'] = '/images'
+    else:
+        # Local development - use /tmp/images
+        app.config['UPLOAD_FOLDER'] = '/tmp/images'
+
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload size
+
+    # Create the images directory if it doesn't exist
+    if not os.path.exists(app.config['UPLOAD_FOLDER']):
+        try:
+            os.makedirs(app.config['UPLOAD_FOLDER'])
+            print(f"Created images directory: {app.config['UPLOAD_FOLDER']}")
+        except OSError as e:
+            # Directory might already exist or we don't have permissions
+            print(f"Could not create images directory: {e}")
 
     Babel(app, locale_selector=get_locale)
 

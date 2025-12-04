@@ -38,7 +38,7 @@
                         <tr class="product-row" data-produced="{{ produced }}" data-initial-sold="{{ sales.sold }}" data-initial-waste="{{ sales.waste }}">
                             <td>
                                 {% if product.image_filename %}
-                                    <img src="{{ url_for('static', filename='uploads/products/' + product.image_filename) }}" class="rounded" style="width: 40px; height: 40px; object-fit: cover;">
+                                    <img src="{{ url_for('main.serve_image', filename=product.image_filename) }}" class="rounded" style="width: 40px; height: 40px; object-fit: cover;">
                                 {% else %}
                                     <div class="bg-light rounded d-flex align-items-center justify-content-center text-muted border" style="width: 40px; height: 40px;">
                                         <i class="bi bi-cup-hot"></i>

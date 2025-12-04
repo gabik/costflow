@@ -11,6 +11,27 @@ from .utils import units_list, get_or_create_general_category, convert_to_base_u
 
 main_blueprint = Blueprint('main', __name__)
 
+@main_blueprint.route('/images/<path:filename>')
+def serve_image(filename):
+    """Serve product images from the persistent /images volume."""
+    import os
+    from flask import send_from_directory, abort
+
+    # Security: Only allow specific image extensions
+    allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
+    if not any(filename.lower().endswith(ext) for ext in allowed_extensions):
+        abort(404)
+
+    # Serve the image from /images directory
+    images_dir = current_app.config.get('UPLOAD_FOLDER', '/images')
+
+    # Check if file exists
+    file_path = os.path.join(images_dir, filename)
+    if not os.path.exists(file_path):
+        abort(404)
+
+    return send_from_directory(images_dir, filename)
+
 
 
 
