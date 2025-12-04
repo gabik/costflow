@@ -74,6 +74,8 @@ def weekly_report():
         # Add to sales data
         sales_data.append({
             'name': product.name,
+            'is_migrated': product.is_migrated if hasattr(product, 'is_migrated') else False,
+            'migrated_to_premake': product.migrated_to_premake.name if hasattr(product, 'migrated_to_premake') and product.migrated_to_premake else None,
             'category_name': cat_name,
             'selling_price_per_unit': product.selling_price_per_unit,
             'quantity_sold': sale.quantity_sold,

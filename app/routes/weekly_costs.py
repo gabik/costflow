@@ -45,7 +45,7 @@ def weekly_costs():
                     
                     # Product Leftovers
                     # Filter out migrated products
-                    all_products = Product.query.filter(~Product.name.contains("(Migrated to Premake:")).all()
+                    all_products = Product.query.filter_by(is_migrated=False).all()
                     for product in all_products:
                         produced = product_production.get(product.id, 0)
                         sales_data = product_sales.get(product.id, {'sold': 0, 'waste': 0})
@@ -160,7 +160,7 @@ def close_week_confirm():
     product_sales = {s.product_id: s for s in prev_week.sales}
 
     # Filter out migrated products
-    all_products = Product.query.filter(~Product.name.contains("(Migrated to Premake:")).all()
+    all_products = Product.query.filter_by(is_migrated=False).all()
     new_week_start_dt = datetime.strptime(new_week_date, '%Y-%m-%d')
 
     for product in all_products:
@@ -298,7 +298,7 @@ def delete_weekly_labor(week_id, entry_id):
 def update_weekly_sales(week_id):
     week = WeeklyLaborCost.query.get_or_404(week_id)
     # Filter out migrated products
-    products = Product.query.filter(~Product.name.contains("(Migrated to Premake:")).all()
+    products = Product.query.filter_by(is_migrated=False).all()
     
     if request.method == 'POST':
         for product in products:

@@ -12,7 +12,8 @@ products_blueprint = Blueprint('products', __name__)
 # ----------------------------
 @products_blueprint.route('/products')
 def products():
-    products = Product.query.all()
+    # Only show non-migrated products
+    products = Product.query.filter_by(is_migrated=False).all()
     products_data = []
     for product in products:
         cost = calculate_prime_cost(product)
@@ -283,59 +284,62 @@ def migrate_to_premake(product_id):
                 quantity=prod_comp.quantity
             ))
 
-    # 3. Inventory Migration
+    # 3. Store original cost before components are deleted
+    original_cost = calculate_prime_cost(product)
+
+    # 4. Inventory Migration
     # Calculate current product stock (Produced - Sold)
-    # We need to iterate logs. This is heavy but necessary.
-    # Or we can assume the user knows what they are doing and start with 0?
-    # "We need to convert all the inventory we have currently for this product to be the premake inventory"
-    
     # Calculate Total Produced (from Product ProductionLogs)
     total_produced = 0
     prod_logs = ProductionLog.query.filter_by(product_id=product.id).all()
     for log in prod_logs:
         total_produced += log.quantity_produced * product.products_per_recipe
-    
+
     # Calculate Total Sold
     total_sold = 0
     sales = WeeklyProductSales.query.filter_by(product_id=product.id).all()
     for sale in sales:
         total_sold += (sale.quantity_sold + sale.quantity_waste)
-        
+
     current_stock = total_produced - total_sold
     if current_stock < 0: current_stock = 0
     
+    # 5. Delete old production logs (they stay with product's history for reporting)
+    # We don't transfer them to premake - instead create single log for remaining stock
+    for log in prod_logs:
+        db.session.delete(log)
+
+    # 6. Create single production log for premake with just remaining stock
     if current_stock > 0:
-        # Add StockLog for Premake
+        # Create one production log for the migration (convert units to batches)
+        migration_log = ProductionLog(
+            premake_id=premake.id,
+            quantity_produced=current_stock / premake.batch_size if premake.batch_size > 0 else 0,
+            timestamp=datetime.now()
+        )
+        db.session.add(migration_log)
+
+        # Set initial stock for the premake
         db.session.add(StockLog(
             premake_id=premake.id,
-            action_type='set', # Start fresh
+            action_type='set',
             quantity=current_stock
         ))
-
-    # 4. Convert Production History (Optional but good)
-    # Move ProductionLogs to point to Premake
-    # Product: quantity = recipes. Premake: quantity = batches.
-    # If batch_size = products_per_recipe, then quantity is 1:1.
-    for log in prod_logs:
-        log.product_id = None
-        log.premake_id = premake.id
-        # log.quantity_produced stays the same (recipes -> batches)
     
-    # 5. Handle Product Migration
+    # 7. Handle Product Migration
     # Keep sales history for historical reporting (don't delete WeeklyProductSales)
     # This preserves the ability to see past sales of products that have been migrated
 
     # Delete product components to prevent further use in production
-    # but keep the product record itself for historical reporting
     ProductComponent.query.filter_by(product_id=product.id).delete()
 
-    # Option: Mark product as migrated by clearing its components and possibly renaming
-    # The product stays in the database but becomes unusable for new production
-    # This maintains referential integrity with WeeklyProductSales
-    product.name = f"{product.name} (Migrated to Premake: {premake.name})"
+    # Mark product as migrated using database fields
+    product.is_migrated = True
+    product.migrated_to_premake_id = premake.id
+    product.original_prime_cost = original_cost
+    # Keep original name - no renaming needed
 
     # Note: We're NOT deleting the product to preserve foreign key relationships
-    # db.session.delete(product)  # REMOVED to prevent foreign key violations
     
     log_audit("MIGRATE", "Product", product_id, f"Migrated product {product.name} to premake {premake.name}")
     db.session.commit()

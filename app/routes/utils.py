@@ -78,6 +78,10 @@ def calculate_prime_cost(product):
     Calculates the prime cost (Materials + Packaging + Premakes) for a single unit of a Product.
     Includes recursive calculation for Premakes.
     """
+    # For migrated products, use stored original cost
+    if hasattr(product, 'is_migrated') and product.is_migrated:
+        return product.original_prime_cost or 0
+
     total_cost = 0
     for component in product.components:
         if component.component_type == 'raw_material' and component.material:

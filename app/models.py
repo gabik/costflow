@@ -142,7 +142,13 @@ class Product(db.Model):
     selling_price_per_unit = db.Column(db.Float, nullable=False)
     image_filename = db.Column(db.String(255), nullable=True)
 
+    # Migration fields
+    is_migrated = db.Column(db.Boolean, default=False, nullable=False)
+    migrated_to_premake_id = db.Column(db.Integer, db.ForeignKey('premake.id'), nullable=True)
+    original_prime_cost = db.Column(db.Float, nullable=True)
+
     category = db.relationship('Category', backref='products')
+    migrated_to_premake = db.relationship('Premake', backref='migrated_from_products', foreign_keys=[migrated_to_premake_id])
 
     def to_dict(self):
         return {
@@ -152,7 +158,10 @@ class Product(db.Model):
             'products_per_recipe': self.products_per_recipe,
             'selling_price_per_unit': self.selling_price_per_unit,
             'image_filename': self.image_filename,
-            'components': [c.to_dict() for c in self.components]
+            'components': [c.to_dict() for c in self.components],
+            'is_migrated': self.is_migrated,
+            'migrated_to_premake_id': self.migrated_to_premake_id,
+            'original_prime_cost': self.original_prime_cost
         }
 
 class ProductComponent(db.Model):

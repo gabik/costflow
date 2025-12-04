@@ -183,7 +183,12 @@ function handleWeekChange(select) {
                                     <i class="bi bi-cup-hot"></i>
                                 </div>
                             {% endif %}
-                            <span class="fw-medium">{{ row.product_name }}</span>
+                            <span class="fw-medium">
+                                {% if row.is_migrated %}
+                                    <span title="Migrated to Premake: {{ row.migrated_to_premake }}">🔀</span>
+                                {% endif %}
+                                {{ row.product_name }}
+                            </span>
                         </div>
                     </td>
                     <td class="text-center">
