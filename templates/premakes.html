@@ -40,7 +40,6 @@
             <thead class="table-light">
             <tr>
                 <th>שם</th>
-                <th style="width: 50px;">סוג</th>
                 <th>קטגוריה</th>
                 <th>כמות באצ'</th>
                 <th>יחידה</th>
@@ -51,19 +50,6 @@
             {% for premake in premakes %}
             <tr class="premake-row" data-category="{{ premake.category.name if premake.category else 'ללא קטגוריה' }}">
                 <td class="fw-medium premake-name">{{ premake.name }}</td>
-                <td class="text-center">
-                    {% if premake.is_product is defined and premake.is_premake is defined %}
-                        {% if premake.is_product and premake.is_premake %}
-                            <span title="היברידי - ניתן למכירה ולשימוש כרכיב" class="text-info fs-5">🔄</span>
-                        {% elif premake.is_product %}
-                            <span title="מוצר למכירה בלבד" class="text-success fs-5">📦</span>
-                        {% else %}
-                            <span title="הכנה מקדימה בלבד" class="text-warning fs-5">🧪</span>
-                        {% endif %}
-                    {% else %}
-                        <span title="הכנה מקדימה בלבד" class="text-warning fs-5">🧪</span>
-                    {% endif %}
-                </td>
                 <td><span class="badge bg-light text-dark border">{{ premake.category.name if premake.category else 'ללא קטגוריה' }}</span></td>
                 <td>{{ "%.2f"|format(premake.batch_size) }}</td>
                 <td>{{ premake.unit }}</td>

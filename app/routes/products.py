@@ -44,10 +44,10 @@ def add_product():
         products_per_recipe = request.form['products_per_recipe']
         selling_price_per_unit = request.form['selling_price_per_unit']
 
-        # Get hybrid flags
-        is_product = request.form.get('is_product', 'on') == 'on'  # Default True
-        is_premake = request.form.get('is_premake', 'off') == 'on'  # Default False
-        batch_size = request.form.get('batch_size', type=float) if is_premake else None
+        # Products are always products (not premakes)
+        is_product = True
+        is_premake = False
+        batch_size = None
 
         image_filename = None
         if 'image' in request.files:
@@ -263,115 +263,47 @@ def product_detail(product_id):
 
 @products_blueprint.route('/products/migrate_to_premake/<int:product_id>', methods=['POST'])
 def migrate_to_premake(product_id):
+    """Convert a product to a premake by changing its flags"""
     product = Product.query.get_or_404(product_id)
-    
-    # 1. Create Premake from Product
-    # Ensure category exists or use general
-    category_id = product.category_id
-    if category_id:
-        # Check if category type matches? 
-        # Product category is type='product', Premake needs 'premake'.
-        # We should probably put it in 'General (Premakes)' or create a new category with same name if needed.
-        # Simple approach: Put in General (Premakes)
-        category_id = get_or_create_general_category('premake')
-    else:
-        category_id = get_or_create_general_category('premake')
 
-    premake = Premake(
-        name=product.name,
-        category_id=category_id,
-        batch_size=float(product.products_per_recipe),
-        unit='unit' # Default unit for migrated product? Or 'batch'? Let's use 'unit' to match product semantics.
-    )
-    db.session.add(premake)
-    db.session.flush() # Get premake ID
+    # Simply toggle the flags - convert product to premake
+    product.is_product = False
+    product.is_premake = True
 
-    # 2. Copy Components
-    for prod_comp in product.components:
-        premake_comp = None
-        # Map types. Note: Product has 'labor' which Premake usually doesn't have in this schema?
-        # PremakeComponent only has 'raw_material' and 'packaging' in original schema, 
-        # but we just added 'premake' support via property (and it uses string type in DB).
-        # What about 'labor'? PremakeComponent model doesn't strictly forbid 'labor' string, 
-        # but do we have logic for it?
-        # Premake cost calculation (in utils.py/calculate_prime_cost) usually iterates components.
-        # If we add labor, we should ensure it's handled or ignore it.
-        # For MVP migration, we will copy 'raw_material', 'packaging', 'premake'. 
-        # We will SKIP 'labor' as premakes usually calculate material cost only?
-        # Or does the user expect labor to be part of premake cost?
-        # If the user "migrates", they expect equivalent cost structure.
-        # However, our PremakeComponent model doesn't have a `labor` property accessor yet.
-        # Let's copy it if it's not labor, to be safe.
-        
-        if prod_comp.component_type in ['raw_material', 'packaging', 'premake']:
-            db.session.add(PremakeComponent(
-                premake_id=premake.id,
-                component_type=prod_comp.component_type,
-                component_id=prod_comp.component_id,
-                quantity=prod_comp.quantity
-            ))
+    # Set batch size based on products_per_recipe
+    if not product.batch_size:
+        product.batch_size = float(product.products_per_recipe) if product.products_per_recipe else 1.0
 
-    # 3. Store original cost before components are deleted
-    original_cost = calculate_prime_cost(product)
+    # Update category to premake category
+    product.category_id = get_or_create_general_category('premake')
 
-    # 4. Inventory Migration
-    # Calculate current product stock (Produced - Sold)
-    # Calculate Total Produced (from Product ProductionLogs)
+    # Calculate and store current stock for tracking
     total_produced = 0
     prod_logs = ProductionLog.query.filter_by(product_id=product.id).all()
     for log in prod_logs:
         total_produced += log.quantity_produced * product.products_per_recipe
 
-    # Calculate Total Sold
     total_sold = 0
     sales = WeeklyProductSales.query.filter_by(product_id=product.id).all()
     for sale in sales:
         total_sold += (sale.quantity_sold + sale.quantity_waste)
 
     current_stock = total_produced - total_sold
-    if current_stock < 0: current_stock = 0
-    
-    # 5. Delete old production logs (they stay with product's history for reporting)
-    # We don't transfer them to premake - instead create single log for remaining stock
-    for log in prod_logs:
-        db.session.delete(log)
+    if current_stock < 0:
+        current_stock = 0
 
-    # 6. Create single production log for premake with just remaining stock
+    # Set initial stock for the premake
     if current_stock > 0:
-        # Create one production log for the migration (convert units to batches)
-        migration_log = ProductionLog(
-            premake_id=premake.id,
-            quantity_produced=current_stock / premake.batch_size if premake.batch_size > 0 else 0,
-            timestamp=datetime.now()
-        )
-        db.session.add(migration_log)
-
-        # Set initial stock for the premake
         db.session.add(StockLog(
-            premake_id=premake.id,
+            product_id=product.id,  # Use product_id for unified model
             action_type='set',
             quantity=current_stock
         ))
-    
-    # 7. Handle Product Migration
-    # Keep sales history for historical reporting (don't delete WeeklyProductSales)
-    # This preserves the ability to see past sales of products that have been migrated
 
-    # Delete product components to prevent further use in production
-    ProductComponent.query.filter_by(product_id=product.id).delete()
-
-    # Mark product as migrated using database fields
-    product.is_migrated = True
-    product.migrated_to_premake_id = premake.id
-    product.original_prime_cost = original_cost
-    # Keep original name - no renaming needed
-
-    # Note: We're NOT deleting the product to preserve foreign key relationships
-    
-    log_audit("MIGRATE", "Product", product_id, f"Migrated product {product.name} to premake {premake.name}")
+    log_audit("MIGRATE", "Product", product_id, f"Converted product {product.name} to premake")
     db.session.commit()
-    
-    return redirect(url_for('main.premakes'))
+
+    return redirect(url_for('premakes.premakes'))
 
 @products_blueprint.route('/products/edit/<int:product_id>', methods=['GET', 'POST'])
 def edit_product(product_id):
@@ -382,9 +314,11 @@ def edit_product(product_id):
         product.category_id = request.form.get('category_id')
         if not product.category_id:
             product.category_id = get_or_create_general_category('product')
-            
+
         product.products_per_recipe = int(request.form['products_per_recipe'])
         product.selling_price_per_unit = float(request.form['selling_price_per_unit'])
+
+        # Don't change the is_product/is_premake flags - keep them as they were
         
         if 'image' in request.files:
             file = request.files['image']
