@@ -39,8 +39,11 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="hours" class="form-label">שעות עבודה</label>
-                        <input type="number" name="hours" id="hours" class="form-control" step="0.1" min="0.1" required>
+                        <label for="hours" class="form-label">שעות עבודה (HH:MM)</label>
+                        <input type="text" name="hours" id="hours" class="form-control" pattern="^\d{1,2}:\d{2}$"
+                               placeholder="לדוגמה: 8:30" required
+                               title="יש להזין שעות בפורמט HH:MM (לדוגמה: 8:30)">
+                        <small class="text-muted">הזן בפורמט HH:MM (לדוגמה: 8:30 לשמונה וחצי שעות)</small>
                     </div>
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary">
@@ -75,7 +78,7 @@
                             {% for entry in week.entries %}
                             <tr>
                                 <td class="fw-medium">{{ entry.employee.name }}</td>
-                                <td class="text-center">{{ "%.2f"|format(entry.hours) }}</td>
+                                <td class="text-center">{{ hours_to_time_str(entry.hours) }}</td>
                                 <td class="text-end">{{ currency_symbol }}{{ "%.2f"|format(entry.cost) }}</td>
                                 <td class="text-end">
                                     <form method="POST" action="{{ url_for('weekly_costs.delete_weekly_labor', week_id=week.id, entry_id=entry.id) }}" onsubmit="return confirm('להסיר שורה זו?');">

@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template, request, redirect, url_for
 from sqlalchemy import func
-from ..models import db, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, Product, ProductionLog, Labor, StockLog
-from .utils import log_audit, calculate_prime_cost
+from ..models import db, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, Product, ProductionLog, Labor, StockLog, Premake
+from .utils import log_audit, calculate_prime_cost, hours_to_time_str, time_str_to_hours
 
 weekly_costs_blueprint = Blueprint('weekly_costs', __name__)
 
@@ -259,14 +259,24 @@ def close_week_confirm():
 def weekly_cost_details(week_id):
     week = WeeklyLaborCost.query.get_or_404(week_id)
     employees = Labor.query.all()
-    return render_template('weekly_cost_details.html', week=week, employees=employees)
+    return render_template('weekly_cost_details.html', week=week, employees=employees, hours_to_time_str=hours_to_time_str)
 
 @weekly_costs_blueprint.route('/weekly_costs/<int:week_id>/add', methods=['POST'])
 def add_weekly_labor(week_id):
     week = WeeklyLaborCost.query.get_or_404(week_id)
     employee_id = request.form.get('employee_id')
-    hours = float(request.form.get('hours'))
-    
+    hours_input = request.form.get('hours')
+
+    # Convert time string (HH:MM) to decimal hours
+    if ':' in hours_input:
+        hours = time_str_to_hours(hours_input)
+    else:
+        # Allow backward compatibility with decimal input
+        try:
+            hours = float(hours_input)
+        except ValueError:
+            hours = 0
+
     employee = Labor.query.get(employee_id)
     if employee and hours > 0:
         cost = employee.total_hourly_rate * hours
@@ -279,7 +289,7 @@ def add_weekly_labor(week_id):
         db.session.add(entry)
         week.total_cost += cost
         db.session.commit()
-        
+
     return redirect(url_for('weekly_costs.weekly_cost_details', week_id=week.id))
 
 @weekly_costs_blueprint.route('/weekly_costs/<int:week_id>/delete/<int:entry_id>', methods=['POST'])

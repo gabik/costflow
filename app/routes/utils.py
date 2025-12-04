@@ -4,6 +4,27 @@ from ..models import db, Category, AuditLog, StockLog, ProductionLog, Product
 # Predefined units for raw materials
 units_list = ["kg", "g", "ml", "l", "piece"]
 
+def hours_to_time_str(hours):
+    """Convert decimal hours to HH:MM format string"""
+    if hours is None:
+        return "00:00"
+    total_minutes = int(hours * 60)
+    h = total_minutes // 60
+    m = total_minutes % 60
+    return f"{h:02d}:{m:02d}"
+
+def time_str_to_hours(time_str):
+    """Convert HH:MM format string to decimal hours"""
+    if not time_str or ':' not in time_str:
+        return 0.0
+    try:
+        parts = time_str.split(':')
+        hours = int(parts[0])
+        minutes = int(parts[1]) if len(parts) > 1 else 0
+        return hours + (minutes / 60.0)
+    except (ValueError, IndexError):
+        return 0.0
+
 def get_or_create_general_category(type_val):
     """
     Returns the ID of a 'General' category for the given type.
