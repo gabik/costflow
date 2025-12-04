@@ -243,20 +243,43 @@ def migrate_premakes_to_products():
 
         # Step 1: Add new columns to Product table if they don't exist
         with db.engine.connect() as conn:
-            result = conn.execute(text("PRAGMA table_info(product)"))
-            columns = [row[1] for row in result]
+            # Check database type
+            dialect_name = db.engine.dialect.name
 
+            if dialect_name == 'postgresql':
+                # PostgreSQL approach
+                result = conn.execute(text("""
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = 'product'
+                """))
+                columns = [row[0] for row in result]
+            else:
+                # SQLite approach
+                result = conn.execute(text("PRAGMA table_info(product)"))
+                columns = [row[1] for row in result]
+
+            # Add columns if they don't exist
             if 'is_product' not in columns:
-                conn.execute(text("ALTER TABLE product ADD COLUMN is_product BOOLEAN DEFAULT 1"))
-                conn.commit()
+                try:
+                    conn.execute(text("ALTER TABLE product ADD COLUMN is_product BOOLEAN DEFAULT TRUE"))
+                    conn.commit()
+                except:
+                    pass  # Column might already exist
 
             if 'is_premake' not in columns:
-                conn.execute(text("ALTER TABLE product ADD COLUMN is_premake BOOLEAN DEFAULT 0"))
-                conn.commit()
+                try:
+                    conn.execute(text("ALTER TABLE product ADD COLUMN is_premake BOOLEAN DEFAULT FALSE"))
+                    conn.commit()
+                except:
+                    pass  # Column might already exist
 
             if 'batch_size' not in columns:
-                conn.execute(text("ALTER TABLE product ADD COLUMN batch_size FLOAT"))
-                conn.commit()
+                try:
+                    conn.execute(text("ALTER TABLE product ADD COLUMN batch_size FLOAT"))
+                    conn.commit()
+                except:
+                    pass  # Column might already exist
 
         # Step 2: Set is_product=True for all existing products
         Product.query.update({Product.is_product: True, Product.is_premake: False})
@@ -312,12 +335,26 @@ def migrate_premakes_to_products():
 
         # Step 6: Update StockLog references
         with db.engine.connect() as conn:
-            result = conn.execute(text("PRAGMA table_info(stock_log)"))
-            columns = [row[1] for row in result]
+            # Check database type
+            dialect_name = db.engine.dialect.name
+
+            if dialect_name == 'postgresql':
+                result = conn.execute(text("""
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = 'stock_log'
+                """))
+                columns = [row[0] for row in result]
+            else:
+                result = conn.execute(text("PRAGMA table_info(stock_log)"))
+                columns = [row[1] for row in result]
 
             if 'product_id' not in columns:
-                conn.execute(text("ALTER TABLE stock_log ADD COLUMN product_id INTEGER"))
-                conn.commit()
+                try:
+                    conn.execute(text("ALTER TABLE stock_log ADD COLUMN product_id INTEGER"))
+                    conn.commit()
+                except:
+                    pass  # Column might already exist
 
         stock_logs = StockLog.query.filter(StockLog.premake_id != None).all()
         for log in stock_logs:
@@ -341,12 +378,26 @@ def migrate_premakes_to_products():
 
         # Step 8: Update StockAudit references
         with db.engine.connect() as conn:
-            result = conn.execute(text("PRAGMA table_info(stock_audit)"))
-            columns = [row[1] for row in result]
+            # Check database type
+            dialect_name = db.engine.dialect.name
+
+            if dialect_name == 'postgresql':
+                result = conn.execute(text("""
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = 'stock_audit'
+                """))
+                columns = [row[0] for row in result]
+            else:
+                result = conn.execute(text("PRAGMA table_info(stock_audit)"))
+                columns = [row[1] for row in result]
 
             if 'product_id' not in columns:
-                conn.execute(text("ALTER TABLE stock_audit ADD COLUMN product_id INTEGER"))
-                conn.commit()
+                try:
+                    conn.execute(text("ALTER TABLE stock_audit ADD COLUMN product_id INTEGER"))
+                    conn.commit()
+                except:
+                    pass  # Column might already exist
 
         stock_audits = StockAudit.query.filter(StockAudit.premake_id != None).all()
 
@@ -361,12 +412,26 @@ def migrate_premakes_to_products():
 
         # Step 9: Update Product.migrated_to_premake_id references
         with db.engine.connect() as conn:
-            result = conn.execute(text("PRAGMA table_info(product)"))
-            columns = [row[1] for row in result]
+            # Check database type
+            dialect_name = db.engine.dialect.name
+
+            if dialect_name == 'postgresql':
+                result = conn.execute(text("""
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = 'product'
+                """))
+                columns = [row[0] for row in result]
+            else:
+                result = conn.execute(text("PRAGMA table_info(product)"))
+                columns = [row[1] for row in result]
 
             if 'migrated_to_product_id' not in columns:
-                conn.execute(text("ALTER TABLE product ADD COLUMN migrated_to_product_id INTEGER"))
-                conn.commit()
+                try:
+                    conn.execute(text("ALTER TABLE product ADD COLUMN migrated_to_product_id INTEGER"))
+                    conn.commit()
+                except:
+                    pass  # Column might already exist
 
         products_with_migration = Product.query.filter(Product.migrated_to_premake_id != None).all()
 
