@@ -479,7 +479,16 @@ def add_premake():
             # If mixed units (kg and l), this sum is weird but standard for MVP.
             batch_size += final_quantity
             
-            components_data.append({'id': material_id, 'qty': final_quantity})
+            components_data.append({'id': material_id, 'qty': final_quantity, 'type': 'raw_material'})
+
+        # Process premakes
+        premake_ids = request.form.getlist('premake[]')
+        premake_quantities = request.form.getlist('premake_quantity[]')
+        for premake_id, quantity in zip(premake_ids, premake_quantities):
+            if not premake_id or not quantity or float(quantity) <= 0:
+                continue
+            components_data.append({'id': premake_id, 'qty': float(quantity), 'type': 'premake'})
+            # Note: We don't add premake quantities to batch_size as they're already processed items
 
         premake = Premake(
             name=name,
@@ -494,9 +503,10 @@ def add_premake():
 
         # Add components to DB
         for item in components_data:
+            component_type = item.get('type', 'raw_material')  # Default to raw_material for backward compatibility
             component = PremakeComponent(
                 premake_id=premake.id,
-                component_type='raw_material',
+                component_type=component_type,
                 component_id=item['id'],
                 quantity=item['qty']
             )
@@ -515,6 +525,7 @@ def add_premake():
 
     all_raw_materials = [m.to_dict() for m in RawMaterial.query.all()]
     print(f"DEBUG: add_premake - Found {len(all_raw_materials)} raw materials")
+    all_premakes = [p.to_dict() for p in Premake.query.all()]  # Add available premakes for nesting
     premake_categories = Category.query.filter_by(type='premake').all()
     categories = Category.query.filter_by(type='raw_material').all() # For raw material modal if needed
 
@@ -522,6 +533,7 @@ def add_premake():
         'add_or_edit_premake.html',
         premake=None,
         all_raw_materials=all_raw_materials,
+        all_premakes=all_premakes,  # Pass premakes to template
         premake_categories=premake_categories,
         categories=categories,
         units=units_list
@@ -573,7 +585,24 @@ def edit_premake(premake_id):
                 quantity=final_quantity
             )
             db.session.add(component)
-        
+
+        # Process premakes
+        premake_ids = request.form.getlist('premake[]')
+        premake_quantities = request.form.getlist('premake_quantity[]')
+        for sub_premake_id, quantity in zip(premake_ids, premake_quantities):
+            if not sub_premake_id or not quantity or float(quantity) <= 0:
+                continue
+            # Check to prevent self-referencing
+            if int(sub_premake_id) == premake.id:
+                continue
+            component = PremakeComponent(
+                premake_id=premake.id,
+                component_type='premake',
+                component_id=sub_premake_id,
+                quantity=float(quantity)
+            )
+            db.session.add(component)
+
         premake.batch_size = batch_size
             
         log_audit("UPDATE", "Premake", premake.id, f"Updated premake {premake.name}")
@@ -582,6 +611,8 @@ def edit_premake(premake_id):
 
     all_raw_materials = [m.to_dict() for m in RawMaterial.query.all()]
     print(f"DEBUG: edit_premake - Found {len(all_raw_materials)} raw materials")
+    # Filter out the current premake to avoid self-reference
+    all_premakes = [p.to_dict() for p in Premake.query.all() if p.id != premake_id]
     premake_categories = Category.query.filter_by(type='premake').all()
     categories = Category.query.filter_by(type='raw_material').all()
 
@@ -589,6 +620,7 @@ def edit_premake(premake_id):
         'add_or_edit_premake.html',
         premake=premake,
         all_raw_materials=all_raw_materials,
+        all_premakes=all_premakes,  # Pass premakes to template
         premake_categories=premake_categories,
         categories=categories,
         units=units_list

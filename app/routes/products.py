@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, current_app
-from ..models import db, Product, ProductComponent, RawMaterial, Packaging, Labor, Premake, Category, ProductionLog, StockLog, WeeklyProductSales
+from ..models import db, Product, ProductComponent, RawMaterial, Packaging, Labor, Premake, PremakeComponent, Category, ProductionLog, StockLog, WeeklyProductSales
 from .utils import log_audit, calculate_prime_cost, convert_to_base_unit, get_or_create_general_category, units_list
 
 products_blueprint = Blueprint('products', __name__)
@@ -322,9 +322,10 @@ def migrate_to_premake(product_id):
         # log.quantity_produced stays the same (recipes -> batches)
     
     # 5. Delete Product
-    # First delete sales (orphaned history)
-    for sale in sales:
-        db.session.delete(sale)
+    # Keep sales history for historical reporting (don't delete WeeklyProductSales)
+    # This preserves the ability to see past sales of products that have been migrated
+    # for sale in sales:
+    #     db.session.delete(sale)
         
     # Delete product components
     ProductComponent.query.filter_by(product_id=product.id).delete()
@@ -335,7 +336,11 @@ def migrate_to_premake(product_id):
     log_audit("MIGRATE", "Product", product_id, f"Migrated product {product.name} to premake {premake.name}")
     db.session.commit()
     
-    return redirect(url_for('main.premakes'))    product = Product.query.get_or_404(product_id)
+    return redirect(url_for('main.premakes'))
+
+@products_blueprint.route('/products/edit/<int:product_id>', methods=['GET', 'POST'])
+def edit_product(product_id):
+    product = Product.query.get_or_404(product_id)
 
     if request.method == 'POST':
         product.name = request.form['name']

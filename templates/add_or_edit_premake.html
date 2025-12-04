@@ -131,6 +131,54 @@
             </div>
         </div>
 
+        <!-- Premakes Section -->
+        <div class="card mb-3">
+            <div class="card-header bg-light">
+                הכנות מקדימות
+                <button type="button" class="btn btn-sm btn-primary float-end" onclick="addPremakeRow()">
+                    <i class="bi bi-plus-lg"></i> הוסף
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="premakes_container">
+                    {% set premake_components = [] %}
+                    {% if premake %}
+                        {% for component in premake.components %}
+                            {% if component.component_type == 'premake' %}
+                                {% set _ = premake_components.append(component) %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+
+                    {% for component in premake_components %}
+                        <div class="row g-2 mb-2 align-items-center premake-row">
+                            <div class="col-md-5">
+                                <select name="premake[]" class="form-select select2" onchange="handlePremakeChange(this)">
+                                    <option value="">בחר הכנה מקדימה</option>
+                                    {% for premake_opt in all_premakes %}
+                                    <option value="{{ premake_opt.id }}" data-unit="{{ premake_opt.unit }}" {% if premake_opt.id == component.component_id %}selected{% endif %}>
+                                        {{ premake_opt.name }} ({{ premake_opt.unit }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="number" step="0.001" name="premake_quantity[]" class="form-control" placeholder="כמות" value="{{ component.quantity }}" required>
+                            </div>
+                            <div class="col-md-3">
+                                <span class="form-control-plaintext">{{ component.premake.unit if component.premake else '' }}</span>
+                            </div>
+                            <div class="col-md-1">
+                                <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
         <div class="mt-4">
             <button type="submit" class="btn btn-success">שמור</button>
             <a href="{{ url_for('main.premakes') }}" class="btn btn-secondary">ביטול</a>
@@ -240,7 +288,64 @@
             selectElement.appendChild(opt);
         });
     }
-    
+
+    function addPremakeRow() {
+        const container = document.getElementById('premakes_container');
+        const allPremakes = {{ all_premakes | default([]) | tojson | safe }};
+
+        let optionsHtml = '<option value="">בחר הכנה מקדימה...</option>';
+        allPremakes.forEach(premake => {
+            optionsHtml += `<option value="${premake.id}" data-unit="${premake.unit}">${premake.name} (${premake.unit})</option>`;
+        });
+
+        const rowHtml = `
+            <div class="row g-2 mb-2 align-items-center premake-row">
+                <div class="col-md-5">
+                    <select name="premake[]" class="form-select select2" onchange="handlePremakeChange(this)">
+                        ${optionsHtml}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="number" name="premake_quantity[]" class="form-control" placeholder="כמות" step="0.001" required>
+                </div>
+                <div class="col-md-3">
+                    <span class="form-control-plaintext unit-display"></span>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>`;
+
+        const template = document.createElement('div');
+        template.innerHTML = rowHtml.trim();
+        const rowElement = template.firstChild;
+
+        container.appendChild(rowElement);
+
+        // Initialize Select2
+        $(rowElement).find('.select2').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            language: { noResults: () => "לא נמצאו תוצאות" }
+        });
+    }
+
+    function handlePremakeChange(selectElement) {
+        const row = selectElement.closest('.row');
+        const unitDisplay = row.querySelector('.unit-display');
+
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        const unit = selectedOption.getAttribute('data-unit');
+
+        if (unit) {
+            unitDisplay.textContent = unit;
+        } else {
+            unitDisplay.textContent = '';
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize select2 for existing rows (server-rendered)
         $('.select2').select2({
