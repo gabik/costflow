@@ -2,8 +2,8 @@ import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, current_app
-from ..models import db, Product, ProductComponent, RawMaterial, Packaging, Labor, Premake, PremakeComponent, Category, ProductionLog, StockLog, WeeklyProductSales
-from .utils import log_audit, calculate_prime_cost, convert_to_base_unit, get_or_create_general_category, units_list
+from ..models import db, Product, ProductComponent, RawMaterial, Packaging, Labor, Category, ProductionLog, StockLog, WeeklyProductSales
+from .utils import log_audit, calculate_prime_cost, calculate_premake_cost_per_unit, convert_to_base_unit, get_or_create_general_category, units_list
 
 products_blueprint = Blueprint('products', __name__)
 
@@ -145,15 +145,7 @@ def add_product():
     all_labor = [labor_item.to_dict() for labor_item in Labor.query.all()]
 
     # Get products that can be used as premakes
-    try:
-        all_premakes = [p.to_dict() for p in Product.query.filter_by(is_premake=True).all()]
-    except:
-        # Fallback for pre-migration
-        try:
-            from ..models import Premake
-            all_premakes = [p.to_dict() for p in Premake.query.all()]
-        except:
-            all_premakes = []
+    all_premakes = [p.to_dict() for p in Product.query.filter_by(is_premake=True).all()]
     
     return render_template(
         'add_or_edit_product.html',
@@ -212,15 +204,8 @@ def product_detail(product_id):
     # Retrieve premake costs
     premake_costs = []
     for component in ProductComponent.query.filter_by(product_id=product_id, component_type='premake'):
-        # Try unified Product model first
+        # Get premake from unified Product model
         premake = Product.query.filter_by(id=component.component_id, is_premake=True).first()
-
-        # Fallback to old Premake model if needed
-        if not premake:
-            try:
-                premake = Premake.query.get(component.component_id)
-            except:
-                pass
 
         if not premake:
             continue
@@ -245,11 +230,6 @@ def product_detail(product_id):
             elif c.component_type == 'premake':
                 # Handle nested premake
                 nested = Product.query.filter_by(id=c.component_id, is_premake=True).first()
-                if not nested:
-                    try:
-                        nested = Premake.query.get(c.component_id)
-                    except:
-                        pass
                 if nested:
                     comp_data['name'] = nested.name
                     comp_data['unit'] = getattr(nested, 'unit', 'unit')
@@ -421,15 +401,7 @@ def edit_product(product_id):
     all_labor = [labor_item.to_dict() for labor_item in Labor.query.all()]
 
     # Get products that can be used as premakes
-    try:
-        all_premakes = [p.to_dict() for p in Product.query.filter_by(is_premake=True).all()]
-    except:
-        # Fallback for pre-migration
-        try:
-            from ..models import Premake
-            all_premakes = [p.to_dict() for p in Premake.query.all()]
-        except:
-            all_premakes = []
+    all_premakes = [p.to_dict() for p in Product.query.filter_by(is_premake=True).all()]
     
     categories = Category.query.filter_by(type='raw_material').all()
     product_categories = Category.query.filter_by(type='product').all()
