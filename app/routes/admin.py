@@ -2,6 +2,7 @@ import json
 import io
 from datetime import datetime
 from flask import Blueprint, request, send_file, redirect, url_for, render_template, jsonify
+from sqlalchemy import text
 from ..models import db, Category, RawMaterial, Packaging, Labor, Product, ProductComponent, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, AuditLog
 from .utils import log_audit
 
@@ -201,3 +202,114 @@ def reset_db():
         return redirect(url_for('main.index'))
     except Exception as e:
         return f"Reset failed: {e}", 500
+
+@admin_blueprint.route('/admin/migrate/add-unit-field', methods=['GET', 'POST'])
+def migrate_add_unit_field():
+    """Migration endpoint to add 'unit' field to Product table."""
+    if request.method == 'GET':
+        return """
+        <html>
+        <head><title>Migration: Add Unit Field</title></head>
+        <body style="font-family: Arial; max-width: 600px; margin: 50px auto; padding: 20px;">
+            <h1>Database Migration: Add Unit Field</h1>
+            <p>This migration will:</p>
+            <ul>
+                <li>Add 'unit' column to Product table</li>
+                <li>Add 'is_product' and 'is_premake' columns if missing</li>
+                <li>Set default unit 'kg' for existing items</li>
+                <li>Make selling_price_per_unit nullable</li>
+            </ul>
+            <form method="POST">
+                <button type="submit" style="padding: 10px 20px; font-size: 16px; background: #007bff; color: white; border: none; cursor: pointer;">
+                    Run Migration
+                </button>
+            </form>
+        </body>
+        </html>
+        """
+
+    try:
+        # Check if unit column already exists
+        inspector = db.inspect(db.engine)
+        columns = [col['name'] for col in inspector.get_columns('product')]
+        messages = []
+
+        # Add is_product column if missing
+        if 'is_product' not in columns:
+            with db.engine.connect() as conn:
+                conn.execute(text("ALTER TABLE product ADD COLUMN is_product BOOLEAN DEFAULT 1"))
+                conn.commit()
+                messages.append("✓ Added 'is_product' column")
+
+        # Add is_premake column if missing
+        if 'is_premake' not in columns:
+            with db.engine.connect() as conn:
+                conn.execute(text("ALTER TABLE product ADD COLUMN is_premake BOOLEAN DEFAULT 0"))
+                conn.commit()
+                messages.append("✓ Added 'is_premake' column")
+
+        # Add unit column if missing
+        if 'unit' not in columns:
+            with db.engine.connect() as conn:
+                conn.execute(text("ALTER TABLE product ADD COLUMN unit VARCHAR(20)"))
+                conn.commit()
+                messages.append("✓ Added 'unit' column")
+
+                # Set default unit for existing items
+                try:
+                    # Try to set based on is_premake flag if column exists
+                    if 'is_premake' in inspector.get_columns('product'):
+                        conn.execute(text("UPDATE product SET unit = 'kg' WHERE is_premake = 1 AND unit IS NULL"))
+                        conn.commit()
+                        messages.append("✓ Set default unit 'kg' for existing premakes")
+                except:
+                    # If that doesn't work, just set a default
+                    conn.execute(text("UPDATE product SET unit = 'kg' WHERE unit IS NULL"))
+                    conn.commit()
+                    messages.append("✓ Set default unit 'kg' for items with null unit")
+        else:
+            messages.append("'unit' column already exists")
+
+        # Check if selling_price_per_unit is nullable
+        col_info = next((col for col in inspector.get_columns('product') if col['name'] == 'selling_price_per_unit'), None)
+
+        if col_info:
+            # For SQLite, we can't easily check or modify NULL constraint
+            if 'sqlite' not in str(db.engine.url).lower():
+                # For PostgreSQL or MySQL
+                try:
+                    with db.engine.connect() as conn:
+                        if 'postgresql' in str(db.engine.url).lower():
+                            conn.execute(text("ALTER TABLE product ALTER COLUMN selling_price_per_unit DROP NOT NULL"))
+                        elif 'mysql' in str(db.engine.url).lower():
+                            conn.execute(text("ALTER TABLE product MODIFY COLUMN selling_price_per_unit FLOAT NULL"))
+                        conn.commit()
+                        messages.append("✓ Made 'selling_price_per_unit' nullable")
+                except Exception as e:
+                    if "already allows nulls" in str(e).lower() or "cannot drop" in str(e).lower():
+                        messages.append("'selling_price_per_unit' is already nullable")
+                    else:
+                        messages.append(f"⚠ Could not modify selling_price_per_unit: {str(e)}")
+            else:
+                messages.append("Note: SQLite - column nullability will work in application")
+
+        # Add batch_size column if missing
+        if 'batch_size' not in columns:
+            with db.engine.connect() as conn:
+                conn.execute(text("ALTER TABLE product ADD COLUMN batch_size FLOAT"))
+                conn.commit()
+                messages.append("✓ Added 'batch_size' column")
+
+        log_audit("MIGRATE", "System", details=f"Ran add-unit-field migration: {', '.join(messages)}")
+
+        return jsonify({
+            'status': 'success',
+            'messages': messages
+        }), 200
+
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'message': 'Migration failed. Please check server logs.'
+        }), 500

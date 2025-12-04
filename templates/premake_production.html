@@ -27,9 +27,9 @@
         <label for="quantity_produced">כמות שיוצרה</label>
         <div class="input-group">
             <input type="number" id="quantity_produced" name="quantity_produced" class="form-control" step="0.1" required oninput="updateCalculation()">
-            <span class="input-group-text">kg</span>
+            <span class="input-group-text" id="unit_display">יחידה</span>
         </div>
-        <div class="form-text">הכנס את המשקל הכולל שיוצר (בק"ג). המערכת תמיר זאת לבאצ'ים באופן אוטומטי.</div>
+        <div class="form-text">הכנס את הכמות הכוללת שיוצרה. המערכת תמיר זאת לבאצ'ים באופן אוטומטי.</div>
         <div id="total_weight_info" class="alert alert-info mt-2" style="display: none;">
             סה"כ כמות שנוצרה: <span id="total_weight_display" class="fw-bold"></span>
         </div>
@@ -107,21 +107,25 @@
 function updateCalculation() {
     const premakeSelect = document.getElementById('premake_id');
     const quantityInput = document.getElementById('quantity_produced');
-    
+    const unitDisplay = document.getElementById('unit_display');
+
     const batchInfo = document.getElementById('batch_info');
     const batchSizeDisplay = document.getElementById('batch_size_display');
     const totalInfo = document.getElementById('total_weight_info');
     const totalDisplay = document.getElementById('total_weight_display');
-    
+
     const selectedOption = premakeSelect.options[premakeSelect.selectedIndex];
-    
+
     if (selectedOption && selectedOption.value) {
         const batchSize = parseFloat(selectedOption.getAttribute('data-batch-size')) || 0;
-        const unit = selectedOption.getAttribute('data-unit') || '';
-        
+        const unit = selectedOption.getAttribute('data-unit') || 'יחידה';
+
+        // Update unit display
+        unitDisplay.innerText = unit;
+
         batchInfo.style.display = 'block';
         batchSizeDisplay.innerText = `${batchSize} ${unit}`;
-        
+
         const quantity = parseFloat(quantityInput.value) || 0;
         if (quantity > 0) {
             const total = quantity * batchSize;
@@ -131,6 +135,7 @@ function updateCalculation() {
             totalInfo.style.display = 'none';
         }
     } else {
+        unitDisplay.innerText = 'יחידה';
         batchInfo.style.display = 'none';
         totalInfo.style.display = 'none';
     }

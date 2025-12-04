@@ -109,7 +109,8 @@ def add_premake():
             selling_price_per_unit=0,  # Premakes typically aren't sold
             is_product=False,  # Not sellable by default
             is_premake=True,   # Can be used as component
-            batch_size=batch_size
+            batch_size=batch_size,
+            unit=unit
         )
         db.session.add(premake)
         db.session.flush()
@@ -225,6 +226,7 @@ def edit_premake(premake_id):
             db.session.add(component)
 
         premake.batch_size = batch_size
+        premake.unit = unit
 
         log_audit("UPDATE", "Premake", premake.id, f"Updated premake {premake.name}")
         db.session.commit()
@@ -326,10 +328,6 @@ def premake_detail(premake_id):
         item['cost_percentage'] = (item['total_cost'] / total_cost * 100) if total_cost > 0 else 0
 
     cost_per_unit = total_cost / premake.batch_size if premake.batch_size and premake.batch_size > 0 else 0
-
-    # Add unit property for template compatibility
-    if not hasattr(premake, 'unit'):
-        premake.unit = 'kg'  # Default unit
 
     return render_template('premake_details.html',
                            premake=premake,

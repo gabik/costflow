@@ -141,13 +141,14 @@ class Product(db.Model):
     name = db.Column(db.String(100), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=True)
     products_per_recipe = db.Column(db.Integer, nullable=False)
-    selling_price_per_unit = db.Column(db.Float, nullable=False)
+    selling_price_per_unit = db.Column(db.Float, nullable=True)  # Made nullable for premakes
     image_filename = db.Column(db.String(255), nullable=True)
 
     # Unified product/premake fields
     is_product = db.Column(db.Boolean, default=True, nullable=False)
     is_premake = db.Column(db.Boolean, default=False, nullable=False)
     batch_size = db.Column(db.Float, nullable=True)  # From Premake model
+    unit = db.Column(db.String(20), nullable=True)  # Unit of measurement ('kg', 'L', 'piece', etc.)
 
     # Migration fields
     is_migrated = db.Column(db.Boolean, default=False, nullable=False)
@@ -169,6 +170,7 @@ class Product(db.Model):
             'is_product': self.is_product,
             'is_premake': self.is_premake,
             'batch_size': self.batch_size,
+            'unit': self.unit,
             'is_migrated': self.is_migrated,
             'migrated_to_premake_id': self.migrated_to_premake_id,
             'original_prime_cost': self.original_prime_cost
