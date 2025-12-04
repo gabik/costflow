@@ -165,41 +165,51 @@ def product_detail(product_id):
     product = Product.query.get_or_404(product_id)
 
     # Retrieve raw materials used in the product
-    raw_materials = [
-        {
-            'name': RawMaterial.query.get(component.component_id).name,
+    raw_materials = []
+    for component in ProductComponent.query.filter_by(product_id=product_id, component_type='raw_material'):
+        material = RawMaterial.query.get(component.component_id)
+        if not material:
+            continue
+
+        raw_materials.append({
+            'name': material.name,
             'quantity': component.quantity,
-            'price_per_unit': RawMaterial.query.get(component.component_id).cost_per_unit,
-            'price_per_recipe': component.quantity * RawMaterial.query.get(component.component_id).cost_per_unit,
-            'price_per_product': (component.quantity * RawMaterial.query.get(component.component_id).cost_per_unit) / product.products_per_recipe
-        }
-        for component in ProductComponent.query.filter_by(product_id=product_id, component_type='raw_material')
-    ]
+            'price_per_unit': material.cost_per_unit,
+            'price_per_recipe': component.quantity * material.cost_per_unit,
+            'price_per_product': (component.quantity * material.cost_per_unit) / product.products_per_recipe if product.products_per_recipe > 0 else 0
+        })
 
     # Retrieve labor costs
-    labor_costs = [
-        {
-            'name': Labor.query.get(component.component_id).name,
+    labor_costs = []
+    for component in ProductComponent.query.filter_by(product_id=product_id, component_type='labor'):
+        labor = Labor.query.get(component.component_id)
+        if not labor:
+            continue
+
+        labor_costs.append({
+            'name': labor.name,
             'hours': component.quantity,
-            'price_per_hour': Labor.query.get(component.component_id).total_hourly_rate,
-            'price_per_recipe': component.quantity * Labor.query.get(component.component_id).total_hourly_rate,
-            'price_per_product': (component.quantity * Labor.query.get(component.component_id).total_hourly_rate) / product.products_per_recipe
-        }
-        for component in ProductComponent.query.filter_by(product_id=product_id, component_type='labor')
-    ]
+            'price_per_hour': labor.total_hourly_rate,
+            'price_per_recipe': component.quantity * labor.total_hourly_rate,
+            'price_per_product': (component.quantity * labor.total_hourly_rate) / product.products_per_recipe if product.products_per_recipe > 0 else 0
+        })
 
     # Retrieve packaging costs
-    packaging_costs = [
-        {
-            'name': Packaging.query.get(component.component_id).name,
+    packaging_costs = []
+    for component in ProductComponent.query.filter_by(product_id=product_id, component_type='packaging'):
+        packaging = Packaging.query.get(component.component_id)
+        if not packaging:
+            continue
+
+        price_per_unit = packaging.price_per_package / packaging.quantity_per_package if packaging.quantity_per_package > 0 else 0
+        packaging_costs.append({
+            'name': packaging.name,
             'quantity': component.quantity,
-            'price_per_package': Packaging.query.get(component.component_id).price_per_package,
-            'price_per_unit': Packaging.query.get(component.component_id).price_per_package / Packaging.query.get(component.component_id).quantity_per_package,
-            'price_per_recipe': component.quantity * (Packaging.query.get(component.component_id).price_per_package / Packaging.query.get(component.component_id).quantity_per_package),
-            'price_per_product': (component.quantity * (Packaging.query.get(component.component_id).price_per_package / Packaging.query.get(component.component_id).quantity_per_package)) / product.products_per_recipe
-        }
-        for component in ProductComponent.query.filter_by(product_id=product_id, component_type='packaging')
-    ]
+            'price_per_package': packaging.price_per_package,
+            'price_per_unit': price_per_unit,
+            'price_per_recipe': component.quantity * price_per_unit,
+            'price_per_product': (component.quantity * price_per_unit) / product.products_per_recipe if product.products_per_recipe > 0 else 0
+        })
 
     # Retrieve premake costs
     premake_costs = []
