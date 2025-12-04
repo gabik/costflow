@@ -121,7 +121,7 @@ def index():
                     premake_usage[component.component_id] = premake_usage.get(component.component_id, 0) + usage
 
         # Process Premakes for Report and Inventory Value
-        all_premakes = Premake.query.all()
+        all_premakes = Product.query.filter_by(is_premake=True).all()
         for premake in all_premakes:
             produced = premake_production.get(premake.id, 0)
             used = premake_usage.get(premake.id, 0)
