@@ -166,7 +166,7 @@
                                 <input type="number" step="0.001" name="premake_quantity[]" class="form-control" placeholder="כמות" value="{{ component.quantity }}" required>
                             </div>
                             <div class="col-md-3">
-                                <span class="form-control-plaintext">{{ component.premake.unit if component.premake else '' }}</span>
+                                <span class="form-control-plaintext">{{ component.nested_premake.unit if component.nested_premake else '' }}</span>
                             </div>
                             <div class="col-md-1">
                                 <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)">

@@ -52,6 +52,27 @@ def log_audit(action, target_type, target_id=None, details=None):
     except Exception as e:
         print(f"Failed to log audit: {e}")
 
+def calculate_premake_cost_per_unit(premake):
+    """
+    Recursively calculates the cost per unit of a premake.
+    """
+    premake_batch_cost = 0
+    calculated_batch_size = 0
+
+    for pm_comp in premake.components:
+        if pm_comp.component_type == 'raw_material' and pm_comp.material:
+            premake_batch_cost += pm_comp.quantity * pm_comp.material.cost_per_unit
+            calculated_batch_size += pm_comp.quantity
+        elif pm_comp.component_type == 'packaging' and pm_comp.packaging:
+            premake_batch_cost += pm_comp.quantity * pm_comp.packaging.price_per_unit
+        elif pm_comp.component_type == 'premake' and pm_comp.nested_premake:
+            # Recursive call for nested premakes
+            nested_cost_per_unit = calculate_premake_cost_per_unit(pm_comp.nested_premake)
+            premake_batch_cost += pm_comp.quantity * nested_cost_per_unit
+
+    effective_batch_size = premake.batch_size if premake.batch_size > 0 else calculated_batch_size
+    return premake_batch_cost / effective_batch_size if effective_batch_size > 0 else 0
+
 def calculate_prime_cost(product):
     """
     Calculates the prime cost (Materials + Packaging + Premakes) for a single unit of a Product.
@@ -64,17 +85,8 @@ def calculate_prime_cost(product):
         elif component.component_type == 'packaging' and component.packaging:
             total_cost += component.quantity * component.packaging.price_per_unit
         elif component.component_type == 'premake' and component.premake:
-            # Calculate cost of 1 unit of premake
-            premake = component.premake
-            premake_batch_cost = 0
-            calculated_batch_size = 0
-            for pm_comp in premake.components:
-                if pm_comp.component_type == 'raw_material' and pm_comp.material:
-                    premake_batch_cost += pm_comp.quantity * pm_comp.material.cost_per_unit
-                calculated_batch_size += pm_comp.quantity
-            
-            effective_batch_size = premake.batch_size if premake.batch_size > 0 else calculated_batch_size
-            premake_unit_cost = premake_batch_cost / effective_batch_size if effective_batch_size > 0 else 0
+            # Use the recursive function to calculate premake cost
+            premake_unit_cost = calculate_premake_cost_per_unit(component.premake)
             total_cost += component.quantity * premake_unit_cost
 
     if product.products_per_recipe > 0:

@@ -64,12 +64,12 @@ class Premake(db.Model):
 class PremakeComponent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     premake_id = db.Column(db.Integer, db.ForeignKey('premake.id'), nullable=False)
-    component_type = db.Column(db.String(20), nullable=False)  # 'raw_material', 'packaging'
+    component_type = db.Column(db.String(20), nullable=False)  # 'raw_material', 'packaging', 'premake'
     component_id = db.Column(db.Integer, nullable=False)
     quantity = db.Column(db.Float, nullable=False)
 
     premake = db.relationship('Premake', backref='components')
-    
+
     @property
     def material(self):
         if self.component_type == 'raw_material':
@@ -83,7 +83,7 @@ class PremakeComponent(db.Model):
         return None
 
     @property
-    def premake(self):
+    def nested_premake(self):
         if self.component_type == 'premake':
             return Premake.query.get(self.component_id)
         return None
