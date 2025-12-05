@@ -71,13 +71,23 @@ def add_raw_material():
             category_id = get_or_create_general_category('raw_material')
 
         unit = request.form['unit']
-        cost_per_unit = float(request.form['cost_per_unit'])
         stock = request.form.get('stock', 0) # Optional initial stock
 
         # Get multiple suppliers
         supplier_ids = request.form.getlist('supplier_ids[]')
         supplier_costs = request.form.getlist('supplier_costs[]')
         primary_supplier_value = request.form.get('primary_supplier')
+
+        # Calculate average cost from suppliers for backward compatibility
+        valid_costs = []
+        for i, supplier_id in enumerate(supplier_ids):
+            if supplier_id and i < len(supplier_costs) and supplier_costs[i]:
+                try:
+                    valid_costs.append(float(supplier_costs[i]))
+                except ValueError:
+                    pass
+
+        cost_per_unit = sum(valid_costs) / len(valid_costs) if valid_costs else 0
 
         category = Category.query.get(category_id)
 
@@ -94,7 +104,11 @@ def add_raw_material():
                 # Check if this is the primary supplier (radio value matches index+1)
                 is_primary = (str(i+1) == primary_supplier_value) if primary_supplier_value else (i == 0)
 
-                supplier_cost = float(supplier_costs[i]) if supplier_costs[i] else cost_per_unit
+                # Use the supplier cost or fallback to average
+                try:
+                    supplier_cost = float(supplier_costs[i]) if supplier_costs[i] else cost_per_unit
+                except (ValueError, IndexError):
+                    supplier_cost = cost_per_unit
 
                 supplier_link = RawMaterialSupplier(
                     raw_material_id=new_material.id,
@@ -162,7 +176,6 @@ def edit_raw_material(material_id):
         category = Category.query.get(category_id)
         material.category = category
         material.unit = request.form['unit']
-        material.cost_per_unit = float(request.form['cost_per_unit'])
 
         # Handle multiple supplier updates
         # First, clear existing supplier links
@@ -173,6 +186,17 @@ def edit_raw_material(material_id):
         supplier_costs = request.form.getlist('supplier_costs[]')
         primary_supplier_value = request.form.get('primary_supplier')
 
+        # Calculate average cost from suppliers for backward compatibility
+        valid_costs = []
+        for i, supplier_id in enumerate(supplier_ids):
+            if supplier_id and i < len(supplier_costs) and supplier_costs[i]:
+                try:
+                    valid_costs.append(float(supplier_costs[i]))
+                except ValueError:
+                    pass
+
+        material.cost_per_unit = sum(valid_costs) / len(valid_costs) if valid_costs else material.cost_per_unit
+
         # Add new supplier links
         supplier_count = 0
         for i, supplier_id in enumerate(supplier_ids):
@@ -181,7 +205,11 @@ def edit_raw_material(material_id):
                 # Check if this is the primary supplier (radio value matches index+1)
                 is_primary = (str(i+1) == primary_supplier_value) if primary_supplier_value else (i == 0)
 
-                supplier_cost = float(supplier_costs[i]) if supplier_costs[i] else material.cost_per_unit
+                # Use the supplier cost or fallback to average
+                try:
+                    supplier_cost = float(supplier_costs[i]) if supplier_costs[i] else material.cost_per_unit
+                except (ValueError, IndexError):
+                    supplier_cost = material.cost_per_unit
 
                 supplier_link = RawMaterialSupplier(
                     raw_material_id=material.id,

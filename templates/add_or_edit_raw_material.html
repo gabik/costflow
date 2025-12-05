@@ -39,39 +39,37 @@
 
                     <!-- Multiple Suppliers Section -->
                     <div class="mb-4">
-                        <label class="form-label d-block">ספקים ומחירים</label>
+                        <h5>ספקים ומחירים</h5>
+
+                        <!-- Column headers -->
+                        <div class="row g-2 mb-2 fw-bold text-muted small">
+                            <div class="col-md-4">ספק</div>
+                            <div class="col-md-3">מחיר ליחידה</div>
+                            <div class="col-md-3 text-center">ספק ראשי</div>
+                            <div class="col-md-2"></div>
+                        </div>
+
                         <div id="suppliersContainer" class="mb-2">
                             <!-- Existing suppliers will be loaded here -->
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addSupplierRow()">
+
+                        <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addSupplierRow()">
                             <i class="bi bi-plus-lg"></i> הוסף ספק
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary ms-1"
+                        <button type="button" class="btn btn-sm btn-outline-secondary ms-1 mt-2"
                                 data-bs-toggle="modal" data-bs-target="#addSupplierModal">
                             <i class="bi bi-building-add"></i> ספק חדש
                         </button>
                     </div>
 
-                    <div class="row g-3">
-                        <!-- Unit -->
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="unit" class="form-label">יחידת מידה</label>
-                                <select class="form-select" id="unit" name="unit" required>
-                                    {% for unit in units %}
-                                    <option value="{{ unit }}" {% if (material and material.unit == unit) or (not material and unit == 'kg') %}selected{% endif %}>{{ unit }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Cost -->
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="cost_per_unit" class="form-label">מחיר ליחידה (₪)</label>
-                                <input type="number" id="cost_per_unit" name="cost_per_unit" class="form-control" step="0.01" value="{{ material.cost_per_unit if material else '' }}" required>
-                            </div>
-                        </div>
+                    <!-- Unit -->
+                    <div class="mb-3">
+                        <label for="unit" class="form-label">יחידת מידה</label>
+                        <select class="form-select" id="unit" name="unit" required>
+                            {% for unit in units %}
+                            <option value="{{ unit }}" {% if (material and material.unit == unit) or (not material and unit == 'kg') %}selected{% endif %}>{{ unit }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
 
                     <!-- Stock (Only for new items) -->
@@ -157,10 +155,10 @@
 
 <!-- Template for supplier row -->
 <template id="supplierRowTemplate">
-    <div class="supplier-row border rounded p-3 mb-2">
+    <div class="supplier-row border rounded p-2 mb-2">
         <div class="row g-2 align-items-center">
             <div class="col-md-4">
-                <select class="form-select supplier-select" name="supplier_ids[]">
+                <select class="form-select supplier-select" name="supplier_ids[]" required>
                     <option value="">בחר ספק...</option>
                     {% for supplier in suppliers %}
                     <option value="{{ supplier.id }}">{{ supplier.name }}</option>
@@ -171,17 +169,12 @@
                 <div class="input-group">
                     <span class="input-group-text">₪</span>
                     <input type="number" class="form-control supplier-cost" name="supplier_costs[]"
-                           placeholder="מחיר ליחידה" step="0.01">
+                           placeholder="0.00" step="0.01" required>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="form-check">
-                    <input type="radio" class="form-check-input primary-radio" name="primary_supplier"
-                           value="" onchange="updatePrimarySupplier(this)">
-                    <label class="form-check-label">
-                        <i class="bi bi-star-fill text-warning me-1"></i>ספק ראשי
-                    </label>
-                </div>
+            <div class="col-md-3 text-center">
+                <input type="radio" class="form-check-input primary-radio"
+                       name="primary_supplier" style="scale: 1.2;">
             </div>
             <div class="col-md-2 text-end">
                 <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSupplierRow(this)">
@@ -206,6 +199,11 @@
         const radio = clone.querySelector('input[type="radio"]');
         supplierRowCounter++;
         radio.value = supplierRowCounter;
+
+        // Add event listener for visual feedback
+        radio.addEventListener('change', function() {
+            updatePrimarySupplier(this);
+        });
 
         // Pre-fill values if provided
         if (supplierId) {
@@ -244,12 +242,13 @@
     function updatePrimarySupplier(radio) {
         // Remove visual feedback from all rows
         document.querySelectorAll('.supplier-row').forEach(row => {
-            row.classList.remove('border-primary', 'bg-light');
+            row.classList.remove('border-primary', 'border-2', 'bg-light');
         });
 
         // Add visual feedback to selected row
         if (radio && radio.checked) {
-            radio.closest('.supplier-row').classList.add('border-primary', 'bg-light');
+            const row = radio.closest('.supplier-row');
+            row.classList.add('border-primary', 'border-2', 'bg-light');
         }
     }
 
@@ -277,8 +276,13 @@
             );
             {% endfor %}
         {% else %}
-            // Add one empty row for new materials
+            // Add one empty row for new materials and make it primary by default
             addSupplierRow();
+            const firstRadio = document.querySelector('.supplier-row input[type="radio"]');
+            if (firstRadio) {
+                firstRadio.checked = true;
+                updatePrimarySupplier(firstRadio);
+            }
         {% endif %}
     });
 </script>
