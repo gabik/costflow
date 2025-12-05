@@ -245,12 +245,19 @@ def product_detail(product_id):
         if not material:
             continue
 
+        # Find primary supplier price for the material
+        primary_price = material.cost_per_unit  # default fallback
+        for link in material.supplier_links:
+            if link.is_primary:
+                primary_price = link.cost_per_unit
+                break
+
         raw_materials.append({
             'name': material.name,
             'quantity': component.quantity,
-            'price_per_unit': material.cost_per_unit,
-            'price_per_recipe': component.quantity * material.cost_per_unit,
-            'price_per_product': (component.quantity * material.cost_per_unit) / product.products_per_recipe if product.products_per_recipe > 0 else 0
+            'price_per_unit': primary_price,  # Use primary supplier price
+            'price_per_recipe': component.quantity * primary_price,
+            'price_per_product': (component.quantity * primary_price) / product.products_per_recipe if product.products_per_recipe > 0 else 0
         })
 
     # Retrieve labor costs

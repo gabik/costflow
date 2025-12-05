@@ -69,17 +69,21 @@ def weekly_costs():
                             })
 
                     # Premake Leftovers (Produced - Used)
-                    # Fetch Premake Production Logs
+                    # Fetch Premake Production Logs (premakes are products with is_premake=True)
+                    # First get IDs of all premake products
+                    premake_ids = [p.id for p in Product.query.filter_by(is_premake=True).all()]
+
                     premake_logs = ProductionLog.query.filter(
                         func.date(ProductionLog.timestamp) >= prev_start,
                         func.date(ProductionLog.timestamp) <= prev_end,
-                        ProductionLog.premake_id != None
+                        ProductionLog.product_id.in_(premake_ids)
                     ).all()
-                    
+
                     premake_production_qty = {}
                     for log in premake_logs:
-                        units_produced = log.quantity_produced * log.premake.batch_size
-                        premake_production_qty[log.premake_id] = premake_production_qty.get(log.premake_id, 0) + units_produced
+                        if log.product and log.product.is_premake:
+                            units_produced = log.quantity_produced * log.product.batch_size
+                            premake_production_qty[log.product_id] = premake_production_qty.get(log.product_id, 0) + units_produced
 
                     # Calculate Premake Usage from Product Logs
                     premake_usage_qty = {}
@@ -202,16 +206,20 @@ def close_week_confirm():
 
     # 2. Premake Leftovers
     # Fetch Premake Production
+    # Get IDs of all premake products
+    premake_ids = [p.id for p in Product.query.filter_by(is_premake=True).all()]
+
     premake_logs = ProductionLog.query.filter(
         func.date(ProductionLog.timestamp) >= prev_start,
         func.date(ProductionLog.timestamp) <= prev_end,
-        ProductionLog.premake_id != None
+        ProductionLog.product_id.in_(premake_ids)
     ).all()
-    
+
     premake_production_qty = {}
     for log in premake_logs:
-        units_produced = log.quantity_produced * log.premake.batch_size
-        premake_production_qty[log.premake_id] = premake_production_qty.get(log.premake_id, 0) + units_produced
+        if log.product and log.product.is_premake:
+            units_produced = log.quantity_produced * log.product.batch_size
+            premake_production_qty[log.product_id] = premake_production_qty.get(log.product_id, 0) + units_produced
 
     # Calculate Premake Usage from Product Logs (re-using 'logs' fetched above)
     premake_usage_qty = {}
@@ -222,7 +230,7 @@ def close_week_confirm():
                     usage = component.quantity * log.quantity_produced
                     premake_usage_qty[component.component_id] = premake_usage_qty.get(component.component_id, 0) + usage
 
-    all_premakes = Premake.query.all()
+    all_premakes = Product.query.filter_by(is_premake=True).all()
     for premake in all_premakes:
         # Check if user marked to keep
         keep_key = f"keep_premake_{premake.id}"
@@ -232,11 +240,11 @@ def close_week_confirm():
         produced = premake_production_qty.get(premake.id, 0)
         used = premake_usage_qty.get(premake.id, 0)
         remaining = produced - used
-        
+
         if remaining > 0:
             # Waste it! Remove from stock.
             stock_log = StockLog(
-                premake_id=premake.id,
+                product_id=premake.id,  # premakes are products
                 action_type='add',
                 quantity=-remaining
             )

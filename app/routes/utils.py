@@ -98,7 +98,13 @@ def calculate_premake_cost_per_unit(premake, visited=None):
 
     for pm_comp in premake.components:
         if pm_comp.component_type == 'raw_material' and pm_comp.material:
-            premake_batch_cost += pm_comp.quantity * pm_comp.material.cost_per_unit
+            # Use primary supplier price instead of average
+            primary_price = pm_comp.material.cost_per_unit  # fallback
+            for link in pm_comp.material.supplier_links:
+                if link.is_primary:
+                    primary_price = link.cost_per_unit
+                    break
+            premake_batch_cost += pm_comp.quantity * primary_price
             calculated_batch_size += pm_comp.quantity
         elif pm_comp.component_type == 'packaging' and pm_comp.packaging:
             premake_batch_cost += pm_comp.quantity * pm_comp.packaging.price_per_unit
@@ -137,7 +143,13 @@ def calculate_prime_cost(product):
     total_cost = 0
     for component in product.components:
         if component.component_type == 'raw_material' and component.material:
-            total_cost += component.quantity * component.material.cost_per_unit
+            # Use primary supplier price instead of average
+            primary_price = component.material.cost_per_unit  # fallback
+            for link in component.material.supplier_links:
+                if link.is_primary:
+                    primary_price = link.cost_per_unit
+                    break
+            total_cost += component.quantity * primary_price
         elif component.component_type == 'packaging' and component.packaging:
             total_cost += component.quantity * component.packaging.price_per_unit
         elif component.component_type == 'premake':

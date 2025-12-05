@@ -172,12 +172,19 @@ def index():
             
             # Calculate Prime Cost (Materials + Packaging + Premakes)
             prime_cost_per_unit = calculate_prime_cost(product)
-            
+
             # Financials
             revenue = sold_qty * product.selling_price_per_unit
             cogs = sold_qty * prime_cost_per_unit
             waste_cost = waste_qty * prime_cost_per_unit # Cost of waste
-            gross_profit = revenue - cogs - waste_cost # Profit is reduced by waste cost
+
+            # Calculate production cost for unsold inventory
+            # This represents the cost incurred for producing items not yet sold
+            production_cost = produced_qty_new * prime_cost_per_unit
+
+            # Gross profit should include production cost as negative (expense)
+            # When items are produced but not sold, profit is negative (the production cost)
+            gross_profit = revenue - cogs - waste_cost - production_cost
             
             # Inventory Usage Value (what we made)
             # ONLY count NEW production for Cost
