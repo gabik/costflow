@@ -3,7 +3,7 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, current_app
 from ..models import db, Product, ProductComponent, RawMaterial, Packaging, Labor, Category, ProductionLog, StockLog, WeeklyProductSales
-from .utils import log_audit, calculate_prime_cost, calculate_premake_cost_per_unit, convert_to_base_unit, get_or_create_general_category, units_list
+from .utils import log_audit, calculate_prime_cost, calculate_premake_cost_per_unit, convert_to_base_unit, get_or_create_general_category, units_list, calculate_total_material_stock, calculate_premake_current_stock
 
 products_blueprint = Blueprint('products', __name__)
 
@@ -26,9 +26,38 @@ def products():
     products_data = []
     for product in products:
         cost = calculate_prime_cost(product)
+
+        # Check if we can produce at least one batch
+        can_produce = True
+        missing_materials = []
+
+        for component in product.components:
+            if component.component_type == 'raw_material':
+                available = calculate_total_material_stock(component.component_id)
+                required = component.quantity  # For one batch
+                if available < required:
+                    can_produce = False
+                    missing_materials.append({
+                        'name': component.material.name,
+                        'required': required,
+                        'available': available
+                    })
+            elif component.component_type == 'premake':
+                available = calculate_premake_current_stock(component.component_id)
+                required = component.quantity  # For one batch
+                if available < required:
+                    can_produce = False
+                    missing_materials.append({
+                        'name': component.premake.name if component.premake else f'Premake {component.component_id}',
+                        'required': required,
+                        'available': available
+                    })
+
         products_data.append({
             'product': product,
-            'prime_cost': cost
+            'prime_cost': cost,
+            'can_produce': can_produce,
+            'missing_materials': missing_materials
         })
     return render_template('products.html', products_data=products_data)
 

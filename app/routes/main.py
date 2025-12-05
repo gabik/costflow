@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_file, jsonify
 from sqlalchemy import func, extract, and_, text
 from ..models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, StockAudit, AuditLog
-from .utils import units_list, get_or_create_general_category, convert_to_base_unit, log_audit, calculate_prime_cost, calculate_premake_current_stock
+from .utils import units_list, get_or_create_general_category, convert_to_base_unit, log_audit, calculate_prime_cost, calculate_premake_current_stock, calculate_total_material_stock, calculate_supplier_stock
 from .raw_materials import calculate_raw_material_current_stock
 
 main_blueprint = Blueprint('main', __name__)
@@ -319,27 +319,41 @@ def stock_audits():
 @main_blueprint.route('/api/product_recipe/<int:product_id>')
 def get_product_recipe(product_id):
     product = Product.query.get_or_404(product_id)
-    
+
     components_data = []
     for comp in product.components:
         if comp.component_type == 'raw_material':
             material = comp.material
             if material:
-                stock = calculate_raw_material_current_stock(material.id)
+                # Use total stock across all suppliers
+                stock = calculate_total_material_stock(material.id)
+
+                # Add supplier breakdown
+                supplier_info = []
+                for link in material.supplier_links:
+                    supplier_stock = calculate_supplier_stock(material.id, link.supplier_id)
+                    if supplier_stock > 0 or link.is_primary:
+                        supplier_info.append({
+                            'name': link.supplier.name,
+                            'stock': supplier_stock,
+                            'is_primary': link.is_primary
+                        })
+
                 components_data.append({
                     'type': 'Raw Material',
                     'name': material.name,
                     'qty_per_batch': comp.quantity,
                     'unit': material.unit,
                     'current_stock': stock,
-                    'cost_per_unit': material.cost_per_unit
+                    'cost_per_unit': material.cost_per_unit,
+                    'suppliers': supplier_info  # Include supplier breakdown
                 })
-        
+
         elif comp.component_type == 'premake':
             premake = comp.premake
             if premake:
                 stock = calculate_premake_current_stock(premake.id)
-                
+
                 # Calculate cost per unit for premake
                 cost_per_batch = 0
                 for pm_comp in premake.components:

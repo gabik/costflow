@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for
-from ..models import db, Product, ProductionLog, StockLog
-from .utils import log_audit
+from ..models import db, Product, ProductionLog, StockLog, InsufficientStockError
+from .utils import log_audit, deduct_material_stock
 
 production_blueprint = Blueprint('production', __name__)
 
@@ -14,12 +14,48 @@ def production():
         product_id = request.form['product_id']
         quantity_produced = float(request.form['quantity_produced'])
 
-        # Log production
-        production_log = ProductionLog(product_id=product_id, quantity_produced=quantity_produced)
-        db.session.add(production_log)
-        db.session.commit()
+        product = Product.query.get_or_404(product_id)
 
-        return redirect(url_for('production.production'))
+        # Deduct materials for production
+        try:
+            for component in product.components:
+                if component.component_type == 'raw_material':
+                    required_qty = component.quantity * quantity_produced
+                    # This function will deduct from primary supplier first, then others
+                    deduct_material_stock(component.component_id, required_qty)
+                elif component.component_type == 'premake':
+                    # Deduct premake stock
+                    required_qty = component.quantity * quantity_produced
+                    # Use StockLog for premakes (they don't have suppliers)
+                    stock_log = StockLog(
+                        product_id=component.component_id,
+                        action_type='add',
+                        quantity=-required_qty
+                    )
+                    db.session.add(stock_log)
+
+            # Log production (only after successful material deduction)
+            production_log = ProductionLog(product_id=product_id, quantity_produced=quantity_produced)
+            db.session.add(production_log)
+            db.session.commit()
+
+            return redirect(url_for('production.production'))
+
+        except InsufficientStockError as e:
+            # Rollback transaction on error
+            db.session.rollback()
+
+            # Get data for template
+            products = Product.query.filter_by(is_migrated=False).all()
+            production_logs = ProductionLog.query.filter(ProductionLog.product_id != None).order_by(ProductionLog.timestamp.desc()).all()
+            current_time = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+
+            # Return with error message
+            return render_template('production.html',
+                                 error=str(e),
+                                 products=products,
+                                 production_logs=production_logs,
+                                 current_time=current_time)
 
     # Filter out migrated products
     products = Product.query.filter_by(is_migrated=False).all()

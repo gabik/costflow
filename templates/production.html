@@ -3,6 +3,14 @@
 {% block content %}
 <h1>{{ _('Production Logs') }}</h1>
 
+{% if error %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    {{ error }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+
 <!-- Form to Log New Production -->
 <form method="POST" class="p-4 bg-white border rounded shadow-sm">
     <div class="form-group">
@@ -205,10 +213,24 @@ function updateProductionDetails() {
         const stockAfter = comp.current_stock - usage;
         const cost = usage * comp.cost_per_unit;
         totalRecipeCost += cost;
-        
+
+        // Show supplier breakdown if available
+        let supplierInfo = '';
+        if (comp.suppliers && comp.suppliers.length > 0) {
+            supplierInfo = '<small class="text-muted d-block">';
+            comp.suppliers.forEach(sup => {
+                if (sup.is_primary) {
+                    supplierInfo += `${sup.name} (ראשי): ${sup.stock.toFixed(2)}<br>`;
+                } else {
+                    supplierInfo += `${sup.name}: ${sup.stock.toFixed(2)}<br>`;
+                }
+            });
+            supplierInfo += '</small>';
+        }
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${comp.name}</td>
+            <td>${comp.name}${supplierInfo}</td>
             <td>${comp.type === 'Raw Material' ? 'חומר גלם' : 'הכנה'}</td>
             <td>${comp.current_stock.toFixed(2)} ${comp.unit}</td>
             <td class="fw-bold">${usage.toFixed(2)} ${comp.unit}</td>

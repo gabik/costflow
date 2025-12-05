@@ -49,6 +49,13 @@
                             <i class="bi bi-arrows-collapse-vertical"></i>
                         </span>
                     {% endif %}
+                    {% if not item.can_produce %}
+                        <span class="badge bg-danger ms-2"
+                              data-bs-toggle="tooltip"
+                              title="חסרים חומרי גלם: {% for mat in item.missing_materials %}{{ mat.name }} ({{ '%.2f'|format(mat.available) }}/{{ '%.2f'|format(mat.required) }}){% if not loop.last %}, {% endif %}{% endfor %}">
+                            <i class="bi bi-exclamation-triangle"></i> חוסר במלאי
+                        </span>
+                    {% endif %}
                 </td>
                 <td>
                     {% set recipe_weight = namespace(value=0) %}
