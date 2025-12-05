@@ -69,7 +69,10 @@
     <tr>
         <th>{{ _('Date') }}</th>
         <th>{{ _('Product') }}</th>
-        <th>{{ _('Quantity Produced') }}</th>
+        <th>{{ _('Batches') }}</th>
+        <th>{{ _('Units Produced') }}</th>
+        <th>{{ _('Total Cost') }}</th>
+        <th>{{ _('Cost/Unit') }}</th>
         <th>{{ _('Actions') }}</th>
     </tr>
     </thead>
@@ -79,8 +82,11 @@
         <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
         <td>{{ log.product.name }}</td>
         <td>{{ "%.2f"|format(log.quantity_produced) }}</td>
+        <td>{{ "%.0f"|format(log.quantity_produced * log.product.products_per_recipe) }}</td>
+        <td>₪{{ "%.2f"|format(log.total_cost or 0) }}</td>
+        <td>₪{{ "%.2f"|format(log.cost_per_unit or 0) }}</td>
         <td>
-            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProductionModal" 
+            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProductionModal"
                     data-log-id="{{ log.id }}" data-product-name="{{ log.product.name }}" data-quantity="{{ log.quantity_produced }}">
                 {{ _('Edit') }}
             </button>

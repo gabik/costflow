@@ -12,6 +12,57 @@ from .raw_materials import calculate_raw_material_current_stock
 
 main_blueprint = Blueprint('main', __name__)
 
+@main_blueprint.route('/migrate_production_costs')
+def migrate_production_costs():
+    """Run migration to add cost tracking fields to ProductionLog table"""
+    try:
+        # Check if columns already exist by trying to access them
+        test_log = ProductionLog.query.first()
+        if test_log:
+            # Try to access the new fields
+            try:
+                _ = test_log.total_cost
+                _ = test_log.cost_per_unit
+                _ = test_log.cost_details
+                return jsonify({
+                    'status': 'success',
+                    'message': 'Migration already completed - columns exist'
+                })
+            except:
+                pass
+
+        # If we get here, columns don't exist - run migration
+        from sqlalchemy import text
+
+        # Add columns using raw SQL
+        with db.engine.connect() as conn:
+            # Check database type (SQLite vs PostgreSQL)
+            dialect = db.engine.dialect.name
+
+            if dialect == 'sqlite':
+                # SQLite syntax
+                conn.execute(text("ALTER TABLE production_log ADD COLUMN total_cost FLOAT"))
+                conn.execute(text("ALTER TABLE production_log ADD COLUMN cost_per_unit FLOAT"))
+                conn.execute(text("ALTER TABLE production_log ADD COLUMN cost_details TEXT"))
+                conn.commit()
+            else:
+                # PostgreSQL syntax
+                conn.execute(text("ALTER TABLE production_log ADD COLUMN IF NOT EXISTS total_cost FLOAT"))
+                conn.execute(text("ALTER TABLE production_log ADD COLUMN IF NOT EXISTS cost_per_unit FLOAT"))
+                conn.execute(text("ALTER TABLE production_log ADD COLUMN IF NOT EXISTS cost_details TEXT"))
+                conn.commit()
+
+        return jsonify({
+            'status': 'success',
+            'message': 'Migration completed successfully - added cost tracking columns'
+        })
+
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Migration failed: {str(e)}'
+        }), 500
+
 
 @main_blueprint.route('/images/<path:filename>')
 def serve_image(filename):

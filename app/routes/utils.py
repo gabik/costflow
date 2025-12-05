@@ -434,7 +434,7 @@ def deduct_material_with_supplier_tracking(material_id, quantity):
 def deduct_material_stock(material_id, quantity_needed):
     """
     Deduct stock from suppliers using 'primary first, then others' strategy.
-    Returns list of (supplier_id, quantity_deducted) tuples.
+    Returns list of (supplier_id, quantity_deducted, cost_per_unit, total_cost) tuples.
     Raises InsufficientStockError if not enough stock available.
     """
     from ..models import db, RawMaterialSupplier, StockLog, InsufficientStockError, RawMaterial
@@ -469,7 +469,13 @@ def deduct_material_stock(material_id, quantity_needed):
             )
             db.session.add(stock_log)
 
-            deductions.append((link.supplier_id, to_deduct))
+            # Include cost information in deductions
+            deductions.append((
+                link.supplier_id,
+                to_deduct,
+                link.cost_per_unit,  # Add cost per unit
+                to_deduct * link.cost_per_unit  # Add total cost
+            ))
             remaining -= to_deduct
 
     if remaining > 0:

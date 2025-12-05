@@ -27,6 +27,12 @@ class ProductionLog(db.Model):
     quantity_produced = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     is_carryover = db.Column(db.Boolean, default=False, nullable=False)
+
+    # Cost tracking fields
+    total_cost = db.Column(db.Float, nullable=True)  # Total cost of this production
+    cost_per_unit = db.Column(db.Float, nullable=True)  # Cost per unit produced
+    cost_details = db.Column(db.Text, nullable=True)  # JSON string with supplier breakdown
+
     # Relationships
     product = db.relationship('Product', backref='production_logs')
 

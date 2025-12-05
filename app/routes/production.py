@@ -1,7 +1,8 @@
 from datetime import datetime
+import json
 from flask import Blueprint, render_template, request, redirect, url_for
-from ..models import db, Product, ProductionLog, StockLog, InsufficientStockError
-from .utils import log_audit, deduct_material_stock
+from ..models import db, Product, ProductionLog, StockLog, InsufficientStockError, RawMaterial
+from .utils import log_audit, deduct_material_stock, calculate_premake_cost_per_unit
 
 production_blueprint = Blueprint('production', __name__)
 
@@ -16,17 +17,50 @@ def production():
 
         product = Product.query.get_or_404(product_id)
 
-        # Deduct materials for production
+        # Track total production cost
+        total_production_cost = 0
+        cost_details = {'materials': [], 'premakes': [], 'packaging': []}
+
+        # Deduct materials for production and calculate costs
         try:
             for component in product.components:
                 if component.component_type == 'raw_material':
                     required_qty = component.quantity * quantity_produced
-                    # This function will deduct from primary supplier first, then others
-                    deduct_material_stock(component.component_id, required_qty)
+                    # Get deduction details with costs
+                    deductions = deduct_material_stock(component.component_id, required_qty)
+
+                    # Calculate cost for this material
+                    material_cost = sum(d[3] for d in deductions)  # d[3] is total_cost
+                    total_production_cost += material_cost
+
+                    # Store details for tracking
+                    material = RawMaterial.query.get(component.component_id)
+                    cost_details['materials'].append({
+                        'name': material.name,
+                        'suppliers_used': [
+                            {'supplier_id': d[0], 'qty': d[1], 'cost': d[3]}
+                            for d in deductions
+                        ],
+                        'total_cost': material_cost
+                    })
+
                 elif component.component_type == 'premake':
+                    # Calculate premake cost
+                    premake = Product.query.filter_by(id=component.component_id, is_premake=True).first()
+                    if premake:
+                        premake_cost_per_unit = calculate_premake_cost_per_unit(premake)
+                        required_qty = component.quantity * quantity_produced
+                        material_cost = premake_cost_per_unit * required_qty
+                        total_production_cost += material_cost
+
+                        cost_details['premakes'].append({
+                            'name': premake.name,
+                            'qty': required_qty,
+                            'cost': material_cost
+                        })
+
                     # Deduct premake stock
                     required_qty = component.quantity * quantity_produced
-                    # Use StockLog for premakes (they don't have suppliers)
                     stock_log = StockLog(
                         product_id=component.component_id,
                         action_type='add',
@@ -34,8 +68,30 @@ def production():
                     )
                     db.session.add(stock_log)
 
-            # Log production (only after successful material deduction)
-            production_log = ProductionLog(product_id=product_id, quantity_produced=quantity_produced)
+                elif component.component_type == 'packaging' and component.packaging:
+                    # Calculate packaging cost
+                    required_qty = component.quantity * quantity_produced
+                    packaging_cost = component.packaging.price_per_unit * required_qty
+                    total_production_cost += packaging_cost
+
+                    cost_details['packaging'].append({
+                        'name': component.packaging.name,
+                        'qty': required_qty,
+                        'cost': packaging_cost
+                    })
+
+            # Calculate cost per unit
+            units_produced = quantity_produced * product.products_per_recipe
+            cost_per_unit = total_production_cost / units_produced if units_produced > 0 else 0
+
+            # Create production log WITH COST INFORMATION
+            production_log = ProductionLog(
+                product_id=product_id,
+                quantity_produced=quantity_produced,
+                total_cost=total_production_cost,
+                cost_per_unit=cost_per_unit,
+                cost_details=json.dumps(cost_details)
+            )
             db.session.add(production_log)
             db.session.commit()
 
