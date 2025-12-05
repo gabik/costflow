@@ -1,6 +1,6 @@
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for
-from ..models import db, RawMaterial, StockLog, ProductComponent, StockAudit, Category, Product, ProductionLog, Supplier, RawMaterialSupplier, Premake, PremakeComponent
+from ..models import db, RawMaterial, StockLog, ProductComponent, StockAudit, Category, Product, ProductionLog, Supplier, RawMaterialSupplier
 from .utils import log_audit, get_or_create_general_category, units_list
 
 raw_materials_blueprint = Blueprint('raw_materials', __name__)
@@ -39,12 +39,6 @@ def raw_materials():
                     for component in product.components:
                         if component.component_type == 'raw_material' and component.component_id == material.id:
                             stock -= component.quantity * production.quantity_produced
-            elif production.premake_id:
-                premake = Premake.query.get(production.premake_id)
-                if premake:
-                    for component in premake.components:
-                        if component.component_type == 'raw_material' and component.component_id == material.id:
-                            stock -= component.quantity * production.quantity_produced
 
         # Attach calculated stock to material object
         material.current_stock = stock
@@ -80,8 +74,10 @@ def add_raw_material():
         cost_per_unit = float(request.form['cost_per_unit'])
         stock = request.form.get('stock', 0) # Optional initial stock
 
-        # New: Get supplier information
-        supplier_id = request.form.get('supplier_id')
+        # Get multiple suppliers
+        supplier_ids = request.form.getlist('supplier_ids[]')
+        supplier_costs = request.form.getlist('supplier_costs[]')
+        primary_supplier_value = request.form.get('primary_supplier')
 
         category = Category.query.get(category_id)
 
@@ -89,29 +85,48 @@ def add_raw_material():
         db.session.add(new_material)
         db.session.flush() # Get ID for stock log
 
-        # Link to supplier if provided, otherwise use default supplier (ID=1)
-        if supplier_id:
-            supplier_link = RawMaterialSupplier(
-                raw_material_id=new_material.id,
-                supplier_id=int(supplier_id),
-                cost_per_unit=cost_per_unit,
-                is_primary=True
-            )
-            db.session.add(supplier_link)
-        else:
-            # Use default supplier (ID=1) if not specified
-            supplier_link = RawMaterialSupplier(
-                raw_material_id=new_material.id,
-                supplier_id=1,
-                cost_per_unit=cost_per_unit,
-                is_primary=True
-            )
-            db.session.add(supplier_link)
+        # Add supplier links
+        primary_supplier_id = None
+        supplier_count = 0
+        for i, supplier_id in enumerate(supplier_ids):
+            if supplier_id:  # Skip empty selections
+                supplier_count += 1
+                # Check if this is the primary supplier (radio value matches index+1)
+                is_primary = (str(i+1) == primary_supplier_value) if primary_supplier_value else (i == 0)
 
-        if stock:
+                supplier_cost = float(supplier_costs[i]) if supplier_costs[i] else cost_per_unit
+
+                supplier_link = RawMaterialSupplier(
+                    raw_material_id=new_material.id,
+                    supplier_id=int(supplier_id),
+                    cost_per_unit=supplier_cost,
+                    is_primary=is_primary
+                )
+                db.session.add(supplier_link)
+
+                # Track primary supplier for stock
+                if is_primary:
+                    primary_supplier_id = int(supplier_id)
+
+        # If no suppliers provided, use default supplier (ID=1)
+        if not primary_supplier_id:
+            default_supplier = Supplier.query.filter_by(id=1).first()
+            if default_supplier:
+                supplier_link = RawMaterialSupplier(
+                    raw_material_id=new_material.id,
+                    supplier_id=1,
+                    cost_per_unit=cost_per_unit,
+                    is_primary=True
+                )
+                db.session.add(supplier_link)
+                primary_supplier_id = 1
+                supplier_count = 1
+
+        # Add initial stock for primary supplier
+        if stock and primary_supplier_id:
             initial_stock_log = StockLog(
                 raw_material_id=new_material.id,
-                supplier_id=int(supplier_id) if supplier_id else 1,  # Use supplier ID
+                supplier_id=primary_supplier_id,
                 action_type='set',
                 quantity=float(stock)
             )
@@ -149,40 +164,44 @@ def edit_raw_material(material_id):
         material.unit = request.form['unit']
         material.cost_per_unit = float(request.form['cost_per_unit'])
 
-        # Handle supplier update
-        supplier_id = request.form.get('supplier_id')
+        # Handle multiple supplier updates
+        # First, clear existing supplier links
+        RawMaterialSupplier.query.filter_by(raw_material_id=material.id).delete()
 
-        if supplier_id:
-            # Check if link exists
-            existing_link = RawMaterialSupplier.query.filter_by(
-                raw_material_id=material.id,
-                supplier_id=int(supplier_id)
-            ).first()
+        # Get multiple suppliers
+        supplier_ids = request.form.getlist('supplier_ids[]')
+        supplier_costs = request.form.getlist('supplier_costs[]')
+        primary_supplier_value = request.form.get('primary_supplier')
 
-            if existing_link:
-                # Update existing link to be primary
-                # First remove primary from all other links
-                RawMaterialSupplier.query.filter_by(
-                    raw_material_id=material.id,
-                    is_primary=True
-                ).update({'is_primary': False})
-                # Set this one as primary
-                existing_link.is_primary = True
-                existing_link.cost_per_unit = material.cost_per_unit
-            else:
-                # Remove old primary links and create new one
-                RawMaterialSupplier.query.filter_by(
-                    raw_material_id=material.id,
-                    is_primary=True
-                ).update({'is_primary': False})
+        # Add new supplier links
+        supplier_count = 0
+        for i, supplier_id in enumerate(supplier_ids):
+            if supplier_id:  # Skip empty selections
+                supplier_count += 1
+                # Check if this is the primary supplier (radio value matches index+1)
+                is_primary = (str(i+1) == primary_supplier_value) if primary_supplier_value else (i == 0)
 
-                new_link = RawMaterialSupplier(
+                supplier_cost = float(supplier_costs[i]) if supplier_costs[i] else material.cost_per_unit
+
+                supplier_link = RawMaterialSupplier(
                     raw_material_id=material.id,
                     supplier_id=int(supplier_id),
+                    cost_per_unit=supplier_cost,
+                    is_primary=is_primary
+                )
+                db.session.add(supplier_link)
+
+        # If no suppliers provided, use default supplier (ID=1)
+        if supplier_count == 0:
+            default_supplier = Supplier.query.filter_by(id=1).first()
+            if default_supplier:
+                supplier_link = RawMaterialSupplier(
+                    raw_material_id=material.id,
+                    supplier_id=1,
                     cost_per_unit=material.cost_per_unit,
                     is_primary=True
                 )
-                db.session.add(new_link)
+                db.session.add(supplier_link)
 
         db.session.commit()
         return redirect(url_for('raw_materials.raw_materials'))
@@ -191,12 +210,13 @@ def edit_raw_material(material_id):
     categories = Category.query.filter_by(type='raw_material').all()
     suppliers = Supplier.query.filter_by(is_active=True).all()
 
-    # Get primary supplier for material
-    primary_link = RawMaterialSupplier.query.filter_by(
-        raw_material_id=material.id,
-        is_primary=True
-    ).first()
+    # Load supplier links for the material
+    material.supplier_links = RawMaterialSupplier.query.filter_by(
+        raw_material_id=material.id
+    ).all()
 
+    # Also set primary_supplier for backward compatibility
+    primary_link = next((link for link in material.supplier_links if link.is_primary), None)
     if primary_link:
         material.primary_supplier = primary_link.supplier
     else:
@@ -330,18 +350,5 @@ def calculate_raw_material_current_stock(material_id):
 
     for production_log, product_component in production_logs_raw_material_usage:
         stock -= product_component.quantity * production_log.quantity_produced
-
-    # Also subtract usage in premake production
-    production_logs_premake_usage = db.session.query(ProductionLog, PremakeComponent).\
-        join(Premake, ProductionLog.premake_id == Premake.id).\
-        join(PremakeComponent, Premake.id == PremakeComponent.premake_id).\
-        filter(
-            PremakeComponent.component_type == 'raw_material',
-            PremakeComponent.component_id == material_id,
-            ProductionLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min)
-        ).all()
-
-    for production_log, premake_component in production_logs_premake_usage:
-        stock -= premake_component.quantity * production_log.quantity_produced
 
     return stock

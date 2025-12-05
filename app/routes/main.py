@@ -82,21 +82,22 @@ def index():
             if not log.is_carryover:
                 product_production[log.product_id]['new'] += units_produced
 
-        # Fetch Premake Production Logs
+        # Fetch Premake Production Logs (Products with is_premake=True)
+        premake_ids = [p.id for p in Product.query.filter_by(is_premake=True).all()]
         premake_logs = ProductionLog.query.filter(
             func.date(ProductionLog.timestamp) >= week_start,
             func.date(ProductionLog.timestamp) <= week_end,
-            ProductionLog.premake_id != None
+            ProductionLog.product_id.in_(premake_ids)
         ).all()
-        
+
         premake_production = {}
         for log in premake_logs:
-            # Premake quantity is in Batches. Total units = Batches * Batch Size
-            # Premakes carryover via StockLog, not ProductionLog carryover flag usually.
-            # But if we start using is_carryover for premakes (unlikely needed), we'd check it.
-            # For now, assume all premake logs are new production.
-            units_produced = log.quantity_produced * log.premake.batch_size
-            premake_production[log.premake_id] = premake_production.get(log.premake_id, 0) + units_produced
+            # Get the premake product
+            premake = Product.query.get(log.product_id)
+            if premake and premake.is_premake:
+                # Premake quantity is in Batches. Total units = Batches * Batch Size
+                units_produced = log.quantity_produced * premake.batch_size
+                premake_production[log.product_id] = premake_production.get(log.product_id, 0) + units_produced
 
         # Calculate Premake Usage (from Product Production)
         premake_usage = {}

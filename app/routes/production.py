@@ -90,12 +90,11 @@ def premake_production():
     # Get products that are premakes
     premakes = Product.query.filter_by(is_premake=True).all()
 
-    # Get production logs - handle both old and new
+    # Get production logs for premakes
     production_logs = ProductionLog.query.filter(
-        (ProductionLog.premake_id != None) |
-        (ProductionLog.product_id.in_(
+        ProductionLog.product_id.in_(
             db.session.query(Product.id).filter_by(is_premake=True)
-        ) if hasattr(Product, 'is_premake') else False)
+        )
     ).order_by(ProductionLog.timestamp.desc()).all()
 
     current_time = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')

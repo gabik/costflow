@@ -37,24 +37,19 @@
                         </div>
                     </div>
 
-                    <!-- Supplier Selection -->
-                    <div class="mb-3">
-                        <label for="supplier" class="form-label">ספק</label>
-                        <div class="input-group">
-                            <select id="supplier" name="supplier_id" class="form-select">
-                                <option value="">בחר ספק (אופציונלי)...</option>
-                                {% for supplier in suppliers %}
-                                    <option value="{{ supplier.id }}"
-                                        {% if material and material.primary_supplier and material.primary_supplier.id == supplier.id %}selected{% endif %}>
-                                        {{ supplier.name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                            <button type="button" class="btn btn-outline-secondary"
-                                    data-bs-toggle="modal" data-bs-target="#addSupplierModal">
-                                <i class="bi bi-plus-lg"></i>
-                            </button>
+                    <!-- Multiple Suppliers Section -->
+                    <div class="mb-4">
+                        <label class="form-label d-block">ספקים ומחירים</label>
+                        <div id="suppliersContainer" class="mb-2">
+                            <!-- Existing suppliers will be loaded here -->
                         </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addSupplierRow()">
+                            <i class="bi bi-plus-lg"></i> הוסף ספק
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary ms-1"
+                                data-bs-toggle="modal" data-bs-target="#addSupplierModal">
+                            <i class="bi bi-building-add"></i> ספק חדש
+                        </button>
                     </div>
 
                     <div class="row g-3">
@@ -159,11 +154,107 @@
         </div>
     </div>
 </div>
+
+<!-- Template for supplier row -->
+<template id="supplierRowTemplate">
+    <div class="supplier-row border rounded p-3 mb-2">
+        <div class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <select class="form-select supplier-select" name="supplier_ids[]">
+                    <option value="">בחר ספק...</option>
+                    {% for supplier in suppliers %}
+                    <option value="{{ supplier.id }}">{{ supplier.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <div class="input-group">
+                    <span class="input-group-text">₪</span>
+                    <input type="number" class="form-control supplier-cost" name="supplier_costs[]"
+                           placeholder="מחיר ליחידה" step="0.01">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-check">
+                    <input type="radio" class="form-check-input primary-radio" name="primary_supplier"
+                           value="" onchange="updatePrimarySupplier(this)">
+                    <label class="form-check-label">
+                        <i class="bi bi-star-fill text-warning me-1"></i>ספק ראשי
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-2 text-end">
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSupplierRow(this)">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</template>
 {% endblock %}
 
 {% block scripts %}
 <script>
+    let supplierRowCounter = 0;
+
+    function addSupplierRow(supplierId = '', cost = '', isPrimary = false) {
+        const template = document.getElementById('supplierRowTemplate');
+        const container = document.getElementById('suppliersContainer');
+        const clone = template.content.cloneNode(true);
+
+        // Set unique value for radio button
+        const radio = clone.querySelector('input[type="radio"]');
+        supplierRowCounter++;
+        radio.value = supplierRowCounter;
+
+        // Pre-fill values if provided
+        if (supplierId) {
+            clone.querySelector('.supplier-select').value = supplierId;
+        }
+        if (cost) {
+            clone.querySelector('.supplier-cost').value = cost;
+        }
+        if (isPrimary) {
+            radio.checked = true;
+        }
+
+        container.appendChild(clone);
+
+        // Update visual feedback if primary
+        if (isPrimary) {
+            updatePrimarySupplier(container.lastElementChild.querySelector('input[type="radio"]'));
+        }
+    }
+
+    function removeSupplierRow(button) {
+        const row = button.closest('.supplier-row');
+        const wasPrimary = row.querySelector('input[type="radio"]').checked;
+        row.remove();
+
+        // If we removed the primary supplier, make the first one primary
+        if (wasPrimary) {
+            const firstRadio = document.querySelector('.supplier-row input[type="radio"]');
+            if (firstRadio) {
+                firstRadio.checked = true;
+                updatePrimarySupplier(firstRadio);
+            }
+        }
+    }
+
+    function updatePrimarySupplier(radio) {
+        // Remove visual feedback from all rows
+        document.querySelectorAll('.supplier-row').forEach(row => {
+            row.classList.remove('border-primary', 'bg-light');
+        });
+
+        // Add visual feedback to selected row
+        if (radio && radio.checked) {
+            radio.closest('.supplier-row').classList.add('border-primary', 'bg-light');
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
+        // Handle category modal
         const addCategoryModal = document.getElementById('addCategoryModal');
         if (addCategoryModal) {
             addCategoryModal.addEventListener('show.bs.modal', event => {
@@ -175,6 +266,20 @@
                 }
             });
         }
+
+        // Load existing supplier links for edit mode
+        {% if material and material.supplier_links %}
+            {% for link in material.supplier_links %}
+            addSupplierRow(
+                '{{ link.supplier_id }}',
+                '{{ link.cost_per_unit }}',
+                {{ 'true' if link.is_primary else 'false' }}
+            );
+            {% endfor %}
+        {% else %}
+            // Add one empty row for new materials
+            addSupplierRow();
+        {% endif %}
     });
 </script>
 {% endblock %}

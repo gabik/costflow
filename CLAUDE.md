@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Costflow is a Flask-based web application for cost management and inventory tracking in production businesses. It manages raw materials, premakes (intermediate preparations), packaging, and products with comprehensive cost calculations and inventory tracking.
+Costflow is a Flask-based web application for cost management and inventory tracking in production businesses. It manages raw materials, premakes (intermediate preparations), packaging, and products with comprehensive cost calculations, multi-supplier support, and intelligent inventory tracking.
 
 ## Tech Stack
 
@@ -24,8 +24,11 @@ The application follows Flask's application factory pattern with modular bluepri
   - `models.py`: SQLAlchemy models (see Database Models section)
   - `database.py`: Database helper functions
   - `routes/`: Modular blueprint structure (refactored Dec 2024)
-    - `main.py`: Dashboard, raw materials, premakes, stock audits
+    - `main.py`: Dashboard and overview
     - `products.py`: Product management and migration
+    - `premakes.py`: Premake management (Products with is_premake=True)
+    - `raw_materials.py`: Raw material management with multi-supplier support
+    - `suppliers.py`: Supplier management
     - `production.py`: Production logging for products and premakes
     - `inventory.py`: Bulk inventory upload/import
     - `weekly_costs.py`: Weekly labor costs and sales tracking
@@ -34,26 +37,27 @@ The application follows Flask's application factory pattern with modular bluepri
     - `categories.py`: Category management
     - `labor.py`: Labor/employee management
     - `packaging.py`: Packaging materials management
-    - `utils.py`: Shared utility functions
+    - `utils.py`: Shared utility functions and stock calculations
 
 ## Database Models
 
 Core models in `app/models.py`:
-- **RawMaterial**: Base ingredients with cost per unit
-- **Premake**: Intermediate preparations that can contain raw materials, packaging, or other premakes (nested)
-- **PremakeComponent**: Links premakes to their components
-- **Product**: Final products with recipes and selling prices
-- **ProductComponent**: Links products to raw materials, premakes, packaging, and labor
+- **Product**: Unified model for products, premakes, and preproducts (using boolean flags: is_product, is_premake, is_preproduct)
+- **ProductComponent**: Links products to raw materials, other products (as premakes), packaging, and labor
+- **RawMaterial**: Base ingredients with default cost per unit
+- **RawMaterialSupplier**: Junction table linking raw materials to suppliers with individual pricing and primary designation
+- **Supplier**: Supplier information with contact details
 - **Packaging**: Packaging materials with cost calculations
 - **Labor**: Employee records with hourly rates (Note: Not currently used in production)
 - **Category**: Categorization for raw materials, products, and premakes
-- **StockLog**: Tracks inventory changes for raw materials and premakes
+- **StockLog**: Tracks inventory changes for raw materials and products/premakes, includes supplier tracking
 - **ProductionLog**: Records production events for products and premakes
 - **WeeklyLaborCost**: Weekly labor cost tracking
 - **WeeklyProductSales**: Weekly sales and waste tracking
 - **WeeklyLaborEntry**: Individual labor entries per week
 - **StockAudit**: Physical stock count audits with variance tracking
 - **AuditLog**: System-wide audit trail for data changes
+- **InsufficientStockError**: Custom exception for stock shortage handling
 
 ## Key Features & Routes
 
@@ -113,16 +117,20 @@ python csv/insert_products.py
 - Translations located in `translations/` directory
 
 ### Cost Calculation
-- Products can include: raw materials, premakes, packaging, and labor (labor not currently active)
+- Products can include: raw materials, premakes (other Products with is_premake=True), packaging, and labor (labor not currently active)
 - Premakes can include: raw materials, packaging, and other premakes (nested/recursive)
 - Total cost calculation is recursive for nested premakes
 - Prime cost = Raw materials + Packaging + Premakes (excludes labor)
 - Cost per unit calculated based on recipe batch size or premake batch size
+- Multi-supplier pricing: System uses supplier-specific pricing when calculating costs
 
 ### Stock Management
-- StockLog tracks all inventory changes with timestamps
+- StockLog tracks all inventory changes with timestamps and supplier information
 - Actions: 'add' (increment) or 'set' (absolute value)
 - Current stock calculated from latest 'set' action plus subsequent 'add' actions
+- Supplier-specific stock tracking for raw materials
+- Intelligent deduction strategy: "Primary supplier first, then others" during production
+- Automatic fallback when primary supplier stock depleted
 
 ### Production Tracking
 - ProductionLog records production events with timestamps
@@ -136,16 +144,17 @@ python csv/insert_products.py
 
 ## Database Schema Relationships
 
-- **Category** → RawMaterial, Product, Premake (one-to-many)
-- **Product** → ProductComponent → RawMaterial/Premake/Packaging/Labor (many-to-many with quantities)
-- **Premake** → PremakeComponent → RawMaterial/Packaging/Premake (many-to-many with quantities)
-- **RawMaterial** → StockLog (one-to-many)
-- **Premake** → StockLog (one-to-many)
+- **Category** → RawMaterial, Product (one-to-many)
+- **Product** → ProductComponent → RawMaterial/Product(as premake)/Packaging/Labor (many-to-many with quantities)
+- **RawMaterial** → RawMaterialSupplier → Supplier (many-to-many with pricing and primary flag)
+- **RawMaterial** → StockLog (one-to-many, with supplier tracking)
+- **Product** → StockLog (one-to-many, for premakes and preproducts)
 - **Product** → ProductionLog (one-to-many)
-- **Premake** → ProductionLog (one-to-many)
 - **Product** → WeeklyProductSales (one-to-many)
 - **WeeklyLaborCost** → WeeklyProductSales (one-to-many)
 - **WeeklyLaborCost** → WeeklyLaborEntry (one-to-many)
+- **Supplier** → RawMaterialSupplier → RawMaterial (many-to-many)
+- **Supplier** → StockLog (one-to-many, tracks which supplier's stock was used)
 
 ## Frontend Structure
 
@@ -208,13 +217,15 @@ Templates in `templates/` use base template inheritance:
 ## Important Notes
 
 ### Current System State
-1. **Labor Components**: While the UI displays labor options in products, labor components are not actively saved or used in cost calculations
-2. **Premake Nesting**: Premakes support recursive nesting (premakes containing other premakes)
-3. **Migration Safety**: Product to Premake migration preserves sales history for reporting continuity
+1. **Unified Product Model**: Products, premakes, and preproducts all use the same Product model with boolean flags (is_product, is_premake, is_preproduct)
+2. **Multi-Supplier Support**: Raw materials can have multiple suppliers with individual pricing and primary designation
+3. **Labor Components**: While the UI displays labor options in products, labor components are not actively saved or used in cost calculations
+4. **Premake Nesting**: Premakes support recursive nesting (Products with is_premake=True containing other premakes)
+5. **Migration Safety**: Product to Premake migration preserves sales history for reporting continuity
    - Products are NOT deleted to maintain foreign key integrity with WeeklyProductSales
    - Migrated products are renamed with "(Migrated to Premake: [name])" suffix
    - Migrated products are automatically filtered from production and weekly cost selections
-4. **Blueprint Structure**: Routes are organized into 10 separate blueprint modules for better maintainability
+6. **Blueprint Structure**: Routes are organized into separate blueprint modules for better maintainability
 
 ### Known Considerations
 - Circular dependencies in nested premakes are prevented at the UI level (self-reference check)
@@ -222,6 +233,24 @@ Templates in `templates/` use base template inheritance:
 - Hebrew is the default language with RTL support throughout the application
 
 ## Recent Changes (December 2024)
+
+### Multi-Supplier Support and Model Unification
+- **Unified Product Model Architecture**:
+  - Removed separate Premake and PremakeComponent models
+  - Products, premakes, and preproducts now use single Product model with boolean flags
+  - Simplified database schema while maintaining all functionality
+
+- **Multi-Supplier Support for Raw Materials**:
+  - Raw materials can have multiple suppliers with individual pricing
+  - Primary supplier designation with visual indicators (star icon)
+  - Intelligent stock deduction: "Primary first, then others" strategy during production
+  - Supplier-specific stock tracking via StockLog.supplier_id
+  - Dynamic UI for managing supplier relationships
+
+- **Enhanced Stock Management**:
+  - Added InsufficientStockError exception for proper error handling
+  - Supplier-aware stock calculations
+  - Automatic fallback to secondary suppliers when primary stock depleted
 
 ### Route Organization Refactoring
 - **Completed migration of routes to separate blueprint files** for better code organization:
@@ -231,10 +260,17 @@ Templates in `templates/` use base template inheritance:
   - Template URL references updated to use correct blueprint namespaces
 
 ### Removed Features
-- **Migrate Products functionality** (`/admin/migrate_products`) - Completely removed as no longer needed
+- **Legacy Migration Routes** - All temporary migration code removed
+- **CSV Import Scripts** - Archived in csv_archived/ folder
 
 ### UI Improvements
-- **Added search and category filtering** to:
+- **Multi-Supplier Management Interface**:
+  - Dynamic add/remove supplier rows
+  - Radio toggle for primary supplier selection
+  - Individual price per supplier with currency formatting
+  - Visual feedback with border highlighting for primary supplier
+
+- **Search and Category Filtering**:
   - Raw Materials page - Live search by name, filter by category dropdown
   - Premakes page - Live search by name, filter by category dropdown
   - Both include responsive filter cards with Bootstrap styling

@@ -174,48 +174,22 @@ def calculate_prime_cost(product):
 
 def calculate_premake_current_stock(premake_id):
     """
-    Calculates the current stock of a given premake based on StockLogs and ProductionLogs.
-    Works with both old Premake model (using premake_id) and new unified Product model (using product_id).
+    Calculates the current stock of a premake (Product with is_premake=True) based on StockLogs and ProductionLogs.
     """
-    from sqlalchemy import or_
-
-    # Check if this is a unified Product with is_premake=True
-    is_unified_product = False
-    try:
-        product = Product.query.filter_by(id=premake_id, is_premake=True).first()
-        if product:
-            is_unified_product = True
-    except:
-        pass
-
-    # Get last 'set' action
-    last_set_log = None
-    if is_unified_product:
-        # Check both fields for unified model
-        last_set_log = StockLog.query.filter(
-            or_(StockLog.product_id == premake_id, StockLog.premake_id == premake_id),
-            StockLog.action_type == 'set'
-        ).order_by(StockLog.timestamp.desc()).first()
-    else:
-        # Old model - check premake_id only
-        last_set_log = StockLog.query.filter_by(premake_id=premake_id, action_type='set') \
-            .order_by(StockLog.timestamp.desc()).first()
+    # Get last 'set' action for this premake
+    last_set_log = StockLog.query.filter(
+        StockLog.product_id == premake_id,
+        StockLog.action_type == 'set'
+    ).order_by(StockLog.timestamp.desc()).first()
 
     stock = last_set_log.quantity if last_set_log else 0
 
     # Get all 'add' actions after last set
-    if is_unified_product:
-        add_logs = StockLog.query.filter(
-            or_(StockLog.product_id == premake_id, StockLog.premake_id == premake_id),
-            StockLog.action_type == 'add',
-            StockLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min)
-        ).all()
-    else:
-        add_logs = StockLog.query.filter(
-            StockLog.premake_id == premake_id,
-            StockLog.action_type == 'add',
-            StockLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min)
-        ).all()
+    add_logs = StockLog.query.filter(
+        StockLog.product_id == premake_id,
+        StockLog.action_type == 'add',
+        StockLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min)
+    ).all()
 
     for log in add_logs:
         stock += log.quantity
@@ -239,7 +213,7 @@ def calculate_supplier_stock(material_id, supplier_id):
     """
     Calculate current stock for a specific supplier-material combination.
     """
-    from ..models import StockLog, ProductionLog, Product, Premake
+    from ..models import StockLog, ProductionLog, Product
 
     # Get last 'set' action for this supplier
     last_set = StockLog.query.filter_by(
@@ -442,5 +416,59 @@ def deduct_material_with_supplier_tracking(material_id, quantity):
                 'quantity': item['quantity'],
                 'cost': item['total_cost']
             })
+
+    return deductions
+
+def deduct_material_stock(material_id, quantity_needed):
+    """
+    Deduct stock from suppliers using 'primary first, then others' strategy.
+    Returns list of (supplier_id, quantity_deducted) tuples.
+    Raises InsufficientStockError if not enough stock available.
+    """
+    from ..models import db, RawMaterialSupplier, StockLog, InsufficientStockError, RawMaterial
+
+    deductions = []
+    remaining = quantity_needed
+
+    # Get all supplier links sorted by primary first
+    supplier_links = RawMaterialSupplier.query.filter_by(
+        raw_material_id=material_id
+    ).order_by(
+        RawMaterialSupplier.is_primary.desc()
+    ).all()
+
+    for link in supplier_links:
+        if remaining <= 0:
+            break
+
+        # Calculate available stock for this supplier
+        available = calculate_supplier_stock(material_id, link.supplier_id)
+
+        if available > 0:
+            # Deduct what we can from this supplier
+            to_deduct = min(available, remaining)
+
+            # Create stock log for deduction (negative add)
+            stock_log = StockLog(
+                raw_material_id=material_id,
+                supplier_id=link.supplier_id,
+                action_type='add',  # Using negative value for deduction
+                quantity=-to_deduct,
+                notes=f"Production deduction"
+            )
+            db.session.add(stock_log)
+
+            deductions.append((link.supplier_id, to_deduct))
+            remaining -= to_deduct
+
+    if remaining > 0:
+        # Not enough stock available
+        material = RawMaterial.query.get(material_id)
+        material_name = material.name if material else f"ID {material_id}"
+
+        raise InsufficientStockError(
+            f"אין מספיק מלאי עבור {material_name}. "
+            f"נדרש: {quantity_needed:.2f}, זמין: {(quantity_needed - remaining):.2f}"
+        )
 
     return deductions

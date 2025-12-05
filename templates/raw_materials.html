@@ -54,12 +54,16 @@
                 <td><span class="badge bg-light text-dark border">{{ material.category.name }}</span></td>
                 <td>
                     {% if material.primary_supplier %}
-                        <div>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-star-fill text-warning me-1" title="ספק ראשי"></i>
                             <span class="text-primary">{{ material.primary_supplier.name }}</span>
                             {% if material.supplier_count > 1 %}
-                                <span class="badge bg-info text-white ms-1">+{{ material.supplier_count - 1 }}</span>
+                                <span class="badge bg-info text-white ms-2">+{{ material.supplier_count - 1 }}</span>
                             {% endif %}
                         </div>
+                        {% if material.supplier_count > 1 %}
+                        <small class="text-muted">סה"כ {{ material.supplier_count }} ספקים</small>
+                        {% endif %}
                     {% else %}
                         <span class="text-muted">—</span>
                     {% endif %}
