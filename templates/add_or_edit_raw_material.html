@@ -37,14 +37,27 @@
                         </div>
                     </div>
 
+                    <!-- Unit -->
+                    <div class="mb-3">
+                        <label for="unit" class="form-label">יחידת מידה</label>
+                        <select class="form-select" id="unit" name="unit" required>
+                            {% for unit in units %}
+                            <option value="{{ unit }}" {% if (material and material.unit == unit) or (not material and unit == 'kg') %}selected{% endif %}>{{ unit }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
                     <!-- Multiple Suppliers Section -->
                     <div class="mb-4">
                         <h5>ספקים ומחירים</h5>
 
                         <!-- Column headers -->
                         <div class="row g-2 mb-2 fw-bold text-muted small">
-                            <div class="col-md-4">ספק</div>
-                            <div class="col-md-3">מחיר ליחידה</div>
+                            <div class="col-md-3">ספק</div>
+                            <div class="col-md-2">מחיר ליחידה</div>
+                            {% if material %}
+                            <div class="col-md-2">מלאי נוכחי</div>
+                            {% endif %}
                             <div class="col-md-3 text-center">ספק ראשי</div>
                             <div class="col-md-2"></div>
                         </div>
@@ -60,16 +73,6 @@
                                 data-bs-toggle="modal" data-bs-target="#addSupplierModal">
                             <i class="bi bi-building-add"></i> ספק חדש
                         </button>
-                    </div>
-
-                    <!-- Unit -->
-                    <div class="mb-3">
-                        <label for="unit" class="form-label">יחידת מידה</label>
-                        <select class="form-select" id="unit" name="unit" required>
-                            {% for unit in units %}
-                            <option value="{{ unit }}" {% if (material and material.unit == unit) or (not material and unit == 'kg') %}selected{% endif %}>{{ unit }}</option>
-                            {% endfor %}
-                        </select>
                     </div>
 
                     <!-- Stock (Only for new items) -->
@@ -190,7 +193,7 @@
 <script>
     let supplierRowCounter = 0;
 
-    function addSupplierRow(supplierId = '', cost = '', isPrimary = false) {
+    function addSupplierRow(supplierId = '', cost = '', isPrimary = false, currentStock = null, isExisting = false) {
         const template = document.getElementById('supplierRowTemplate');
         const container = document.getElementById('suppliersContainer');
         const clone = template.content.cloneNode(true);
@@ -214,6 +217,26 @@
         }
         if (isPrimary) {
             radio.checked = true;
+        }
+
+        // If this is an existing supplier with stock info, add stock display
+        if (isExisting && currentStock !== null) {
+            const row = clone.querySelector('.supplier-row');
+            const supplierCol = row.querySelector('.col-md-4');
+
+            // Create stock display element
+            const stockCol = document.createElement('div');
+            stockCol.className = 'col-md-2';
+            stockCol.innerHTML = '<span class="badge bg-' + (currentStock > 0 ? 'success' : 'danger') + '">' +
+                                currentStock.toFixed(2) + ' {{ material.unit if material else "" }}</span>';
+
+            // Adjust column widths for existing items with stock display
+            supplierCol.className = 'col-md-3';
+            row.querySelector('.col-md-3').className = 'col-md-2'; // Cost column
+
+            // Insert stock column after cost column
+            const costCol = row.querySelector('.input-group').parentElement;
+            costCol.parentNode.insertBefore(stockCol, costCol.nextSibling);
         }
 
         container.appendChild(clone);
@@ -272,7 +295,9 @@
             addSupplierRow(
                 '{{ link.supplier_id }}',
                 '{{ link.cost_per_unit }}',
-                {{ 'true' if link.is_primary else 'false' }}
+                {{ 'true' if link.is_primary else 'false' }},
+                {{ link.current_stock if link.current_stock is defined else 'null' }},
+                true  // isExisting = true
             );
             {% endfor %}
         {% else %}

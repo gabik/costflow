@@ -1,7 +1,7 @@
 from datetime import datetime
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, jsonify
 from ..models import db, RawMaterial, StockLog, ProductComponent, StockAudit, Category, Product, ProductionLog, Supplier, RawMaterialSupplier
-from .utils import log_audit, get_or_create_general_category, units_list
+from .utils import log_audit, get_or_create_general_category, units_list, calculate_supplier_stock, calculate_total_material_stock
 
 raw_materials_blueprint = Blueprint('raw_materials', __name__)
 
@@ -13,35 +13,8 @@ def raw_materials():
     materials = RawMaterial.query.all()
 
     for material in materials:
-        # Start with the last "Set Stock" log
-        last_set_log = StockLog.query.filter_by(raw_material_id=material.id, action_type='set') \
-            .order_by(StockLog.timestamp.desc()).first()
-        stock = last_set_log.quantity if last_set_log else 0
-
-        # Add "Add Stock" logs after the last "Set Stock"
-        add_logs = StockLog.query.filter(
-            StockLog.raw_material_id == material.id,
-            StockLog.action_type == 'add',
-            StockLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min)
-        ).all()
-        for log in add_logs:
-            stock += log.quantity
-
-        # Subtract raw materials used in produced products
-        production_logs = ProductionLog.query.filter(
-            ProductionLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min)
-        ).all()
-
-        for production in production_logs:
-            if production.product_id:
-                product = Product.query.get(production.product_id)
-                if product:
-                    for component in product.components:
-                        if component.component_type == 'raw_material' and component.component_id == material.id:
-                            stock -= component.quantity * production.quantity_produced
-
-        # Attach calculated stock to material object
-        material.current_stock = stock
+        # Use the function that sums all supplier stocks
+        material.current_stock = calculate_total_material_stock(material.id)
 
         # Get supplier information for this material
         supplier_links = RawMaterialSupplier.query.filter_by(raw_material_id=material.id).all()
@@ -238,10 +211,14 @@ def edit_raw_material(material_id):
     categories = Category.query.filter_by(type='raw_material').all()
     suppliers = Supplier.query.filter_by(is_active=True).all()
 
-    # Load supplier links for the material
+    # Load supplier links for the material with stock info
     material.supplier_links = RawMaterialSupplier.query.filter_by(
         raw_material_id=material.id
     ).all()
+
+    # Add current stock for each supplier
+    for link in material.supplier_links:
+        link.current_stock = calculate_supplier_stock(material.id, link.supplier_id)
 
     # Also set primary_supplier for backward compatibility
     primary_link = next((link for link in material.supplier_links if link.is_primary), None)
@@ -276,48 +253,47 @@ def update_stock():
     raw_material_id = request.form['raw_material_id']
     quantity = float(request.form['quantity'])
     action_type = request.form['action_type']  # 'add' or 'set'
+    supplier_id = request.form.get('supplier_id')  # Get supplier_id
     auditor_name = request.form.get('auditor_name', '')  # Get auditor name if provided
 
     if action_type not in ['add', 'set']:
         return "Invalid action type", 400
 
+    # Validate supplier belongs to this material
+    if supplier_id:
+        supplier_link = RawMaterialSupplier.query.filter_by(
+            raw_material_id=raw_material_id,
+            supplier_id=supplier_id
+        ).first()
+        if not supplier_link:
+            return "Invalid supplier for this material", 400
+    else:
+        # If no supplier specified, use primary
+        supplier_link = RawMaterialSupplier.query.filter_by(
+            raw_material_id=raw_material_id,
+            is_primary=True
+        ).first()
+        if supplier_link:
+            supplier_id = supplier_link.supplier_id
+
     material = RawMaterial.query.get(raw_material_id)
 
     # If action_type is 'set', calculate current stock and create audit record
     if action_type == 'set':
-        # Calculate current system stock before the update
-        last_set_log = StockLog.query.filter_by(raw_material_id=raw_material_id, action_type='set') \
-            .order_by(StockLog.timestamp.desc()).first()
-        system_stock = last_set_log.quantity if last_set_log else 0
-
-        # Add "Add Stock" logs after the last "Set Stock"
-        add_logs = StockLog.query.filter(
-            StockLog.raw_material_id == raw_material_id,
-            StockLog.action_type == 'add',
-            StockLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min)
-        ).all()
-        for log in add_logs:
-            system_stock += log.quantity
-
-        # Subtract raw materials used in produced products
-        production_logs = ProductionLog.query.filter(
-            ProductionLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min)
-        ).all()
-
-        for production in production_logs:
-            if production.product_id:
-                product = Product.query.get(production.product_id)
-                if product:
-                    for component in product.components:
-                        if component.component_type == 'raw_material' and component.component_id == int(raw_material_id):
-                            system_stock -= component.quantity * production.quantity_produced
+        # Calculate current stock FOR THIS SUPPLIER
+        system_stock = calculate_supplier_stock(raw_material_id, supplier_id) if supplier_id else 0
 
         # Calculate variance and create audit record
         variance = quantity - system_stock
         variance_cost = variance * material.cost_per_unit
 
-        # Create the stock log entry first
-        stock_log = StockLog(raw_material_id=raw_material_id, action_type=action_type, quantity=quantity)
+        # Create the stock log entry with supplier_id
+        stock_log = StockLog(
+            raw_material_id=raw_material_id,
+            supplier_id=supplier_id,  # Add supplier_id
+            action_type=action_type,
+            quantity=quantity
+        )
         db.session.add(stock_log)
         db.session.flush()  # Flush to get the stock_log.id
 
@@ -334,15 +310,40 @@ def update_stock():
         db.session.add(stock_audit)
 
         log_audit("STOCK_AUDIT", "RawMaterial", raw_material_id,
-                 f"Physical count: {quantity}, System: {system_stock:.2f}, Variance: {variance:.2f} (Cost: {variance_cost:.2f})")
+                 f"Supplier: {supplier_id}, Physical count: {quantity}, System: {system_stock:.2f}, Variance: {variance:.2f} (Cost: {variance_cost:.2f})")
     else:
-        # For 'add' action, just create the stock log
-        stock_log = StockLog(raw_material_id=raw_material_id, action_type=action_type, quantity=quantity)
+        # For 'add' action, just create the stock log with supplier_id
+        stock_log = StockLog(
+            raw_material_id=raw_material_id,
+            supplier_id=supplier_id,  # Add supplier_id
+            action_type=action_type,
+            quantity=quantity
+        )
         db.session.add(stock_log)
-        log_audit("UPDATE_STOCK", "RawMaterial", raw_material_id, f"{action_type} {quantity}")
+        log_audit("UPDATE_STOCK", "RawMaterial", raw_material_id, f"Supplier: {supplier_id}, {action_type} {quantity}")
 
     db.session.commit()
     return redirect(url_for('raw_materials.raw_materials'))
+
+@raw_materials_blueprint.route('/api/material/<int:material_id>/suppliers')
+def get_material_suppliers(material_id):
+    """API endpoint to get suppliers for a specific material."""
+    supplier_links = RawMaterialSupplier.query.filter_by(
+        raw_material_id=material_id
+    ).all()
+
+    suppliers_data = []
+    for link in supplier_links:
+        stock = calculate_supplier_stock(material_id, link.supplier_id)
+        suppliers_data.append({
+            'supplier_id': link.supplier_id,
+            'supplier_name': link.supplier.name,
+            'cost_per_unit': link.cost_per_unit,
+            'is_primary': link.is_primary,
+            'current_stock': stock
+        })
+
+    return jsonify({'suppliers': suppliers_data})
 
 def calculate_raw_material_current_stock(material_id):
     """

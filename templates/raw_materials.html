@@ -109,6 +109,16 @@
                 </div>
                 <div class="modal-body">
                     <p>הוספת כמות ל: <strong id="addStockMaterialName"></strong></p>
+
+                    <!-- Supplier Selection -->
+                    <div class="mb-3">
+                        <label for="add_stock_supplier" class="form-label">ספק</label>
+                        <select id="add_stock_supplier" name="supplier_id" class="form-select" required>
+                            <!-- Options populated by JS based on material's suppliers -->
+                        </select>
+                        <div class="form-text">בחר ספק להוספת המלאי</div>
+                    </div>
+
                     <div class="mb-3">
                         <label for="add_stock_quantity" class="form-label">כמות להוספה</label>
                         <input type="number" id="add_stock_quantity" name="quantity" class="form-control" step="0.01" required>
@@ -136,6 +146,16 @@
                 </div>
                 <div class="modal-body">
                     <p>עדכון מלאי נוכחי עבור: <strong id="setStockMaterialName"></strong></p>
+
+                    <!-- Supplier Selection -->
+                    <div class="mb-3">
+                        <label for="set_stock_supplier" class="form-label">ספק</label>
+                        <select id="set_stock_supplier" name="supplier_id" class="form-select" required>
+                            <!-- Options populated by JS based on material's suppliers -->
+                        </select>
+                        <div class="form-text">בחר ספק לעדכון המלאי</div>
+                    </div>
+
                     <div class="mb-3">
                         <label for="set_stock_quantity" class="form-label">כמות נוכחית בפועל</label>
                         <input type="number" id="set_stock_quantity" name="quantity" class="form-control" step="0.01" required>
@@ -187,12 +207,45 @@
             var button = event.relatedTarget;
             var materialId = button.getAttribute('data-id');
             var materialName = button.getAttribute('data-name');
-            
+
             var modalIdInput = addStockModal.querySelector('#add_stock_raw_material_id');
             var modalNameDisplay = addStockModal.querySelector('#addStockMaterialName');
-            
+
             modalIdInput.value = materialId;
             modalNameDisplay.textContent = materialName;
+
+            // Fetch suppliers for this material via AJAX
+            fetch('/api/material/' + materialId + '/suppliers')
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById('add_stock_supplier');
+                    select.innerHTML = '';
+
+                    if (data.suppliers && data.suppliers.length > 0) {
+                        data.suppliers.forEach(supplier => {
+                            const option = document.createElement('option');
+                            option.value = supplier.supplier_id;
+                            option.text = supplier.supplier_name +
+                                         (supplier.is_primary ? ' ⭐ (ראשי)' : '') +
+                                         ' - מלאי: ' + supplier.current_stock.toFixed(2);
+                            if (supplier.is_primary) option.selected = true;
+                            select.appendChild(option);
+                        });
+                    } else {
+                        // If no suppliers, add a placeholder option
+                        const option = document.createElement('option');
+                        option.value = '';
+                        option.text = 'לא הוגדרו ספקים לחומר גלם זה';
+                        option.disabled = true;
+                        option.selected = true;
+                        select.appendChild(option);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching suppliers:', error);
+                    const select = document.getElementById('add_stock_supplier');
+                    select.innerHTML = '<option value="">שגיאה בטעינת ספקים</option>';
+                });
         });
 
         // Populate Set Stock Modal
@@ -201,12 +254,45 @@
             var button = event.relatedTarget;
             var materialId = button.getAttribute('data-id');
             var materialName = button.getAttribute('data-name');
-            
+
             var modalIdInput = setStockModal.querySelector('#set_stock_raw_material_id');
             var modalNameDisplay = setStockModal.querySelector('#setStockMaterialName');
-            
+
             modalIdInput.value = materialId;
             modalNameDisplay.textContent = materialName;
+
+            // Fetch suppliers for this material via AJAX
+            fetch('/api/material/' + materialId + '/suppliers')
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById('set_stock_supplier');
+                    select.innerHTML = '';
+
+                    if (data.suppliers && data.suppliers.length > 0) {
+                        data.suppliers.forEach(supplier => {
+                            const option = document.createElement('option');
+                            option.value = supplier.supplier_id;
+                            option.text = supplier.supplier_name +
+                                         (supplier.is_primary ? ' ⭐ (ראשי)' : '') +
+                                         ' - מלאי נוכחי: ' + supplier.current_stock.toFixed(2);
+                            if (supplier.is_primary) option.selected = true;
+                            select.appendChild(option);
+                        });
+                    } else {
+                        // If no suppliers, add a placeholder option
+                        const option = document.createElement('option');
+                        option.value = '';
+                        option.text = 'לא הוגדרו ספקים לחומר גלם זה';
+                        option.disabled = true;
+                        option.selected = true;
+                        select.appendChild(option);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching suppliers:', error);
+                    const select = document.getElementById('set_stock_supplier');
+                    select.innerHTML = '<option value="">שגיאה בטעינת ספקים</option>';
+                });
         });
 
         // Populate Delete Modal
