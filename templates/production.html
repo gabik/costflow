@@ -179,13 +179,15 @@ $(document).ready(function() {
 
 function fetchRecipeData(productId) {
     console.log('Fetching recipe for product:', productId);
-    fetch(`/api/product_recipe/${productId}`)
+    const quantity = parseFloat(document.getElementById('quantity_produced').value) || 1;
+    fetch(`/api/product_recipe/${productId}?quantity=${quantity}`)
         .then(response => {
             if (!response.ok) throw new Error('Network response was not ok');
             return response.json();
         })
         .then(data => {
             currentRecipe = data;
+            currentRecipe.fetched_quantity = quantity; // Track what quantity this data is for
             updateProductionDetails();
             document.getElementById('production_summary').style.display = 'block';
         })
@@ -194,51 +196,100 @@ function fetchRecipeData(productId) {
 
 function updateProductionDetails() {
     if (!currentRecipe) return;
-    
+
     const qtyInput = document.getElementById('quantity_produced');
     const batches = parseFloat(qtyInput.value) || 0;
-    
+
     // Update Total Units
     const totalUnits = batches * currentRecipe.products_per_recipe;
     document.getElementById('total_units_display').innerText = totalUnits.toFixed(0);
-    
+
+    // If quantity changed, fetch updated breakdown
+    if (batches > 0 && (!currentRecipe.fetched_quantity || currentRecipe.fetched_quantity !== batches)) {
+        const productId = document.getElementById('product_id').value;
+        if (productId) {
+            fetchRecipeData(productId);
+            return;
+        }
+    }
+
     // Update Table
     const tbody = document.getElementById('components_usage_body');
     tbody.innerHTML = '';
-    
+
     let totalRecipeCost = 0;
 
     currentRecipe.components.forEach(comp => {
-        const usage = comp.qty_per_batch * batches;
-        const stockAfter = comp.current_stock - usage;
-        const cost = usage * comp.cost_per_unit;
-        totalRecipeCost += cost;
+        if (comp.type === 'Raw Material' && comp.consumption_breakdown) {
+            // Use new consumption breakdown for raw materials
+            const consumptionRows = comp.consumption_breakdown.filter(c => c.amount_to_consume > 0 || c.is_primary);
 
-        // Show supplier breakdown if available
-        let supplierInfo = '';
-        if (comp.suppliers && comp.suppliers.length > 0) {
-            supplierInfo = '<small class="text-muted d-block">';
-            comp.suppliers.forEach(sup => {
-                if (sup.is_primary) {
-                    supplierInfo += `${sup.name} (ראשי): ${sup.stock.toFixed(2)}<br>`;
-                } else {
-                    supplierInfo += `${sup.name}: ${sup.stock.toFixed(2)}<br>`;
-                }
-            });
-            supplierInfo += '</small>';
+            if (consumptionRows.length === 1 && !consumptionRows[0].is_deficit) {
+                // Single supplier case - show material name without supplier
+                const consumption = consumptionRows[0];
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${comp.name}</td>
+                    <td>חומר גלם</td>
+                    <td>${consumption.stock_available.toFixed(2)} ${comp.unit}</td>
+                    <td class="fw-bold">${consumption.amount_to_consume.toFixed(2)} ${comp.unit}</td>
+                    <td class="${consumption.remaining_after < 0 ? 'text-danger fw-bold' : ''}">${consumption.remaining_after.toFixed(2)} ${comp.unit}</td>
+                    <td>${consumption.cost_per_unit.toFixed(2)} ₪</td>
+                    <td>${consumption.total_cost.toFixed(2)} ₪</td>
+                `;
+                tbody.appendChild(tr);
+                totalRecipeCost += consumption.total_cost;
+            } else {
+                // Multiple suppliers or deficit case - show separate rows
+                consumptionRows.forEach((consumption, index) => {
+                    const tr = document.createElement('tr');
+                    let nameDisplay = '';
+
+                    if (index === 0) {
+                        // First row shows material name with supplier
+                        nameDisplay = `${comp.name} <small class="text-muted">(${consumption.supplier_name})</small>`;
+                    } else {
+                        // Additional rows show indented supplier name
+                        nameDisplay = `<span class="ms-3">└─ ${consumption.supplier_name}</span>`;
+                    }
+
+                    // Add warning badge for deficit
+                    if (consumption.is_deficit) {
+                        nameDisplay += ' <span class="badge bg-danger ms-1">חוסר</span>';
+                    }
+
+                    tr.innerHTML = `
+                        <td>${nameDisplay}</td>
+                        <td>${index === 0 ? 'חומר גלם' : ''}</td>
+                        <td>${consumption.stock_available.toFixed(2)} ${comp.unit}</td>
+                        <td class="fw-bold">${consumption.amount_to_consume.toFixed(2)} ${comp.unit}</td>
+                        <td class="${consumption.remaining_after < 0 ? 'text-danger fw-bold' : ''}">${consumption.remaining_after.toFixed(2)} ${comp.unit}</td>
+                        <td>${consumption.cost_per_unit.toFixed(2)} ₪</td>
+                        <td>${consumption.total_cost.toFixed(2)} ₪</td>
+                    `;
+                    tbody.appendChild(tr);
+                    totalRecipeCost += consumption.total_cost;
+                });
+            }
+        } else {
+            // Fallback for premakes or old data structure
+            const usage = comp.qty_per_batch * batches;
+            const stockAfter = comp.current_stock - usage;
+            const cost = usage * comp.cost_per_unit;
+            totalRecipeCost += cost;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${comp.name}</td>
+                <td>${comp.type === 'Raw Material' ? 'חומר גלם' : 'הכנה'}</td>
+                <td>${comp.current_stock.toFixed(2)} ${comp.unit}</td>
+                <td class="fw-bold">${usage.toFixed(2)} ${comp.unit}</td>
+                <td class="${stockAfter < 0 ? 'text-danger fw-bold' : ''}">${stockAfter.toFixed(2)} ${comp.unit}</td>
+                <td>${comp.cost_per_unit.toFixed(2)} ₪</td>
+                <td>${cost.toFixed(2)} ₪</td>
+            `;
+            tbody.appendChild(tr);
         }
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${comp.name}${supplierInfo}</td>
-            <td>${comp.type === 'Raw Material' ? 'חומר גלם' : 'הכנה'}</td>
-            <td>${comp.current_stock.toFixed(2)} ${comp.unit}</td>
-            <td class="fw-bold">${usage.toFixed(2)} ${comp.unit}</td>
-            <td class="${stockAfter < 0 ? 'text-danger fw-bold' : ''}">${stockAfter.toFixed(2)} ${comp.unit}</td>
-            <td>${comp.cost_per_unit.toFixed(2)} ₪</td>
-            <td>${cost.toFixed(2)} ₪</td>
-        `;
-        tbody.appendChild(tr);
     });
 
     // Add total cost row

@@ -320,15 +320,67 @@ def stock_audits():
 def get_product_recipe(product_id):
     product = Product.query.get_or_404(product_id)
 
+    # Get quantity being produced (if provided)
+    quantity_produced = request.args.get('quantity', 1, type=float)
+
     components_data = []
     for comp in product.components:
         if comp.component_type == 'raw_material':
             material = comp.material
             if material:
+                # Calculate total needed for this production
+                needed_quantity = comp.quantity * quantity_produced
+
                 # Use total stock across all suppliers
                 stock = calculate_total_material_stock(material.id)
 
-                # Add supplier breakdown
+                # Calculate consumption breakdown per supplier
+                consumption_breakdown = []
+                remaining_to_consume = needed_quantity
+
+                # Get supplier links sorted by primary first
+                from ..models import RawMaterialSupplier
+                supplier_links = sorted(material.supplier_links,
+                                       key=lambda x: (not x.is_primary, x.supplier.name))
+
+                for link in supplier_links:
+                    supplier_stock = calculate_supplier_stock(material.id, link.supplier_id)
+
+                    # Calculate how much to consume from this supplier
+                    if link.is_primary or remaining_to_consume > 0:
+                        if link.is_primary and remaining_to_consume > 0:
+                            # Primary takes what it can, or goes negative if needed
+                            amount_to_consume = min(supplier_stock, remaining_to_consume) if supplier_stock > 0 else remaining_to_consume
+                            remaining_after = supplier_stock - amount_to_consume
+                        elif remaining_to_consume > 0 and supplier_stock > 0:
+                            # Secondary suppliers only if primary insufficient
+                            amount_to_consume = min(supplier_stock, remaining_to_consume)
+                            remaining_after = supplier_stock - amount_to_consume
+                        else:
+                            amount_to_consume = 0
+                            remaining_after = supplier_stock
+
+                        # Only include if this supplier is being used or is primary
+                        if amount_to_consume > 0 or link.is_primary:
+                            consumption_breakdown.append({
+                                'supplier_id': link.supplier_id,
+                                'supplier_name': link.supplier.name,
+                                'is_primary': link.is_primary,
+                                'stock_available': supplier_stock,
+                                'amount_to_consume': amount_to_consume,
+                                'remaining_after': remaining_after,
+                                'cost_per_unit': link.cost_per_unit,
+                                'total_cost': amount_to_consume * link.cost_per_unit,
+                                'is_deficit': remaining_after < 0
+                            })
+
+                            if amount_to_consume > 0:
+                                remaining_to_consume -= amount_to_consume
+
+                # Determine if we should show multiple rows
+                show_multiple_rows = len([c for c in consumption_breakdown if c['amount_to_consume'] > 0]) > 1
+
+                # Add old supplier info for backward compatibility
                 supplier_info = []
                 for link in material.supplier_links:
                     supplier_stock = calculate_supplier_stock(material.id, link.supplier_id)
@@ -342,11 +394,14 @@ def get_product_recipe(product_id):
                 components_data.append({
                     'type': 'Raw Material',
                     'name': material.name,
+                    'material_id': material.id,
                     'qty_per_batch': comp.quantity,
                     'unit': material.unit,
                     'current_stock': stock,
                     'cost_per_unit': material.cost_per_unit,
-                    'suppliers': supplier_info  # Include supplier breakdown
+                    'suppliers': supplier_info,  # Keep for backward compatibility
+                    'consumption_breakdown': consumption_breakdown,
+                    'show_multiple_rows': show_multiple_rows
                 })
 
         elif comp.component_type == 'premake':
