@@ -453,8 +453,7 @@ def deduct_material_stock(material_id, quantity_needed):
                 raw_material_id=material_id,
                 supplier_id=link.supplier_id,
                 action_type='add',  # Using negative value for deduction
-                quantity=-to_deduct,
-                notes=f"Production deduction"
+                quantity=-to_deduct
             )
             db.session.add(stock_log)
 

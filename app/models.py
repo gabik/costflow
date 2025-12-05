@@ -16,7 +16,6 @@ class StockLog(db.Model):
     action_type = db.Column(db.String(10), nullable=False)  # 'add' or 'set'
     quantity = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    notes = db.Column(db.Text, nullable=True)
 
     raw_material = db.relationship('RawMaterial', backref='stock_logs')
     product = db.relationship('Product', backref='stock_logs', foreign_keys=[product_id])
