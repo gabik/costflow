@@ -148,11 +148,12 @@ class Product(db.Model):
 
     # Migration fields
     is_migrated = db.Column(db.Boolean, default=False, nullable=False)
-    migrated_to_premake_id = db.Column(db.Integer, db.ForeignKey('premake.id'), nullable=True)
+    migrated_to_premake_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=True)
     original_prime_cost = db.Column(db.Float, nullable=True)
 
     category = db.relationship('Category', backref='products')
-    migrated_to_premake = db.relationship('Premake', backref='migrated_from_products', foreign_keys=[migrated_to_premake_id])
+    # Self-referential relationship for products migrated to premakes
+    migrated_to_premake = db.relationship('Product', remote_side=[id], foreign_keys=[migrated_to_premake_id])
 
     def to_dict(self):
         return {
