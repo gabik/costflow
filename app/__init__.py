@@ -5,7 +5,6 @@ from .models import db
 
 def get_locale():
     selected_locale = request.args.get('lang', session.get('lang', 'he'))
-    print(f"Selected locale: {selected_locale}")  # Debug locale selection
     return selected_locale
 
 def create_app():
@@ -21,7 +20,6 @@ def create_app():
 
     # Load configurations
     DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///waste_tracking.db")
-    print(f"Connecting to database: {DATABASE_URL}")  # Log the database URL
     app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -43,10 +41,9 @@ def create_app():
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         try:
             os.makedirs(app.config['UPLOAD_FOLDER'])
-            print(f"Created images directory: {app.config['UPLOAD_FOLDER']}")
-        except OSError as e:
+        except OSError:
             # Directory might already exist or we don't have permissions
-            print(f"Could not create images directory: {e}")
+            pass
 
     Babel(app, locale_selector=get_locale)
 

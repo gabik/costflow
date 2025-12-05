@@ -73,8 +73,9 @@ def log_audit(action, target_type, target_id=None, details=None):
             details=details
         )
         db.session.add(log)
-    except Exception as e:
-        print(f"Failed to log audit: {e}")
+    except Exception:
+        # Silently fail audit logging to not interrupt main operations
+        pass
 
 def calculate_premake_cost_per_unit(premake, visited=None):
     """
@@ -247,14 +248,10 @@ def calculate_supplier_stock(material_id, supplier_id):
     for log in add_logs:
         stock += log.quantity
 
-    # Subtract material usage from production (only for this supplier)
-    # TODO: Currently we don't track which supplier's stock was used in production
-    # For now, we'll skip deducting production from supplier-specific stock
-    # This will be enhanced when production is updated to track supplier usage
-
-    # Note: Production deduction is currently disabled for supplier-specific stock
-    # to avoid circular dependency issues. The system tracks overall material stock
-    # but not per-supplier consumption yet.
+    # Note: Supplier-specific stock consumption is now tracked in production logs
+    # via the deduct_material_stock function which records which suppliers were used.
+    # However, for this specific stock calculation function, we don't deduct
+    # historical production to avoid circular dependencies.
 
     return max(0, stock)  # Ensure non-negative
 
