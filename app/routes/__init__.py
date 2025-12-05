@@ -10,3 +10,4 @@ from .inventory import inventory_blueprint
 from .products import products_blueprint
 from .raw_materials import raw_materials_blueprint
 from .premakes import premakes_blueprint
+from .suppliers import suppliers_blueprint

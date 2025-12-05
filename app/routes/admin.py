@@ -314,6 +314,166 @@ def migrate_add_unit_field():
             'message': 'Migration failed. Please check server logs.'
         }), 500
 
+@admin_blueprint.route('/admin/migrate/add-supplier-system', methods=['GET', 'POST'])
+def migrate_supplier_system():
+    """Add supplier system tables and migrate existing data"""
+    if request.method == 'GET':
+        return render_template('admin_migration.html',
+                             migration_type='add-supplier-system',
+                             title='Add Supplier System',
+                             description='Creates supplier tables and migrates existing data to use suppliers.')
+
+    try:
+        from ..models import db, Supplier, RawMaterialSupplier, RawMaterial
+        from sqlalchemy import text
+        from .utils import log_audit
+
+        messages = []
+
+        # 1. Create supplier table
+        with db.engine.begin() as conn:
+            # Check if table exists
+            result = conn.execute(text("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables
+                    WHERE table_name = 'supplier'
+                )
+            """))
+            table_exists = result.scalar()
+
+            if not table_exists:
+                conn.execute(text("""
+                    CREATE TABLE supplier (
+                        id SERIAL PRIMARY KEY,
+                        name VARCHAR(100) NOT NULL UNIQUE,
+                        contact_person VARCHAR(100),
+                        phone VARCHAR(50),
+                        email VARCHAR(100),
+                        address TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        is_active BOOLEAN DEFAULT TRUE NOT NULL
+                    )
+                """))
+                messages.append("✓ Created supplier table")
+            else:
+                messages.append("Supplier table already exists")
+
+        # 2. Create raw_material_supplier junction table
+        with db.engine.begin() as conn:
+            result = conn.execute(text("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables
+                    WHERE table_name = 'raw_material_supplier'
+                )
+            """))
+            table_exists = result.scalar()
+
+            if not table_exists:
+                conn.execute(text("""
+                    CREATE TABLE raw_material_supplier (
+                        id SERIAL PRIMARY KEY,
+                        raw_material_id INTEGER NOT NULL REFERENCES raw_material(id),
+                        supplier_id INTEGER NOT NULL REFERENCES supplier(id),
+                        cost_per_unit FLOAT NOT NULL,
+                        is_primary BOOLEAN DEFAULT FALSE,
+                        UNIQUE(raw_material_id, supplier_id)
+                    )
+                """))
+                messages.append("✓ Created raw_material_supplier table")
+            else:
+                messages.append("Raw_material_supplier table already exists")
+
+        # 3. Add supplier_id to stock_log table
+        with db.engine.begin() as conn:
+            # Check if column exists
+            result = conn.execute(text("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.columns
+                    WHERE table_name = 'stock_log' AND column_name = 'supplier_id'
+                )
+            """))
+            column_exists = result.scalar()
+
+            if not column_exists:
+                conn.execute(text("""
+                    ALTER TABLE stock_log
+                    ADD COLUMN supplier_id INTEGER REFERENCES supplier(id)
+                """))
+                messages.append("✓ Added supplier_id column to stock_log table")
+            else:
+                messages.append("supplier_id column already exists in stock_log")
+
+        # 4. Create default supplier for existing data
+        default_supplier = Supplier.query.filter_by(name='ספק כללי').first()
+        if not default_supplier:
+            default_supplier = Supplier(
+                name='ספק כללי',
+                contact_person='לא מוגדר',
+                phone='',
+                email='',
+                address='',
+                is_active=True
+            )
+            db.session.add(default_supplier)
+            db.session.commit()
+            messages.append(f"✓ Created default supplier 'ספק כללי' with ID {default_supplier.id}")
+        else:
+            messages.append(f"Default supplier already exists with ID {default_supplier.id}")
+
+        # 5. Link all existing materials to default supplier
+        materials = RawMaterial.query.all()
+        linked_count = 0
+        for material in materials:
+            # Check if link already exists
+            existing_link = RawMaterialSupplier.query.filter_by(
+                raw_material_id=material.id,
+                supplier_id=default_supplier.id
+            ).first()
+
+            if not existing_link:
+                link = RawMaterialSupplier(
+                    raw_material_id=material.id,
+                    supplier_id=default_supplier.id,
+                    cost_per_unit=material.cost_per_unit,
+                    is_primary=True
+                )
+                db.session.add(link)
+                linked_count += 1
+
+        db.session.commit()
+        if linked_count > 0:
+            messages.append(f"✓ Linked {linked_count} materials to default supplier")
+        else:
+            messages.append("All materials already linked to suppliers")
+
+        # 6. Update existing stock logs with default supplier
+        with db.engine.begin() as conn:
+            result = conn.execute(text("""
+                UPDATE stock_log
+                SET supplier_id = :supplier_id
+                WHERE raw_material_id IS NOT NULL AND supplier_id IS NULL
+            """), {"supplier_id": default_supplier.id})
+
+            if result.rowcount > 0:
+                conn.commit()
+                messages.append(f"✓ Updated {result.rowcount} stock logs with default supplier")
+            else:
+                messages.append("No stock logs needed updating")
+
+        log_audit("MIGRATE", "System", details=f"Ran add-supplier-system migration: {', '.join(messages)}")
+
+        return jsonify({
+            'status': 'success',
+            'messages': messages
+        }), 200
+
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'message': 'Migration failed. Please check server logs.'
+        }), 500
+
 @admin_blueprint.route('/admin/migrate/fix-premake-units', methods=['GET', 'POST'])
 def migrate_fix_premake_units():
     """Migration endpoint to fix NULL units for premakes."""
@@ -362,6 +522,166 @@ def migrate_fix_premake_units():
             messages.append("'is_preproduct' column already exists")
 
         log_audit("MIGRATE", "System", details=f"Ran fix-premake-units migration: {', '.join(messages)}")
+
+        return jsonify({
+            'status': 'success',
+            'messages': messages
+        }), 200
+
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'message': 'Migration failed. Please check server logs.'
+        }), 500
+
+@admin_blueprint.route('/admin/migrate/add-supplier-system', methods=['GET', 'POST'])
+def migrate_supplier_system():
+    """Add supplier system tables and migrate existing data"""
+    if request.method == 'GET':
+        return render_template('admin_migration.html',
+                             migration_type='add-supplier-system',
+                             title='Add Supplier System',
+                             description='Creates supplier tables and migrates existing data to use suppliers.')
+
+    try:
+        from ..models import db, Supplier, RawMaterialSupplier, RawMaterial
+        from sqlalchemy import text
+        from .utils import log_audit
+
+        messages = []
+
+        # 1. Create supplier table
+        with db.engine.begin() as conn:
+            # Check if table exists
+            result = conn.execute(text("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables
+                    WHERE table_name = 'supplier'
+                )
+            """))
+            table_exists = result.scalar()
+
+            if not table_exists:
+                conn.execute(text("""
+                    CREATE TABLE supplier (
+                        id SERIAL PRIMARY KEY,
+                        name VARCHAR(100) NOT NULL UNIQUE,
+                        contact_person VARCHAR(100),
+                        phone VARCHAR(50),
+                        email VARCHAR(100),
+                        address TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        is_active BOOLEAN DEFAULT TRUE NOT NULL
+                    )
+                """))
+                messages.append("✓ Created supplier table")
+            else:
+                messages.append("Supplier table already exists")
+
+        # 2. Create raw_material_supplier junction table
+        with db.engine.begin() as conn:
+            result = conn.execute(text("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables
+                    WHERE table_name = 'raw_material_supplier'
+                )
+            """))
+            table_exists = result.scalar()
+
+            if not table_exists:
+                conn.execute(text("""
+                    CREATE TABLE raw_material_supplier (
+                        id SERIAL PRIMARY KEY,
+                        raw_material_id INTEGER NOT NULL REFERENCES raw_material(id),
+                        supplier_id INTEGER NOT NULL REFERENCES supplier(id),
+                        cost_per_unit FLOAT NOT NULL,
+                        is_primary BOOLEAN DEFAULT FALSE,
+                        UNIQUE(raw_material_id, supplier_id)
+                    )
+                """))
+                messages.append("✓ Created raw_material_supplier table")
+            else:
+                messages.append("Raw_material_supplier table already exists")
+
+        # 3. Add supplier_id to stock_log table
+        with db.engine.begin() as conn:
+            # Check if column exists
+            result = conn.execute(text("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.columns
+                    WHERE table_name = 'stock_log' AND column_name = 'supplier_id'
+                )
+            """))
+            column_exists = result.scalar()
+
+            if not column_exists:
+                conn.execute(text("""
+                    ALTER TABLE stock_log
+                    ADD COLUMN supplier_id INTEGER REFERENCES supplier(id)
+                """))
+                messages.append("✓ Added supplier_id column to stock_log table")
+            else:
+                messages.append("supplier_id column already exists in stock_log")
+
+        # 4. Create default supplier for existing data
+        default_supplier = Supplier.query.filter_by(name='ספק כללי').first()
+        if not default_supplier:
+            default_supplier = Supplier(
+                name='ספק כללי',
+                contact_person='לא מוגדר',
+                phone='',
+                email='',
+                address='',
+                is_active=True
+            )
+            db.session.add(default_supplier)
+            db.session.commit()
+            messages.append(f"✓ Created default supplier 'ספק כללי' with ID {default_supplier.id}")
+        else:
+            messages.append(f"Default supplier already exists with ID {default_supplier.id}")
+
+        # 5. Link all existing materials to default supplier
+        materials = RawMaterial.query.all()
+        linked_count = 0
+        for material in materials:
+            # Check if link already exists
+            existing_link = RawMaterialSupplier.query.filter_by(
+                raw_material_id=material.id,
+                supplier_id=default_supplier.id
+            ).first()
+
+            if not existing_link:
+                link = RawMaterialSupplier(
+                    raw_material_id=material.id,
+                    supplier_id=default_supplier.id,
+                    cost_per_unit=material.cost_per_unit,
+                    is_primary=True
+                )
+                db.session.add(link)
+                linked_count += 1
+
+        db.session.commit()
+        if linked_count > 0:
+            messages.append(f"✓ Linked {linked_count} materials to default supplier")
+        else:
+            messages.append("All materials already linked to suppliers")
+
+        # 6. Update existing stock logs with default supplier
+        with db.engine.begin() as conn:
+            result = conn.execute(text("""
+                UPDATE stock_log
+                SET supplier_id = :supplier_id
+                WHERE raw_material_id IS NOT NULL AND supplier_id IS NULL
+            """), {"supplier_id": default_supplier.id})
+
+            if result.rowcount > 0:
+                conn.commit()
+                messages.append(f"✓ Updated {result.rowcount} stock logs with default supplier")
+            else:
+                messages.append("No stock logs needed updating")
+
+        log_audit("MIGRATE", "System", details=f"Ran add-supplier-system migration: {', '.join(messages)}")
 
         return jsonify({
             'status': 'success',
@@ -460,6 +780,166 @@ def migrate_unified_cleanup():
         messages.append("✓ Ensured preproduct category exists")
 
         log_audit("MIGRATE", "System", details=f"Ran unified-cleanup migration: {', '.join(messages)}")
+
+        return jsonify({
+            'status': 'success',
+            'messages': messages
+        }), 200
+
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'message': 'Migration failed. Please check server logs.'
+        }), 500
+
+@admin_blueprint.route('/admin/migrate/add-supplier-system', methods=['GET', 'POST'])
+def migrate_supplier_system():
+    """Add supplier system tables and migrate existing data"""
+    if request.method == 'GET':
+        return render_template('admin_migration.html',
+                             migration_type='add-supplier-system',
+                             title='Add Supplier System',
+                             description='Creates supplier tables and migrates existing data to use suppliers.')
+
+    try:
+        from ..models import db, Supplier, RawMaterialSupplier, RawMaterial
+        from sqlalchemy import text
+        from .utils import log_audit
+
+        messages = []
+
+        # 1. Create supplier table
+        with db.engine.begin() as conn:
+            # Check if table exists
+            result = conn.execute(text("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables
+                    WHERE table_name = 'supplier'
+                )
+            """))
+            table_exists = result.scalar()
+
+            if not table_exists:
+                conn.execute(text("""
+                    CREATE TABLE supplier (
+                        id SERIAL PRIMARY KEY,
+                        name VARCHAR(100) NOT NULL UNIQUE,
+                        contact_person VARCHAR(100),
+                        phone VARCHAR(50),
+                        email VARCHAR(100),
+                        address TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        is_active BOOLEAN DEFAULT TRUE NOT NULL
+                    )
+                """))
+                messages.append("✓ Created supplier table")
+            else:
+                messages.append("Supplier table already exists")
+
+        # 2. Create raw_material_supplier junction table
+        with db.engine.begin() as conn:
+            result = conn.execute(text("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables
+                    WHERE table_name = 'raw_material_supplier'
+                )
+            """))
+            table_exists = result.scalar()
+
+            if not table_exists:
+                conn.execute(text("""
+                    CREATE TABLE raw_material_supplier (
+                        id SERIAL PRIMARY KEY,
+                        raw_material_id INTEGER NOT NULL REFERENCES raw_material(id),
+                        supplier_id INTEGER NOT NULL REFERENCES supplier(id),
+                        cost_per_unit FLOAT NOT NULL,
+                        is_primary BOOLEAN DEFAULT FALSE,
+                        UNIQUE(raw_material_id, supplier_id)
+                    )
+                """))
+                messages.append("✓ Created raw_material_supplier table")
+            else:
+                messages.append("Raw_material_supplier table already exists")
+
+        # 3. Add supplier_id to stock_log table
+        with db.engine.begin() as conn:
+            # Check if column exists
+            result = conn.execute(text("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.columns
+                    WHERE table_name = 'stock_log' AND column_name = 'supplier_id'
+                )
+            """))
+            column_exists = result.scalar()
+
+            if not column_exists:
+                conn.execute(text("""
+                    ALTER TABLE stock_log
+                    ADD COLUMN supplier_id INTEGER REFERENCES supplier(id)
+                """))
+                messages.append("✓ Added supplier_id column to stock_log table")
+            else:
+                messages.append("supplier_id column already exists in stock_log")
+
+        # 4. Create default supplier for existing data
+        default_supplier = Supplier.query.filter_by(name='ספק כללי').first()
+        if not default_supplier:
+            default_supplier = Supplier(
+                name='ספק כללי',
+                contact_person='לא מוגדר',
+                phone='',
+                email='',
+                address='',
+                is_active=True
+            )
+            db.session.add(default_supplier)
+            db.session.commit()
+            messages.append(f"✓ Created default supplier 'ספק כללי' with ID {default_supplier.id}")
+        else:
+            messages.append(f"Default supplier already exists with ID {default_supplier.id}")
+
+        # 5. Link all existing materials to default supplier
+        materials = RawMaterial.query.all()
+        linked_count = 0
+        for material in materials:
+            # Check if link already exists
+            existing_link = RawMaterialSupplier.query.filter_by(
+                raw_material_id=material.id,
+                supplier_id=default_supplier.id
+            ).first()
+
+            if not existing_link:
+                link = RawMaterialSupplier(
+                    raw_material_id=material.id,
+                    supplier_id=default_supplier.id,
+                    cost_per_unit=material.cost_per_unit,
+                    is_primary=True
+                )
+                db.session.add(link)
+                linked_count += 1
+
+        db.session.commit()
+        if linked_count > 0:
+            messages.append(f"✓ Linked {linked_count} materials to default supplier")
+        else:
+            messages.append("All materials already linked to suppliers")
+
+        # 6. Update existing stock logs with default supplier
+        with db.engine.begin() as conn:
+            result = conn.execute(text("""
+                UPDATE stock_log
+                SET supplier_id = :supplier_id
+                WHERE raw_material_id IS NOT NULL AND supplier_id IS NULL
+            """), {"supplier_id": default_supplier.id})
+
+            if result.rowcount > 0:
+                conn.commit()
+                messages.append(f"✓ Updated {result.rowcount} stock logs with default supplier")
+            else:
+                messages.append("No stock logs needed updating")
+
+        log_audit("MIGRATE", "System", details=f"Ran add-supplier-system migration: {', '.join(messages)}")
 
         return jsonify({
             'status': 'success',

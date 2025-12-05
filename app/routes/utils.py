@@ -234,3 +234,207 @@ def calculate_premake_current_stock(premake_id):
                     stock -= component.quantity * production.quantity_produced # component.quantity is per recipe
 
     return stock
+
+def calculate_supplier_stock(material_id, supplier_id):
+    """
+    Calculate current stock for a specific supplier-material combination.
+    """
+    from ..models import StockLog, ProductionLog, Product, Premake
+
+    # Get last 'set' action for this supplier
+    last_set = StockLog.query.filter_by(
+        raw_material_id=material_id,
+        supplier_id=supplier_id,
+        action_type='set'
+    ).order_by(StockLog.timestamp.desc()).first()
+
+    stock = last_set.quantity if last_set else 0
+
+    # Add all 'add' actions after last set
+    add_logs = StockLog.query.filter(
+        StockLog.raw_material_id == material_id,
+        StockLog.supplier_id == supplier_id,
+        StockLog.action_type == 'add',
+        StockLog.timestamp > (last_set.timestamp if last_set else datetime.min)
+    ).all()
+
+    for log in add_logs:
+        stock += log.quantity
+
+    # Subtract material usage from production (only for this supplier)
+    # For now, we track consumption at material level, not supplier level
+    # This will be enhanced when production is updated to track supplier usage
+    production_logs = ProductionLog.query.filter(
+        ProductionLog.timestamp > (last_set.timestamp if last_set else datetime.min)
+    ).all()
+
+    for production in production_logs:
+        if production.product_id:
+            product = Product.query.get(production.product_id)
+            if product:
+                for component in product.components:
+                    if component.component_type == 'raw_material' and component.component_id == material_id:
+                        # Deduct proportionally based on supplier's stock ratio
+                        # This is a simplified approach until we track actual supplier usage
+                        total_stock = calculate_total_material_stock(material_id)
+                        if total_stock > 0:
+                            supplier_ratio = stock / total_stock
+                            stock -= component.quantity * production.quantity_produced * supplier_ratio
+        elif production.premake_id:
+            premake = Premake.query.get(production.premake_id)
+            if premake:
+                for component in premake.components:
+                    if component.component_type == 'raw_material' and component.component_id == material_id:
+                        total_stock = calculate_total_material_stock(material_id)
+                        if total_stock > 0:
+                            supplier_ratio = stock / total_stock
+                            stock -= component.quantity * production.quantity_produced * supplier_ratio
+
+    return max(0, stock)  # Ensure non-negative
+
+def calculate_total_material_stock(material_id):
+    """
+    Calculate total stock for a material across all suppliers.
+    """
+    from ..models import RawMaterialSupplier
+
+    total = 0
+    supplier_links = RawMaterialSupplier.query.filter_by(raw_material_id=material_id).all()
+    for link in supplier_links:
+        total += calculate_supplier_stock(material_id, link.supplier_id)
+
+    return total
+
+def get_cheapest_supplier_for_material(material_id, required_quantity):
+    """
+    Returns supplier info for the cheapest available supplier with enough stock.
+    """
+    from ..models import RawMaterialSupplier
+
+    suppliers_with_stock = []
+    supplier_links = RawMaterialSupplier.query.filter_by(raw_material_id=material_id).all()
+
+    for link in supplier_links:
+        stock = calculate_supplier_stock(material_id, link.supplier_id)
+        if stock > 0:
+            suppliers_with_stock.append({
+                'supplier_id': link.supplier_id,
+                'supplier': link.supplier,
+                'cost_per_unit': link.cost_per_unit,
+                'available_stock': stock,
+                'is_primary': link.is_primary
+            })
+
+    # Sort by cost (cheapest first)
+    suppliers_with_stock.sort(key=lambda x: x['cost_per_unit'])
+
+    # Return the cheapest supplier with enough stock
+    for supplier_info in suppliers_with_stock:
+        if supplier_info['available_stock'] >= required_quantity:
+            return supplier_info
+
+    # If no single supplier has enough, return the cheapest available
+    return suppliers_with_stock[0] if suppliers_with_stock else None
+
+def calculate_material_consumption_plan(product_id, quantity):
+    """
+    Returns detailed plan of which supplier's stock to use for production.
+    """
+    from ..models import Product, RawMaterialSupplier
+
+    product = Product.query.get(product_id)
+    if not product:
+        return []
+
+    consumption_plan = []
+
+    for component in product.components:
+        if component.component_type == 'raw_material':
+            required_qty = component.quantity * quantity
+            material_id = component.component_id
+
+            # Get consumption plan for this material
+            material_plan = consume_material_cheapest_first(material_id, required_qty)
+            consumption_plan.extend(material_plan)
+
+    return consumption_plan
+
+def consume_material_cheapest_first(material_id, required_qty):
+    """
+    Plan material consumption using cheapest-first strategy.
+    """
+    from ..models import RawMaterialSupplier
+
+    supplier_links = RawMaterialSupplier.query.filter_by(raw_material_id=material_id).all()
+
+    suppliers_with_stock = []
+    for link in supplier_links:
+        stock = calculate_supplier_stock(material_id, link.supplier_id)
+        if stock > 0:
+            suppliers_with_stock.append({
+                'supplier_id': link.supplier_id,
+                'supplier_name': link.supplier.name,
+                'material_id': material_id,
+                'cost_per_unit': link.cost_per_unit,
+                'available_stock': stock
+            })
+
+    # Sort by cost (cheapest first)
+    suppliers_with_stock.sort(key=lambda x: x['cost_per_unit'])
+
+    consumption_plan = []
+    remaining = required_qty
+
+    for supplier in suppliers_with_stock:
+        if remaining <= 0:
+            break
+
+        to_consume = min(supplier['available_stock'], remaining)
+        consumption_plan.append({
+            'material_id': material_id,
+            'supplier_id': supplier['supplier_id'],
+            'supplier_name': supplier['supplier_name'],
+            'quantity': to_consume,
+            'cost_per_unit': supplier['cost_per_unit'],
+            'total_cost': to_consume * supplier['cost_per_unit']
+        })
+        remaining -= to_consume
+
+    if remaining > 0:
+        # Not enough stock from any supplier
+        consumption_plan.append({
+            'material_id': material_id,
+            'error': f'Insufficient stock. Need {remaining} more units.',
+            'quantity_missing': remaining
+        })
+
+    return consumption_plan
+
+def deduct_material_with_supplier_tracking(material_id, quantity):
+    """
+    Deducts material using cheapest-first strategy, returns list of deductions made.
+    """
+    from ..models import db, StockLog
+
+    consumption_plan = consume_material_cheapest_first(material_id, quantity)
+    deductions = []
+
+    for item in consumption_plan:
+        if 'error' not in item:
+            # Create a negative stock log for this supplier
+            stock_log = StockLog(
+                raw_material_id=material_id,
+                supplier_id=item['supplier_id'],
+                action_type='add',
+                quantity=-item['quantity']  # Negative to deduct
+            )
+            db.session.add(stock_log)
+
+            deductions.append({
+                'supplier_id': item['supplier_id'],
+                'supplier_name': item['supplier_name'],
+                'quantity': item['quantity'],
+                'cost': item['total_cost']
+            })
+
+    return deductions

@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block title %}חומרי גלם של {{ supplier.name }} - CostFlow{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('suppliers.suppliers') }}">ספקים</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ supplier.name }}</li>
+            </ol>
+        </nav>
+        <h1 class="display-6 fw-bold text-primary">חומרי גלם - {{ supplier.name }}</h1>
+        <p class="text-secondary">רשימת כל חומרי הגלם המסופקים על ידי ספק זה.</p>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="card bg-light border-0">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <strong>איש קשר:</strong> {{ supplier.contact_person or '-' }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>טלפון:</strong> {{ supplier.phone or '-' }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>אימייל:</strong>
+                        {% if supplier.email %}
+                            <a href="mailto:{{ supplier.email }}">{{ supplier.email }}</a>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>סטטוס:</strong>
+                        <span class="badge bg-{{ 'success' if supplier.is_active else 'secondary' }}">
+                            {{ 'פעיל' if supplier.is_active else 'לא פעיל' }}
+                        </span>
+                    </div>
+                </div>
+                {% if supplier.address %}
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <strong>כתובת:</strong> {{ supplier.address }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">חומרי גלם מסופקים</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+            <tr>
+                <th>חומר גלם</th>
+                <th>קטגוריה</th>
+                <th>יחידה</th>
+                <th>מחיר ליחידה</th>
+                <th>מלאי נוכחי</th>
+                <th class="text-center">ספק ראשי</th>
+                <th class="text-end">פעולות</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in materials_data %}
+            <tr>
+                <td class="fw-medium">{{ item.material.name }}</td>
+                <td>
+                    <span class="badge bg-light text-dark border">{{ item.material.category.name }}</span>
+                </td>
+                <td>{{ item.material.unit }}</td>
+                <td>
+                    <strong>{{ currency_symbol }}{{ "%.2f"|format(item.cost_per_unit) }}</strong>
+                </td>
+                <td class="fw-bold {{ 'text-danger' if item.current_stock <= 0 else 'text-success' }}">
+                    {{ "%.2f"|format(item.current_stock) }}
+                </td>
+                <td class="text-center">
+                    {% if item.is_primary %}
+                        <span class="badge bg-primary">ראשי</span>
+                    {% else %}
+                        <span class="badge bg-light text-dark">משני</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-outline-secondary"
+                            onclick="editMaterialPrice({{ item.material.id }}, '{{ item.material.name }}', {{ item.cost_per_unit }}, {{ item.is_primary|lower }})">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" class="text-center py-4 text-muted">
+                    לא נמצאו חומרי גלם לספק זה.
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Edit Price Modal -->
+<div class="modal fade" id="editPriceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">עדכון מחיר חומר גלם</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editPriceForm">
+                    <input type="hidden" id="edit_material_id">
+                    <div class="mb-3">
+                        <label class="form-label">חומר גלם</label>
+                        <input type="text" class="form-control" id="edit_material_name" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_cost_per_unit" class="form-label">מחיר ליחידה</label>
+                        <input type="number" class="form-control" id="edit_cost_per_unit" step="0.01" required>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="edit_is_primary">
+                        <label class="form-check-label" for="edit_is_primary">
+                            הגדר כספק ראשי לחומר זה
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+                <button type="button" class="btn btn-primary" onclick="saveMaterialPrice()">שמור</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function editMaterialPrice(materialId, materialName, currentPrice, isPrimary) {
+    document.getElementById('edit_material_id').value = materialId;
+    document.getElementById('edit_material_name').value = materialName;
+    document.getElementById('edit_cost_per_unit').value = currentPrice;
+    document.getElementById('edit_is_primary').checked = isPrimary;
+
+    const modal = new bootstrap.Modal(document.getElementById('editPriceModal'));
+    modal.show();
+}
+
+function saveMaterialPrice() {
+    const materialId = document.getElementById('edit_material_id').value;
+    const costPerUnit = document.getElementById('edit_cost_per_unit').value;
+    const isPrimary = document.getElementById('edit_is_primary').checked;
+
+    const formData = new FormData();
+    formData.append('material_id', materialId);
+    formData.append('supplier_id', {{ supplier.id }});
+    formData.append('cost_per_unit', costPerUnit);
+    formData.append('is_primary', isPrimary ? 'true' : 'false');
+
+    fetch('{{ url_for("suppliers.link_material_to_supplier") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('שגיאה בעדכון המחיר: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('שגיאה בעדכון המחיר');
+        console.error(error);
+    });
+}
+</script>
+{% endblock %}

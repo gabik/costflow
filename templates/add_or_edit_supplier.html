@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}{{ 'עריכת' if supplier else 'הוספת' }} ספק - CostFlow{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('suppliers.suppliers') }}">ספקים</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ 'עריכת' if supplier else 'הוספת' }} ספק</li>
+            </ol>
+        </nav>
+        <h1 class="display-6 fw-bold text-primary">{{ 'עריכת' if supplier else 'הוספת' }} ספק</h1>
+    </div>
+</div>
+
+{% if error %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{ error }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('suppliers.edit_supplier', supplier_id=supplier.id) if supplier else url_for('suppliers.add_supplier') }}">
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label">שם הספק <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name"
+                                   value="{{ supplier.name if supplier else '' }}" required autofocus>
+                            <div class="form-text">שם ייחודי לזיהוי הספק במערכת</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="contact_person" class="form-label">איש קשר</label>
+                            <input type="text" class="form-control" id="contact_person" name="contact_person"
+                                   value="{{ supplier.contact_person if supplier else '' }}">
+                            <div class="form-text">שם איש הקשר אצל הספק</div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label">טלפון</label>
+                            <input type="tel" class="form-control" id="phone" name="phone"
+                                   value="{{ supplier.phone if supplier else '' }}"
+                                   placeholder="050-1234567">
+                            <div class="form-text">מספר טלפון ליצירת קשר</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">אימייל</label>
+                            <input type="email" class="form-control" id="email" name="email"
+                                   value="{{ supplier.email if supplier else '' }}"
+                                   placeholder="supplier@example.com">
+                            <div class="form-text">כתובת אימייל לתכתובת</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="address" class="form-label">כתובת</label>
+                        <textarea class="form-control" id="address" name="address" rows="3"
+                                  placeholder="רחוב, עיר, מיקוד">{{ supplier.address if supplier else '' }}</textarea>
+                        <div class="form-text">כתובת פיזית של הספק</div>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('suppliers.suppliers') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-right me-2"></i> ביטול
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-2"></i> {{ 'עדכן' if supplier else 'הוסף' }} ספק
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card bg-light border-0">
+            <div class="card-body">
+                <h6 class="card-title fw-bold">
+                    <i class="bi bi-info-circle me-2"></i>מידע על ספקים
+                </h6>
+                <p class="card-text small">
+                    ספקים במערכת מאפשרים לנהל מספר מקורות לחומרי גלם עם מחירים שונים.
+                </p>
+                <ul class="small">
+                    <li>כל ספק יכול לספק מספר חומרי גלם</li>
+                    <li>כל חומר גלם יכול להיות מסופק ע"י מספר ספקים</li>
+                    <li>המערכת תבחר אוטומטית בספק הזול ביותר בעת ייצור</li>
+                    <li>מלאי מנוהל נפרדת לכל ספק</li>
+                </ul>
+                {% if supplier %}
+                <hr>
+                <p class="small text-muted mb-0">
+                    <i class="bi bi-clock me-1"></i>
+                    נוצר בתאריך: {{ supplier.created_at.strftime('%d/%m/%Y') if supplier.created_at else 'לא ידוע' }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

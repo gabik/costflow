@@ -8,6 +8,7 @@ class StockLog(db.Model):
     raw_material_id = db.Column(db.Integer, db.ForeignKey('raw_material.id'), nullable=True)
     premake_id = db.Column(db.Integer, db.ForeignKey('premake.id'), nullable=True)  # Will be deprecated
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=True)  # New unified field
+    supplier_id = db.Column(db.Integer, db.ForeignKey('supplier.id'), nullable=True)  # Track supplier for raw materials
     action_type = db.Column(db.String(10), nullable=False)  # 'add' or 'set'
     quantity = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
@@ -15,6 +16,7 @@ class StockLog(db.Model):
     raw_material = db.relationship('RawMaterial', backref='stock_logs')
     premake = db.relationship('Premake', backref='stock_logs')  # Will be deprecated
     product = db.relationship('Product', backref='stock_logs', foreign_keys=[product_id])
+    supplier = db.relationship('Supplier', backref='stock_logs')
 
 class ProductionLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -33,7 +35,50 @@ class RawMaterial(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     category = db.relationship('Category', backref=db.backref('raw_materials', lazy=True))
     unit = db.Column(db.String(50), nullable=False)
-    cost_per_unit = db.Column(db.Float, nullable=False)
+    cost_per_unit = db.Column(db.Float, nullable=False)  # Default/average cost
+
+    def get_cheapest_available_supplier(self, required_quantity):
+        """Get the cheapest supplier with available stock for the required quantity"""
+        from .routes.utils import calculate_supplier_stock
+
+        suppliers_with_stock = []
+        for link in self.supplier_links:
+            stock = calculate_supplier_stock(self.id, link.supplier_id)
+            if stock > 0:
+                suppliers_with_stock.append({
+                    'supplier_id': link.supplier_id,
+                    'supplier': link.supplier,
+                    'cost_per_unit': link.cost_per_unit,
+                    'available_stock': stock
+                })
+
+        # Sort by cost (cheapest first)
+        suppliers_with_stock.sort(key=lambda x: x['cost_per_unit'])
+
+        # Return the cheapest supplier with enough stock
+        for supplier_info in suppliers_with_stock:
+            if supplier_info['available_stock'] >= required_quantity:
+                return supplier_info
+
+        # If no single supplier has enough, return the cheapest available
+        return suppliers_with_stock[0] if suppliers_with_stock else None
+
+    def calculate_total_stock(self):
+        """Calculate total stock across all suppliers"""
+        from .routes.utils import calculate_supplier_stock
+
+        total = 0
+        for link in self.supplier_links:
+            total += calculate_supplier_stock(self.id, link.supplier_id)
+        return total
+
+    def get_primary_supplier(self):
+        """Get the primary supplier for this material"""
+        for link in self.supplier_links:
+            if link.is_primary:
+                return link.supplier
+        # If no primary, return first supplier
+        return self.supplier_links[0].supplier if self.supplier_links else None
 
     def to_dict(self):
         return {
@@ -41,7 +86,8 @@ class RawMaterial(db.Model):
             'name': self.name,
             'category_id': self.category_id,
             'unit': self.unit,
-            'cost_per_unit': self.cost_per_unit
+            'cost_per_unit': self.cost_per_unit,
+            'suppliers': [link.to_dict() for link in self.supplier_links] if hasattr(self, 'supplier_links') else []
         }
 
 class Premake(db.Model):
@@ -323,4 +369,49 @@ class AuditLog(db.Model):
             'target_type': self.target_type,
             'target_id': self.target_id,
             'details': self.details
+        }
+
+class Supplier(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False, unique=True)
+    contact_person = db.Column(db.String(100), nullable=True)
+    phone = db.Column(db.String(50), nullable=True)
+    email = db.Column(db.String(100), nullable=True)
+    address = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'contact_person': self.contact_person,
+            'phone': self.phone,
+            'email': self.email,
+            'address': self.address,
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S') if self.created_at else None,
+            'is_active': self.is_active,
+            'materials_count': len(self.material_links) if hasattr(self, 'material_links') else 0
+        }
+
+class RawMaterialSupplier(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    raw_material_id = db.Column(db.Integer, db.ForeignKey('raw_material.id'), nullable=False)
+    supplier_id = db.Column(db.Integer, db.ForeignKey('supplier.id'), nullable=False)
+    cost_per_unit = db.Column(db.Float, nullable=False)
+    is_primary = db.Column(db.Boolean, default=False)  # Mark primary supplier
+
+    raw_material = db.relationship('RawMaterial', backref='supplier_links')
+    supplier = db.relationship('Supplier', backref='material_links')
+
+    __table_args__ = (db.UniqueConstraint('raw_material_id', 'supplier_id'),)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'raw_material_id': self.raw_material_id,
+            'supplier_id': self.supplier_id,
+            'supplier_name': self.supplier.name if self.supplier else None,
+            'cost_per_unit': self.cost_per_unit,
+            'is_primary': self.is_primary
         }
