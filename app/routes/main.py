@@ -16,46 +16,64 @@ main_blueprint = Blueprint('main', __name__)
 def migrate_production_costs():
     """Run migration to add cost tracking fields to ProductionLog table"""
     try:
-        # Check if columns already exist by trying to access them
-        test_log = ProductionLog.query.first()
-        if test_log:
-            # Try to access the new fields
-            try:
-                _ = test_log.total_cost
-                _ = test_log.cost_per_unit
-                _ = test_log.cost_details
-                return jsonify({
-                    'status': 'success',
-                    'message': 'Migration already completed - columns exist'
-                })
-            except:
-                pass
-
-        # If we get here, columns don't exist - run migration
         from sqlalchemy import text
 
-        # Add columns using raw SQL
+        # Check database type
+        dialect = db.engine.dialect.name
+
         with db.engine.connect() as conn:
-            # Check database type (SQLite vs PostgreSQL)
-            dialect = db.engine.dialect.name
+            if dialect == 'postgresql':
+                # PostgreSQL: Check if columns exist first
+                result = conn.execute(text("""
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = 'production_log'
+                    AND column_name IN ('total_cost', 'cost_per_unit', 'cost_details')
+                """))
+                existing_columns = [row[0] for row in result]
 
-            if dialect == 'sqlite':
-                # SQLite syntax
-                conn.execute(text("ALTER TABLE production_log ADD COLUMN total_cost FLOAT"))
-                conn.execute(text("ALTER TABLE production_log ADD COLUMN cost_per_unit FLOAT"))
-                conn.execute(text("ALTER TABLE production_log ADD COLUMN cost_details TEXT"))
+                columns_to_add = []
+                if 'total_cost' not in existing_columns:
+                    columns_to_add.append("ALTER TABLE production_log ADD COLUMN total_cost FLOAT")
+                if 'cost_per_unit' not in existing_columns:
+                    columns_to_add.append("ALTER TABLE production_log ADD COLUMN cost_per_unit FLOAT")
+                if 'cost_details' not in existing_columns:
+                    columns_to_add.append("ALTER TABLE production_log ADD COLUMN cost_details TEXT")
+
+                if not columns_to_add:
+                    return jsonify({
+                        'status': 'success',
+                        'message': 'Migration already completed - all columns exist'
+                    })
+
+                # Add missing columns
+                for sql in columns_to_add:
+                    conn.execute(text(sql))
                 conn.commit()
+
+                return jsonify({
+                    'status': 'success',
+                    'message': f'Migration completed - added {len(columns_to_add)} column(s)'
+                })
+
             else:
-                # PostgreSQL syntax
-                conn.execute(text("ALTER TABLE production_log ADD COLUMN IF NOT EXISTS total_cost FLOAT"))
-                conn.execute(text("ALTER TABLE production_log ADD COLUMN IF NOT EXISTS cost_per_unit FLOAT"))
-                conn.execute(text("ALTER TABLE production_log ADD COLUMN IF NOT EXISTS cost_details TEXT"))
-                conn.commit()
-
-        return jsonify({
-            'status': 'success',
-            'message': 'Migration completed successfully - added cost tracking columns'
-        })
+                # SQLite: Just try to add columns (will fail silently if they exist)
+                try:
+                    conn.execute(text("ALTER TABLE production_log ADD COLUMN total_cost FLOAT"))
+                    conn.execute(text("ALTER TABLE production_log ADD COLUMN cost_per_unit FLOAT"))
+                    conn.execute(text("ALTER TABLE production_log ADD COLUMN cost_details TEXT"))
+                    conn.commit()
+                    return jsonify({
+                        'status': 'success',
+                        'message': 'Migration completed - added cost tracking columns'
+                    })
+                except Exception as e:
+                    if "duplicate column" in str(e).lower():
+                        return jsonify({
+                            'status': 'success',
+                            'message': 'Migration already completed - columns exist'
+                        })
+                    raise
 
     except Exception as e:
         return jsonify({
