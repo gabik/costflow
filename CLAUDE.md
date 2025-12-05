@@ -1,10 +1,30 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Important Instructions for Claude
+
+### Git and Testing Responsibilities
+- **Git operations**: User handles all git commits and pushes
+- **Testing**: User performs all testing
+- **Claude's role**:
+  - Provide git commands and single-line commit messages for copy/paste
+  - Specify what to test after each change
+  - Format: Always provide git commands as:
+    ```bash
+    git add .
+    git commit -m "Type: Brief description of change"
+    git push
+    ```
+  - Commit message types: Feat, Fix, Chore, Refactor, Docs
+
+### Migration Handling
+- **Local dev has no database** - empty SQLite file only
+- **All migrations must use HTTP endpoints** for remote execution
+- **Migration pattern**: Create endpoint at `/migrate_[feature_name]`, user will confirm when done
+- **Cleanup**: Remove migration endpoints after user confirms completion
 
 ## Project Overview
 
-Costflow is a Flask-based web application for cost management and inventory tracking in production businesses. It manages raw materials, premakes (intermediate preparations), packaging, and products with comprehensive cost calculations, multi-supplier support, and intelligent inventory tracking.
+Costflow is a Flask-based web application for cost management and inventory tracking in production businesses with multi-supplier support and intelligent stock management.
 
 ## Tech Stack
 
@@ -39,25 +59,15 @@ The application follows Flask's application factory pattern with modular bluepri
     - `packaging.py`: Packaging materials management
     - `utils.py`: Shared utility functions and stock calculations
 
-## Database Models
+## Core Database Models
 
-Core models in `app/models.py`:
-- **Product**: Unified model for products, premakes, and preproducts (using boolean flags: is_product, is_premake, is_preproduct)
-- **ProductComponent**: Links products to raw materials, other products (as premakes), packaging, and labor
-- **RawMaterial**: Base ingredients with default cost per unit
-- **RawMaterialSupplier**: Junction table linking raw materials to suppliers with individual pricing and primary designation
-- **Supplier**: Supplier information with contact details
-- **Packaging**: Packaging materials with cost calculations
-- **Labor**: Employee records with hourly rates (Note: Not currently used in production)
-- **Category**: Categorization for raw materials, products, and premakes
-- **StockLog**: Tracks inventory changes for raw materials and products/premakes, includes supplier tracking
-- **ProductionLog**: Records production events for products and premakes
-- **WeeklyLaborCost**: Weekly labor cost tracking
-- **WeeklyProductSales**: Weekly sales and waste tracking
-- **WeeklyLaborEntry**: Individual labor entries per week
-- **StockAudit**: Physical stock count audits with variance tracking
-- **AuditLog**: System-wide audit trail for data changes
-- **InsufficientStockError**: Custom exception for stock shortage handling
+- **Product**: Unified model for products/premakes/preproducts (boolean flags)
+- **ProductComponent**: Links products to materials/premakes/packaging
+- **RawMaterial/RawMaterialSupplier**: Multi-supplier support with individual pricing
+- **StockLog**: Inventory tracking with supplier information
+- **ProductionLog**: Production events with actual cost tracking
+- **WeeklyLaborCost/WeeklyProductSales**: Weekly tracking and reporting
+- **StockAudit**: Physical count variance tracking
 
 ## Key Features & Routes
 
@@ -77,31 +87,19 @@ Main functional areas:
 
 ### Local Development
 ```bash
-# Install dependencies
-pip install -r requirements.txt
+# Activate virtual environment
+venv costflow
 
-# Run development server (with debug mode)
+# Run development server
 python run.py
 # Server runs on http://0.0.0.0:8080
 ```
 
 ### Docker Deployment
 ```bash
-# Build image
+# Build and run container
 docker build -t costflow .
-
-# Run container
 docker run -p 8080:8080 costflow
-```
-
-### Database Operations
-```bash
-# Database is auto-created on first run via db.create_all() in run.py
-# To seed initial data from CSV files:
-python csv/insert_raw_materials.py
-python csv/insert_labor.py
-python csv/insert_packaging.py
-python csv/insert_products.py
 ```
 
 ## Environment Variables
@@ -122,7 +120,9 @@ python csv/insert_products.py
 - Total cost calculation is recursive for nested premakes
 - Prime cost = Raw materials + Packaging + Premakes (excludes labor)
 - Cost per unit calculated based on recipe batch size or premake batch size
-- Multi-supplier pricing: System uses supplier-specific pricing when calculating costs
+- Multi-supplier pricing: System uses actual supplier prices during production
+- Production tracking: Each batch stores its actual cost based on suppliers used
+- Weekly reports: Use weighted average of actual production costs, not estimates
 
 ### Stock Management
 - StockLog tracks all inventory changes with timestamps and supplier information
@@ -142,136 +142,21 @@ python csv/insert_products.py
 - Max upload size: 16MB
 - Excel/CSV import for bulk data operations
 
-## Database Schema Relationships
 
-- **Category** → RawMaterial, Product (one-to-many)
-- **Product** → ProductComponent → RawMaterial/Product(as premake)/Packaging/Labor (many-to-many with quantities)
-- **RawMaterial** → RawMaterialSupplier → Supplier (many-to-many with pricing and primary flag)
-- **RawMaterial** → StockLog (one-to-many, with supplier tracking)
-- **Product** → StockLog (one-to-many, for premakes and preproducts)
-- **Product** → ProductionLog (one-to-many)
-- **Product** → WeeklyProductSales (one-to-many)
-- **WeeklyLaborCost** → WeeklyProductSales (one-to-many)
-- **WeeklyLaborCost** → WeeklyLaborEntry (one-to-many)
-- **Supplier** → RawMaterialSupplier → RawMaterial (many-to-many)
-- **Supplier** → StockLog (one-to-many, tracks which supplier's stock was used)
 
-## Frontend Structure
+## Important System Notes
 
-Templates in `templates/` use base template inheritance:
-- `base.html`: Main layout with navigation
-- Feature-specific templates for each route
-- Static assets in `static/css/style.css`
+### Current Architecture
+- **Unified Product Model**: Single Product model with boolean flags (is_product, is_premake, is_preproduct)
+- **Multi-Supplier Support**: Primary/secondary suppliers with individual pricing
+- **Production Cost Tracking**: ProductionLog stores actual costs per batch with supplier breakdown
+- **Stock Management**: "Primary first, then others" deduction strategy
+- **Migrated Products**: Kept for historical data, marked with "(Migrated to Premake: X)"
+- **Hebrew Default**: RTL support throughout with Flask-Babel
 
-## Recent Changes & Features
-
-### December 2024 Updates
-
-#### 1. Blueprint Refactoring
-- Modularized routes from single `routes.py` into 10 separate blueprint modules
-- Improved code organization and maintainability
-- Each functional area now has its own blueprint file
-
-#### 2. Premake System Enhancement
-- **Nested Premakes**: Premakes can now include other premakes as components
-- **Product to Premake Migration**: Products can be converted to premakes
-  - Preserves inventory levels
-  - Maintains production history
-  - Keeps sales history intact for reporting
-  - Migrated products remain in database for historical reference (marked with "(Migrated to Premake: X)")
-  - Migrated products are automatically filtered from production and selection lists
-- **Separate Production Tracking**: Dedicated production logging for premakes
-
-#### 3. Fixed Issues
-- Restored missing `edit_product` function after migration implementation
-- Added missing `PremakeComponent` import
-- Fixed premake production modal JavaScript issues
-
-### November 2024 Features
-
-#### 1. Weekly & Monthly Reports
-- Added comprehensive reporting system accessible via dropdown menus
-- Weekly reports (`/reports/weekly`) show sales by category, labor costs, and profitability
-- Monthly reports (`/reports/monthly`) aggregate weekly data for trend analysis
-- Both reports include Hebrew localization and RTL support
-
-#### 2. Stock Audit System
-- StockAudit model tracks discrepancies between system stock and physical counts
-- Records auditor name, variance, and financial impact
-- Automatic variance calculation when setting stock (action_type='set')
-- Dedicated audit page (`/stock_audits`) with filtering and analytics
-
-#### 3. Food Cost Analytics
-- **Food Cost Tracking**: Calculates total material + packaging costs for production
-- **Weekly Report**: Shows total food cost, average cost per recipe, food cost percentage
-- **Monthly Report**: Includes visual bar chart of weekly food cost trends
-- **Target Indicators**: Color-coded (green: 25-35%, yellow: <25%, red: >35%)
-- **Data Aggregation**: Production and labor data aggregated to avoid duplicate rows
-
-#### 4. Key Calculations
-- **Food Cost** = Sum of (raw materials + packaging) × quantity for each recipe
-- **Food Cost %** = (Total food cost / Total revenue) × 100%
-- **Prime Cost** = Raw materials + Packaging + Premakes (per product)
-- **Net Profit** = Revenue - Material Costs - Labor Costs - Stock Variance
-
-## Important Notes
-
-### Current System State
-1. **Unified Product Model**: Products, premakes, and preproducts all use the same Product model with boolean flags (is_product, is_premake, is_preproduct)
-2. **Multi-Supplier Support**: Raw materials can have multiple suppliers with individual pricing and primary designation
-3. **Labor Components**: While the UI displays labor options in products, labor components are not actively saved or used in cost calculations
-4. **Premake Nesting**: Premakes support recursive nesting (Products with is_premake=True containing other premakes)
-5. **Migration Safety**: Product to Premake migration preserves sales history for reporting continuity
-   - Products are NOT deleted to maintain foreign key integrity with WeeklyProductSales
-   - Migrated products are renamed with "(Migrated to Premake: [name])" suffix
-   - Migrated products are automatically filtered from production and weekly cost selections
-6. **Blueprint Structure**: Routes are organized into separate blueprint modules for better maintainability
-
-### Known Considerations
-- Circular dependencies in nested premakes are prevented at the UI level (self-reference check)
-- Stock calculations support both 'add' (incremental) and 'set' (absolute) operations
-- Hebrew is the default language with RTL support throughout the application
-
-## Recent Changes (December 2024)
-
-### Multi-Supplier Support and Model Unification
-- **Unified Product Model Architecture**:
-  - Removed separate Premake and PremakeComponent models
-  - Products, premakes, and preproducts now use single Product model with boolean flags
-  - Simplified database schema while maintaining all functionality
-
-- **Multi-Supplier Support for Raw Materials**:
-  - Raw materials can have multiple suppliers with individual pricing
-  - Primary supplier designation with visual indicators (star icon)
-  - Intelligent stock deduction: "Primary first, then others" strategy during production
-  - Supplier-specific stock tracking via StockLog.supplier_id
-  - Dynamic UI for managing supplier relationships
-
-- **Enhanced Stock Management**:
-  - Added InsufficientStockError exception for proper error handling
-  - Supplier-aware stock calculations
-  - Automatic fallback to secondary suppliers when primary stock depleted
-
-### Route Organization Refactoring
-- **Completed migration of routes to separate blueprint files** for better code organization:
-  - All admin routes moved from `main.py` to `app/routes/admin.py`
-  - Raw materials routes moved to `app/routes/raw_materials.py`
-  - Each functional area now has its own dedicated blueprint module
-  - Template URL references updated to use correct blueprint namespaces
-
-### Removed Features
-- **Legacy Migration Routes** - All temporary migration code removed
-- **CSV Import Scripts** - Archived in csv_archived/ folder
-
-### UI Improvements
-- **Multi-Supplier Management Interface**:
-  - Dynamic add/remove supplier rows
-  - Radio toggle for primary supplier selection
-  - Individual price per supplier with currency formatting
-  - Visual feedback with border highlighting for primary supplier
-
-- **Search and Category Filtering**:
-  - Raw Materials page - Live search by name, filter by category dropdown
-  - Premakes page - Live search by name, filter by category dropdown
-  - Both include responsive filter cards with Bootstrap styling
-  - JavaScript-based client-side filtering for instant results
+### Key Implementation Details
+- Labor components shown in UI but not used in cost calculations
+- Premakes support recursive nesting with cycle prevention
+- Stock calculations use 'set' (absolute) or 'add' (incremental) operations
+- Weekly dashboard uses weighted average of actual production costs
+- Migration endpoint pattern: `/migrate_[feature_name]` for remote DB updates
