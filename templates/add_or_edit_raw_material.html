@@ -37,6 +37,26 @@
                         </div>
                     </div>
 
+                    <!-- Supplier Selection -->
+                    <div class="mb-3">
+                        <label for="supplier" class="form-label">ספק</label>
+                        <div class="input-group">
+                            <select id="supplier" name="supplier_id" class="form-select">
+                                <option value="">בחר ספק (אופציונלי)...</option>
+                                {% for supplier in suppliers %}
+                                    <option value="{{ supplier.id }}"
+                                        {% if material and material.primary_supplier and material.primary_supplier.id == supplier.id %}selected{% endif %}>
+                                        {{ supplier.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <button type="button" class="btn btn-outline-secondary"
+                                    data-bs-toggle="modal" data-bs-target="#addSupplierModal">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="row g-3">
                         <!-- Unit -->
                         <div class="col-md-6">
@@ -99,6 +119,41 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
                     <button type="submit" class="btn btn-primary">הוסף קטגוריה</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Add Supplier Modal -->
+<div class="modal fade" id="addSupplierModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('suppliers.quick_add') }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">הוספת ספק חדש</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="supplier_name" class="form-label">שם הספק *</label>
+                        <input type="text" id="supplier_name" name="name"
+                               class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="contact_person" class="form-label">איש קשר</label>
+                        <input type="text" id="contact_person" name="contact_person"
+                               class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">טלפון</label>
+                        <input type="tel" id="phone" name="phone" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">ביטול</button>
+                    <button type="submit" class="btn btn-primary">הוסף ספק</button>
                 </div>
             </form>
         </div>

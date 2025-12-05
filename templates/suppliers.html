@@ -91,4 +91,19 @@
         </table>
     </div>
 </div>
+
+<!-- Toggle button for inactive suppliers -->
+<div class="mt-3 text-center">
+    {% if show_inactive %}
+        <a href="{{ url_for('suppliers.suppliers', show_inactive='false') }}"
+           class="btn btn-outline-secondary">
+            <i class="bi bi-eye-slash me-2"></i>הסתר ספקים לא פעילים
+        </a>
+    {% else %}
+        <a href="{{ url_for('suppliers.suppliers', show_inactive='true') }}"
+           class="btn btn-outline-secondary">
+            <i class="bi bi-eye me-2"></i>הצג ספקים לא פעילים
+        </a>
+    {% endif %}
+</div>
 {% endblock %}

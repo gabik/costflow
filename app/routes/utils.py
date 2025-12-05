@@ -262,33 +262,13 @@ def calculate_supplier_stock(material_id, supplier_id):
         stock += log.quantity
 
     # Subtract material usage from production (only for this supplier)
-    # For now, we track consumption at material level, not supplier level
+    # TODO: Currently we don't track which supplier's stock was used in production
+    # For now, we'll skip deducting production from supplier-specific stock
     # This will be enhanced when production is updated to track supplier usage
-    production_logs = ProductionLog.query.filter(
-        ProductionLog.timestamp > (last_set.timestamp if last_set else datetime.min)
-    ).all()
 
-    for production in production_logs:
-        if production.product_id:
-            product = Product.query.get(production.product_id)
-            if product:
-                for component in product.components:
-                    if component.component_type == 'raw_material' and component.component_id == material_id:
-                        # Deduct proportionally based on supplier's stock ratio
-                        # This is a simplified approach until we track actual supplier usage
-                        total_stock = calculate_total_material_stock(material_id)
-                        if total_stock > 0:
-                            supplier_ratio = stock / total_stock
-                            stock -= component.quantity * production.quantity_produced * supplier_ratio
-        elif production.premake_id:
-            premake = Premake.query.get(production.premake_id)
-            if premake:
-                for component in premake.components:
-                    if component.component_type == 'raw_material' and component.component_id == material_id:
-                        total_stock = calculate_total_material_stock(material_id)
-                        if total_stock > 0:
-                            supplier_ratio = stock / total_stock
-                            stock -= component.quantity * production.quantity_produced * supplier_ratio
+    # Note: Production deduction is currently disabled for supplier-specific stock
+    # to avoid circular dependency issues. The system tracks overall material stock
+    # but not per-supplier consumption yet.
 
     return max(0, stock)  # Ensure non-negative
 
@@ -296,12 +276,38 @@ def calculate_total_material_stock(material_id):
     """
     Calculate total stock for a material across all suppliers.
     """
-    from ..models import RawMaterialSupplier
+    from ..models import RawMaterialSupplier, StockLog
 
     total = 0
     supplier_links = RawMaterialSupplier.query.filter_by(raw_material_id=material_id).all()
+
+    # Calculate stock for each supplier
     for link in supplier_links:
-        total += calculate_supplier_stock(material_id, link.supplier_id)
+        # Now safe to call calculate_supplier_stock since we removed the circular dependency
+        supplier_stock = calculate_supplier_stock(material_id, link.supplier_id)
+        total += supplier_stock
+
+    # Also include any stock logs without a supplier (legacy data)
+    last_set_no_supplier = StockLog.query.filter_by(
+        raw_material_id=material_id,
+        supplier_id=None,
+        action_type='set'
+    ).order_by(StockLog.timestamp.desc()).first()
+
+    stock_no_supplier = last_set_no_supplier.quantity if last_set_no_supplier else 0
+
+    # Add all 'add' actions without supplier after last set
+    add_logs_no_supplier = StockLog.query.filter(
+        StockLog.raw_material_id == material_id,
+        StockLog.supplier_id == None,
+        StockLog.action_type == 'add',
+        StockLog.timestamp > (last_set_no_supplier.timestamp if last_set_no_supplier else datetime.min)
+    ).all()
+
+    for log in add_logs_no_supplier:
+        stock_no_supplier += log.quantity
+
+    total += stock_no_supplier
 
     return total
 

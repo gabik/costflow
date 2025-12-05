@@ -10,13 +10,21 @@ suppliers_blueprint = Blueprint('suppliers', __name__)
 @suppliers_blueprint.route('/suppliers')
 def suppliers():
     """List all suppliers with their material counts"""
-    all_suppliers = Supplier.query.filter_by(is_active=True).all()
+    # Get 'show_inactive' parameter from URL query string
+    show_inactive = request.args.get('show_inactive', 'false') == 'true'
+
+    if show_inactive:
+        all_suppliers = Supplier.query.all()  # Show all suppliers
+    else:
+        all_suppliers = Supplier.query.filter_by(is_active=True).all()  # Only active
 
     # Calculate active materials count for each supplier
     for supplier in all_suppliers:
         supplier.active_materials_count = len(supplier.material_links)
 
-    return render_template('suppliers.html', suppliers=all_suppliers)
+    return render_template('suppliers.html',
+                         suppliers=all_suppliers,
+                         show_inactive=show_inactive)
 
 @suppliers_blueprint.route('/suppliers/add', methods=['GET', 'POST'])
 def add_supplier():
@@ -108,13 +116,21 @@ def delete_supplier(supplier_id):
 def quick_add_supplier():
     """AJAX endpoint for quick supplier addition via modal"""
     try:
-        data = request.get_json()
-
-        name = data.get('name')
-        contact_person = data.get('contact_person')
-        phone = data.get('phone')
-        email = data.get('email')
-        address = data.get('address')
+        # Handle both JSON and form data
+        if request.is_json:
+            data = request.get_json()
+            name = data.get('name')
+            contact_person = data.get('contact_person')
+            phone = data.get('phone')
+            email = data.get('email')
+            address = data.get('address')
+        else:
+            # Form data from modal
+            name = request.form.get('name')
+            contact_person = request.form.get('contact_person')
+            phone = request.form.get('phone')
+            email = request.form.get('email')
+            address = request.form.get('address')
 
         # Check for duplicate name
         existing = Supplier.query.filter_by(name=name).first()
@@ -136,10 +152,18 @@ def quick_add_supplier():
         db.session.commit()
         log_audit("CREATE", "Supplier", new_supplier.id, f"Quick added supplier: {name}")
 
-        return jsonify({
-            'success': True,
-            'supplier': new_supplier.to_dict()
-        })
+        # Return different response based on request type
+        if request.is_json:
+            return jsonify({
+                'success': True,
+                'supplier': {
+                    'id': new_supplier.id,
+                    'name': new_supplier.name
+                }
+            })
+        else:
+            # Redirect back to the referrer (raw materials form)
+            return redirect(request.referrer or url_for('raw_materials.add_raw_material'))
 
     except Exception as e:
         return jsonify({

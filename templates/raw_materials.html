@@ -40,6 +40,7 @@
             <tr>
                 <th>שם</th>
                 <th>קטגוריה</th>
+                <th>ספק</th>
                 <th>יחידה</th>
                 <th>עלות ליחידה</th>
                 <th>מלאי נוכחי</th>
@@ -51,6 +52,18 @@
             <tr class="material-row" data-category="{{ material.category.name }}">
                 <td class="fw-medium material-name">{{ material.name }}</td>
                 <td><span class="badge bg-light text-dark border">{{ material.category.name }}</span></td>
+                <td>
+                    {% if material.primary_supplier %}
+                        <div>
+                            <span class="text-primary">{{ material.primary_supplier.name }}</span>
+                            {% if material.supplier_count > 1 %}
+                                <span class="badge bg-info text-white ms-1">+{{ material.supplier_count - 1 }}</span>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
                 <td>{{ material.unit }}</td>
                 <td>{{ currency_symbol }}{{ "%.2f"|format(material.cost_per_unit) }}</td>
                 <td class="fw-bold {{ 'text-danger' if material.current_stock <= 0 else 'text-success' }}">

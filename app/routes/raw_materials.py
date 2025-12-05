@@ -1,6 +1,6 @@
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for
-from ..models import db, RawMaterial, StockLog, ProductComponent, StockAudit, Category, Product, ProductionLog
+from ..models import db, RawMaterial, StockLog, ProductComponent, StockAudit, Category, Product, ProductionLog, Supplier, RawMaterialSupplier, Premake, PremakeComponent
 from .utils import log_audit, get_or_create_general_category, units_list
 
 raw_materials_blueprint = Blueprint('raw_materials', __name__)
@@ -49,6 +49,23 @@ def raw_materials():
         # Attach calculated stock to material object
         material.current_stock = stock
 
+        # Get supplier information for this material
+        supplier_links = RawMaterialSupplier.query.filter_by(raw_material_id=material.id).all()
+        material.supplier_count = len(supplier_links)
+
+        # Get primary supplier or first supplier
+        primary_supplier = None
+        for link in supplier_links:
+            if link.is_primary:
+                primary_supplier = link.supplier
+                break
+
+        # If no primary, get the first supplier
+        if not primary_supplier and supplier_links:
+            primary_supplier = supplier_links[0].supplier
+
+        material.primary_supplier = primary_supplier
+
     return render_template('raw_materials.html', materials=materials)
 
 @raw_materials_blueprint.route('/raw_materials/add', methods=['GET', 'POST'])
@@ -63,17 +80,38 @@ def add_raw_material():
         cost_per_unit = float(request.form['cost_per_unit'])
         stock = request.form.get('stock', 0) # Optional initial stock
 
+        # New: Get supplier information
+        supplier_id = request.form.get('supplier_id')
+
         category = Category.query.get(category_id)
-        # if not category:  # Handled by get_or_create or existing valid ID
-        #    return "Invalid category selected", 400
 
         new_material = RawMaterial(name=name, category=category, unit=unit, cost_per_unit=cost_per_unit)
         db.session.add(new_material)
         db.session.flush() # Get ID for stock log
 
+        # Link to supplier if provided, otherwise use default supplier (ID=1)
+        if supplier_id:
+            supplier_link = RawMaterialSupplier(
+                raw_material_id=new_material.id,
+                supplier_id=int(supplier_id),
+                cost_per_unit=cost_per_unit,
+                is_primary=True
+            )
+            db.session.add(supplier_link)
+        else:
+            # Use default supplier (ID=1) if not specified
+            supplier_link = RawMaterialSupplier(
+                raw_material_id=new_material.id,
+                supplier_id=1,
+                cost_per_unit=cost_per_unit,
+                is_primary=True
+            )
+            db.session.add(supplier_link)
+
         if stock:
             initial_stock_log = StockLog(
                 raw_material_id=new_material.id,
+                supplier_id=int(supplier_id) if supplier_id else 1,  # Use supplier ID
                 action_type='set',
                 quantity=float(stock)
             )
@@ -87,12 +125,19 @@ def add_raw_material():
 
         return redirect(url_for('raw_materials.raw_materials'))
 
+    # GET request - load form
     categories = Category.query.filter_by(type='raw_material').all()
-    return render_template('add_or_edit_raw_material.html', material=None, categories=categories, units=units_list)
+    suppliers = Supplier.query.filter_by(is_active=True).all()
+    return render_template('add_or_edit_raw_material.html',
+                         material=None,
+                         categories=categories,
+                         suppliers=suppliers,
+                         units=units_list)
 
 @raw_materials_blueprint.route('/raw_materials/edit/<int:material_id>', methods=['GET', 'POST'])
 def edit_raw_material(material_id):
     material = RawMaterial.query.get_or_404(material_id)
+
     if request.method == 'POST':
         material.name = request.form['name']
         category_id = request.form.get('category')
@@ -100,20 +145,68 @@ def edit_raw_material(material_id):
             category_id = get_or_create_general_category('raw_material')
 
         category = Category.query.get(category_id)
-        # if not category:
-        #    return "Invalid category selected", 400
-
         material.category = category
         material.unit = request.form['unit']
         material.cost_per_unit = float(request.form['cost_per_unit'])
 
-        # Note: Stock is managed via logs, not directly editable here to preserve history
+        # Handle supplier update
+        supplier_id = request.form.get('supplier_id')
+
+        if supplier_id:
+            # Check if link exists
+            existing_link = RawMaterialSupplier.query.filter_by(
+                raw_material_id=material.id,
+                supplier_id=int(supplier_id)
+            ).first()
+
+            if existing_link:
+                # Update existing link to be primary
+                # First remove primary from all other links
+                RawMaterialSupplier.query.filter_by(
+                    raw_material_id=material.id,
+                    is_primary=True
+                ).update({'is_primary': False})
+                # Set this one as primary
+                existing_link.is_primary = True
+                existing_link.cost_per_unit = material.cost_per_unit
+            else:
+                # Remove old primary links and create new one
+                RawMaterialSupplier.query.filter_by(
+                    raw_material_id=material.id,
+                    is_primary=True
+                ).update({'is_primary': False})
+
+                new_link = RawMaterialSupplier(
+                    raw_material_id=material.id,
+                    supplier_id=int(supplier_id),
+                    cost_per_unit=material.cost_per_unit,
+                    is_primary=True
+                )
+                db.session.add(new_link)
 
         db.session.commit()
         return redirect(url_for('raw_materials.raw_materials'))
 
+    # GET request - prepare data
     categories = Category.query.filter_by(type='raw_material').all()
-    return render_template('add_or_edit_raw_material.html', material=material, categories=categories, units=units_list)
+    suppliers = Supplier.query.filter_by(is_active=True).all()
+
+    # Get primary supplier for material
+    primary_link = RawMaterialSupplier.query.filter_by(
+        raw_material_id=material.id,
+        is_primary=True
+    ).first()
+
+    if primary_link:
+        material.primary_supplier = primary_link.supplier
+    else:
+        material.primary_supplier = None
+
+    return render_template('add_or_edit_raw_material.html',
+                         material=material,
+                         categories=categories,
+                         suppliers=suppliers,
+                         units=units_list)
 
 @raw_materials_blueprint.route('/raw_materials/delete/<int:material_id>', methods=['POST'])
 def delete_raw_material(material_id):

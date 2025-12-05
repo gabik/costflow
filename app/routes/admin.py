@@ -632,4 +632,76 @@ def migrate_unified_cleanup():
             'status': 'error',
             'error': str(e),
             'message': 'Migration failed. Please check server logs.'
+        }), 500@admin_blueprint.route('/admin/migrate/set-default-supplier', methods=['GET', 'POST'])
+def migrate_set_default_supplier():
+    """Set supplier ID=1 as default for all existing materials without suppliers"""
+    if request.method == 'GET':
+        return render_template('admin_migration.html',
+                             migration_type='set-default-supplier',
+                             title='Set Default Supplier',
+                             description='Links all materials without suppliers to default supplier (ID=1).')
+
+    try:
+        messages = []
+
+        # Ensure supplier with ID=1 exists
+        supplier_1 = Supplier.query.get(1)
+        if not supplier_1:
+            # Create it if it doesn't exist
+            # We need to explicitly set the ID
+            # For PostgreSQL, we need to handle sequences
+            with db.engine.connect() as conn:
+                # Check if we're using PostgreSQL
+                if 'postgresql' in str(db.engine.url).lower():
+                    # For PostgreSQL, temporarily disable the sequence
+                    conn.execute(text("INSERT INTO supplier (id, name, contact_person, phone, email, address, is_active) "
+                                    "VALUES (1, 'ספק כללי', 'לא מוגדר', '', '', '', true) "
+                                    "ON CONFLICT (id) DO NOTHING"))
+                    # Reset sequence to max ID
+                    conn.execute(text("SELECT setval('supplier_id_seq', (SELECT COALESCE(MAX(id), 1) FROM supplier))"))
+                else:
+                    # For SQLite
+                    conn.execute(text("INSERT OR IGNORE INTO supplier (id, name, contact_person, phone, email, address, is_active) "
+                                    "VALUES (1, 'ספק כללי', 'לא מוגדר', '', '', '', 1)"))
+                conn.commit()
+
+            messages.append("✓ Created default supplier with ID=1")
+
+        # Find all materials without supplier links
+        all_materials = RawMaterial.query.all()
+        linked_count = 0
+
+        for material in all_materials:
+            # Check if material has any supplier links
+            existing_links = RawMaterialSupplier.query.filter_by(
+                raw_material_id=material.id
+            ).first()
+
+            if not existing_links:
+                # Create link to supplier ID=1
+                new_link = RawMaterialSupplier(
+                    raw_material_id=material.id,
+                    supplier_id=1,
+                    cost_per_unit=material.cost_per_unit,
+                    is_primary=True
+                )
+                db.session.add(new_link)
+                linked_count += 1
+
+        db.session.commit()
+        messages.append(f"✓ Linked {linked_count} materials to default supplier (ID=1)")
+
+        log_audit("MIGRATE", "System",
+                 details=f"Set default supplier: {', '.join(messages)}")
+
+        return jsonify({
+            'status': 'success',
+            'messages': messages
+        }), 200
+
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'message': 'Migration failed.'
         }), 500

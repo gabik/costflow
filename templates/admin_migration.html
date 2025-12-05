@@ -77,6 +77,10 @@
                     {% elif migration_type == 'add-unit-field' %}
                         <li>Add unit field to product table</li>
                         <li>Set default unit 'kg' for all existing products</li>
+                    {% elif migration_type == 'set-default-supplier' %}
+                        <li>Ensure default supplier exists with ID=1</li>
+                        <li>Link all materials without suppliers to supplier ID=1</li>
+                        <li>Set supplier ID=1 as primary for these materials</li>
                     {% else %}
                         <li>Execute database migration</li>
                     {% endif %}
