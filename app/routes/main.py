@@ -343,39 +343,70 @@ def get_product_recipe(product_id):
                 supplier_links = sorted(material.supplier_links,
                                        key=lambda x: (not x.is_primary, x.supplier.name))
 
+                # First pass: Consume from available stock only
                 for link in supplier_links:
                     supplier_stock = calculate_supplier_stock(material.id, link.supplier_id)
 
-                    # Calculate how much to consume from this supplier
-                    if link.is_primary or remaining_to_consume > 0:
-                        if link.is_primary and remaining_to_consume > 0:
-                            # Primary takes what it can, or goes negative if needed
-                            amount_to_consume = min(supplier_stock, remaining_to_consume) if supplier_stock > 0 else remaining_to_consume
-                            remaining_after = supplier_stock - amount_to_consume
-                        elif remaining_to_consume > 0 and supplier_stock > 0:
-                            # Secondary suppliers only if primary insufficient
-                            amount_to_consume = min(supplier_stock, remaining_to_consume)
-                            remaining_after = supplier_stock - amount_to_consume
-                        else:
-                            amount_to_consume = 0
-                            remaining_after = supplier_stock
+                    if remaining_to_consume > 0 and supplier_stock > 0:
+                        # Take what we can from this supplier's available stock
+                        amount_to_consume = min(supplier_stock, remaining_to_consume)
+                        remaining_to_consume -= amount_to_consume
 
-                        # Only include if this supplier is being used or is primary
-                        if amount_to_consume > 0 or link.is_primary:
-                            consumption_breakdown.append({
-                                'supplier_id': link.supplier_id,
-                                'supplier_name': link.supplier.name,
-                                'is_primary': link.is_primary,
-                                'stock_available': supplier_stock,
-                                'amount_to_consume': amount_to_consume,
-                                'remaining_after': remaining_after,
-                                'cost_per_unit': link.cost_per_unit,
-                                'total_cost': amount_to_consume * link.cost_per_unit,
-                                'is_deficit': remaining_after < 0
+                        consumption_breakdown.append({
+                            'supplier_id': link.supplier_id,
+                            'supplier_name': link.supplier.name,
+                            'is_primary': link.is_primary,
+                            'stock_available': supplier_stock,
+                            'amount_to_consume': amount_to_consume,
+                            'remaining_after': supplier_stock - amount_to_consume,
+                            'cost_per_unit': link.cost_per_unit,
+                            'total_cost': amount_to_consume * link.cost_per_unit,
+                            'is_deficit': False
+                        })
+                    elif link.is_primary and supplier_stock == 0 and remaining_to_consume == needed_quantity:
+                        # Primary has no stock and nothing consumed yet - include for display
+                        consumption_breakdown.append({
+                            'supplier_id': link.supplier_id,
+                            'supplier_name': link.supplier.name,
+                            'is_primary': True,
+                            'stock_available': 0,
+                            'amount_to_consume': 0,
+                            'remaining_after': 0,
+                            'cost_per_unit': link.cost_per_unit,
+                            'total_cost': 0,
+                            'is_deficit': False
+                        })
+
+                # Second pass: If still need more, assign deficit to primary
+                if remaining_to_consume > 0:
+                    # Find primary supplier in breakdown or add it
+                    primary_found = False
+                    for item in consumption_breakdown:
+                        if item['is_primary']:
+                            # Adjust primary to take the deficit
+                            item['amount_to_consume'] += remaining_to_consume
+                            item['remaining_after'] -= remaining_to_consume
+                            item['total_cost'] = item['amount_to_consume'] * item['cost_per_unit']
+                            item['is_deficit'] = item['remaining_after'] < 0
+                            primary_found = True
+                            break
+
+                    if not primary_found:
+                        # Primary wasn't in the list (had 0 stock), add it with deficit
+                        primary_link = next((l for l in supplier_links if l.is_primary), None)
+                        if primary_link:
+                            primary_stock = calculate_supplier_stock(material.id, primary_link.supplier_id)
+                            consumption_breakdown.insert(0, {
+                                'supplier_id': primary_link.supplier_id,
+                                'supplier_name': primary_link.supplier.name,
+                                'is_primary': True,
+                                'stock_available': primary_stock,
+                                'amount_to_consume': remaining_to_consume,
+                                'remaining_after': primary_stock - remaining_to_consume,
+                                'cost_per_unit': primary_link.cost_per_unit,
+                                'total_cost': remaining_to_consume * primary_link.cost_per_unit,
+                                'is_deficit': True
                             })
-
-                            if amount_to_consume > 0:
-                                remaining_to_consume -= amount_to_consume
 
                 # Determine if we should show multiple rows
                 show_multiple_rows = len([c for c in consumption_breakdown if c['amount_to_consume'] > 0]) > 1
