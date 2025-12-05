@@ -90,7 +90,6 @@
                 <td>
                     {% if material.primary_supplier %}
                         <div class="d-flex align-items-center">
-                            <i class="bi bi-star-fill text-warning me-1" title="ספק ראשי"></i>
                             <span class="text-primary">{{ material.primary_supplier.name }}</span>
                             {% if material.supplier_count > 1 %}
                                 <span class="badge bg-info text-white ms-2">+{{ material.supplier_count - 1 }}</span>
@@ -119,8 +118,7 @@
                                 {% for item in material.stock_breakdown %}
                                     <div class='d-flex justify-content-between mb-1'>
                                         <span>
-                                            {% if item.is_primary %}<i class='bi bi-star-fill text-warning me-1'></i>{% endif %}
-                                            {{ item.supplier_name }}:
+                                            {{ item.supplier_name }}{% if item.is_primary %} (ראשי){% endif %}:
                                         </span>
                                         <span class='badge bg-{{ 'success' if item.stock > 0 else 'secondary' }} ms-2'>{{ '%.2f'|format(item.stock) }} {{ material.unit }}</span>
                                     </div>
@@ -298,7 +296,7 @@
                             const option = document.createElement('option');
                             option.value = supplier.supplier_id;
                             option.text = supplier.supplier_name +
-                                         (supplier.is_primary ? ' ⭐ (ראשי)' : '') +
+                                         (supplier.is_primary ? ' (ראשי)' : '') +
                                          ' - מלאי: ' + supplier.current_stock.toFixed(2);
                             if (supplier.is_primary) option.selected = true;
                             select.appendChild(option);
@@ -345,7 +343,7 @@
                             const option = document.createElement('option');
                             option.value = supplier.supplier_id;
                             option.text = supplier.supplier_name +
-                                         (supplier.is_primary ? ' ⭐ (ראשי)' : '') +
+                                         (supplier.is_primary ? ' (ראשי)' : '') +
                                          ' - מלאי נוכחי: ' + supplier.current_stock.toFixed(2);
                             if (supplier.is_primary) option.selected = true;
                             select.appendChild(option);
