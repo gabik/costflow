@@ -12,6 +12,7 @@ from .raw_materials import calculate_raw_material_current_stock
 
 main_blueprint = Blueprint('main', __name__)
 
+
 @main_blueprint.route('/images/<path:filename>')
 def serve_image(filename):
     """Serve product images from the persistent /images volume."""
@@ -32,11 +33,6 @@ def serve_image(filename):
         abort(404)
 
     return send_from_directory(images_dir, filename)
-
-
-
-
-
 
 
 # Homepage - Weekly Dashboard
@@ -250,14 +246,6 @@ def index():
                            total_stock_variance=total_stock_variance,
                            stock_audit_count=stock_audit_count,
                            currency_symbol='₪')
-
-
-
-
-
-
-
-
 
 
 # Weekly Report

@@ -3,7 +3,7 @@ import io
 from datetime import datetime
 from flask import Blueprint, request, send_file, redirect, url_for, render_template, jsonify
 from sqlalchemy import text
-from ..models import db, Category, RawMaterial, Packaging, Labor, Product, ProductComponent, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, AuditLog
+from ..models import db, Category, RawMaterial, Packaging, Labor, Product, ProductComponent, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, AuditLog, Supplier, RawMaterialSupplier
 from .utils import log_audit
 
 admin_blueprint = Blueprint('admin', __name__)
@@ -632,7 +632,9 @@ def migrate_unified_cleanup():
             'status': 'error',
             'error': str(e),
             'message': 'Migration failed. Please check server logs.'
-        }), 500@admin_blueprint.route('/admin/migrate/set-default-supplier', methods=['GET', 'POST'])
+        }), 500
+
+@admin_blueprint.route('/admin/migrate/set-default-supplier', methods=['GET', 'POST'])
 def migrate_set_default_supplier():
     """Set supplier ID=1 as default for all existing materials without suppliers"""
     if request.method == 'GET':
