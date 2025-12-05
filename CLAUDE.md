@@ -69,6 +69,13 @@ The application follows Flask's application factory pattern with modular bluepri
 - **WeeklyLaborCost/WeeklyProductSales**: Weekly tracking and reporting
 - **StockAudit**: Physical count variance tracking
 
+### Key Relationships
+- Product → ProductComponent → {RawMaterial, Product(as premake), Packaging}
+- RawMaterial → RawMaterialSupplier → Supplier (many-to-many with pricing)
+- Product/RawMaterial → StockLog (tracks inventory changes per supplier)
+- Product → ProductionLog (tracks production with actual costs)
+- WeeklyLaborCost → {WeeklyProductSales, WeeklyLaborEntry}
+
 ## Key Features & Routes
 
 Main functional areas:
