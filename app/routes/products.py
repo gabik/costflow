@@ -182,10 +182,35 @@ def add_product():
         return redirect(url_for('products.products'))
 
     # For GET requests, load the data required for the form
-    all_raw_materials = [m.to_dict() for m in RawMaterial.query.all()]
-    categories = Category.query.filter_by(type='raw_material').all() 
+    # Enhanced material data using primary supplier price
+    all_raw_materials = []
+    for material in RawMaterial.query.all():
+        material_dict = material.to_dict()
+
+        # Find primary supplier's price
+        primary_price = None
+        primary_supplier_name = None
+        for link in material.supplier_links:
+            if link.is_primary:
+                primary_price = link.cost_per_unit
+                primary_supplier_name = link.supplier.name
+                break
+
+        # If no primary supplier, fall back to average (for backward compatibility)
+        if primary_price is None:
+            primary_price = material.cost_per_unit
+            primary_supplier_name = "ממוצע"
+
+        # Override the cost_per_unit with primary supplier's price
+        material_dict['cost_per_unit'] = primary_price
+        material_dict['display_price'] = primary_price
+        material_dict['price_source'] = primary_supplier_name
+
+        all_raw_materials.append(material_dict)
+
+    categories = Category.query.filter_by(type='raw_material').all()
     product_categories = Category.query.filter_by(type='product').all()
-    
+
     all_packaging = [p.to_dict() for p in Packaging.query.all()]
     all_labor = [labor_item.to_dict() for labor_item in Labor.query.all()]
 
@@ -493,7 +518,32 @@ def edit_product(product_id):
         return redirect(url_for('products.products'))
 
     # Prepopulate fields for editing
-    all_raw_materials = [m.to_dict() for m in RawMaterial.query.all()]
+    # Enhanced material data using primary supplier price
+    all_raw_materials = []
+    for material in RawMaterial.query.all():
+        material_dict = material.to_dict()
+
+        # Find primary supplier's price
+        primary_price = None
+        primary_supplier_name = None
+        for link in material.supplier_links:
+            if link.is_primary:
+                primary_price = link.cost_per_unit
+                primary_supplier_name = link.supplier.name
+                break
+
+        # If no primary supplier, fall back to average (for backward compatibility)
+        if primary_price is None:
+            primary_price = material.cost_per_unit
+            primary_supplier_name = "ממוצע"
+
+        # Override the cost_per_unit with primary supplier's price
+        material_dict['cost_per_unit'] = primary_price
+        material_dict['display_price'] = primary_price
+        material_dict['price_source'] = primary_supplier_name
+
+        all_raw_materials.append(material_dict)
+
     all_packaging = [p.to_dict() for p in Packaging.query.all()]
     all_labor = [labor_item.to_dict() for labor_item in Labor.query.all()]
 

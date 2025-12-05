@@ -47,17 +47,17 @@
                             </td>
                             <td class="fw-medium">{{ product.name }}</td>
                             <td>
-                                <span class="badge bg-secondary text-white produced-badge">יוצר: {{ produced }}</span>
-                                <span class="badge bg-info text-dark remaining-badge ms-1">נותר: {{ produced - sales.sold - sales.waste }}</span>
+                                <span class="badge bg-secondary text-white produced-badge">יוצר: {{ produced | int }}</span>
+                                <span class="badge bg-info text-dark remaining-badge ms-1">נותר: {{ (produced - sales.sold - sales.waste) | int }}</span>
                             </td>
                             <td class="text-center fw-bold text-success">
-                                {{ sales.sold }}
+                                {{ sales.sold | int }}
                             </td>
                             <td>
                                 <input type="number" name="sales_{{ product.id }}" class="form-control sales-input" min="0" step="1" placeholder="0">
                             </td>
                             <td class="text-center fw-bold text-danger">
-                                {{ sales.waste }}
+                                {{ sales.waste | int }}
                             </td>
                             <td>
                                 <input type="number" name="waste_{{ product.id }}" class="form-control waste-input" min="0" step="1" placeholder="0">

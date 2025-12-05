@@ -176,8 +176,8 @@
                     <tr>
                         <td class="fw-medium">{{ cat_name }}</td>
                         <td>{{ cat_data.products|length }}</td>
-                        <td>{{ cat_data.quantity_sold }}</td>
-                        <td>{{ cat_data.quantity_waste }}</td>
+                        <td>{{ cat_data.quantity_sold|int }}</td>
+                        <td>{{ cat_data.quantity_waste|int }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(cat_data.revenue) }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(cat_data.material_cost) }}</td>
                         <td class="{% if cat_data.revenue - cat_data.material_cost > 0 %}text-success{% else %}text-danger{% endif %}">
@@ -190,8 +190,8 @@
                     <tr>
                         <th>סה"כ</th>
                         <th>-</th>
-                        <th>{{ category_summaries.values()|sum(attribute='quantity_sold') }}</th>
-                        <th>{{ category_summaries.values()|sum(attribute='quantity_waste') }}</th>
+                        <th>{{ category_summaries.values()|sum(attribute='quantity_sold')|int }}</th>
+                        <th>{{ category_summaries.values()|sum(attribute='quantity_waste')|int }}</th>
                         <th>{{ currency_symbol }}{{ "%.2f"|format(total_revenue) }}</th>
                         <th>{{ currency_symbol }}{{ "%.2f"|format(total_material_costs) }}</th>
                         <th>{{ currency_symbol }}{{ "%.2f"|format(total_revenue - total_material_costs) }}</th>
@@ -230,8 +230,8 @@
                         <td class="fw-medium">{{ sale.name }}</td>
                         <td>{{ sale.category_name or 'ללא קטגוריה' }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(sale.selling_price_per_unit) }}</td>
-                        <td>{{ sale.quantity_sold }}</td>
-                        <td>{{ sale.quantity_waste }}</td>
+                        <td>{{ sale.quantity_sold|int }}</td>
+                        <td>{{ sale.quantity_waste|int }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(sale.revenue) }}</td>
                     </tr>
                     {% endfor %}

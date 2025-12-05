@@ -214,8 +214,12 @@
                 <div class="col-md-5">
                     <select name="raw_material[]" class="form-select select2" required onchange="handleMaterialChange(this)">
                         {% for material_option in all_raw_materials %}
-                            <option value="{{ material_option.id }}" data-unit="{{ material_option.unit }}" {% if component.component_id == material_option.id %}selected{% endif %}>
-                                {{ material_option.name }}
+                            <option value="{{ material_option.id }}"
+                                    data-unit="{{ material_option.unit }}"
+                                    data-cost="{{ material_option.display_price }}"
+                                    data-supplier="{{ material_option.price_source }}"
+                                    {% if component.component_id == material_option.id %}selected{% endif %}>
+                                {{ material_option.name }} - ₪{{ "%.2f"|format(material_option.display_price) }} ({{ material_option.price_source }})
                             </option>
                         {% endfor %}
                     </select>
@@ -240,8 +244,11 @@
                     <select name="raw_material[]" class="form-select select2" required onchange="handleMaterialChange(this)">
                          <option value="" disabled selected>בחר חומר גלם...</option>
                         {% for material_option in all_raw_materials %}
-                            <option value="{{ material_option.id }}" data-unit="{{ material_option.unit }}">
-                                {{ material_option.name }}
+                            <option value="{{ material_option.id }}"
+                                    data-unit="{{ material_option.unit }}"
+                                    data-cost="{{ material_option.display_price }}"
+                                    data-supplier="{{ material_option.price_source }}">
+                                {{ material_option.name }} - ₪{{ "%.2f"|format(material_option.display_price) }} ({{ material_option.price_source }})
                             </option>
                         {% endfor %}
                     </select>
@@ -322,6 +329,26 @@
         <button type="button" class="btn btn-outline-primary mb-4" onclick="addPackagingRow()">
             <i class="bi bi-plus-lg me-2"></i>הוסף אריזה
         </button>
+
+        <!-- Cost Summary Section -->
+        <div class="card bg-light mt-4 mb-4">
+            <div class="card-body">
+                <h5 class="card-title">סיכום עלויות (מחירי ספק ראשי)</h5>
+                <div id="cost-summary">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>עלות חומרי גלם למתכון:</strong> <span id="total-materials-cost">₪0.00</span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>עלות ליחידה:</strong> <span id="cost-per-unit">₪0.00</span>
+                        </div>
+                    </div>
+                    <small class="text-muted">
+                        * העלויות מחושבות על בסיס מחירי הספק הראשי של כל חומר גלם, שזה המחיר שישמש בייצור בפועל.
+                    </small>
+                </div>
+            </div>
+        </div>
 
         <div class="d-grid gap-2 mt-4">
             <button type="submit" class="btn btn-primary btn-lg">
@@ -478,6 +505,10 @@
 <script>
     function removeRow(button) {
         button.closest('.row').remove();
+        // Trigger cost recalculation
+        if (typeof calculateTotalCost === 'function') {
+            calculateTotalCost();
+        }
     }
 
     let rawMaterialRowIndex = 0;
@@ -492,7 +523,15 @@
         let optionsHtml = '<option value="" disabled selected>בחר חומר גלם...</option>';
         allRawMaterials.forEach(material => {
             const selected = materialId == material.id ? 'selected' : '';
-            optionsHtml += `<option value="${material.id}" data-unit="${material.unit}" ${selected}>${material.name}</option>`;
+            const displayPrice = material.display_price || material.cost_per_unit || 0;
+            const priceSource = material.price_source || 'ממוצע';
+            optionsHtml += `<option value="${material.id}"
+                                   data-unit="${material.unit}"
+                                   data-cost="${displayPrice}"
+                                   data-supplier="${priceSource}"
+                                   ${selected}>
+                           ${material.name} - ₪${displayPrice.toFixed(2)} (${priceSource})
+                           </option>`;
         });
 
         const rowHtml = `
@@ -631,11 +670,16 @@
     function handleMaterialChange(selectElement) {
         const row = selectElement.closest('.row');
         const unitSelect = row.querySelector('.unit-select');
-        
+
         const selectedOption = selectElement.options[selectElement.selectedIndex];
         const baseUnit = selectedOption.getAttribute('data-unit');
-        
+
         updateUnitOptions(unitSelect, baseUnit);
+
+        // Trigger cost recalculation
+        if (typeof calculateTotalCost === 'function') {
+            calculateTotalCost();
+        }
     }
 
     function handlePremakeChange(selectElement) {
@@ -792,6 +836,51 @@
                 }
             });
         }
+
+        // Cost calculation function
+        function calculateTotalCost() {
+            let totalCost = 0;
+            const productsPerRecipe = parseInt(document.getElementById('products_per_recipe').value) || 1;
+
+            // Calculate raw materials cost
+            document.querySelectorAll('.raw-material-row').forEach(row => {
+                const select = row.querySelector('select[name="raw_material[]"]');
+                const quantityInput = row.querySelector('input[name="raw_material_quantity[]"]');
+
+                if (select && select.value && quantityInput && quantityInput.value) {
+                    const selectedOption = select.options[select.selectedIndex];
+                    const cost = parseFloat(selectedOption.dataset.cost) || 0;
+                    const quantity = parseFloat(quantityInput.value) || 0;
+                    totalCost += cost * quantity;
+                }
+            });
+
+            // Update display
+            const totalMaterialsCostEl = document.getElementById('total-materials-cost');
+            const costPerUnitEl = document.getElementById('cost-per-unit');
+
+            if (totalMaterialsCostEl) {
+                totalMaterialsCostEl.textContent = `₪${totalCost.toFixed(2)}`;
+            }
+            if (costPerUnitEl) {
+                costPerUnitEl.textContent = `₪${(totalCost / productsPerRecipe).toFixed(2)}`;
+            }
+        }
+
+        // Attach to input change events
+        document.addEventListener('input', function(e) {
+            if (e.target.name === 'raw_material_quantity[]' || e.target.name === 'products_per_recipe') {
+                calculateTotalCost();
+            }
+        });
+
+        // Also recalculate when material selection changes
+        $(document.body).on('select2:select', 'select[name="raw_material[]"]', function() {
+            calculateTotalCost();
+        });
+
+        // Initial calculation on page load
+        calculateTotalCost();
     });
 </script>
 {% endblock %}

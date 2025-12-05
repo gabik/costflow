@@ -353,8 +353,8 @@
                     <tr>
                         <td class="fw-medium">{{ cat_name }}</td>
                         <td>{{ cat_data.product_count }}</td>
-                        <td>{{ cat_data.quantity_sold }}</td>
-                        <td>{{ cat_data.quantity_waste }}</td>
+                        <td>{{ cat_data.quantity_sold|int }}</td>
+                        <td>{{ cat_data.quantity_waste|int }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(cat_data.revenue) }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(cat_data.material_cost) }}</td>
                         <td class="{% if cat_data.revenue - cat_data.material_cost > 0 %}text-success{% else %}text-danger{% endif %}">
@@ -397,7 +397,7 @@
                         <td>{{ loop.index }}</td>
                         <td class="fw-medium">{{ product.name }}</td>
                         <td>{{ product.category_name }}</td>
-                        <td>{{ product.quantity_sold }}</td>
+                        <td>{{ product.quantity_sold|int }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(product.revenue) }}</td>
                         <td>{{ "%.1f"|format((product.revenue / total_revenue * 100) if total_revenue > 0 else 0) }}%</td>
                     </tr>
