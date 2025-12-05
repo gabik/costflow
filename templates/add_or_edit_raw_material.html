@@ -12,7 +12,7 @@
     <div class="col-md-8 col-lg-6">
         <div class="card shadow-sm">
             <div class="card-body p-4">
-                <form method="POST">
+                <form method="POST" onsubmit="return checkRemovedSuppliers()">
                     <!-- Name -->
                     <div class="mb-3">
                         <label for="name" class="form-label">שם חומר הגלם</label>
@@ -156,6 +156,65 @@
     </div>
 </div>
 
+<!-- Stock Transfer Modal -->
+<div class="modal fade" id="stockTransferModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">טיפול במלאי קיים</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="stockTransferMessage"></p>
+
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="stock_handling_choice"
+                               id="transferStock" value="transfer" checked>
+                        <label class="form-check-label" for="transferStock">
+                            העברת המלאי לספק אחר
+                        </label>
+                    </div>
+
+                    <div class="mt-2 ms-4" id="transferSupplierSelect" style="display: block;">
+                        <select id="transfer_to_supplier_select" class="form-select">
+                            <!-- Will be populated with remaining suppliers -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="stock_handling_choice"
+                               id="wasteStock" value="waste">
+                        <label class="form-check-label" for="wasteStock">
+                            סימון המלאי כפחת
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="stock_handling_choice"
+                               id="keepStock" value="keep">
+                        <label class="form-check-label" for="keepStock">
+                            השאר את המלאי כמו שהוא
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="confirmStockHandling()">אישור</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden fields for stock handling -->
+<input type="hidden" id="stock_handling" name="stock_handling" value="keep">
+<input type="hidden" id="transfer_to_supplier" name="transfer_to_supplier" value="">
+
 <!-- Template for supplier row -->
 <template id="supplierRowTemplate">
     <div class="supplier-row border rounded p-2 mb-2">
@@ -192,6 +251,18 @@
 {% block scripts %}
 <script>
     let supplierRowCounter = 0;
+    let originalSuppliers = {};
+    let removedSuppliersWithStock = [];
+
+    // Store original suppliers with stock on page load
+    {% if material and material.supplier_links %}
+        {% for link in material.supplier_links %}
+            originalSuppliers[{{ link.supplier_id }}] = {
+                name: "{{ link.supplier.name }}",
+                stock: {{ link.current_stock if link.current_stock is defined else 0 }}
+            };
+        {% endfor %}
+    {% endif %}
 
     function addSupplierRow(supplierId = '', cost = '', isPrimary = false, currentStock = null, isExisting = false) {
         const template = document.getElementById('supplierRowTemplate');
@@ -273,6 +344,102 @@
             const row = radio.closest('.supplier-row');
             row.classList.add('border-primary', 'border-2', 'bg-light');
         }
+    }
+
+    // Check for removed suppliers with stock before form submission
+    function checkRemovedSuppliers() {
+        // Only check if we're editing an existing material
+        {% if not material %}
+        return true; // Allow form submission for new materials
+        {% endif %}
+
+        const currentSuppliers = new Set();
+        const supplierSelects = document.querySelectorAll('.supplier-select');
+
+        // Get all currently selected suppliers
+        supplierSelects.forEach(select => {
+            if (select.value) {
+                currentSuppliers.add(parseInt(select.value));
+            }
+        });
+
+        // Find removed suppliers with stock
+        removedSuppliersWithStock = [];
+        for (const [supplierId, data] of Object.entries(originalSuppliers)) {
+            const id = parseInt(supplierId);
+            if (!currentSuppliers.has(id) && data.stock > 0) {
+                removedSuppliersWithStock.push({
+                    id: id,
+                    name: data.name,
+                    stock: data.stock
+                });
+            }
+        }
+
+        if (removedSuppliersWithStock.length > 0) {
+            // Show modal for stock handling
+            showStockTransferModal();
+            return false; // Prevent form submission
+        }
+
+        return true; // Allow form submission
+    }
+
+    function showStockTransferModal() {
+        const modal = new bootstrap.Modal(document.getElementById('stockTransferModal'));
+
+        // Build message
+        let message = 'הספקים הבאים עם מלאי קיים הוסרו:<br><ul>';
+        removedSuppliersWithStock.forEach(supplier => {
+            message += `<li>${supplier.name}: ${supplier.stock} {{ material.unit if material else "" }}</li>`;
+        });
+        message += '</ul>מה לעשות עם המלאי?';
+
+        document.getElementById('stockTransferMessage').innerHTML = message;
+
+        // Populate transfer supplier dropdown with remaining suppliers
+        const transferSelect = document.getElementById('transfer_to_supplier_select');
+        transferSelect.innerHTML = '';
+
+        const supplierSelects = document.querySelectorAll('.supplier-select');
+        const addedSuppliers = new Set();
+
+        supplierSelects.forEach(select => {
+            if (select.value && !addedSuppliers.has(select.value)) {
+                const option = document.createElement('option');
+                option.value = select.value;
+                option.text = select.options[select.selectedIndex].text;
+                transferSelect.appendChild(option);
+                addedSuppliers.add(select.value);
+            }
+        });
+
+        // Show/hide transfer supplier select based on radio selection
+        document.querySelectorAll('input[name="stock_handling_choice"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.getElementById('transferSupplierSelect').style.display =
+                    this.value === 'transfer' ? 'block' : 'none';
+            });
+        });
+
+        modal.show();
+    }
+
+    function confirmStockHandling() {
+        const choice = document.querySelector('input[name="stock_handling_choice"]:checked').value;
+        document.getElementById('stock_handling').value = choice;
+
+        if (choice === 'transfer') {
+            const transferTo = document.getElementById('transfer_to_supplier_select').value;
+            document.getElementById('transfer_to_supplier').value = transferTo;
+        }
+
+        // Close modal and submit form
+        const modal = bootstrap.Modal.getInstance(document.getElementById('stockTransferModal'));
+        modal.hide();
+
+        // Submit the form
+        document.querySelector('form').submit();
     }
 
     document.addEventListener('DOMContentLoaded', function() {

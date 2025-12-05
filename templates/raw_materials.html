@@ -1,5 +1,40 @@
 {% extends "base.html" %}
 {% block title %}{{ _('Raw Materials') }}{% endblock %}
+
+{% block styles %}
+<style>
+    /* Custom styles for stock breakdown popover */
+    .stock-breakdown-popover {
+        max-width: 350px;
+    }
+
+    .stock-breakdown-popover .popover-header {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .stock-breakdown-popover .popover-body {
+        padding: 10px;
+    }
+
+    .stock-popover:hover {
+        opacity: 0.8;
+        text-decoration: underline !important;
+    }
+
+    .stock-breakdown > div {
+        padding: 5px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .stock-breakdown > div:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row mb-4">
     <div class="col-12 d-flex justify-content-between align-items-center">
@@ -70,8 +105,36 @@
                 </td>
                 <td>{{ material.unit }}</td>
                 <td>{{ currency_symbol }}{{ "%.2f"|format(material.cost_per_unit) }}</td>
-                <td class="fw-bold {{ 'text-danger' if material.current_stock <= 0 else 'text-success' }}">
-                    {{ "%.2f"|format(material.current_stock) }}
+                <td>
+                    <span class="fw-bold {{ 'text-danger' if material.current_stock <= 0 else 'text-success' }} stock-popover"
+                          role="button"
+                          tabindex="0"
+                          data-bs-toggle="popover"
+                          data-bs-trigger="hover focus click"
+                          data-bs-placement="left"
+                          data-bs-html="true"
+                          data-bs-title="פירוט מלאי לפי ספק"
+                          data-bs-content="{% if material.stock_breakdown %}
+                              <div class='stock-breakdown'>
+                                {% for item in material.stock_breakdown %}
+                                    <div class='d-flex justify-content-between mb-1'>
+                                        <span>
+                                            {% if item.is_primary %}<i class='bi bi-star-fill text-warning me-1'></i>{% endif %}
+                                            {{ item.supplier_name }}:
+                                        </span>
+                                        <span class='badge bg-{{ 'success' if item.stock > 0 else 'secondary' }} ms-2'>{{ '%.2f'|format(item.stock) }} {{ material.unit }}</span>
+                                    </div>
+                                {% endfor %}
+                                {% if material.stock_breakdown|length == 0 %}
+                                    <div class='text-muted'>אין ספקים מוגדרים</div>
+                                {% endif %}
+                              </div>
+                          {% else %}
+                              <div class='text-muted'>אין ספקים מוגדרים</div>
+                          {% endif %}"
+                          style="cursor: pointer; text-decoration: underline; text-decoration-style: dotted;">
+                        <i class="bi bi-info-circle-fill text-muted small me-1"></i>{{ "%.2f"|format(material.current_stock) }}
+                    </span>
                 </td>
                 <td class="text-end">
                     <div class="btn-group" role="group">
@@ -200,6 +263,15 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Bootstrap popovers for stock breakdown
+        var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+        var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+            return new bootstrap.Popover(popoverTriggerEl, {
+                container: 'body',
+                customClass: 'stock-breakdown-popover'
+            });
+        });
+
         // --- Modal Population ---
         // Populate Add Stock Modal
         var addStockModal = document.getElementById('addStockModal');

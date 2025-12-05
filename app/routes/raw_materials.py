@@ -20,6 +20,22 @@ def raw_materials():
         supplier_links = RawMaterialSupplier.query.filter_by(raw_material_id=material.id).all()
         material.supplier_count = len(supplier_links)
 
+        # Get per-supplier stock breakdown
+        stock_breakdown = []
+        for link in supplier_links:
+            stock = calculate_supplier_stock(material.id, link.supplier_id)
+            if stock > 0 or link.is_primary:  # Include primary even if 0 stock
+                stock_breakdown.append({
+                    'supplier_name': link.supplier.name,
+                    'stock': stock,
+                    'is_primary': link.is_primary,
+                    'cost_per_unit': link.cost_per_unit
+                })
+
+        # Sort by primary first, then by stock amount
+        stock_breakdown.sort(key=lambda x: (-x['is_primary'], -x['stock']))
+        material.stock_breakdown = stock_breakdown
+
         # Get primary supplier or first supplier
         primary_supplier = None
         for link in supplier_links:
@@ -150,8 +166,64 @@ def edit_raw_material(material_id):
         material.category = category
         material.unit = request.form['unit']
 
-        # Handle multiple supplier updates
-        # First, clear existing supplier links
+        # Get existing suppliers before deletion to check for stock
+        existing_suppliers = RawMaterialSupplier.query.filter_by(raw_material_id=material.id).all()
+        existing_supplier_ids = {link.supplier_id for link in existing_suppliers}
+
+        # Get new suppliers from form
+        new_supplier_ids = set()
+        supplier_ids = request.form.getlist('supplier_ids[]')
+        for supplier_id in supplier_ids:
+            if supplier_id:
+                new_supplier_ids.add(int(supplier_id))
+
+        # Find removed suppliers
+        removed_supplier_ids = existing_supplier_ids - new_supplier_ids
+
+        # Handle stock transfer for removed suppliers
+        stock_handling = request.form.get('stock_handling', 'keep')  # 'transfer', 'waste', or 'keep'
+        transfer_to_supplier = request.form.get('transfer_to_supplier')
+
+        for removed_id in removed_supplier_ids:
+            stock = calculate_supplier_stock(material.id, removed_id)
+            if stock > 0:
+                if stock_handling == 'transfer' and transfer_to_supplier:
+                    # Transfer stock to another supplier
+                    # Create a negative log for the removed supplier
+                    negative_log = StockLog(
+                        raw_material_id=material.id,
+                        supplier_id=removed_id,
+                        action_type='add',
+                        quantity=-stock
+                    )
+                    db.session.add(negative_log)
+
+                    # Create a positive log for the target supplier
+                    positive_log = StockLog(
+                        raw_material_id=material.id,
+                        supplier_id=int(transfer_to_supplier),
+                        action_type='add',
+                        quantity=stock
+                    )
+                    db.session.add(positive_log)
+
+                    log_audit("STOCK_TRANSFER", "RawMaterial", material.id,
+                             f"Transferred {stock} {material.unit} from supplier {removed_id} to {transfer_to_supplier}")
+
+                elif stock_handling == 'waste':
+                    # Mark stock as waste
+                    waste_log = StockLog(
+                        raw_material_id=material.id,
+                        supplier_id=removed_id,
+                        action_type='add',
+                        quantity=-stock
+                    )
+                    db.session.add(waste_log)
+
+                    log_audit("STOCK_WASTE", "RawMaterial", material.id,
+                             f"Marked {stock} {material.unit} from supplier {removed_id} as waste")
+
+        # Now clear existing supplier links
         RawMaterialSupplier.query.filter_by(raw_material_id=material.id).delete()
 
         # Get multiple suppliers
