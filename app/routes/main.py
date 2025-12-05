@@ -234,13 +234,35 @@ def index():
             prod_data = product_production.get(product.id, {'total': 0, 'new': 0})
             produced_qty = prod_data['total']
             produced_qty_new = prod_data['new']
-            
+
             sales_data = product_sales.get(product.id, {'sold': 0, 'waste': 0})
             sold_qty = sales_data['sold']
             waste_qty = sales_data['waste']
-            
-            # Calculate Prime Cost (Materials + Packaging + Premakes)
-            prime_cost_per_unit = calculate_prime_cost(product)
+
+            # Calculate actual cost per unit from production logs
+            # Use weighted average of actual production costs if available
+            actual_cost_per_unit = None
+            if product.id in product_production and produced_qty > 0:
+                # Get production logs for this product in this week
+                product_logs_for_week = [log for log in logs if log.product_id == product.id]
+                total_actual_cost = 0
+                total_actual_units = 0
+
+                for log in product_logs_for_week:
+                    if log.total_cost is not None and log.cost_per_unit is not None:
+                        # Use actual cost from production log
+                        units = log.quantity_produced * product.products_per_recipe
+                        total_actual_cost += log.total_cost
+                        total_actual_units += units
+
+                if total_actual_units > 0:
+                    actual_cost_per_unit = total_actual_cost / total_actual_units
+
+            # Fall back to calculated prime cost if no actual cost available
+            if actual_cost_per_unit is None:
+                prime_cost_per_unit = calculate_prime_cost(product)
+            else:
+                prime_cost_per_unit = actual_cost_per_unit
 
             # Financials
             revenue = sold_qty * product.selling_price_per_unit

@@ -94,7 +94,7 @@ def weekly_costs():
                                     usage = component.quantity * log.quantity_produced
                                     premake_usage_qty[component.component_id] = premake_usage_qty.get(component.component_id, 0) + usage
 
-                    all_premakes = Premake.query.all()
+                    all_premakes = Product.query.filter_by(is_premake=True).all()
                     for premake in all_premakes:
                         produced = premake_production_qty.get(premake.id, 0)
                         used = premake_usage_qty.get(premake.id, 0)
