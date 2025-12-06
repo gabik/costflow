@@ -487,9 +487,9 @@ def migrate_unlimited_materials():
     from sqlalchemy import text
 
     try:
-        # Add is_unlimited column with default False
+        # Add is_unlimited column with default False (PostgreSQL compatible)
         db.session.execute(text(
-            "ALTER TABLE raw_material ADD COLUMN is_unlimited BOOLEAN DEFAULT 0 NOT NULL"
+            "ALTER TABLE raw_material ADD COLUMN is_unlimited BOOLEAN DEFAULT FALSE NOT NULL"
         ))
         db.session.commit()
         return "Migration completed: is_unlimited field added to raw_material table"

@@ -19,9 +19,11 @@
 
 ### Migration Handling
 - **Local dev has no database** - empty SQLite file only
+- **Production database**: PostgreSQL (use PostgreSQL-compatible SQL syntax)
 - **All migrations must use HTTP endpoints** for remote execution
 - **Migration pattern**: Create endpoint at `/migrate_[feature_name]`, user will confirm when done
 - **Cleanup**: Remove migration endpoints after user confirms completion
+- **Important**: Use `FALSE`/`TRUE` for boolean defaults in PostgreSQL (not 0/1)
 
 ## Project Overview
 
@@ -64,7 +66,8 @@ The application follows Flask's application factory pattern with modular bluepri
 
 - **Product**: Unified model for products/premakes/preproducts (boolean flags)
 - **ProductComponent**: Links products to materials/premakes/packaging
-- **RawMaterial/RawMaterialSupplier**: Multi-supplier support with individual pricing
+- **RawMaterial**: Raw material tracking with `is_unlimited` flag for infinite-stock materials
+- **RawMaterialSupplier**: Multi-supplier support with individual pricing per supplier
 - **StockLog**: Inventory tracking with supplier information
 - **ProductionLog**: Production events with actual cost tracking
 - **WeeklyLaborCost/WeeklyProductSales**: Weekly tracking and reporting
@@ -139,6 +142,12 @@ docker run -p 8080:8080 costflow
 - Supplier-specific stock tracking for raw materials
 - Intelligent deduction strategy: "Primary supplier first, then others" during production
 - Automatic fallback when primary supplier stock depleted
+- **Unlimited Materials**: Materials (like water) can be marked as unlimited with `is_unlimited=True`
+  - Return `float('inf')` for stock calculations
+  - No stock deduction during production
+  - No supplier tracking required
+  - Display "∞" symbol in UI
+  - Cost per unit is 0 (zero contribution to product costs)
 
 ### Production Tracking
 - ProductionLog records production events with timestamps
