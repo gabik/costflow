@@ -226,7 +226,7 @@ function updateProductionDetails() {
     let totalRecipeCost = 0;
 
     currentRecipe.components.forEach(comp => {
-        if (comp.type === 'Raw Material' && comp.consumption_breakdown) {
+        if (comp.type === 'Raw Material' && comp.consumption_breakdown && comp.consumption_breakdown.length > 0) {
             // Use new consumption breakdown for raw materials
             const consumptionRows = comp.consumption_breakdown.filter(c => c.amount_to_consume > 0 || c.is_primary);
 
