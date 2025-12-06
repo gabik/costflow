@@ -278,19 +278,39 @@ function updateProductionDetails() {
                 });
             }
         } else {
-            // Fallback for premakes or old data structure
+            // Fallback for premakes, preproducts, unlimited materials, or old data structure
             const usage = comp.qty_per_batch * batches;
-            const stockAfter = comp.current_stock - usage;
             const cost = usage * comp.cost_per_unit;
             totalRecipeCost += cost;
 
+            // Handle unlimited materials
+            const isUnlimited = comp.is_unlimited || comp.current_stock === null;
+            let currentStockDisplay, stockAfterDisplay;
+            let stockAfter = 0;
+
+            if (isUnlimited) {
+                currentStockDisplay = '<span class="badge bg-primary fs-6">∞</span>';
+                stockAfterDisplay = '<span class="badge bg-primary fs-6">∞</span>';
+            } else {
+                stockAfter = comp.current_stock - usage;
+                currentStockDisplay = `${comp.current_stock.toFixed(2)} ${comp.unit}`;
+                stockAfterDisplay = `${stockAfter.toFixed(2)} ${comp.unit}`;
+            }
+
+            // Check for deficit (not applicable for unlimited materials)
+            const hasDeficit = !isUnlimited && (comp.is_deficit || stockAfter < 0);
+            let nameDisplay = comp.name;
+            if (hasDeficit) {
+                nameDisplay += ' <span class="badge bg-danger ms-1">חוסר</span>';
+            }
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${comp.name}</td>
-                <td>${comp.type === 'Raw Material' ? 'חומר גלם' : 'הכנה'}</td>
-                <td>${comp.current_stock.toFixed(2)} ${comp.unit}</td>
+                <td>${nameDisplay}</td>
+                <td>${comp.type === 'Raw Material' ? 'חומר גלם' : (comp.type === 'Preproduct' ? 'מוצר קדמי' : 'הכנה')}</td>
+                <td>${currentStockDisplay}</td>
                 <td class="fw-bold">${usage.toFixed(2)} ${comp.unit}</td>
-                <td class="${stockAfter < 0 ? 'text-danger fw-bold' : ''}">${stockAfter.toFixed(2)} ${comp.unit}</td>
+                <td class="${!isUnlimited && stockAfter < 0 ? 'text-danger fw-bold' : ''}">${stockAfterDisplay}</td>
                 <td>${comp.cost_per_unit.toFixed(2)} ₪</td>
                 <td>${cost.toFixed(2)} ₪</td>
             `;

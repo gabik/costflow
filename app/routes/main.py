@@ -498,6 +498,7 @@ def get_product_recipe(product_id):
             premake = comp.premake
             if premake:
                 stock = calculate_premake_current_stock(premake.id)
+                needed_quantity = comp.quantity * quantity_produced
 
                 # Calculate cost per unit for premake
                 cost_per_batch = 0
@@ -512,7 +513,30 @@ def get_product_recipe(product_id):
                     'qty_per_batch': comp.quantity,
                     'unit': premake.unit,
                     'current_stock': safe_float(stock),
-                    'cost_per_unit': cost_per_unit
+                    'cost_per_unit': cost_per_unit,
+                    'is_deficit': needed_quantity > stock
+                })
+
+        elif comp.component_type == 'product':
+            # Handle preproducts (products used as components)
+            preproduct = comp.preproduct
+            if preproduct:
+                # Calculate stock using production logs
+                stock = calculate_premake_current_stock(preproduct.id)
+                needed_quantity = comp.quantity * quantity_produced
+
+                # Calculate prime cost for preproduct
+                from .utils import calculate_prime_cost
+                cost_per_unit = calculate_prime_cost(preproduct)
+
+                components_data.append({
+                    'type': 'Preproduct',
+                    'name': preproduct.name,
+                    'qty_per_batch': comp.quantity,
+                    'unit': preproduct.unit or 'piece',
+                    'current_stock': safe_float(stock),
+                    'cost_per_unit': cost_per_unit,
+                    'is_deficit': needed_quantity > stock
                 })
 
     return jsonify({
