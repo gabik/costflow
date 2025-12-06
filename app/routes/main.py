@@ -347,6 +347,13 @@ def stock_audits():
 
 @main_blueprint.route('/api/product_recipe/<int:product_id>')
 def get_product_recipe(product_id):
+    """Helper to convert infinity to None for JSON serialization"""
+    def safe_float(value):
+        import math
+        if math.isinf(value):
+            return None
+        return value
+
     product = Product.query.get_or_404(product_id)
 
     # Get quantity being produced (if provided)
@@ -363,6 +370,23 @@ def get_product_recipe(product_id):
                 # Use total stock across all suppliers
                 stock = calculate_total_material_stock(material.id)
 
+                # Skip consumption breakdown for unlimited materials
+                if material.is_unlimited:
+                    components_data.append({
+                        'type': 'Raw Material',
+                        'name': material.name,
+                        'material_id': material.id,
+                        'qty_per_batch': comp.quantity,
+                        'unit': material.unit,
+                        'current_stock': None,  # null in JSON for unlimited
+                        'cost_per_unit': material.cost_per_unit,
+                        'suppliers': [],
+                        'consumption_breakdown': [],
+                        'show_multiple_rows': False,
+                        'is_unlimited': True
+                    })
+                    continue  # Skip to next component
+
                 # Calculate consumption breakdown per supplier
                 consumption_breakdown = []
                 remaining_to_consume = needed_quantity
@@ -373,21 +397,26 @@ def get_product_recipe(product_id):
                                        key=lambda x: (not x.is_primary, x.supplier.name))
 
                 # First pass: Consume from available stock only
+                import math
                 for link in supplier_links:
                     supplier_stock = calculate_supplier_stock(material.id, link.supplier_id)
 
                     if remaining_to_consume > 0 and supplier_stock > 0:
                         # Take what we can from this supplier's available stock
-                        amount_to_consume = min(supplier_stock, remaining_to_consume)
+                        # Handle infinity case for unlimited materials
+                        if math.isinf(supplier_stock):
+                            amount_to_consume = remaining_to_consume
+                        else:
+                            amount_to_consume = min(supplier_stock, remaining_to_consume)
                         remaining_to_consume -= amount_to_consume
 
                         consumption_breakdown.append({
                             'supplier_id': link.supplier_id,
                             'supplier_name': link.supplier.name,
                             'is_primary': link.is_primary,
-                            'stock_available': supplier_stock,
+                            'stock_available': safe_float(supplier_stock),
                             'amount_to_consume': amount_to_consume,
-                            'remaining_after': supplier_stock - amount_to_consume,
+                            'remaining_after': safe_float(supplier_stock - amount_to_consume),
                             'cost_per_unit': link.cost_per_unit,
                             'total_cost': amount_to_consume * link.cost_per_unit,
                             'is_deficit': False
@@ -429,9 +458,9 @@ def get_product_recipe(product_id):
                                 'supplier_id': primary_link.supplier_id,
                                 'supplier_name': primary_link.supplier.name,
                                 'is_primary': True,
-                                'stock_available': primary_stock,
+                                'stock_available': safe_float(primary_stock),
                                 'amount_to_consume': remaining_to_consume,
-                                'remaining_after': primary_stock - remaining_to_consume,
+                                'remaining_after': safe_float(primary_stock - remaining_to_consume),
                                 'cost_per_unit': primary_link.cost_per_unit,
                                 'total_cost': remaining_to_consume * primary_link.cost_per_unit,
                                 'is_deficit': True
@@ -447,7 +476,7 @@ def get_product_recipe(product_id):
                     if supplier_stock > 0 or link.is_primary:
                         supplier_info.append({
                             'name': link.supplier.name,
-                            'stock': supplier_stock,
+                            'stock': safe_float(supplier_stock),
                             'is_primary': link.is_primary
                         })
 
@@ -457,11 +486,12 @@ def get_product_recipe(product_id):
                     'material_id': material.id,
                     'qty_per_batch': comp.quantity,
                     'unit': material.unit,
-                    'current_stock': stock,
+                    'current_stock': safe_float(stock),
                     'cost_per_unit': material.cost_per_unit,
                     'suppliers': supplier_info,  # Keep for backward compatibility
                     'consumption_breakdown': consumption_breakdown,
-                    'show_multiple_rows': show_multiple_rows
+                    'show_multiple_rows': show_multiple_rows,
+                    'is_unlimited': False  # Normal material with suppliers
                 })
 
         elif comp.component_type == 'premake':
@@ -481,7 +511,7 @@ def get_product_recipe(product_id):
                     'name': premake.name,
                     'qty_per_batch': comp.quantity,
                     'unit': premake.unit,
-                    'current_stock': stock,
+                    'current_stock': safe_float(stock),
                     'cost_per_unit': cost_per_unit
                 })
 

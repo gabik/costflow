@@ -477,22 +477,3 @@ def calculate_raw_material_current_stock(material_id):
         stock -= product_component.quantity * production_log.quantity_produced
 
     return stock
-
-@raw_materials_blueprint.route('/migrate_unlimited_materials')
-def migrate_unlimited_materials():
-    """
-    Migration endpoint to add is_unlimited column to raw_material table.
-    User should visit this endpoint once, confirm completion, then remove this endpoint.
-    """
-    from sqlalchemy import text
-
-    try:
-        # Add is_unlimited column with default False (PostgreSQL compatible)
-        db.session.execute(text(
-            "ALTER TABLE raw_material ADD COLUMN is_unlimited BOOLEAN DEFAULT FALSE NOT NULL"
-        ))
-        db.session.commit()
-        return "Migration completed: is_unlimited field added to raw_material table"
-    except Exception as e:
-        db.session.rollback()
-        return f"Migration failed: {str(e)}", 500
