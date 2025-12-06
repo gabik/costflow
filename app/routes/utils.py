@@ -226,7 +226,12 @@ def calculate_supplier_stock(material_id, supplier_id):
     """
     Calculate current stock for a specific supplier-material combination.
     """
-    from ..models import StockLog, ProductionLog, Product
+    from ..models import StockLog, ProductionLog, Product, RawMaterial
+
+    # Check if material is unlimited
+    material = RawMaterial.query.get(material_id)
+    if material and material.is_unlimited:
+        return float('inf')
 
     # Get last 'set' action for this supplier
     last_set = StockLog.query.filter_by(
@@ -259,7 +264,12 @@ def calculate_total_material_stock(material_id):
     """
     Calculate total stock for a material across all suppliers.
     """
-    from ..models import RawMaterialSupplier, StockLog
+    from ..models import RawMaterialSupplier, StockLog, RawMaterial
+
+    # Check if material is unlimited
+    material = RawMaterial.query.get(material_id)
+    if material and material.is_unlimited:
+        return float('inf')
 
     total = 0
     supplier_links = RawMaterialSupplier.query.filter_by(raw_material_id=material_id).all()
@@ -433,8 +443,15 @@ def deduct_material_stock(material_id, quantity_needed):
     Deduct stock from suppliers using 'primary first, then others' strategy.
     Returns list of (supplier_id, quantity_deducted, cost_per_unit, total_cost) tuples.
     Raises InsufficientStockError if not enough stock available.
+    For unlimited materials, returns empty list (no deduction needed).
     """
     from ..models import db, RawMaterialSupplier, StockLog, InsufficientStockError, RawMaterial
+
+    # Check if material is unlimited
+    material = RawMaterial.query.get(material_id)
+    if material and material.is_unlimited:
+        # Unlimited materials don't need stock deduction
+        return []
 
     deductions = []
     remaining = quantity_needed
@@ -477,7 +494,6 @@ def deduct_material_stock(material_id, quantity_needed):
 
     if remaining > 0:
         # Not enough stock available
-        material = RawMaterial.query.get(material_id)
         material_name = material.name if material else f"ID {material_id}"
 
         raise InsufficientStockError(

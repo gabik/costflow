@@ -16,6 +16,13 @@ def raw_materials():
         # Use the function that sums all supplier stocks
         material.current_stock = calculate_total_material_stock(material.id)
 
+        # Skip supplier processing for unlimited materials
+        if material.is_unlimited:
+            material.supplier_count = 0
+            material.stock_breakdown = []
+            material.primary_supplier = None
+            continue
+
         # Get supplier information for this material
         supplier_links = RawMaterialSupplier.query.filter_by(raw_material_id=material.id).all()
         material.supplier_count = len(supplier_links)
@@ -61,79 +68,86 @@ def add_raw_material():
 
         unit = request.form['unit']
         stock = request.form.get('stock', 0) # Optional initial stock
+        is_unlimited = request.form.get('is_unlimited') == 'on'  # Checkbox value
 
         # Get multiple suppliers
         supplier_ids = request.form.getlist('supplier_ids[]')
         supplier_costs = request.form.getlist('supplier_costs[]')
         primary_supplier_value = request.form.get('primary_supplier')
 
-        # Calculate average cost from suppliers for backward compatibility
-        valid_costs = []
-        for i, supplier_id in enumerate(supplier_ids):
-            if supplier_id and i < len(supplier_costs) and supplier_costs[i]:
-                try:
-                    valid_costs.append(float(supplier_costs[i]))
-                except ValueError:
-                    pass
+        # For unlimited materials, cost should be 0 (or user-specified)
+        if is_unlimited:
+            cost_per_unit = 0
+        else:
+            # Calculate average cost from suppliers for backward compatibility
+            valid_costs = []
+            for i, supplier_id in enumerate(supplier_ids):
+                if supplier_id and i < len(supplier_costs) and supplier_costs[i]:
+                    try:
+                        valid_costs.append(float(supplier_costs[i]))
+                    except ValueError:
+                        pass
 
-        cost_per_unit = sum(valid_costs) / len(valid_costs) if valid_costs else 0
+            cost_per_unit = sum(valid_costs) / len(valid_costs) if valid_costs else 0
 
         category = Category.query.get(category_id)
 
-        new_material = RawMaterial(name=name, category=category, unit=unit, cost_per_unit=cost_per_unit)
+        new_material = RawMaterial(name=name, category=category, unit=unit, cost_per_unit=cost_per_unit, is_unlimited=is_unlimited)
         db.session.add(new_material)
         db.session.flush() # Get ID for stock log
 
-        # Add supplier links
-        primary_supplier_id = None
-        supplier_count = 0
-        for i, supplier_id in enumerate(supplier_ids):
-            if supplier_id:  # Skip empty selections
-                supplier_count += 1
-                # Check if this is the primary supplier (radio value matches index+1)
-                is_primary = (str(i+1) == primary_supplier_value) if primary_supplier_value else (i == 0)
+        # Skip supplier and stock setup for unlimited materials
+        if not is_unlimited:
+            # Add supplier links
+            primary_supplier_id = None
+            supplier_count = 0
+            for i, supplier_id in enumerate(supplier_ids):
+                if supplier_id:  # Skip empty selections
+                    supplier_count += 1
+                    # Check if this is the primary supplier (radio value matches index+1)
+                    is_primary = (str(i+1) == primary_supplier_value) if primary_supplier_value else (i == 0)
 
-                # Use the supplier cost or fallback to average
-                try:
-                    supplier_cost = float(supplier_costs[i]) if supplier_costs[i] else cost_per_unit
-                except (ValueError, IndexError):
-                    supplier_cost = cost_per_unit
+                    # Use the supplier cost or fallback to average
+                    try:
+                        supplier_cost = float(supplier_costs[i]) if supplier_costs[i] else cost_per_unit
+                    except (ValueError, IndexError):
+                        supplier_cost = cost_per_unit
 
-                supplier_link = RawMaterialSupplier(
+                    supplier_link = RawMaterialSupplier(
+                        raw_material_id=new_material.id,
+                        supplier_id=int(supplier_id),
+                        cost_per_unit=supplier_cost,
+                        is_primary=is_primary
+                    )
+                    db.session.add(supplier_link)
+
+                    # Track primary supplier for stock
+                    if is_primary:
+                        primary_supplier_id = int(supplier_id)
+
+            # If no suppliers provided, use default supplier (ID=1)
+            if not primary_supplier_id:
+                default_supplier = Supplier.query.filter_by(id=1).first()
+                if default_supplier:
+                    supplier_link = RawMaterialSupplier(
+                        raw_material_id=new_material.id,
+                        supplier_id=1,
+                        cost_per_unit=cost_per_unit,
+                        is_primary=True
+                    )
+                    db.session.add(supplier_link)
+                    primary_supplier_id = 1
+                    supplier_count = 1
+
+            # Add initial stock for primary supplier
+            if stock and primary_supplier_id:
+                initial_stock_log = StockLog(
                     raw_material_id=new_material.id,
-                    supplier_id=int(supplier_id),
-                    cost_per_unit=supplier_cost,
-                    is_primary=is_primary
+                    supplier_id=primary_supplier_id,
+                    action_type='set',
+                    quantity=float(stock)
                 )
-                db.session.add(supplier_link)
-
-                # Track primary supplier for stock
-                if is_primary:
-                    primary_supplier_id = int(supplier_id)
-
-        # If no suppliers provided, use default supplier (ID=1)
-        if not primary_supplier_id:
-            default_supplier = Supplier.query.filter_by(id=1).first()
-            if default_supplier:
-                supplier_link = RawMaterialSupplier(
-                    raw_material_id=new_material.id,
-                    supplier_id=1,
-                    cost_per_unit=cost_per_unit,
-                    is_primary=True
-                )
-                db.session.add(supplier_link)
-                primary_supplier_id = 1
-                supplier_count = 1
-
-        # Add initial stock for primary supplier
-        if stock and primary_supplier_id:
-            initial_stock_log = StockLog(
-                raw_material_id=new_material.id,
-                supplier_id=primary_supplier_id,
-                action_type='set',
-                quantity=float(stock)
-            )
-            db.session.add(initial_stock_log)
+                db.session.add(initial_stock_log)
 
         db.session.commit()
 
@@ -165,6 +179,16 @@ def edit_raw_material(material_id):
         category = Category.query.get(category_id)
         material.category = category
         material.unit = request.form['unit']
+        is_unlimited = request.form.get('is_unlimited') == 'on'  # Checkbox value
+        material.is_unlimited = is_unlimited
+
+        # Skip supplier handling for unlimited materials
+        if is_unlimited:
+            # Remove all existing supplier links if switching to unlimited
+            RawMaterialSupplier.query.filter_by(raw_material_id=material.id).delete()
+            material.cost_per_unit = 0
+            db.session.commit()
+            return redirect(url_for('raw_materials.raw_materials'))
 
         # Get existing suppliers before deletion to check for stock
         existing_suppliers = RawMaterialSupplier.query.filter_by(raw_material_id=material.id).all()
@@ -453,3 +477,22 @@ def calculate_raw_material_current_stock(material_id):
         stock -= product_component.quantity * production_log.quantity_produced
 
     return stock
+
+@raw_materials_blueprint.route('/migrate_unlimited_materials')
+def migrate_unlimited_materials():
+    """
+    Migration endpoint to add is_unlimited column to raw_material table.
+    User should visit this endpoint once, confirm completion, then remove this endpoint.
+    """
+    from sqlalchemy import text
+
+    try:
+        # Add is_unlimited column with default False
+        db.session.execute(text(
+            "ALTER TABLE raw_material ADD COLUMN is_unlimited BOOLEAN DEFAULT 0 NOT NULL"
+        ))
+        db.session.commit()
+        return "Migration completed: is_unlimited field added to raw_material table"
+    except Exception as e:
+        db.session.rollback()
+        return f"Migration failed: {str(e)}", 500

@@ -105,6 +105,10 @@
                 <td>{{ material.unit }}</td>
                 <td>{{ currency_symbol }}{{ "%.2f"|format(material.cost_per_unit) }}</td>
                 <td>
+                    {% if material.is_unlimited %}
+                        <span class="badge bg-primary fs-5">∞</span>
+                        <small class="text-muted d-block">בלתי מוגבל</small>
+                    {% else %}
                     <span class="fw-bold {{ 'text-danger' if material.current_stock <= 0 else 'text-success' }} stock-popover"
                           role="button"
                           tabindex="0"
@@ -133,6 +137,7 @@
                           style="cursor: pointer; text-decoration: underline; text-decoration-style: dotted;">
                         <i class="bi bi-info-circle-fill text-muted small me-1"></i>{{ "%.2f"|format(material.current_stock) }}
                     </span>
+                    {% endif %}
                 </td>
                 <td class="text-end">
                     <div class="btn-group" role="group">
