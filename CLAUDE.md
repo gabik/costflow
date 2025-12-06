@@ -15,6 +15,7 @@
     git push
     ```
   - Commit message types: Feat, Fix, Chore, Refactor, Docs
+  - Keep CLAUDE.md updated with the latest changes (if needed, new feature, modified model, etc..)
 
 ### Migration Handling
 - **Local dev has no database** - empty SQLite file only
