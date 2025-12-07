@@ -119,6 +119,10 @@ def index():
 
         # Process Premakes for Report and Inventory Value
         all_premakes = Product.query.filter_by(is_premake=True).all()
+        print(f"\n{'='*80}")
+        print(f"DEBUGGING PREMAKES DASHBOARD - Week: {week_start}")
+        print(f"{'='*80}\n")
+
         for premake in all_premakes:
             produced = premake_production.get(premake.id, 0)
             used = premake_usage.get(premake.id, 0)
@@ -128,6 +132,16 @@ def index():
 
             # Calculate current stock for premake
             current_premake_stock = calculate_premake_current_stock(premake.id)
+
+            # DEBUG OUTPUT
+            print(f"\n--- {premake.name} (ID: {premake.id}) ---")
+            print(f"  Beginning Stock (at {week_start - timedelta(days=1)}): {beginning_stock:.2f} {premake.unit}")
+            print(f"  Produced this week: {produced:.2f} {premake.unit}")
+            print(f"  Used this week: {used:.2f} {premake.unit}")
+            print(f"  Expected Stock: {beginning_stock:.2f} + {produced:.2f} - {used:.2f} = {(beginning_stock + produced - used):.2f} {premake.unit}")
+            print(f"  Actual Current Stock: {current_premake_stock:.2f} {premake.unit}")
+            if abs((beginning_stock + produced - used) - current_premake_stock) > 0.01:
+                print(f"  ⚠️  DISCREPANCY: {((beginning_stock + produced - used) - current_premake_stock):.2f} {premake.unit}")
 
             # Calculate Cost Per Unit
             cost_per_batch = 0
