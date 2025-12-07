@@ -259,6 +259,64 @@ def migrate_clean_premake_stocklogs():
             'error': str(e)
         }), 500
 
+@admin_blueprint.route('/migrate_reset_premake_stocks', methods=['GET', 'POST'])
+def migrate_reset_premake_stocks():
+    """
+    Migration to reset all premake stocks to zero.
+    Creates 'set' StockLog entries with quantity=0 for all premakes.
+    """
+    from ..models import Product, StockLog
+    from datetime import datetime
 
+    if request.method == 'GET':
+        # Show preview of what will be reset
+        premakes = Product.query.filter_by(is_premake=True).all()
 
+        preview_data = []
+        for premake in premakes:
+            from .utils import calculate_premake_current_stock
+            current_stock = calculate_premake_current_stock(premake.id)
+            preview_data.append({
+                'id': premake.id,
+                'name': premake.name,
+                'current_stock': current_stock,
+                'unit': premake.unit
+            })
 
+        return jsonify({
+            'title': 'Reset All Premake Stocks to Zero',
+            'description': 'This will set all premake stocks to 0 by creating a "set" action for each premake',
+            'count': len(premakes),
+            'preview_data': preview_data
+        })
+
+    # POST - Execute migration
+    try:
+        premakes = Product.query.filter_by(is_premake=True).all()
+        reset_count = 0
+
+        for premake in premakes:
+            # Create a 'set' stock log with quantity 0
+            stock_log = StockLog(
+                product_id=premake.id,
+                action_type='set',
+                quantity=0,
+                timestamp=datetime.now()
+            )
+            db.session.add(stock_log)
+            reset_count += 1
+
+        db.session.commit()
+        log_audit("MIGRATION", "StockLog", details=f"Reset {reset_count} premake stocks to zero")
+
+        return jsonify({
+            'success': True,
+            'message': f'Successfully reset {reset_count} premake stocks to zero',
+            'reset_count': reset_count
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500

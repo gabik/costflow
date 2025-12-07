@@ -237,16 +237,18 @@ def close_week_confirm():
         if keep_key in request.form:
             continue # Skip wasting (it stays in stock)
 
-        produced = premake_production_qty.get(premake.id, 0)
-        used = premake_usage_qty.get(premake.id, 0)
-        remaining = produced - used
+        # User chose to waste this premake - set stock to 0
+        # Use 'set' action to ensure complete zeroing regardless of beginning stock
+        from .utils import calculate_premake_current_stock
+        current_stock = calculate_premake_current_stock(premake.id)
 
-        if remaining > 0:
-            # Waste it! Remove from stock.
+        if current_stock > 0:
+            # Set stock to 0 (this accounts for beginning stock + weekly production - usage)
             stock_log = StockLog(
-                product_id=premake.id,  # premakes are products
-                action_type='add',
-                quantity=-remaining
+                product_id=premake.id,
+                action_type='set',  # Use 'set' not 'add'
+                quantity=0,  # Set to 0, not negative remaining
+                timestamp=new_week_start_dt
             )
             db.session.add(stock_log)
 

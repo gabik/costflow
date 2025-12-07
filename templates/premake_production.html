@@ -124,7 +124,7 @@ function updateCalculation() {
         unitDisplay.innerText = unit;
 
         batchInfo.style.display = 'block';
-        batchSizeDisplay.innerText = `${batchSize} ${unit}`;
+        batchSizeDisplay.innerText = `${batchSize.toFixed(2)} ${unit}`;
 
         const quantity = parseFloat(quantityInput.value) || 0;
         if (quantity > 0) {
