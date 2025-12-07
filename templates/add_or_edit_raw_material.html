@@ -1,6 +1,24 @@
 {% extends "base.html" %}
 {% block title %}{{ _('Edit') if material else _('Add') }} {{ _('Raw Material') }} - CostFlow{% endblock %}
 
+{% block head %}
+<style>
+    /* Ensure proper column widths for supplier rows */
+    #suppliersContainer .supplier-row .row > div {
+        flex-shrink: 0;
+    }
+    #suppliersContainer .supplier-select {
+        min-width: 120px;
+    }
+    #suppliersContainer .supplier-sku {
+        min-width: 100px;
+    }
+    #suppliersContainer .supplier-cost {
+        min-width: 80px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row mb-4">
     <div class="col-12">
