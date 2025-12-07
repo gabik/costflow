@@ -8,28 +8,6 @@ from .utils import log_audit
 
 admin_blueprint = Blueprint('admin', __name__)
 
-@admin_blueprint.route('/migrate_add_sku_column', methods=['GET'])
-def migrate_add_sku_column():
-    """Migration endpoint to add SKU column to raw_material_supplier table"""
-    try:
-        # Check if column already exists
-        inspector = db.inspect(db.engine)
-        columns = [col['name'] for col in inspector.get_columns('raw_material_supplier')]
-
-        if 'sku' in columns:
-            return jsonify({'status': 'already_exists', 'message': 'SKU column already exists'}), 200
-
-        # Add the column using PostgreSQL-compatible syntax
-        with db.engine.connect() as conn:
-            conn.execute(text('ALTER TABLE raw_material_supplier ADD COLUMN sku VARCHAR(100)'))
-            conn.commit()
-
-        log_audit("MIGRATION", "RawMaterialSupplier", details="Added SKU column to raw_material_supplier table")
-
-        return jsonify({'status': 'success', 'message': 'SKU column added successfully'}), 200
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)}), 500
-
 @admin_blueprint.route('/admin/backup', methods=['GET'])
 def backup_db():
     data = {

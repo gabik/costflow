@@ -66,14 +66,20 @@
 
                         <!-- Column headers -->
                         <div class="row g-2 mb-2 fw-bold text-muted small">
-                            <div class="col-md-3">ספק</div>
-                            <div class="col-md-2">מק"ט (SKU)</div>
-                            <div class="col-md-2">מחיר ליחידה</div>
                             {% if material %}
-                            <div class="col-md-2">מלאי נוכחי</div>
+                            <div class="col-3">ספק</div>
+                            <div class="col-2">מק"ט (SKU)</div>
+                            <div class="col-2">מחיר ליחידה</div>
+                            <div class="col-2">מלאי נוכחי</div>
+                            <div class="col-2 text-center">ספק ראשי</div>
+                            <div class="col-1"></div>
+                            {% else %}
+                            <div class="col-4">ספק</div>
+                            <div class="col-3">מק"ט (SKU)</div>
+                            <div class="col-3">מחיר ליחידה</div>
+                            <div class="col-1 text-center">ספק ראשי</div>
+                            <div class="col-1"></div>
                             {% endif %}
-                            <div class="col-md-2 text-center">ספק ראשי</div>
-                            <div class="col-md-1"></div>
                         </div>
 
                         <div id="suppliersContainer" class="mb-2">
@@ -233,7 +239,7 @@
 <template id="supplierRowTemplate">
     <div class="supplier-row border rounded p-2 mb-2">
         <div class="row g-2 align-items-center">
-            <div class="col-md-3">
+            <div class="col-3 supplier-col">
                 <select class="form-select supplier-select" name="supplier_ids[]" required>
                     <option value="">בחר ספק...</option>
                     {% for supplier in suppliers %}
@@ -241,22 +247,22 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-2">
+            <div class="col-2 sku-col">
                 <input type="text" class="form-control supplier-sku" name="supplier_skus[]"
                        placeholder="מק''ט אופציונלי">
             </div>
-            <div class="col-md-2">
+            <div class="col-2 cost-col">
                 <div class="input-group">
                     <span class="input-group-text">₪</span>
                     <input type="number" class="form-control supplier-cost" name="supplier_costs[]"
                            placeholder="0.00" step="0.01" required>
                 </div>
             </div>
-            <div class="col-md-2 text-center">
+            <div class="col-2 text-center primary-col">
                 <input type="radio" class="form-check-input primary-radio"
                        name="primary_supplier" style="scale: 1.2;">
             </div>
-            <div class="col-md-1 text-end">
+            <div class="col-1 text-end delete-col">
                 <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSupplierRow(this)">
                     <i class="bi bi-trash"></i>
                 </button>
@@ -314,16 +320,15 @@
         // If this is an existing supplier with stock info, add stock display
         if (isExisting && currentStock !== null) {
             const row = clone.querySelector('.supplier-row');
-            const supplierCol = row.querySelector('.col-md-3');
 
             // Create stock display element
             const stockCol = document.createElement('div');
-            stockCol.className = 'col-md-2';
+            stockCol.className = 'col-2';
             stockCol.innerHTML = '<span class="badge bg-' + (currentStock > 0 ? 'success' : 'danger') + '">' +
                                 currentStock.toFixed(2) + ' {{ material.unit if material else "" }}</span>';
 
             // Insert stock column after cost column
-            const costCol = row.querySelector('.input-group').parentElement;
+            const costCol = row.querySelector('.cost-col');
             costCol.parentNode.insertBefore(stockCol, costCol.nextSibling);
         }
 
