@@ -477,12 +477,12 @@ def get_product_recipe(product_id):
                 supplier_info = []
                 for link in material.supplier_links:
                     supplier_stock = calculate_supplier_stock(material.id, link.supplier_id)
-                    if supplier_stock > 0 or link.is_primary:
-                        supplier_info.append({
-                            'name': link.supplier.name,
-                            'stock': safe_float(supplier_stock),
-                            'is_primary': link.is_primary
-                        })
+                    # Show all suppliers regardless of stock level
+                    supplier_info.append({
+                        'name': link.supplier.name,
+                        'stock': safe_float(supplier_stock),
+                        'is_primary': link.is_primary
+                    })
 
                 components_data.append({
                     'type': 'Raw Material',
