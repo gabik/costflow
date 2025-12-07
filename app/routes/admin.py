@@ -203,7 +203,60 @@ def reset_db():
     except Exception as e:
         return f"Reset failed: {e}", 500
 
+@admin_blueprint.route('/migrate_clean_premake_stocklogs', methods=['GET', 'POST'])
+def migrate_clean_premake_stocklogs():
+    """
+    Migration to clean up negative StockLogs for premakes.
+    These were created incorrectly and cause double-counting of premake consumption.
+    """
+    from ..models import StockLog
 
+    if request.method == 'GET':
+        # Show preview of what will be deleted
+        negative_logs = StockLog.query.filter(
+            StockLog.product_id != None,
+            StockLog.quantity < 0
+        ).all()
+
+        preview_data = []
+        for log in negative_logs:
+            from ..models import Product
+            product = Product.query.get(log.product_id)
+            preview_data.append({
+                'id': log.id,
+                'product_name': product.name if product else f"Unknown (ID: {log.product_id})",
+                'quantity': log.quantity,
+                'timestamp': log.timestamp,
+                'action_type': log.action_type
+            })
+
+        return render_template('migration_preview.html',
+                             title='Clean Premake StockLogs',
+                             description='Remove negative StockLog entries for premakes that cause double-counting',
+                             count=len(negative_logs),
+                             preview_data=preview_data)
+
+    # POST - Execute migration
+    try:
+        deleted_count = StockLog.query.filter(
+            StockLog.product_id != None,
+            StockLog.quantity < 0
+        ).delete()
+
+        db.session.commit()
+        log_audit("MIGRATION", "StockLog", details=f"Cleaned {deleted_count} negative premake StockLogs")
+
+        return jsonify({
+            'success': True,
+            'message': f'Successfully deleted {deleted_count} negative StockLog entries',
+            'deleted_count': deleted_count
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 
 
