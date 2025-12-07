@@ -161,9 +161,9 @@ def index():
 
         # Map Sales
         product_sales = {s.product_id: {'sold': s.quantity_sold, 'waste': s.quantity_waste} for s in selected_week.sales}
-        
-        # Iterate Products
-        all_products = Product.query.all()
+
+        # Iterate Products (exclude premakes - they have their own section)
+        all_products = Product.query.filter_by(is_premake=False).all()
         
         for product in all_products:
             prod_data = product_production.get(product.id, {'total': 0, 'new': 0})
