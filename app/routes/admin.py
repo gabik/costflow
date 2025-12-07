@@ -225,16 +225,17 @@ def migrate_clean_premake_stocklogs():
             preview_data.append({
                 'id': log.id,
                 'product_name': product.name if product else f"Unknown (ID: {log.product_id})",
-                'quantity': log.quantity,
-                'timestamp': log.timestamp,
+                'quantity': float(log.quantity),
+                'timestamp': log.timestamp.isoformat(),
                 'action_type': log.action_type
             })
 
-        return render_template('migration_preview.html',
-                             title='Clean Premake StockLogs',
-                             description='Remove negative StockLog entries for premakes that cause double-counting',
-                             count=len(negative_logs),
-                             preview_data=preview_data)
+        return jsonify({
+            'title': 'Clean Premake StockLogs',
+            'description': 'Remove negative StockLog entries for premakes that cause double-counting',
+            'count': len(negative_logs),
+            'preview_data': preview_data
+        })
 
     # POST - Execute migration
     try:
