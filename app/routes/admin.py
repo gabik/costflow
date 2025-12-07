@@ -320,3 +320,52 @@ def migrate_reset_premake_stocks():
             'success': False,
             'error': str(e)
         }), 500
+
+@admin_blueprint.route('/migrate_add_raw_material_is_deleted', methods=['GET', 'POST'])
+def migrate_add_raw_material_is_deleted():
+    """
+    Migration to add is_deleted column to raw_material table.
+    Enables soft delete functionality for materials with historical data.
+    """
+    from ..models import RawMaterial
+
+    if request.method == 'GET':
+        # Show preview of materials that will get the new column
+        materials = RawMaterial.query.all()
+
+        preview_data = []
+        for material in materials:
+            preview_data.append({
+                'id': material.id,
+                'name': material.name,
+                'category': material.category.name if material.category else 'N/A'
+            })
+
+        return jsonify({
+            'title': 'Add is_deleted Column to RawMaterial',
+            'description': 'Adds is_deleted BOOLEAN column (default FALSE) to enable soft delete for materials with history',
+            'count': len(materials),
+            'preview_data': preview_data
+        })
+
+    # POST - Execute migration
+    try:
+        # Execute raw SQL to add column (PostgreSQL and SQLite compatible)
+        db.session.execute(text(
+            'ALTER TABLE raw_material ADD COLUMN is_deleted BOOLEAN DEFAULT FALSE NOT NULL'
+        ))
+        db.session.commit()
+
+        log_audit("MIGRATION", "RawMaterial", details="Added is_deleted column to raw_material table")
+
+        return jsonify({
+            'success': True,
+            'message': 'Successfully added is_deleted column to raw_material table',
+            'column_added': 'is_deleted BOOLEAN DEFAULT FALSE NOT NULL'
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500

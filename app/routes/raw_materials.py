@@ -10,7 +10,7 @@ raw_materials_blueprint = Blueprint('raw_materials', __name__)
 # ----------------------------
 @raw_materials_blueprint.route('/raw_materials')
 def raw_materials():
-    materials = RawMaterial.query.all()
+    materials = RawMaterial.query.filter_by(is_deleted=False).all()
 
     for material in materials:
         # Use the function that sums all supplier stocks
@@ -343,21 +343,31 @@ def edit_raw_material(material_id):
 def delete_raw_material(material_id):
     material = RawMaterial.query.get_or_404(material_id)
 
-    # Delete related StockLogs
-    StockLog.query.filter_by(raw_material_id=material.id).delete()
+    # Check if material has been "used" (has historical data)
+    stock_log_count = StockLog.query.filter_by(raw_material_id=material.id).count()
+    stock_audit_count = StockAudit.query.filter_by(raw_material_id=material.id).count()
+    component_count = ProductComponent.query.filter_by(component_id=material.id, component_type='raw_material').count()
 
-    # Delete related StockAudits
-    StockAudit.query.filter_by(raw_material_id=material.id).delete()
+    total_usage = stock_log_count + stock_audit_count + component_count
 
-    # Delete related ProductComponents
-    ProductComponent.query.filter_by(component_id=material.id, component_type='raw_material').delete()
+    if total_usage > 0:
+        # Material has historical data - SOFT DELETE
+        material.is_deleted = True
+        log_audit("SOFT_DELETE", "RawMaterial", material_id,
+                 f"Soft deleted raw material {material.name} (has historical data: {total_usage} records)")
+        db.session.commit()
+    else:
+        # Material has no history - HARD DELETE
+        # Delete related entries (should be minimal/none)
+        StockLog.query.filter_by(raw_material_id=material.id).delete()
+        StockAudit.query.filter_by(raw_material_id=material.id).delete()
+        ProductComponent.query.filter_by(component_id=material.id, component_type='raw_material').delete()
+        RawMaterialSupplier.query.filter_by(raw_material_id=material.id).delete()
 
-    # Delete related RawMaterialSupplier entries
-    RawMaterialSupplier.query.filter_by(raw_material_id=material.id).delete()
+        db.session.delete(material)
+        log_audit("HARD_DELETE", "RawMaterial", material_id, f"Hard deleted raw material {material.name} (no historical data)")
+        db.session.commit()
 
-    db.session.delete(material)
-    log_audit("DELETE", "RawMaterial", material_id, f"Deleted raw material {material.name}")
-    db.session.commit()
     return redirect(url_for('raw_materials.raw_materials'))
 
 @raw_materials_blueprint.route('/raw_materials/update_stock', methods=['POST'])

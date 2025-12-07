@@ -155,6 +155,13 @@ docker run -p 8080:8080 costflow
   - Premake consumption tracked ONLY via ProductionLog (not StockLog)
   - Week closing with "waste" option creates 'set to 0' StockLog entries (not negative adds)
   - This ensures complete stock zeroing including beginning stock carryover
+- **Raw Material Deletion**:
+  - **Smart deletion** system checks for historical usage before deletion
+  - **Hard delete**: Materials with no history (no stock logs, audits, or product usage) are permanently deleted
+  - **Soft delete**: Materials with historical data are marked `is_deleted=True` and hidden from UI
+  - Soft-deleted materials preserve all historical data (StockLog, StockAudit, ProductComponent, pricing)
+  - Historical reports and production logs retain access to soft-deleted material details
+  - Migration required: Run `/migrate_add_raw_material_is_deleted` endpoint to add `is_deleted` column
 
 ### Production Tracking
 - ProductionLog records production events with timestamps

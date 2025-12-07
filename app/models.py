@@ -44,6 +44,7 @@ class RawMaterial(db.Model):
     unit = db.Column(db.String(50), nullable=False)
     cost_per_unit = db.Column(db.Float, nullable=False)  # Default/average cost
     is_unlimited = db.Column(db.Boolean, default=False, nullable=False)  # Unlimited stock materials
+    is_deleted = db.Column(db.Boolean, default=False, nullable=False)  # Soft delete flag
 
     def get_cheapest_available_supplier(self, required_quantity):
         """Get the cheapest supplier with available stock for the required quantity"""

@@ -184,7 +184,7 @@ def add_product():
     # For GET requests, load the data required for the form
     # Enhanced material data using primary supplier price
     all_raw_materials = []
-    for material in RawMaterial.query.all():
+    for material in RawMaterial.query.filter_by(is_deleted=False).all():
         material_dict = material.to_dict()
 
         # Find primary supplier's price
@@ -527,7 +527,7 @@ def edit_product(product_id):
     # Prepopulate fields for editing
     # Enhanced material data using primary supplier price
     all_raw_materials = []
-    for material in RawMaterial.query.all():
+    for material in RawMaterial.query.filter_by(is_deleted=False).all():
         material_dict = material.to_dict()
 
         # Find primary supplier's price

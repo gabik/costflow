@@ -316,7 +316,7 @@ def stock_audits():
     total_negative_variance = sum(audit.variance for audit in audits if audit.variance < 0)
 
     # Get materials for filter dropdown
-    all_materials = RawMaterial.query.order_by(RawMaterial.name).all()
+    all_materials = RawMaterial.query.filter_by(is_deleted=False).order_by(RawMaterial.name).all()
 
     # Get category-wise analysis
     category_analysis = {}

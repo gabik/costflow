@@ -78,7 +78,7 @@ def add_premake():
 
     # GET request
     categories = Category.query.filter_by(type='premake').all()
-    raw_materials = RawMaterial.query.all()
+    raw_materials = RawMaterial.query.filter_by(is_deleted=False).all()
     packagings = Packaging.query.all()
     nested_premakes = Product.query.filter_by(is_premake=True).all()
 
@@ -133,7 +133,7 @@ def edit_premake(premake_id):
 
     # GET request
     categories = Category.query.filter_by(type='premake').all()
-    raw_materials = RawMaterial.query.all()
+    raw_materials = RawMaterial.query.filter_by(is_deleted=False).all()
     packagings = Packaging.query.all()
     # Exclude self from nested premakes to prevent circular references
     nested_premakes = Product.query.filter(

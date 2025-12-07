@@ -68,9 +68,9 @@ def upload_inventory():
                                 material = material_supplier.raw_material
                                 matched_by = 'sku'
 
-                    # If not found by SKU, try by name
+                    # If not found by SKU, try by name (exclude deleted materials)
                     if not material:
-                        material = RawMaterial.query.filter_by(name=name).first()
+                        material = RawMaterial.query.filter_by(name=name, is_deleted=False).first()
                         if material and supplier_name and not supplier:
                             # Get supplier from material if not already found
                             supplier = Supplier.query.filter_by(name=supplier_name).first()
@@ -151,11 +151,11 @@ def confirm_inventory_upload():
         material_id = item.get('material_id')
         supplier_id = item.get('supplier_id')
 
-        # Get material by ID if provided, otherwise by name
+        # Get material by ID if provided, otherwise by name (exclude deleted materials)
         if material_id:
-            material = RawMaterial.query.get(int(material_id))
+            material = RawMaterial.query.filter_by(id=int(material_id), is_deleted=False).first()
         else:
-            material = RawMaterial.query.filter_by(name=name).first()
+            material = RawMaterial.query.filter_by(name=name, is_deleted=False).first()
 
         if not material:
             # Create new
