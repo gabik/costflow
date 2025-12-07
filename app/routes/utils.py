@@ -197,9 +197,6 @@ def calculate_premake_current_stock(premake_id):
 
     stock = last_set_log.quantity if last_set_log else 0
 
-    print(f"    [calculate_premake_current_stock] Premake ID {premake_id}")
-    print(f"      Last 'set' log: {stock:.2f} on {last_set_log.timestamp if last_set_log else 'never'}")
-
     # Get all 'add' actions after last set
     add_logs = StockLog.query.filter(
         StockLog.product_id == premake_id,
@@ -209,7 +206,6 @@ def calculate_premake_current_stock(premake_id):
 
     for log in add_logs:
         stock += log.quantity
-        print(f"      Add log: +{log.quantity:.2f} on {log.timestamp} -> stock = {stock:.2f}")
 
     # Subtract premakes used in produced products
     production_logs = ProductionLog.query.filter(
@@ -222,11 +218,8 @@ def calculate_premake_current_stock(premake_id):
         if product:
             for component in product.components:
                 if component.component_type == 'premake' and component.component_id == premake_id:
-                    used = component.quantity * production.quantity_produced
-                    stock -= used
-                    print(f"      Used in {product.name}: -{used:.2f} on {production.timestamp} -> stock = {stock:.2f}")
+                    stock -= component.quantity * production.quantity_produced # component.quantity is per recipe
 
-    print(f"      Final current stock: {stock:.2f}")
     return stock
 
 def calculate_premake_stock_at_date(premake_id, cutoff_date):
@@ -246,9 +239,6 @@ def calculate_premake_stock_at_date(premake_id, cutoff_date):
 
     stock = last_set_log.quantity if last_set_log else 0
 
-    print(f"    [calculate_premake_stock_at_date] Premake ID {premake_id} at {cutoff_date}")
-    print(f"      Last 'set' log: {stock:.2f} on {last_set_log.timestamp if last_set_log else 'never'}")
-
     # Get all 'add' actions after last set but before/on cutoff date
     if last_set_log:
         add_logs = StockLog.query.filter(
@@ -266,7 +256,6 @@ def calculate_premake_stock_at_date(premake_id, cutoff_date):
 
     for log in add_logs:
         stock += log.quantity
-        print(f"      Add log: +{log.quantity:.2f} on {log.timestamp} -> stock = {stock:.2f}")
 
     # Subtract premakes used in produced products before/on cutoff date
     if last_set_log:
@@ -286,13 +275,9 @@ def calculate_premake_stock_at_date(premake_id, cutoff_date):
         if product:
             for component in product.components:
                 if component.component_type == 'premake' and component.component_id == premake_id:
-                    used = component.quantity * production.quantity_produced
-                    stock -= used
-                    print(f"      Used in {product.name}: -{used:.2f} on {production.timestamp} -> stock = {stock:.2f}")
+                    stock -= component.quantity * production.quantity_produced
 
-    final_stock = max(0, stock)
-    print(f"      Final stock at {cutoff_date}: {final_stock:.2f}")
-    return final_stock
+    return max(0, stock)  # Ensure non-negative
 
 def calculate_supplier_stock(material_id, supplier_id):
     """

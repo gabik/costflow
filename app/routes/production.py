@@ -59,14 +59,10 @@ def production():
                             'cost': material_cost
                         })
 
-                    # Deduct premake stock
-                    required_qty = component.quantity * quantity_produced
-                    stock_log = StockLog(
-                        product_id=component.component_id,
-                        action_type='add',
-                        quantity=-required_qty
-                    )
-                    db.session.add(stock_log)
+                    # NOTE: Premake consumption is tracked via ProductionLog only.
+                    # Do NOT create StockLog here as it causes double-counting!
+                    # The calculate_premake_current_stock() function already
+                    # subtracts consumption from ProductionLogs.
 
                 elif component.component_type == 'packaging' and component.packaging:
                     # Calculate packaging cost
