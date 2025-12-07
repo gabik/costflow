@@ -346,8 +346,14 @@ def delete_raw_material(material_id):
     # Delete related StockLogs
     StockLog.query.filter_by(raw_material_id=material.id).delete()
 
+    # Delete related StockAudits
+    StockAudit.query.filter_by(raw_material_id=material.id).delete()
+
     # Delete related ProductComponents
     ProductComponent.query.filter_by(component_id=material.id, component_type='raw_material').delete()
+
+    # Delete related RawMaterialSupplier entries
+    RawMaterialSupplier.query.filter_by(raw_material_id=material.id).delete()
 
     db.session.delete(material)
     log_audit("DELETE", "RawMaterial", material_id, f"Deleted raw material {material.name}")
