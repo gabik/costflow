@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_file, jsonify
 from sqlalchemy import func, extract, and_, text
 from ..models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, StockAudit, AuditLog
-from .utils import units_list, get_or_create_general_category, convert_to_base_unit, log_audit, calculate_prime_cost, calculate_premake_current_stock, calculate_total_material_stock, calculate_supplier_stock
+from .utils import units_list, get_or_create_general_category, convert_to_base_unit, log_audit, calculate_prime_cost, calculate_premake_current_stock, calculate_premake_stock_at_date, calculate_total_material_stock, calculate_supplier_stock
 from .raw_materials import calculate_raw_material_current_stock
 
 main_blueprint = Blueprint('main', __name__)
@@ -122,7 +122,10 @@ def index():
         for premake in all_premakes:
             produced = premake_production.get(premake.id, 0)
             used = premake_usage.get(premake.id, 0)
-            
+
+            # Calculate beginning stock (stock at start of week)
+            beginning_stock = calculate_premake_stock_at_date(premake.id, week_start - timedelta(days=1))
+
             # Calculate current stock for premake
             current_premake_stock = calculate_premake_current_stock(premake.id)
 
@@ -147,6 +150,7 @@ def index():
             premake_report_data.append({
                 'name': premake.name,
                 'unit': premake.unit,
+                'beginning_stock': beginning_stock,
                 'produced': produced,
                 'used': used,
                 'stock_change': stock_change,

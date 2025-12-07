@@ -222,6 +222,63 @@ def calculate_premake_current_stock(premake_id):
 
     return stock
 
+def calculate_premake_stock_at_date(premake_id, cutoff_date):
+    """
+    Calculates the stock of a premake as of a specific date.
+    Similar to calculate_premake_current_stock but with a date cutoff.
+    """
+    from ..models import StockLog, ProductionLog, Product
+    from sqlalchemy import func
+
+    # Get last 'set' action before or on cutoff date
+    last_set_log = StockLog.query.filter(
+        StockLog.product_id == premake_id,
+        StockLog.action_type == 'set',
+        func.date(StockLog.timestamp) <= cutoff_date
+    ).order_by(StockLog.timestamp.desc()).first()
+
+    stock = last_set_log.quantity if last_set_log else 0
+
+    # Get all 'add' actions after last set but before/on cutoff date
+    if last_set_log:
+        add_logs = StockLog.query.filter(
+            StockLog.product_id == premake_id,
+            StockLog.action_type == 'add',
+            StockLog.timestamp > last_set_log.timestamp,
+            func.date(StockLog.timestamp) <= cutoff_date
+        ).all()
+    else:
+        add_logs = StockLog.query.filter(
+            StockLog.product_id == premake_id,
+            StockLog.action_type == 'add',
+            func.date(StockLog.timestamp) <= cutoff_date
+        ).all()
+
+    for log in add_logs:
+        stock += log.quantity
+
+    # Subtract premakes used in produced products before/on cutoff date
+    if last_set_log:
+        production_logs = ProductionLog.query.filter(
+            ProductionLog.product_id != None,
+            ProductionLog.timestamp > last_set_log.timestamp,
+            func.date(ProductionLog.timestamp) <= cutoff_date
+        ).all()
+    else:
+        production_logs = ProductionLog.query.filter(
+            ProductionLog.product_id != None,
+            func.date(ProductionLog.timestamp) <= cutoff_date
+        ).all()
+
+    for production in production_logs:
+        product = Product.query.get(production.product_id)
+        if product:
+            for component in product.components:
+                if component.component_type == 'premake' and component.component_id == premake_id:
+                    stock -= component.quantity * production.quantity_produced
+
+    return max(0, stock)  # Ensure non-negative
+
 def calculate_supplier_stock(material_id, supplier_id):
     """
     Calculate current stock for a specific supplier-material combination.
