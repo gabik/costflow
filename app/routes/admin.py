@@ -330,23 +330,29 @@ def migrate_add_raw_material_is_deleted():
     from ..models import RawMaterial
 
     if request.method == 'GET':
-        # Show preview of materials that will get the new column
-        materials = RawMaterial.query.all()
+        # Show preview using raw SQL to avoid model-level query issues
+        try:
+            result = db.session.execute(text('SELECT id, name FROM raw_material'))
+            materials = result.fetchall()
 
-        preview_data = []
-        for material in materials:
-            preview_data.append({
-                'id': material.id,
-                'name': material.name,
-                'category': material.category.name if material.category else 'N/A'
+            preview_data = []
+            for material in materials:
+                preview_data.append({
+                    'id': material[0],
+                    'name': material[1]
+                })
+
+            return jsonify({
+                'title': 'Add is_deleted Column to RawMaterial',
+                'description': 'Adds is_deleted BOOLEAN column (default FALSE) to enable soft delete for materials with history',
+                'count': len(materials),
+                'preview_data': preview_data
             })
-
-        return jsonify({
-            'title': 'Add is_deleted Column to RawMaterial',
-            'description': 'Adds is_deleted BOOLEAN column (default FALSE) to enable soft delete for materials with history',
-            'count': len(materials),
-            'preview_data': preview_data
-        })
+        except Exception as e:
+            return jsonify({
+                'success': False,
+                'error': f'Preview failed: {str(e)}'
+            }), 500
 
     # POST - Execute migration
     try:
