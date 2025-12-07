@@ -15,7 +15,8 @@
     <div class="card-body p-5 text-center">
         <i class="bi bi-file-earmark-spreadsheet display-1 text-success mb-3"></i>
         <h4 class="mb-3">העלה קובץ אקסל</h4>
-        <p class="text-muted mb-4">הקובץ חייב להכיל את העמודות: שם מוצר, סה"כ כמות, מחיר ממוצע.</p>
+        <p class="text-muted mb-4">הקובץ חייב להכיל את העמודות: שם מוצר, סה"כ כמות, מחיר ממוצע.<br>
+        <small>עמודות אופציונליות: מק"ט, ספק (לזיהוי מדויק יותר)</small></p>
         
         <form method="POST" enctype="multipart/form-data" class="d-inline-block text-start" style="max-width: 400px;">
             <div class="mb-3">
@@ -40,7 +41,8 @@
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th>שם מוצר (מהקובץ)</th>
+                            <th>שם מוצר</th>
+                            <th>מק"ט / ספק</th>
                             <th>סטטוס</th>
                             <th>כמות להוספה</th>
                             <th>מחיר בקובץ</th>
@@ -56,7 +58,24 @@
                                 <input type="hidden" name="items[{{ loop.index0 }}][quantity]" value="{{ item.quantity }}">
                                 <input type="hidden" name="items[{{ loop.index0 }}][new_price]" value="{{ item.new_price }}">
                                 <input type="hidden" name="items[{{ loop.index0 }}][status]" value="{{ item.status }}">
+                                {% if item.material_id %}
+                                <input type="hidden" name="items[{{ loop.index0 }}][material_id]" value="{{ item.material_id }}">
+                                {% endif %}
+                                {% if item.supplier_id %}
+                                <input type="hidden" name="items[{{ loop.index0 }}][supplier_id]" value="{{ item.supplier_id }}">
+                                {% endif %}
                                 <strong>{{ item.name }}</strong>
+                            </td>
+                            <td>
+                                {% if item.sku %}
+                                    <small class="text-muted d-block">מק"ט: {{ item.sku }}</small>
+                                {% endif %}
+                                {% if item.supplier_name %}
+                                    <small class="text-info d-block">{{ item.supplier_name }}</small>
+                                {% endif %}
+                                {% if item.matched_by == 'sku' %}
+                                    <span class="badge bg-success" title="זוהה לפי מק''ט"><i class="bi bi-upc-scan"></i></span>
+                                {% endif %}
                             </td>
                             <td>
                                 {% if item.status == 'new' %}

@@ -73,6 +73,7 @@ def add_raw_material():
         # Get multiple suppliers
         supplier_ids = request.form.getlist('supplier_ids[]')
         supplier_costs = request.form.getlist('supplier_costs[]')
+        supplier_skus = request.form.getlist('supplier_skus[]')
         primary_supplier_value = request.form.get('primary_supplier')
 
         # For unlimited materials, cost should be 0 (or user-specified)
@@ -113,11 +114,15 @@ def add_raw_material():
                     except (ValueError, IndexError):
                         supplier_cost = cost_per_unit
 
+                    # Get SKU for this supplier (if provided)
+                    supplier_sku = supplier_skus[i] if i < len(supplier_skus) and supplier_skus[i] else None
+
                     supplier_link = RawMaterialSupplier(
                         raw_material_id=new_material.id,
                         supplier_id=int(supplier_id),
                         cost_per_unit=supplier_cost,
-                        is_primary=is_primary
+                        is_primary=is_primary,
+                        sku=supplier_sku
                     )
                     db.session.add(supplier_link)
 
@@ -253,6 +258,7 @@ def edit_raw_material(material_id):
         # Get multiple suppliers
         supplier_ids = request.form.getlist('supplier_ids[]')
         supplier_costs = request.form.getlist('supplier_costs[]')
+        supplier_skus = request.form.getlist('supplier_skus[]')
         primary_supplier_value = request.form.get('primary_supplier')
 
         # Calculate average cost from suppliers for backward compatibility
@@ -280,11 +286,15 @@ def edit_raw_material(material_id):
                 except (ValueError, IndexError):
                     supplier_cost = material.cost_per_unit
 
+                # Get SKU for this supplier (if provided)
+                supplier_sku = supplier_skus[i] if i < len(supplier_skus) and supplier_skus[i] else None
+
                 supplier_link = RawMaterialSupplier(
                     raw_material_id=material.id,
                     supplier_id=int(supplier_id),
                     cost_per_unit=supplier_cost,
-                    is_primary=is_primary
+                    is_primary=is_primary,
+                    sku=supplier_sku
                 )
                 db.session.add(supplier_link)
 

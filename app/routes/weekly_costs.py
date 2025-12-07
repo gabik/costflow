@@ -239,10 +239,14 @@ def close_week_confirm():
 
         # User chose to waste this premake - set stock to 0
         # Use 'set' action to ensure complete zeroing regardless of beginning stock
-        from .utils import calculate_premake_current_stock
+        from .utils import calculate_premake_current_stock, calculate_premake_cost_per_unit
         current_stock = calculate_premake_current_stock(premake.id)
 
         if current_stock > 0:
+            # Calculate cost of wasted stock for audit trail
+            cost_per_unit = calculate_premake_cost_per_unit(premake)
+            waste_cost = current_stock * cost_per_unit
+
             # Set stock to 0 (this accounts for beginning stock + weekly production - usage)
             stock_log = StockLog(
                 product_id=premake.id,
@@ -251,6 +255,10 @@ def close_week_confirm():
                 timestamp=new_week_start_dt
             )
             db.session.add(stock_log)
+
+            # Log the waste for audit trail
+            log_audit("PREMAKE_WASTE", "Product", premake.id,
+                     f"Wasted {current_stock:.2f} {premake.unit} of {premake.name} (Cost: ₪{waste_cost:.2f}) when closing week {prev_week.week_start_date}")
 
     db.session.commit()
     log_audit("CLOSE_WEEK", "WeeklySales", prev_week.id, f"Closed week {prev_week.week_start_date}. Processed leftovers.")

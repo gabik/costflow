@@ -67,12 +67,13 @@
                         <!-- Column headers -->
                         <div class="row g-2 mb-2 fw-bold text-muted small">
                             <div class="col-md-3">ספק</div>
+                            <div class="col-md-2">מק"ט (SKU)</div>
                             <div class="col-md-2">מחיר ליחידה</div>
                             {% if material %}
                             <div class="col-md-2">מלאי נוכחי</div>
                             {% endif %}
-                            <div class="col-md-3 text-center">ספק ראשי</div>
-                            <div class="col-md-2"></div>
+                            <div class="col-md-2 text-center">ספק ראשי</div>
+                            <div class="col-md-1"></div>
                         </div>
 
                         <div id="suppliersContainer" class="mb-2">
@@ -232,7 +233,7 @@
 <template id="supplierRowTemplate">
     <div class="supplier-row border rounded p-2 mb-2">
         <div class="row g-2 align-items-center">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <select class="form-select supplier-select" name="supplier_ids[]" required>
                     <option value="">בחר ספק...</option>
                     {% for supplier in suppliers %}
@@ -240,18 +241,22 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
+                <input type="text" class="form-control supplier-sku" name="supplier_skus[]"
+                       placeholder="מק''ט אופציונלי">
+            </div>
+            <div class="col-md-2">
                 <div class="input-group">
                     <span class="input-group-text">₪</span>
                     <input type="number" class="form-control supplier-cost" name="supplier_costs[]"
                            placeholder="0.00" step="0.01" required>
                 </div>
             </div>
-            <div class="col-md-3 text-center">
+            <div class="col-md-2 text-center">
                 <input type="radio" class="form-check-input primary-radio"
                        name="primary_supplier" style="scale: 1.2;">
             </div>
-            <div class="col-md-2 text-end">
+            <div class="col-md-1 text-end">
                 <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSupplierRow(this)">
                     <i class="bi bi-trash"></i>
                 </button>
@@ -277,7 +282,7 @@
         {% endfor %}
     {% endif %}
 
-    function addSupplierRow(supplierId = '', cost = '', isPrimary = false, currentStock = null, isExisting = false) {
+    function addSupplierRow(supplierId = '', sku = '', cost = '', isPrimary = false, currentStock = null, isExisting = false) {
         const template = document.getElementById('supplierRowTemplate');
         const container = document.getElementById('suppliersContainer');
         const clone = template.content.cloneNode(true);
@@ -296,6 +301,9 @@
         if (supplierId) {
             clone.querySelector('.supplier-select').value = supplierId;
         }
+        if (sku) {
+            clone.querySelector('.supplier-sku').value = sku;
+        }
         if (cost) {
             clone.querySelector('.supplier-cost').value = cost;
         }
@@ -306,17 +314,13 @@
         // If this is an existing supplier with stock info, add stock display
         if (isExisting && currentStock !== null) {
             const row = clone.querySelector('.supplier-row');
-            const supplierCol = row.querySelector('.col-md-4');
+            const supplierCol = row.querySelector('.col-md-3');
 
             // Create stock display element
             const stockCol = document.createElement('div');
             stockCol.className = 'col-md-2';
             stockCol.innerHTML = '<span class="badge bg-' + (currentStock > 0 ? 'success' : 'danger') + '">' +
                                 currentStock.toFixed(2) + ' {{ material.unit if material else "" }}</span>';
-
-            // Adjust column widths for existing items with stock display
-            supplierCol.className = 'col-md-3';
-            row.querySelector('.col-md-3').className = 'col-md-2'; // Cost column
 
             // Insert stock column after cost column
             const costCol = row.querySelector('.input-group').parentElement;
@@ -497,6 +501,7 @@
             {% for link in material.supplier_links %}
             addSupplierRow(
                 '{{ link.supplier_id }}',
+                '{{ link.sku if link.sku else '' }}',
                 '{{ link.cost_per_unit }}',
                 {{ 'true' if link.is_primary else 'false' }},
                 {{ link.current_stock if link.current_stock is defined else 'null' }},

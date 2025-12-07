@@ -354,6 +354,7 @@ class RawMaterialSupplier(db.Model):
     supplier_id = db.Column(db.Integer, db.ForeignKey('supplier.id'), nullable=False)
     cost_per_unit = db.Column(db.Float, nullable=False)
     is_primary = db.Column(db.Boolean, default=False)  # Mark primary supplier
+    sku = db.Column(db.String(100), nullable=True)  # SKU for supplier-specific product identification
 
     raw_material = db.relationship('RawMaterial', backref='supplier_links')
     supplier = db.relationship('Supplier', backref='material_links')
@@ -367,5 +368,6 @@ class RawMaterialSupplier(db.Model):
             'supplier_id': self.supplier_id,
             'supplier_name': self.supplier.name if self.supplier else None,
             'cost_per_unit': self.cost_per_unit,
-            'is_primary': self.is_primary
+            'is_primary': self.is_primary,
+            'sku': self.sku
         }

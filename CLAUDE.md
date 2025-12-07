@@ -67,7 +67,9 @@ The application follows Flask's application factory pattern with modular bluepri
 - **Product**: Unified model for products/premakes/preproducts (boolean flags)
 - **ProductComponent**: Links products to materials/premakes/packaging
 - **RawMaterial**: Raw material tracking with `is_unlimited` flag for infinite-stock materials
-- **RawMaterialSupplier**: Multi-supplier support with individual pricing per supplier
+- **RawMaterialSupplier**: Multi-supplier support with individual pricing per supplier and SKU tracking
+  - `sku` field (VARCHAR(100), nullable): Optional SKU for supplier-specific product identification
+  - Enables reliable material matching during inventory imports when product names vary by supplier
 - **StockLog**: Inventory tracking with supplier information
 - **ProductionLog**: Production events with actual cost tracking
 - **WeeklyLaborCost/WeeklyProductSales**: Weekly tracking and reporting
@@ -148,6 +150,11 @@ docker run -p 8080:8080 costflow
   - No supplier tracking required
   - Display "∞" symbol in UI
   - Cost per unit is 0 (zero contribution to product costs)
+- **Premake Stock Management**:
+  - Premake production creates positive 'add' StockLog entries
+  - Premake consumption tracked ONLY via ProductionLog (not StockLog)
+  - Week closing with "waste" option creates 'set to 0' StockLog entries (not negative adds)
+  - This ensures complete stock zeroing including beginning stock carryover
 
 ### Production Tracking
 - ProductionLog records production events with timestamps
@@ -158,6 +165,18 @@ docker run -p 8080:8080 costflow
 - Product images stored in `static/uploads/products/`
 - Max upload size: 16MB
 - Excel/CSV import for bulk data operations
+
+### Inventory Import with SKU Support
+- **Required columns**: שם מוצר (Product Name), סה"כ כמות (Total Quantity), מחיר ממוצע (Average Price)
+- **Optional columns**: מק"ט (SKU), ספק (Supplier)
+- **Matching Priority**:
+  1. SKU + Supplier (most reliable) - matches via RawMaterialSupplier.sku
+  2. Product Name (fallback) - matches via RawMaterial.name
+- **Benefits of SKU**:
+  - Reliable identification when product names vary between suppliers
+  - Supplier-specific stock tracking and pricing updates
+  - Eliminates ambiguity in multi-supplier scenarios
+- **Usage**: Add SKU field when creating/editing raw materials per supplier (optional)
 
 
 
