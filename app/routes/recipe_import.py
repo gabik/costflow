@@ -502,16 +502,39 @@ def confirm_import():
             if mapping_id:  # Not empty
                 material_mappings[key.replace('mapping_', '')] = int(mapping_id)
 
+    # Extract weight modifications from form
+    weight_modifications = {}
+    for key in request.form:
+        if key.startswith('weight_'):
+            weight_value = request.form[key]
+            if weight_value:
+                weight_modifications[key.replace('weight_', '')] = float(weight_value)
+
+    # Extract selected recipes from form
+    selected_recipe_indices = set()
+    for key in request.form:
+        if key.startswith('import_recipe'):
+            idx_str = key.replace('import_recipe', '')
+            if idx_str.isdigit():
+                selected_recipe_indices.add(int(idx_str))
+
     try:
         metadata = import_data['metadata']
         category_id = import_data['category_id']
         recipes = import_data['recipes']
 
+        # Check if any recipes were selected
+        if not selected_recipe_indices:
+            flash('לא נבחרו מתכונים לייבוא', 'warning')
+            return redirect(url_for('recipe_import.upload_recipes'))
+
         is_premake = metadata['type'] == 'premake'
         created_count = 0
         updated_count = 0
 
-        for recipe_idx, recipe in enumerate(recipes):
+        # Process only selected recipes, using original indices for form field lookups
+        for recipe_idx in sorted(selected_recipe_indices):
+            recipe = recipes[recipe_idx]
             # Check if exists
             existing_recipe = Product.query.filter_by(
                 name=recipe['name'],
@@ -583,11 +606,15 @@ def confirm_import():
                 }
                 comp_type = type_map.get(material['type'], 'raw_material')
 
+                # Check for weight modification
+                weight_key = f"recipe{recipe_idx}_mat{material_idx}"
+                quantity = weight_modifications.get(weight_key, material['weight'])
+
                 component = ProductComponent(
                     product_id=product.id,
                     component_type=comp_type,
                     component_id=mat_id,
-                    quantity=material['weight']
+                    quantity=quantity
                 )
                 db.session.add(component)
 

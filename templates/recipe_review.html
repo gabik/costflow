@@ -45,6 +45,15 @@
 
 <!-- Recipes Review -->
 <form method="POST" action="{{ url_for('recipe_import.confirm_import') }}" id="recipeImportForm">
+
+<!-- Recipe Selection Controls -->
+<div class="mb-3 d-flex justify-content-between align-items-center">
+    <button type="button" class="btn btn-sm btn-outline-primary" id="toggleAllRecipes">
+        <i class="bi bi-check-square me-1"></i> בחר הכל
+    </button>
+    <span class="text-muted" id="selectedCount">0 מתכונים נבחרו</span>
+</div>
+
 <div class="accordion" id="recipesAccordion">
     {% for recipe in recipes %}
     {% set recipe_idx = loop.index0 %}
@@ -55,7 +64,15 @@
                     aria-expanded="{% if loop.first %}true{% else %}false{% endif %}"
                     aria-controls="collapse{{ loop.index }}">
                 <div class="d-flex w-100 justify-content-between align-items-center">
-                    <span class="fw-bold">{{ recipe.name }}</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="checkbox"
+                               name="import_recipe{{ recipe_idx }}"
+                               value="1"
+                               class="form-check-input recipe-select-checkbox"
+                               id="recipeCheckbox{{ recipe_idx }}"
+                               onclick="event.stopPropagation();">
+                        <label for="recipeCheckbox{{ recipe_idx }}" class="fw-bold mb-0" onclick="event.stopPropagation();">{{ recipe.name }}</label>
+                    </div>
                     <div class="d-flex gap-2 me-3">
                         {% if recipe.exists %}
                         <span class="badge bg-warning">קיים - יעודכן</span>
@@ -123,7 +140,16 @@
                                     </select>
                                     {% endif %}
                                 </td>
-                                <td>{{ "%.1f"|format(material.weight) }}</td>
+                                <td>
+                                    <input type="number"
+                                           name="weight_recipe{{ recipe_idx }}_mat{{ loop.index0 }}"
+                                           class="form-control form-control-sm weight-input"
+                                           value="{{ material.weight }}"
+                                           step="0.1"
+                                           min="0"
+                                           required
+                                           style="width: 100px;">
+                                </td>
                                 <td>{{ "%.2f"|format(material.sheet_price) }} ₪</td>
                                 <td class="db-price-cell">
                                     {% if material.db_price %}
@@ -258,7 +284,12 @@ $(document).ready(function() {
 
     // Count unmapped materials
     let unmappedCount = $('.material-mapping-select').length;
+
+    // Track selected recipes
+    let selectedRecipes = new Set();
+
     updateSubmitButton();
+    updateSelectedCount();
 
     // Handle material selection change
     $('.material-mapping-select').on('change', function() {
@@ -300,16 +331,62 @@ $(document).ready(function() {
         updateSubmitButton();
     });
 
+    // Toggle all checkboxes
+    $('#toggleAllRecipes').on('click', function() {
+        const $btn = $(this);
+        const $checkboxes = $('.recipe-select-checkbox');
+        const allChecked = $checkboxes.filter(':checked').length === $checkboxes.length;
+
+        $checkboxes.prop('checked', !allChecked);
+
+        if (!allChecked) {
+            $btn.html('<i class="bi bi-square me-1"></i> בטל בחירה');
+            selectedRecipes.clear();
+            $checkboxes.each(function(index) {
+                selectedRecipes.add(index);
+            });
+        } else {
+            $btn.html('<i class="bi bi-check-square me-1"></i> בחר הכל');
+            selectedRecipes.clear();
+        }
+
+        updateSelectedCount();
+        updateSubmitButton();
+    });
+
+    // Handle individual checkbox changes
+    $('.recipe-select-checkbox').on('change', function() {
+        const idx = parseInt($(this).attr('name').replace('import_recipe', ''));
+        if ($(this).is(':checked')) {
+            selectedRecipes.add(idx);
+        } else {
+            selectedRecipes.delete(idx);
+        }
+        updateSelectedCount();
+        updateSubmitButton();
+    });
+
+    function updateSelectedCount() {
+        $('#selectedCount').text(`${selectedRecipes.size} מתכונים נבחרו`);
+    }
+
     function updateSubmitButton() {
         const $btn = $('#confirmImportBtn');
-        if (unmappedCount === 0) {
+
+        // Check both unmapped materials AND selected recipes
+        if (unmappedCount === 0 && selectedRecipes.size > 0) {
             $btn.prop('disabled', false);
             $btn.removeClass('btn-secondary').addClass('btn-success');
-            $btn.html('<i class="bi bi-check-lg me-2"></i> אשר וייבא מתכונים');
-        } else {
+            $btn.html(`<i class="bi bi-check-lg me-2"></i> ייבא ${selectedRecipes.size} מתכונים`);
+        } else if (unmappedCount > 0) {
             $btn.prop('disabled', true);
             $btn.removeClass('btn-success').addClass('btn-secondary');
             $btn.html(`<i class="bi bi-x-circle me-2"></i> ${unmappedCount} חומרים לא מופו`);
+        } else {
+            // No unmapped materials but no recipes selected
+            $btn.prop('disabled', true);
+            $btn.removeClass('btn-success').addClass('btn-secondary');
+            $btn.html('<i class="bi bi-info-circle me-2"></i> בחר מתכונים לייבוא');
         }
     }
 });
