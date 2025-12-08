@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+{% block title %}סקירת מתכונים לייבוא - CostFlow{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-6 fw-bold text-primary">סקירת מתכונים לייבוא</h1>
+        <p class="text-secondary">
+            סוג: <span class="badge bg-info">{{ metadata.type }}</span> |
+            קטגוריה: <strong>{{ category.name }}</strong> |
+            יחידה: <strong>{{ metadata.unit }}</strong> |
+            סה"כ מתכונים: <strong>{{ recipes|length }}</strong>
+        </p>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category_msg, message in messages %}
+      <div class="alert alert-{{ 'danger' if category_msg == 'error' else category_msg }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<!-- Missing Materials Warning -->
+{% if has_missing_materials %}
+<div class="alert alert-danger" role="alert">
+    <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>חומרים חסרים במערכת!</h5>
+    <p>לא ניתן לייבא את המתכונים כי החומרים הבאים לא קיימים במערכת:</p>
+    <ul class="mb-3">
+        {% for material in missing_materials %}
+        <li><strong>{{ material.name }}</strong> ({{ material.type }})</li>
+        {% endfor %}
+    </ul>
+    <hr>
+    <p class="mb-0">
+        <i class="bi bi-info-circle me-2"></i>
+        אנא הוסף את החומרים החסרים למערכת ולאחר מכן חזור וייבא את הקובץ מחדש.
+    </p>
+</div>
+{% endif %}
+
+<!-- Recipes Review -->
+<div class="accordion" id="recipesAccordion">
+    {% for recipe in recipes %}
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="heading{{ loop.index }}">
+            <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}"
+                    aria-expanded="{% if loop.first %}true{% else %}false{% endif %}"
+                    aria-controls="collapse{{ loop.index }}">
+                <div class="d-flex w-100 justify-content-between align-items-center">
+                    <span class="fw-bold">{{ recipe.name }}</span>
+                    <div class="d-flex gap-2 me-3">
+                        {% if recipe.exists %}
+                        <span class="badge bg-warning">קיים - יעודכן</span>
+                        {% else %}
+                        <span class="badge bg-success">חדש</span>
+                        {% endif %}
+                        {% if recipe.has_missing %}
+                        <span class="badge bg-danger">חסרים חומרים</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </button>
+        </h2>
+        <div id="collapse{{ loop.index }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
+             aria-labelledby="heading{{ loop.index }}" data-bs-parent="#recipesAccordion">
+            <div class="accordion-body">
+
+                <!-- Materials Table -->
+                <h6 class="fw-bold mb-3">חומרי גלם:</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>שם</th>
+                                <th>סוג</th>
+                                <th>סטטוס</th>
+                                <th>משקל (ג')</th>
+                                <th>מחיר בגיליון</th>
+                                <th>מחיר במערכת</th>
+                                <th>התאמה</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for material in recipe.materials %}
+                            <tr class="{% if not material.found %}table-danger{% elif material.price_differs %}table-warning{% endif %}">
+                                <td><strong>{{ material.name }}</strong></td>
+                                <td><small class="text-muted">{{ material.type }}</small></td>
+                                <td>
+                                    {% if material.found %}
+                                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> נמצא</span>
+                                    {% else %}
+                                    <span class="badge bg-danger"><i class="bi bi-x-circle"></i> לא נמצא</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ "%.1f"|format(material.weight) }}</td>
+                                <td>{{ "%.2f"|format(material.sheet_price) }} ₪</td>
+                                <td>
+                                    {% if material.db_price %}
+                                    {{ "%.2f"|format(material.db_price) }} ₪
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if material.found %}
+                                        {% if material.price_differs %}
+                                        <span class="badge bg-warning"><i class="bi bi-exclamation-triangle"></i> שונה</span>
+                                        {% else %}
+                                        <span class="badge bg-success"><i class="bi bi-check"></i> זהה</span>
+                                        {% endif %}
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+
+                            <!-- Loss Row -->
+                            {% if recipe.loss %}
+                            <tr class="table-warning">
+                                <td><strong>{{ recipe.loss.name }}</strong></td>
+                                <td><small class="text-muted">אבדן</small></td>
+                                <td><span class="badge bg-secondary">אבדן</span></td>
+                                <td>{{ "%.1f"|format(recipe.loss.weight) }}</td>
+                                <td colspan="3" class="text-muted"><em>ללא עלות</em></td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Summary -->
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">סיכום משקל ועלות:</h6>
+                                <ul class="list-unstyled mb-0">
+                                    <li><strong>משקל גולמי:</strong> {{ "%.1f"|format(recipe.total_weight) }} ג'</li>
+                                    {% if recipe.loss %}
+                                    <li><strong>אבדן:</strong> {{ "%.1f"|format(recipe.loss.weight) }} ג'</li>
+                                    <li><strong>משקל נטו:</strong> {{ "%.1f"|format(recipe.net_weight) }} ג'</li>
+                                    {% endif %}
+                                    <li><strong>עלות כוללת:</strong> {{ "%.2f"|format(recipe.total_cost) }} ₪</li>
+                                    <li class="mt-2 text-primary"><strong>עלות ל-100 ג':</strong> {{ "%.2f"|format(recipe.cost_100g) }} ₪</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Diff Display (if exists) -->
+                    {% if recipe.exists and recipe.diff %}
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">שינויים (ביחס למתכון הקיים):</h6>
+                                <ul class="list-unstyled mb-0">
+                                    {% if recipe.diff.added %}
+                                    <li class="text-success">
+                                        <i class="bi bi-plus-circle"></i> <strong>נוסף:</strong>
+                                        {% for mat in recipe.diff.added %}
+                                        {{ mat.name }}{% if not loop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </li>
+                                    {% endif %}
+                                    {% if recipe.diff.removed %}
+                                    <li class="text-danger">
+                                        <i class="bi bi-dash-circle"></i> <strong>הוסר:</strong>
+                                        {% for mat in recipe.diff.removed %}
+                                        {{ mat.name }}{% if not loop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </li>
+                                    {% endif %}
+                                    {% if recipe.diff.changed %}
+                                    <li class="text-warning">
+                                        <i class="bi bi-arrow-repeat"></i> <strong>שונה כמות:</strong>
+                                        {% for item in recipe.diff.changed %}
+                                        {{ item.material.name }} ({{ "%.1f"|format(item.old_quantity) }} → {{ "%.1f"|format(item.new_quantity) }}){% if not loop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </li>
+                                    {% endif %}
+                                    {% if not recipe.diff.added and not recipe.diff.removed and not recipe.diff.changed %}
+                                    <li class="text-muted"><i class="bi bi-check-circle"></i> אין שינויים</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Action Buttons -->
+<div class="mt-4 d-flex justify-content-end gap-2">
+    <a href="{{ url_for('recipe_import.upload_recipes') }}" class="btn btn-secondary">
+        <i class="bi bi-x-circle me-2"></i> ביטול
+    </a>
+    <form method="POST" action="{{ url_for('recipe_import.confirm_import') }}" class="d-inline">
+        <button type="submit" class="btn btn-success btn-lg" {% if has_missing_materials %}disabled{% endif %}>
+            <i class="bi bi-check-lg me-2"></i> אשר וייבא מתכונים
+        </button>
+    </form>
+</div>
+
+{% if has_missing_materials %}
+<div class="alert alert-info mt-3">
+    <i class="bi bi-info-circle me-2"></i>
+    כפתור האישור מושבת כי יש חומרים חסרים. אנא הוסף את החומרים החסרים למערכת ולאחר מכן התחל את תהליך הייבוא מחדש.
+</div>
+{% endif %}
+
+{% endblock %}

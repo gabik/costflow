@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}ייבוא מתכונים - CostFlow{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-6 fw-bold text-primary">ייבוא מתכונים מאקסל</h1>
+        <p class="text-secondary">העלאת קובץ אקסל עם מתכונים להכנות או מוצרים</p>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+{% if not file_uploaded %}
+<!-- Step 1: Upload Form -->
+<div class="card shadow-sm">
+    <div class="card-body p-5">
+        <div class="text-center mb-4">
+            <i class="bi bi-file-earmark-spreadsheet display-1 text-success mb-3"></i>
+            <h4 class="mb-3">העלה קובץ מתכונים</h4>
+        </div>
+
+        <!-- Instructions -->
+        <div class="alert alert-info mb-4">
+            <h6 class="alert-heading"><i class="bi bi-info-circle me-2"></i>פורמט הקובץ הנדרש:</h6>
+            <ol class="mb-2">
+                <li>השורות הראשונות חייבות להכיל מטאדאטה:</li>
+                <pre class="bg-light p-2 mb-2" style="direction: ltr; text-align: left;">
+# Recipe Import Metadata
+type: premake
+category: בצקים
+unit: g
+</pre>
+                <li><strong>type:</strong> חובה - "premake" או "product"</li>
+                <li><strong>category:</strong> חובה - שם קטגוריה קיימת במערכת</li>
+                <li><strong>unit:</strong> אופציונלי - ברירת מחדל "g"</li>
+                <li>אחרי המטאדאטה שורה ריקה, ואז המתכונים</li>
+                <li>כל מתכון מתחיל בכותרת, 2 שורות כותרות, ואז חומרי הגלם</li>
+                <li>סוגי חומרים: "חומר גלם", "הכנה", "מוצר מקדים", "אבדן"</li>
+                <li>עמודות: שם, סוג, מחיר לק"ג, משקל (ג'), מחיר במתכון</li>
+            </ol>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" class="text-center" style="max-width: 500px; margin: 0 auto;">
+            <div class="mb-3 text-start">
+                <label for="recipe_file" class="form-label">בחר קובץ אקסל:</label>
+                <input type="file"
+                       name="recipe_file"
+                       id="recipe_file"
+                       class="form-control"
+                       accept=".xlsx, .xls"
+                       required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg w-100">
+                <i class="bi bi-upload me-2"></i> טען קובץ
+            </button>
+        </form>
+    </div>
+</div>
+
+{% else %}
+<!-- Step 2: Sheet Selection -->
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h5 class="mb-0"><i class="bi bi-check-circle text-success me-2"></i>הקובץ הועלה בהצלחה</h5>
+    </div>
+    <div class="card-body p-4">
+        <form method="POST" action="{{ url_for('recipe_import.select_sheet') }}">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="sheet_name" class="form-label">בחר גיליון לייבוא:</label>
+                    <select name="sheet_name" id="sheet_name" class="form-select" required>
+                        {% for sheet in sheet_names %}
+                        <option value="{{ sheet }}">{{ sheet }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            {% if metadata_preview %}
+            <div class="alert alert-secondary mt-3">
+                <h6 class="alert-heading">תצוגה מקדימה של מטאדאטה (מהגיליון הראשון):</h6>
+                <ul class="mb-0">
+                    <li><strong>סוג:</strong> {{ metadata_preview.type or 'לא זוהה (נדרש!)' }}</li>
+                    <li><strong>קטגוריה:</strong> {{ metadata_preview.category or 'לא זוהתה (נדרש!)' }}</li>
+                    <li><strong>יחידת מידה:</strong> {{ metadata_preview.unit }}</li>
+                </ul>
+                {% if not metadata_preview.type or not metadata_preview.category %}
+                <div class="alert alert-warning mt-2 mb-0">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>שים לב:</strong> חסרים שדות חובה במטאדאטה. ודא שהקובץ מכיל שורות type ו-category.
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div class="mt-4 d-flex justify-content-end gap-2">
+                <a href="{{ url_for('recipe_import.upload_recipes') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-counterclockwise me-2"></i> העלה קובץ אחר
+                </a>
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-arrow-left me-2"></i> המשך לסקירה
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
