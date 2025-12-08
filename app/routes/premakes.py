@@ -77,17 +77,19 @@ def add_premake():
         return redirect(url_for('premakes.premakes'))
 
     # GET request
-    categories = Category.query.filter_by(type='premake').all()
-    raw_materials = RawMaterial.query.filter_by(is_deleted=False).all()
+    premake_categories = Category.query.filter_by(type='premake').all()
+    all_raw_materials = RawMaterial.query.filter_by(is_deleted=False).all()
     packagings = Packaging.query.all()
-    nested_premakes = Product.query.filter_by(is_premake=True).all()
+    all_premakes = Product.query.filter_by(is_premake=True).all()
+    units = ['kg', 'g', 'l', 'ml', 'piece', 'unit']
 
     return render_template('add_or_edit_premake.html',
                          premake=None,
-                         categories=categories,
-                         raw_materials=raw_materials,
+                         premake_categories=premake_categories,
+                         all_raw_materials=all_raw_materials,
                          packagings=packagings,
-                         nested_premakes=nested_premakes)
+                         all_premakes=all_premakes,
+                         units=units)
 
 @premakes_blueprint.route('/premakes/edit/<int:premake_id>', methods=['GET', 'POST'])
 def edit_premake(premake_id):
@@ -132,21 +134,23 @@ def edit_premake(premake_id):
         return redirect(url_for('premakes.premakes'))
 
     # GET request
-    categories = Category.query.filter_by(type='premake').all()
-    raw_materials = RawMaterial.query.filter_by(is_deleted=False).all()
+    premake_categories = Category.query.filter_by(type='premake').all()
+    all_raw_materials = RawMaterial.query.filter_by(is_deleted=False).all()
     packagings = Packaging.query.all()
     # Exclude self from nested premakes to prevent circular references
-    nested_premakes = Product.query.filter(
+    all_premakes = Product.query.filter(
         Product.is_premake == True,
         Product.id != premake_id
     ).all()
+    units = ['kg', 'g', 'l', 'ml', 'piece', 'unit']
 
     return render_template('add_or_edit_premake.html',
                          premake=premake,
-                         categories=categories,
-                         raw_materials=raw_materials,
+                         premake_categories=premake_categories,
+                         all_raw_materials=all_raw_materials,
                          packagings=packagings,
-                         nested_premakes=nested_premakes)
+                         all_premakes=all_premakes,
+                         units=units)
 
 @premakes_blueprint.route('/premakes/delete/<int:premake_id>', methods=['POST'])
 def delete_premake(premake_id):
