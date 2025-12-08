@@ -71,8 +71,9 @@
 
                     {% for component in raw_material_components %}
                         <div class="row g-2 mb-2 align-items-center raw-material-row">
-                            <div class="col-md-5">
-                                <select name="raw_material[]" class="form-select select2" required onchange="handleMaterialChange(this)">
+                            <input type="hidden" name="component_type[]" value="raw_material">
+                            <div class="col-md-6">
+                                <select name="component_id[]" class="form-select select2" required>
                                     <option value="">בחר חומר גלם</option>
                                     {% for mat_opt in all_raw_materials %}
                                     <option value="{{ mat_opt.id }}" data-unit="{{ mat_opt.unit }}" {% if mat_opt.id == component.component_id %}selected{% endif %}>
@@ -81,15 +82,11 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-3">
-                                <input type="number" step="0.001" name="raw_material_quantity[]" class="form-control" placeholder="כמות" value="{{ "%.3f"|format(component.quantity) }}" required>
-                            </div>
-                            <div class="col-md-3">
-                                <!-- Initial unit is the material's base unit because we store it normalized -->
-                                <select name="raw_material_unit[]" class="form-select unit-select">
-                                    <!-- Populated via JS or default to base -->
-                                    <option value="{{ component.material.unit }}" selected>{{ component.material.unit }}</option>
-                                </select>
+                            <div class="col-md-5">
+                                <div class="input-group">
+                                    <input type="number" step="0.001" name="quantity[]" class="form-control" placeholder="כמות" value="{{ "%.3f"|format(component.quantity) }}" required>
+                                    <span class="input-group-text">{{ component.material.unit if component.material else 'kg' }}</span>
+                                </div>
                             </div>
                             <div class="col-md-1">
                                 <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)">
@@ -102,8 +99,9 @@
                     {# If no raw materials found (new premake or existing one with none), render one empty row #}
                     {% if not raw_material_components %}
                     <div class="row g-2 mb-2 align-items-center raw-material-row">
-                        <div class="col-md-5">
-                            <select name="raw_material[]" class="form-select select2" required onchange="handleMaterialChange(this)">
+                        <input type="hidden" name="component_type[]" value="raw_material">
+                        <div class="col-md-6">
+                            <select name="component_id[]" class="form-select select2" required>
                                 <option value="" disabled selected>בחר חומר גלם...</option>
                                 {% for mat_opt in all_raw_materials %}
                                 <option value="{{ mat_opt.id }}" data-unit="{{ mat_opt.unit }}">
@@ -112,13 +110,11 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-3">
-                            <input type="number" step="0.001" name="raw_material_quantity[]" class="form-control" placeholder="כמות" required>
-                        </div>
-                        <div class="col-md-3">
-                            <select name="raw_material_unit[]" class="form-select unit-select">
-                                <option value="kg">kg</option>
-                            </select>
+                        <div class="col-md-5">
+                            <div class="input-group">
+                                <input type="number" step="0.001" name="quantity[]" class="form-control" placeholder="כמות" required>
+                                <span class="input-group-text unit-display">kg</span>
+                            </div>
                         </div>
                         <div class="col-md-1">
                             <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)">
@@ -152,8 +148,9 @@
 
                     {% for component in premake_components %}
                         <div class="row g-2 mb-2 align-items-center premake-row">
-                            <div class="col-md-5">
-                                <select name="premake[]" class="form-select select2" onchange="handlePremakeChange(this)">
+                            <input type="hidden" name="component_type[]" value="premake">
+                            <div class="col-md-6">
+                                <select name="component_id[]" class="form-select select2">
                                     <option value="">בחר הכנה מקדימה</option>
                                     {% for premake_opt in all_premakes %}
                                     <option value="{{ premake_opt.id }}" data-unit="{{ premake_opt.unit }}" {% if premake_opt.id == component.component_id %}selected{% endif %}>
@@ -162,11 +159,11 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-3">
-                                <input type="number" step="0.001" name="premake_quantity[]" class="form-control" placeholder="כמות" value="{{ "%.3f"|format(component.quantity) }}" required>
-                            </div>
-                            <div class="col-md-3">
-                                <span class="form-control-plaintext">{{ component.nested_premake.unit if component.nested_premake else '' }}</span>
+                            <div class="col-md-5">
+                                <div class="input-group">
+                                    <input type="number" step="0.001" name="quantity[]" class="form-control" placeholder="כמות" value="{{ "%.3f"|format(component.quantity) }}" required>
+                                    <span class="input-group-text">{{ component.premake.unit if component.premake else '' }}</span>
+                                </div>
                             </div>
                             <div class="col-md-1">
                                 <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)">
@@ -220,18 +217,17 @@
 
         const rowHtml = `
             <div class="row g-2 mb-2 align-items-center raw-material-row">
-                <div class="col-md-5">
-                    <select name="raw_material[]" class="form-select select2" onchange="handleMaterialChange(this)">
+                <input type="hidden" name="component_type[]" value="raw_material">
+                <div class="col-md-6">
+                    <select name="component_id[]" class="form-select select2" onchange="handleMaterialChange(this)">
                         ${optionsHtml}
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="כמות" step="0.001" value="${quantity}" required>
-                </div>
-                <div class="col-md-3">
-                    <select name="raw_material_unit[]" class="form-select unit-select">
-                        <option value="kg">kg</option>
-                    </select>
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <input type="number" name="quantity[]" class="form-control" placeholder="כמות" step="0.001" value="${quantity}" required>
+                        <span class="input-group-text unit-display">kg</span>
+                    </div>
                 </div>
                 <div class="col-md-1">
                     <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)">
@@ -260,33 +256,14 @@
 
     function handleMaterialChange(selectElement) {
         const row = selectElement.closest('.row');
-        const unitSelect = row.querySelector('.unit-select');
-        
+        const unitDisplay = row.querySelector('.unit-display');
+
         const selectedOption = selectElement.options[selectElement.selectedIndex];
         const baseUnit = selectedOption.getAttribute('data-unit');
-        
-        updateUnitOptions(unitSelect, baseUnit);
-    }
 
-    function updateUnitOptions(selectElement, baseUnit) {
-        selectElement.innerHTML = ''; // Clear existing
-        
-        const options = [];
-        if (baseUnit === 'kg' || baseUnit === 'g') {
-            options.push('kg', 'g');
-        } else if (baseUnit === 'l' || baseUnit === 'ml') {
-            options.push('l', 'ml');
-        } else {
-            options.push(baseUnit); // piece or unknown
+        if (unitDisplay && baseUnit) {
+            unitDisplay.textContent = baseUnit;
         }
-        
-        options.forEach(u => {
-            const opt = document.createElement('option');
-            opt.value = u;
-            opt.textContent = u;
-            if (u === baseUnit) opt.selected = true;
-            selectElement.appendChild(opt);
-        });
     }
 
     function addPremakeRow() {
@@ -300,16 +277,17 @@
 
         const rowHtml = `
             <div class="row g-2 mb-2 align-items-center premake-row">
-                <div class="col-md-5">
-                    <select name="premake[]" class="form-select select2" onchange="handlePremakeChange(this)">
+                <input type="hidden" name="component_type[]" value="premake">
+                <div class="col-md-6">
+                    <select name="component_id[]" class="form-select select2" onchange="handlePremakeChange(this)">
                         ${optionsHtml}
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <input type="number" name="premake_quantity[]" class="form-control" placeholder="כמות" step="0.001" required>
-                </div>
-                <div class="col-md-3">
-                    <span class="form-control-plaintext unit-display"></span>
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <input type="number" name="quantity[]" class="form-control" placeholder="כמות" step="0.001" required>
+                        <span class="input-group-text unit-display"></span>
+                    </div>
                 </div>
                 <div class="col-md-1">
                     <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)">
@@ -353,30 +331,6 @@
             width: '100%',
             language: { noResults: () => "לא נמצאו תוצאות" }
         });
-        
-        // Bind Select2 change event because native onchange doesn't always fire with Select2
-        $(document.body).on('select2:select', '.select2', function(e) {
-            handleMaterialChange(this);
-        });
-        
-        // Update units for existing rows (in case of edit mode)
-        document.querySelectorAll('.raw-material-row').forEach(row => {
-            const matSelect = row.querySelector('.select2');
-            const unitSelect = row.querySelector('.unit-select');
-            if (matSelect && unitSelect) {
-                const selectedOption = matSelect.options[matSelect.selectedIndex];
-                const baseUnit = selectedOption ? selectedOption.getAttribute('data-unit') : null;
-                if (baseUnit) {
-                    // If editing, we want to keep the currently selected unit (if we knew it).
-                    // But ProductComponent doesn't store the 'display unit'. It stores quantity.
-                    // So we default to baseUnit.
-                    // User can change it.
-                    updateUnitOptions(unitSelect, baseUnit);
-                }
-            }
-        });
-
-
 
         // Handle Add Category Modal Type
         const addCategoryModal = document.getElementById('addCategoryModal');

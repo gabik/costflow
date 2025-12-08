@@ -30,6 +30,56 @@ def premakes():
 
     return render_template('premakes.html', premakes=premakes)
 
+@premakes_blueprint.route('/premakes/view/<int:premake_id>')
+def view_premake(premake_id):
+    """View premake details"""
+    premake = Product.query.filter_by(id=premake_id, is_premake=True).first_or_404()
+
+    # Calculate current stock
+    premake.current_stock = calculate_premake_current_stock(premake.id)
+
+    # Calculate cost breakdown
+    cost_per_batch = 0
+    component_costs = []
+
+    for comp in premake.components:
+        comp_cost = 0
+        comp_name = ""
+        comp_unit = ""
+
+        if comp.component_type == 'raw_material' and comp.material:
+            comp_cost = comp.quantity * comp.material.cost_per_unit
+            comp_name = comp.material.name
+            comp_unit = comp.material.unit
+        elif comp.component_type == 'packaging' and comp.packaging:
+            comp_cost = comp.quantity * comp.packaging.price_per_unit
+            comp_name = comp.packaging.name
+            comp_unit = "units"
+        elif comp.component_type == 'premake' and comp.premake:
+            # Calculate nested premake cost recursively
+            nested_cost_per_unit = 0
+            for nested_comp in comp.premake.components:
+                if nested_comp.component_type == 'raw_material' and nested_comp.material:
+                    nested_cost_per_unit += (nested_comp.quantity * nested_comp.material.cost_per_unit) / comp.premake.batch_size if comp.premake.batch_size > 0 else 0
+                elif nested_comp.component_type == 'packaging' and nested_comp.packaging:
+                    nested_cost_per_unit += (nested_comp.quantity * nested_comp.packaging.price_per_unit) / comp.premake.batch_size if comp.premake.batch_size > 0 else 0
+            comp_cost = comp.quantity * nested_cost_per_unit
+            comp_name = comp.premake.name + " (הכנה מקדימה)"
+            comp_unit = comp.premake.unit
+
+        cost_per_batch += comp_cost
+        component_costs.append({
+            'name': comp_name,
+            'quantity': comp.quantity,
+            'unit': comp_unit,
+            'cost': comp_cost
+        })
+
+    premake.cost_per_unit = cost_per_batch / premake.batch_size if premake.batch_size > 0 else 0
+    premake.cost_per_batch = cost_per_batch
+
+    return render_template('view_premake.html', premake=premake, component_costs=component_costs)
+
 @premakes_blueprint.route('/premakes/add', methods=['GET', 'POST'])
 def add_premake():
     """Add a new premake (Product with is_premake=True)"""
