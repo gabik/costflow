@@ -233,14 +233,18 @@ def calculate_premake_current_stock(premake_id):
     for log in add_logs:
         stock += log.quantity
 
-    # Subtract premakes used in produced products
-    production_logs = ProductionLog.query.filter(
+    # Subtract premakes used in produced products (ONLY actual products, not premake production)
+    # Get all products (not premakes) to check for premake consumption
+    production_logs = ProductionLog.query.join(
+        Product, ProductionLog.product_id == Product.id
+    ).filter(
         ProductionLog.timestamp > (last_set_log.timestamp if last_set_log else datetime.min),
-        ProductionLog.product_id != None # Only consider product production that consumes premakes
+        Product.is_product == True,  # Only actual products, not premake production
+        ProductionLog.product_id != None
     ).all()
 
     for production in production_logs:
-        product = Product.query.get(production.product_id)
+        product = production.product
         if product:
             for component in product.components:
                 if component.component_type == 'premake' and component.component_id == premake_id:
@@ -283,21 +287,27 @@ def calculate_premake_stock_at_date(premake_id, cutoff_date):
     for log in add_logs:
         stock += log.quantity
 
-    # Subtract premakes used in produced products before/on cutoff date
+    # Subtract premakes used in produced products before/on cutoff date (ONLY actual products)
     if last_set_log:
-        production_logs = ProductionLog.query.filter(
+        production_logs = ProductionLog.query.join(
+            Product, ProductionLog.product_id == Product.id
+        ).filter(
+            Product.is_product == True,  # Only actual products, not premake production
             ProductionLog.product_id != None,
             ProductionLog.timestamp > last_set_log.timestamp,
             func.date(ProductionLog.timestamp) <= cutoff_date
         ).all()
     else:
-        production_logs = ProductionLog.query.filter(
+        production_logs = ProductionLog.query.join(
+            Product, ProductionLog.product_id == Product.id
+        ).filter(
+            Product.is_product == True,  # Only actual products, not premake production
             ProductionLog.product_id != None,
             func.date(ProductionLog.timestamp) <= cutoff_date
         ).all()
 
     for production in production_logs:
-        product = Product.query.get(production.product_id)
+        product = production.product
         if product:
             for component in product.components:
                 if component.component_type == 'premake' and component.component_id == premake_id:

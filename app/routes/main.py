@@ -550,3 +550,176 @@ def get_product_recipe(product_id):
     })
 
 
+@main_blueprint.route('/api/premake_recipe/<int:premake_id>')
+def get_premake_recipe(premake_id):
+    """API endpoint to get premake recipe with consumption breakdown"""
+    def safe_float(value):
+        import math
+        if math.isinf(value):
+            return None
+        return value
+
+    premake = Product.query.filter_by(id=premake_id, is_premake=True).first_or_404()
+
+    # Get quantity being produced (if provided)
+    quantity_produced = request.args.get('quantity', 1, type=float)
+
+    components_data = []
+    for comp in premake.components:
+        if comp.component_type == 'raw_material':
+            material = comp.material
+            if material:
+                # Calculate total needed for this production
+                needed_quantity = comp.quantity * quantity_produced
+
+                # Use total stock across all suppliers
+                stock = calculate_total_material_stock(material.id)
+
+                # Skip consumption breakdown for unlimited materials
+                if material.is_unlimited:
+                    components_data.append({
+                        'type': 'Raw Material',
+                        'name': material.name,
+                        'material_id': material.id,
+                        'qty_per_batch': comp.quantity,
+                        'unit': material.unit,
+                        'current_stock': None,
+                        'cost_per_unit': material.cost_per_unit,
+                        'suppliers': [],
+                        'consumption_breakdown': [],
+                        'show_multiple_rows': False,
+                        'is_unlimited': True
+                    })
+                    continue
+
+                # Calculate consumption breakdown per supplier
+                consumption_breakdown = []
+                remaining_to_consume = needed_quantity
+
+                # Get supplier links sorted by primary first
+                from ..models import RawMaterialSupplier
+                supplier_links = sorted(material.supplier_links,
+                                       key=lambda x: (not x.is_primary, x.supplier.name))
+
+                # First pass: Consume from available stock only
+                import math
+                for link in supplier_links:
+                    supplier_stock = calculate_supplier_stock(material.id, link.supplier_id)
+
+                    if remaining_to_consume > 0 and supplier_stock > 0:
+                        if math.isinf(supplier_stock):
+                            amount_to_consume = remaining_to_consume
+                        else:
+                            amount_to_consume = min(supplier_stock, remaining_to_consume)
+                        remaining_to_consume -= amount_to_consume
+
+                        consumption_breakdown.append({
+                            'supplier_id': link.supplier_id,
+                            'supplier_name': link.supplier.name,
+                            'is_primary': link.is_primary,
+                            'stock_available': safe_float(supplier_stock),
+                            'amount_to_consume': amount_to_consume,
+                            'remaining_after': safe_float(supplier_stock - amount_to_consume),
+                            'cost_per_unit': link.cost_per_unit,
+                            'total_cost': amount_to_consume * link.cost_per_unit,
+                            'is_deficit': False
+                        })
+                    elif link.is_primary and supplier_stock == 0 and remaining_to_consume == needed_quantity:
+                        consumption_breakdown.append({
+                            'supplier_id': link.supplier_id,
+                            'supplier_name': link.supplier.name,
+                            'is_primary': True,
+                            'stock_available': 0,
+                            'amount_to_consume': 0,
+                            'remaining_after': 0,
+                            'cost_per_unit': link.cost_per_unit,
+                            'total_cost': 0,
+                            'is_deficit': False
+                        })
+
+                # Second pass: If still need more, assign deficit to primary
+                if remaining_to_consume > 0:
+                    primary_found = False
+                    for item in consumption_breakdown:
+                        if item['is_primary']:
+                            item['amount_to_consume'] += remaining_to_consume
+                            item['remaining_after'] -= remaining_to_consume
+                            item['total_cost'] = item['amount_to_consume'] * item['cost_per_unit']
+                            item['is_deficit'] = item['remaining_after'] < 0
+                            primary_found = True
+                            break
+
+                    if not primary_found:
+                        primary_link = next((l for l in supplier_links if l.is_primary), None)
+                        if primary_link:
+                            primary_stock = calculate_supplier_stock(material.id, primary_link.supplier_id)
+                            consumption_breakdown.insert(0, {
+                                'supplier_id': primary_link.supplier_id,
+                                'supplier_name': primary_link.supplier.name,
+                                'is_primary': True,
+                                'stock_available': safe_float(primary_stock),
+                                'amount_to_consume': remaining_to_consume,
+                                'remaining_after': safe_float(primary_stock - remaining_to_consume),
+                                'cost_per_unit': primary_link.cost_per_unit,
+                                'total_cost': remaining_to_consume * primary_link.cost_per_unit,
+                                'is_deficit': True
+                            })
+
+                # Determine if we should show multiple rows
+                show_multiple_rows = len([c for c in consumption_breakdown if c['amount_to_consume'] > 0]) > 1
+
+                components_data.append({
+                    'type': 'Raw Material',
+                    'name': material.name,
+                    'material_id': material.id,
+                    'qty_per_batch': comp.quantity,
+                    'unit': material.unit,
+                    'current_stock': safe_float(stock),
+                    'cost_per_unit': material.cost_per_unit,
+                    'consumption_breakdown': consumption_breakdown,
+                    'show_multiple_rows': show_multiple_rows,
+                    'is_unlimited': False
+                })
+
+        elif comp.component_type == 'premake':
+            # Handle nested premakes
+            nested_premake = comp.premake
+            if nested_premake:
+                stock = calculate_premake_current_stock(nested_premake.id)
+                needed_quantity = comp.quantity * quantity_produced
+
+                # Calculate cost per unit using the utility function
+                cost_per_unit = calculate_premake_cost_per_unit(nested_premake)
+
+                components_data.append({
+                    'type': 'Premake',
+                    'name': nested_premake.name,
+                    'qty_per_batch': comp.quantity,
+                    'unit': nested_premake.unit,
+                    'current_stock': safe_float(stock),
+                    'cost_per_unit': cost_per_unit,
+                    'is_deficit': needed_quantity > stock
+                })
+
+        elif comp.component_type == 'packaging':
+            # Handle packaging components
+            packaging = comp.packaging
+            if packaging:
+                components_data.append({
+                    'type': 'Packaging',
+                    'name': packaging.name,
+                    'qty_per_batch': comp.quantity,
+                    'unit': 'units',
+                    'current_stock': None,  # Packaging doesn't track stock
+                    'cost_per_unit': packaging.price_per_unit,
+                    'is_deficit': False
+                })
+
+    return jsonify({
+        'premake_name': premake.name,
+        'batch_size': premake.batch_size,
+        'unit': premake.unit,
+        'components': components_data
+    })
+
+
