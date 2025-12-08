@@ -89,8 +89,22 @@ def add_premake():
         if not category_id:
             category_id = get_or_create_general_category('premake')
 
-        batch_size = float(request.form.get('batch_size', 1))
         unit = request.form.get('unit', 'unit')
+
+        # Get components to calculate batch size
+        component_types = request.form.getlist('component_type[]')
+        component_ids = request.form.getlist('component_id[]')
+        quantities = request.form.getlist('quantity[]')
+
+        # Auto-calculate batch_size as sum of all component quantities
+        batch_size = 0
+        for i in range(len(component_types)):
+            if component_types[i] and component_ids[i] and quantities[i]:
+                batch_size += float(quantities[i])
+
+        # Default to 1 if no components
+        if batch_size == 0:
+            batch_size = 1
 
         # Create new premake (as Product with is_premake=True)
         new_premake = Product(
@@ -106,11 +120,7 @@ def add_premake():
         db.session.add(new_premake)
         db.session.flush()
 
-        # Add components
-        component_types = request.form.getlist('component_type[]')
-        component_ids = request.form.getlist('component_id[]')
-        quantities = request.form.getlist('quantity[]')
-
+        # Add components (already retrieved above for batch_size calculation)
         for i in range(len(component_types)):
             if component_types[i] and component_ids[i] and quantities[i]:
                 component = ProductComponent(
@@ -159,17 +169,29 @@ def edit_premake(premake_id):
             category_id = get_or_create_general_category('premake')
         premake.category_id = category_id
 
-        premake.batch_size = float(request.form.get('batch_size', 1))
         premake.unit = request.form.get('unit', 'unit')
+
+        # Get components to calculate batch size
+        component_types = request.form.getlist('component_type[]')
+        component_ids = request.form.getlist('component_id[]')
+        quantities = request.form.getlist('quantity[]')
+
+        # Auto-calculate batch_size as sum of all component quantities
+        batch_size = 0
+        for i in range(len(component_types)):
+            if component_types[i] and component_ids[i] and quantities[i]:
+                batch_size += float(quantities[i])
+
+        # Default to 1 if no components
+        if batch_size == 0:
+            batch_size = 1
+
+        premake.batch_size = batch_size
 
         # Clear existing components
         ProductComponent.query.filter_by(product_id=premake.id).delete()
 
         # Add new components
-        component_types = request.form.getlist('component_type[]')
-        component_ids = request.form.getlist('component_id[]')
-        quantities = request.form.getlist('quantity[]')
-
         for i in range(len(component_types)):
             if component_types[i] and component_ids[i] and quantities[i]:
                 # Prevent circular references
