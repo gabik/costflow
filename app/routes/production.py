@@ -157,22 +157,104 @@ def premake_production():
         else:
             quantity_batches = quantity_units
 
-        # Log production - use product_id for unified model
-        # Create production log for unified model
-        production_log = ProductionLog(product_id=premake_id, quantity_produced=quantity_batches)
-        db.session.add(production_log)
-        db.session.flush()
+        # Track total production cost
+        total_production_cost = 0
+        cost_details = {'materials': [], 'premakes': [], 'packaging': []}
 
-        # Update Stock - use product_id for unified model
-        stock_log = StockLog(
-            product_id=premake_id,
-            action_type='add',
-            quantity=quantity_units
+        # Deduct materials for production and calculate costs (similar to product production)
+        try:
+            for component in premake.components:
+                if component.component_type == 'raw_material':
+                    required_qty = component.quantity * quantity_batches
+                    # Get deduction details with costs
+                    deductions = deduct_material_stock(component.component_id, required_qty)
+
+                    # Calculate cost for this material
+                    material_cost = sum(d[3] for d in deductions)  # d[3] is total_cost
+                    total_production_cost += material_cost
+
+                    # Store details for tracking
+                    material = RawMaterial.query.get(component.component_id)
+                    cost_details['materials'].append({
+                        'name': material.name,
+                        'suppliers_used': [
+                            {'supplier_id': d[0], 'qty': d[1], 'cost': d[3]}
+                            for d in deductions
+                        ],
+                        'total_cost': material_cost
+                    })
+
+                elif component.component_type == 'premake':
+                    # Calculate nested premake cost
+                    nested_premake = Product.query.filter_by(id=component.component_id, is_premake=True).first()
+                    if nested_premake:
+                        nested_premake_cost_per_unit = calculate_premake_cost_per_unit(nested_premake)
+                        required_qty = component.quantity * quantity_batches
+                        material_cost = nested_premake_cost_per_unit * required_qty
+                        total_production_cost += material_cost
+
+                        cost_details['premakes'].append({
+                            'name': nested_premake.name,
+                            'qty': required_qty,
+                            'cost': material_cost
+                        })
+
+                elif component.component_type == 'packaging' and component.packaging:
+                    # Calculate packaging cost
+                    required_qty = component.quantity * quantity_batches
+                    packaging_cost = component.packaging.price_per_unit * required_qty
+                    total_production_cost += packaging_cost
+
+                    cost_details['packaging'].append({
+                        'name': component.packaging.name,
+                        'qty': required_qty,
+                        'cost': packaging_cost
+                    })
+
+            # Calculate cost per unit (per kg/unit, not per batch)
+            cost_per_unit = total_production_cost / quantity_units if quantity_units > 0 else 0
+
+            # Create production log WITH COST INFORMATION
+            production_log = ProductionLog(
+                product_id=premake_id,
+                quantity_produced=quantity_batches,
+                total_cost=total_production_cost,
+                cost_per_unit=cost_per_unit,
+                cost_details=json.dumps(cost_details)
             )
-        db.session.add(stock_log)
+            db.session.add(production_log)
+            db.session.flush()
 
-        db.session.commit()
-        return redirect(url_for('production.premake_production'))
+            # Update Stock - use product_id for unified model
+            stock_log = StockLog(
+                product_id=premake_id,
+                action_type='add',
+                quantity=quantity_units
+            )
+            db.session.add(stock_log)
+
+            db.session.commit()
+            return redirect(url_for('production.premake_production'))
+
+        except InsufficientStockError as e:
+            # Rollback transaction on error
+            db.session.rollback()
+
+            # Get data for template
+            premakes = Product.query.filter_by(is_premake=True).all()
+            production_logs = ProductionLog.query.filter(
+                ProductionLog.product_id.in_(
+                    db.session.query(Product.id).filter_by(is_premake=True)
+                )
+            ).order_by(ProductionLog.timestamp.desc()).all()
+            current_time = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+
+            # Return with error message
+            return render_template('premake_production.html',
+                                 error=str(e),
+                                 premakes=premakes,
+                                 production_logs=production_logs,
+                                 current_time=current_time)
 
     # Get premakes - try unified model first
     # Get products that are premakes

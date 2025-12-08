@@ -77,12 +77,18 @@ def log_audit(action, target_type, target_id=None, details=None):
         # Silently fail audit logging to not interrupt main operations
         pass
 
-def calculate_premake_cost_per_unit(premake, visited=None):
+def calculate_premake_cost_per_unit(premake, visited=None, use_actual_costs=True):
     """
     Recursively calculates the cost per unit of a premake.
     Works with both old Premake model and new unified Product model.
     Includes cycle detection to prevent infinite recursion.
+
+    If use_actual_costs=True (default), tries to use weighted average of actual
+    production costs from ProductionLog. Falls back to estimated cost if no
+    production history exists.
     """
+    from ..models import ProductionLog
+
     if visited is None:
         visited = set()
 
@@ -94,6 +100,26 @@ def calculate_premake_cost_per_unit(premake, visited=None):
 
     visited.add(premake_id)
 
+    # Try to use actual costs from production history if requested
+    if use_actual_costs and hasattr(premake, 'id'):
+        # Get recent production logs with cost data
+        recent_productions = ProductionLog.query.filter(
+            ProductionLog.product_id == premake.id,
+            ProductionLog.cost_per_unit.isnot(None),
+            ProductionLog.cost_per_unit > 0
+        ).order_by(ProductionLog.timestamp.desc()).limit(10).all()
+
+        if recent_productions:
+            # Calculate weighted average cost (weighted by quantity produced)
+            total_quantity = sum(log.quantity_produced * (premake.batch_size or 1) for log in recent_productions)
+            if total_quantity > 0:
+                weighted_cost = sum(
+                    log.cost_per_unit * log.quantity_produced * (premake.batch_size or 1)
+                    for log in recent_productions
+                ) / total_quantity
+                return weighted_cost
+
+    # Fallback to estimated cost based on current material prices
     premake_batch_cost = 0
     calculated_batch_size = 0
 
@@ -125,7 +151,7 @@ def calculate_premake_cost_per_unit(premake, visited=None):
 
             if nested_premake:
                 # Recursive call for nested premakes with visited set
-                nested_cost_per_unit = calculate_premake_cost_per_unit(nested_premake, visited.copy())
+                nested_cost_per_unit = calculate_premake_cost_per_unit(nested_premake, visited.copy(), use_actual_costs)
                 premake_batch_cost += pm_comp.quantity * nested_cost_per_unit
 
     effective_batch_size = premake.batch_size if hasattr(premake, 'batch_size') and premake.batch_size and premake.batch_size > 0 else calculated_batch_size
