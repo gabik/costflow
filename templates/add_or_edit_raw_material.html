@@ -493,12 +493,22 @@
             if (initialStockSection) {
                 initialStockSection.style.display = 'none';
             }
+
+            // Remove required attribute from supplier fields to prevent validation errors
+            document.querySelectorAll('.supplier-select, .supplier-cost').forEach(field => {
+                field.removeAttribute('required');
+            });
         } else {
             // Show supplier and stock sections
             suppliersSection.style.display = 'block';
             if (initialStockSection) {
                 initialStockSection.style.display = 'block';
             }
+
+            // Re-add required attribute to supplier fields
+            document.querySelectorAll('.supplier-select, .supplier-cost').forEach(field => {
+                field.setAttribute('required', 'required');
+            });
         }
     }
 
