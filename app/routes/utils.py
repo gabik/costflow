@@ -559,3 +559,59 @@ def deduct_material_stock(material_id, quantity_needed):
         )
 
     return deductions
+
+def calculate_100g_cost(product):
+    """
+    Calculate cost per 100g for a product or premake.
+    Takes into account loss components (negative weight).
+    Returns: (cost_100g, total_cost, net_weight)
+    """
+    total_cost = 0
+    total_weight = 0
+    loss_weight = 0
+
+    for component in product.components:
+        if component.component_type == 'loss':
+            # Loss has negative quantity
+            loss_weight += component.quantity  # This is negative
+            continue
+
+        # Add weight
+        if component.component_type in ['raw_material', 'premake', 'product']:
+            total_weight += abs(component.quantity)
+
+        # Calculate cost
+        if component.component_type == 'raw_material' and component.material:
+            # Use primary supplier price
+            primary_price = component.material.cost_per_unit
+            for link in component.material.supplier_links:
+                if link.is_primary:
+                    primary_price = link.cost_per_unit
+                    break
+            total_cost += component.quantity * primary_price
+
+        elif component.component_type == 'packaging' and component.packaging:
+            total_cost += component.quantity * component.packaging.price_per_unit
+
+        elif component.component_type == 'premake':
+            premake = Product.query.filter_by(id=component.component_id, is_premake=True).first()
+            if premake:
+                premake_unit_cost = calculate_premake_cost_per_unit(premake)
+                total_cost += component.quantity * premake_unit_cost
+
+        elif component.component_type == 'product':
+            preproduct = Product.query.filter_by(id=component.component_id, is_preproduct=True).first()
+            if preproduct:
+                preproduct_unit_cost = calculate_prime_cost(preproduct)
+                total_cost += component.quantity * preproduct_unit_cost
+
+    # Calculate net weight (total - loss)
+    net_weight = total_weight + loss_weight  # loss_weight is negative
+
+    # Calculate cost per 100g
+    if net_weight > 0:
+        cost_100g = (total_cost / net_weight) * 100
+    else:
+        cost_100g = 0
+
+    return cost_100g, total_cost, net_weight

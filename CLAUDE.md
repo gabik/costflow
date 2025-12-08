@@ -54,6 +54,7 @@ The application follows Flask's application factory pattern with modular bluepri
     - `suppliers.py`: Supplier management
     - `production.py`: Production logging for products and premakes
     - `inventory.py`: Bulk inventory upload/import
+    - `recipe_import.py`: Recipe import from Excel with validation and diff
     - `weekly_costs.py`: Weekly labor costs and sales tracking
     - `reports.py`: Weekly and monthly reporting
     - `admin.py`: Database backup/restore, audit logs
@@ -65,7 +66,8 @@ The application follows Flask's application factory pattern with modular bluepri
 ## Core Database Models
 
 - **Product**: Unified model for products/premakes/preproducts (boolean flags)
-- **ProductComponent**: Links products to materials/premakes/packaging
+- **ProductComponent**: Links products to materials/premakes/packaging/loss
+  - Supports `component_type='loss'` for water loss tracking (negative quantity)
 - **RawMaterial**: Raw material tracking with `is_unlimited` flag for infinite-stock materials
 - **RawMaterialSupplier**: Multi-supplier support with individual pricing per supplier and SKU tracking
   - `sku` field (VARCHAR(100), nullable): Optional SKU for supplier-specific product identification
@@ -93,6 +95,7 @@ Main functional areas:
 - **Weekly Management** (`/weekly_costs`, `/close_week_confirm`): Labor costs and weekly closing
 - **Reports** (`/reports/weekly`, `/reports/monthly`): Comprehensive reporting
 - **Inventory** (`/inventory/upload`): Bulk data import from Excel/CSV
+- **Recipe Import** (`/recipes/upload`): Bulk recipe import from Excel with validation and diff
 - **Categories** (`/categories`): Category management for all item types
 - **Admin** (`/admin/backup`, `/admin/restore`, `/audit_log`): System administration
 
@@ -185,6 +188,54 @@ docker run -p 8080:8080 costflow
   - Eliminates ambiguity in multi-supplier scenarios
 - **Usage**: Add SKU field when creating/editing raw materials per supplier (optional)
 
+### Recipe Import System
+- **Purpose**: Bulk import/update of recipes (premakes/products) from Excel sheets
+- **Access**: Settings → ייבוא מתכונים (Recipe Import)
+- **Flow**: Upload Excel → Select Sheet → Review & Validate → Confirm Import
+
+#### Excel File Format
+**Metadata Section** (first 3-5 rows):
+```
+# Recipe Import Metadata
+type: premake
+category: בצקים
+unit: g
+```
+- `type:` - Required - "premake" or "product"
+- `category:` - Required - Must match existing category name exactly
+- `unit:` - Optional - Default "g"
+- Blank row after metadata
+
+**Recipe Format**:
+- Recipe Title (row 1)
+- Headers (rows 2-3): "חומר גלם", "סוג", "מחיר לק"ג", "משקל במתכון (ג')", "מחיר במתכון"
+- Material rows:
+  - Columns: Name, Type, Price/kg, Weight(g), Total Price
+  - Types: "חומר גלם" (raw_material), "הכנה" (premake), "מוצר מקדים" (preproduct), "אבדן" (loss)
+- Total row: "סך הכל"
+- 100g calculation row: "100 ג'" (informational, calculated in UI)
+- Blank rows between recipes
+
+#### Import Features
+- **Material Matching**: Exact name matching against database
+- **Validation**: Shows missing materials, prevents import if any not found
+- **Price Comparison**: Displays sheet price vs DB price (no automatic updates)
+- **Diff Detection**: For existing recipes, shows added/removed/changed components
+- **Loss Tracking**: Supports "אבדן" (water loss) as special component type with negative quantity
+- **100g Cost**: Calculated and displayed in review (net weight after loss)
+- **Batch Operations**: Import multiple recipes from one sheet at once
+
+#### Loss Components
+- Stored as ProductComponent with `component_type='loss'`
+- Quantity is negative (e.g., -190.4g for water loss)
+- `component_id=0` (no reference needed)
+- Deducted from total weight for net weight calculation
+- Used in cost per 100g calculations: `(total_cost / net_weight) * 100`
+- Applies to both products and premakes
+
+#### Utility Functions
+- `calculate_100g_cost(product)`: Returns (cost_100g, total_cost, net_weight) accounting for loss
+- All cost functions in `utils.py` handle loss components by skipping them in cost calculations
 
 
 ## Important System Notes
