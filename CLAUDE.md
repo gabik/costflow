@@ -122,6 +122,9 @@ docker run -p 8080:8080 costflow
 
 - `DATABASE_URL`: Database connection string (default: `sqlite:///waste_tracking.db`)
 - `CURRENCY_SYMBOL`: Currency symbol for display (default: `₪`)
+- `SECRET_KEY`: Flask secret key for session management (default: `dev-secret-key-change-in-production`)
+  - **Production**: Set to a random, secure value (e.g., `openssl rand -hex 32`)
+  - **Required for**: Session storage, flash messages, recipe import temporary files
 
 ## Key Implementation Details
 

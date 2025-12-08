@@ -23,6 +23,9 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+    # Secret key for session management (required for flash messages and sessions)
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
+
     app.config['BABEL_DEFAULT_LOCALE'] = 'he'
     app.config['BABEL_SUPPORTED_LOCALES'] = ['en', 'he']
     app.config['BABEL_TRANSLATION_DIRECTORIES'] = '../translations'
