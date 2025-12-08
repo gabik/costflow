@@ -3,6 +3,14 @@
 {% block content %}
 <h1>יומן ייצור הכנות מקדימות</h1>
 
+{% if error %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    {{ error }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+
 <!-- Form to Log New Premake Production -->
 <form method="POST" class="p-4 bg-white border rounded shadow-sm">
     <div class="form-group mb-3">
@@ -24,12 +32,12 @@
         </div>
     </div>
     <div class="form-group mb-3">
-        <label for="quantity_produced">כמות שיוצרה</label>
+        <label for="quantity_produced">מספר באצ'ים לייצור</label>
         <div class="input-group">
             <input type="number" id="quantity_produced" name="quantity_produced" class="form-control" step="0.1" required oninput="updateProductionDetails()">
-            <span class="input-group-text" id="unit_display">יחידה</span>
+            <span class="input-group-text">באצ'ים</span>
         </div>
-        <div class="form-text">הכנס את הכמות הכוללת שיוצרה. המערכת תמיר זאת לבאצ'ים באופן אוטומטי.</div>
+        <div class="form-text">הכנס את מספר הבאצ'ים לייצור. כל באצ' הוא <span id="batch_size_info" class="fw-bold"></span>.</div>
     </div>
 
     <div id="production_summary" style="display: none;" class="mt-4">
@@ -79,11 +87,11 @@
     <tr>
         <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
         <td>{{ log.product.name }}</td>
-        <td>{{ "%.2f"|format(log.quantity_produced * log.product.batch_size) }} {{ log.product.unit }}</td>
+        <td>{{ "%.2f"|format(log.quantity_produced) }} באצ'ים ({{ "%.2f"|format(log.quantity_produced * log.product.batch_size) }} {{ log.product.unit }})</td>
         <td>
             <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editPremakeProductionModal"
                     data-log-id="{{ log.id }}" data-premake-name="{{ log.product.name }}"
-                    data-quantity-units="{{ '%.2f'|format(log.quantity_produced * log.product.batch_size) }}" data-unit="{{ log.product.unit }}">
+                    data-quantity-batches="{{ '%.2f'|format(log.quantity_produced) }}" data-batch-size="{{ log.product.batch_size }}" data-unit="{{ log.product.unit }}">
                 {{ _('Edit') }}
             </button>
             <form action="{{ url_for('production.delete_premake_production_log', log_id=log.id) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ _('Are you sure you want to delete this premake production log?') }}');">
@@ -110,12 +118,12 @@
                         <input type="text" class="form-control" id="edit_premake_name" readonly>
                     </div>
                     <div class="mb-3">
-                        <label for="edit_premake_quantity_produced" class="form-label">{{ _('Quantity Produced') }}</label>
+                        <label for="edit_premake_quantity_produced" class="form-label">מספר באצ'ים</label>
                         <div class="input-group">
                             <input type="number" class="form-control" id="edit_premake_quantity_produced" name="quantity_produced" step="0.1" required>
-                            <span class="input-group-text" id="edit_premake_unit_display"></span>
+                            <span class="input-group-text">באצ'ים</span>
                         </div>
-                        <div class="form-text">{{ _('Enter the total weight produced (in units). The system will convert this to batches automatically.') }}</div>
+                        <div class="form-text">הכנס את מספר הבאצ'ים שיוצרו. כל באצ' הוא <span id="edit_batch_size_display" class="fw-bold"></span>.</div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -171,19 +179,20 @@ $(document).ready(function() {
 
             var logId = button.dataset.logId;
             var premakeName = button.dataset.premakeName;
-            var quantityUnits = button.dataset.quantityUnits;
+            var quantityBatches = button.dataset.quantityBatches;
+            var batchSize = button.dataset.batchSize;
             var unit = button.dataset.unit;
 
             var modalTitle = editPremakeProductionModal.querySelector('.modal-title');
             var editPremakeNameInput = editPremakeProductionModal.querySelector('#edit_premake_name');
             var editPremakeQuantityInput = editPremakeProductionModal.querySelector('#edit_premake_quantity_produced');
-            var editPremakeUnitDisplay = editPremakeProductionModal.querySelector('#edit_premake_unit_display');
+            var editBatchSizeDisplay = editPremakeProductionModal.querySelector('#edit_batch_size_display');
             var editForm = editPremakeProductionModal.querySelector('#editPremakeProductionForm');
 
             if (modalTitle) modalTitle.textContent = `{{ _('Edit Premake Production Quantity for') }} ${premakeName}`;
             if (editPremakeNameInput) editPremakeNameInput.value = premakeName;
-            if (editPremakeQuantityInput) editPremakeQuantityInput.value = quantityUnits;
-            if (editPremakeUnitDisplay) editPremakeUnitDisplay.textContent = unit;
+            if (editPremakeQuantityInput) editPremakeQuantityInput.value = quantityBatches;
+            if (editBatchSizeDisplay) editBatchSizeDisplay.textContent = `${parseFloat(batchSize).toFixed(2)} ${unit}`;
 
             if (editForm) {
                 var actionUrl = "{{ url_for('production.edit_premake_production_log', log_id=0) }}";
@@ -195,24 +204,24 @@ $(document).ready(function() {
 
 function fetchRecipeData(premakeId) {
     console.log('Fetching recipe for premake:', premakeId);
-    const quantity = parseFloat(document.getElementById('quantity_produced').value) || 1;
-    fetch(`/api/premake_recipe/${premakeId}?quantity=${quantity}`)
+    const batches = parseFloat(document.getElementById('quantity_produced').value) || 1;
+    fetch(`/api/premake_recipe/${premakeId}?quantity=${batches}`)
         .then(response => {
             if (!response.ok) throw new Error('Network response was not ok');
             return response.json();
         })
         .then(data => {
             currentRecipe = data;
-            currentRecipe.fetched_quantity = quantity;
+            currentRecipe.fetched_quantity = batches;
 
-            // Update unit display
-            const unitDisplay = document.getElementById('unit_display');
+            // Update batch size info
             const batchInfo = document.getElementById('batch_info');
             const batchSizeDisplay = document.getElementById('batch_size_display');
+            const batchSizeInfo = document.getElementById('batch_size_info');
 
-            unitDisplay.innerText = data.unit;
             batchInfo.style.display = 'block';
             batchSizeDisplay.innerText = `${data.batch_size.toFixed(2)} ${data.unit}`;
+            batchSizeInfo.innerText = `${data.batch_size.toFixed(2)} ${data.unit}`;
 
             updateProductionDetails();
             document.getElementById('production_summary').style.display = 'block';
@@ -224,14 +233,14 @@ function updateProductionDetails() {
     if (!currentRecipe) return;
 
     const qtyInput = document.getElementById('quantity_produced');
-    const quantity = parseFloat(qtyInput.value) || 0;
+    const batches = parseFloat(qtyInput.value) || 0;
 
-    // Update Total Units (total weight/units)
-    const totalUnits = quantity;
-    document.getElementById('total_units_display').innerText = `${totalUnits.toFixed(2)} ${currentRecipe.unit}`;
+    // Update Total Units (batches × batch_size)
+    const totalUnits = batches * currentRecipe.batch_size;
+    document.getElementById('total_units_display').innerText = `${batches.toFixed(2)} באצ'ים (${totalUnits.toFixed(2)} ${currentRecipe.unit})`;
 
     // If quantity changed significantly, fetch updated breakdown
-    if (quantity > 0 && (!currentRecipe.fetched_quantity || Math.abs(currentRecipe.fetched_quantity - quantity) > 0.01)) {
+    if (batches > 0 && (!currentRecipe.fetched_quantity || Math.abs(currentRecipe.fetched_quantity - batches) > 0.01)) {
         const premakeId = document.getElementById('premake_id').value;
         if (premakeId) {
             fetchRecipeData(premakeId);
@@ -296,7 +305,7 @@ function updateProductionDetails() {
             }
         } else {
             // Fallback for premakes, packaging, unlimited materials, or old data structure
-            const usage = comp.qty_per_batch * quantity;
+            const usage = comp.qty_per_batch * batches;
             const cost = usage * comp.cost_per_unit;
             totalRecipeCost += cost;
 

@@ -45,11 +45,21 @@ def production():
                     })
 
                 elif component.component_type == 'premake':
-                    # Calculate premake cost
+                    # Calculate premake cost and validate stock
                     premake = Product.query.filter_by(id=component.component_id, is_premake=True).first()
                     if premake:
-                        premake_cost_per_unit = calculate_premake_cost_per_unit(premake)
                         required_qty = component.quantity * quantity_produced
+
+                        # Check if enough premake stock is available
+                        from .utils import calculate_premake_current_stock
+                        available_stock = calculate_premake_current_stock(premake.id)
+                        if available_stock < required_qty:
+                            raise InsufficientStockError(
+                                f"אין מספיק מלאי עבור {premake.name}. "
+                                f"נדרש: {required_qty:.2f} {premake.unit}, זמין: {available_stock:.2f} {premake.unit}"
+                            )
+
+                        premake_cost_per_unit = calculate_premake_cost_per_unit(premake)
                         material_cost = premake_cost_per_unit * required_qty
                         total_production_cost += material_cost
 
@@ -140,8 +150,8 @@ def delete_production_log(log_id):
 def premake_production():
     if request.method == 'POST':
         premake_id = request.form['premake_id']
-        # quantity_produced from form is in UNITS (e.g. kg), but we store BATCHES
-        quantity_units = float(request.form['quantity_produced'])
+        # quantity_produced from form is now in BATCHES
+        quantity_batches = float(request.form['quantity_produced'])
 
         # Get premake from unified Product model
         premake = Product.query.filter_by(id=premake_id, is_premake=True).first()
@@ -151,11 +161,8 @@ def premake_production():
 
         batch_size = premake.batch_size or 1
 
-        # Convert units (kg) to batches
-        if batch_size > 0:
-            quantity_batches = quantity_units / batch_size
-        else:
-            quantity_batches = quantity_units
+        # Calculate total units for stock log
+        quantity_units = quantity_batches * batch_size
 
         # Track total production cost
         total_production_cost = 0
@@ -273,7 +280,7 @@ def premake_production():
 @production_blueprint.route('/production/premakes/edit/<int:log_id>', methods=['POST'])
 def edit_premake_production_log(log_id):
     log = ProductionLog.query.get_or_404(log_id)
-    new_quantity_units = float(request.form['quantity_produced'])
+    new_quantity_batches = float(request.form['quantity_produced'])
 
     # Get premake from product relationship (unified model)
     premake = log.product if log.product and log.product.is_premake else None
@@ -285,28 +292,18 @@ def edit_premake_production_log(log_id):
     if not premake:
         return "Premake not found", 404
 
-    # Calculate new batches
-    if premake.batch_size > 0:
-        new_quantity_batches = new_quantity_units / premake.batch_size
-    else:
-        new_quantity_batches = new_quantity_units
-
     old_qty_batches = log.quantity_produced
     old_qty_units = old_qty_batches * premake.batch_size
+    new_qty_units = new_quantity_batches * premake.batch_size
 
     # Update Production Log
     log.quantity_produced = new_quantity_batches
-    
+
     # Update Stock Log
-    # We need to find the associated 'add' stock log.
-    # Since we don't have a direct foreign key, we look for a StockLog for this premake
-    # created at roughly the same time (within 1-2 seconds) with the old quantity.
-    # This is a bit brittle but standard for MVP without schema migration.
-    
     # Better approach for correction: Add a correction StockLog (difference).
     # Difference = New - Old
-    diff_units = new_quantity_units - old_qty_units
-    
+    diff_units = new_qty_units - old_qty_units
+
     if diff_units != 0:
         correction_log = StockLog(
             product_id=premake.id,  # Using product_id for unified model
@@ -316,8 +313,8 @@ def edit_premake_production_log(log_id):
         db.session.add(correction_log)
 
     db.session.commit()
-    log_audit("UPDATE", "ProductionLog", log.id, f"Updated premake production from {old_qty_units} to {new_quantity_units}")
-    
+    log_audit("UPDATE", "ProductionLog", log.id, f"Updated premake production from {old_qty_batches} to {new_quantity_batches} batches")
+
     return redirect(url_for('production.premake_production'))
 
 @production_blueprint.route('/production/premakes/delete/<int:log_id>', methods=['POST'])
