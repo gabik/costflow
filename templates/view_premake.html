@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}{{ premake.name }} - פירוט הכנה מקדימה{% endblock %}
+{% block content %}
+
+<!-- Premake Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1 class="display-6 fw-bold">
+                {{ premake.name }}
+                <span class="badge bg-warning text-dark ms-2" style="font-size: 0.4em;">
+                    <i class="bi bi-layers"></i> הכנה מקדימה
+                </span>
+            </h1>
+            <div>
+                <a href="{{ url_for('premakes.edit_premake', premake_id=premake.id) }}" class="btn btn-outline-primary">
+                    <i class="bi bi-pencil me-2"></i>ערוך הכנה
+                </a>
+                <a href="{{ url_for('premakes.premakes') }}" class="btn btn-outline-secondary ms-2">
+                    <i class="bi bi-arrow-right me-2"></i>חזרה לרשימה
+                </a>
+            </div>
+        </div>
+
+        <!-- Premake Info Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-basket text-primary mb-2" style="font-size: 2rem;"></i>
+                        <h6 class="text-muted mb-1">גודל אצ'</h6>
+                        <h4 class="mb-0">{{ "%.2f"|format(premake.batch_size) }}</h4>
+                        <small class="text-muted">{{ premake.unit }}</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-box-seam text-success mb-2" style="font-size: 2rem;"></i>
+                        <h6 class="text-muted mb-1">מלאי נוכחי</h6>
+                        <h4 class="mb-0">{{ "%.2f"|format(premake.current_stock) if premake.current_stock != float('inf') else '∞' }}</h4>
+                        <small class="text-muted">{{ premake.unit }}</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-calculator text-warning mb-2" style="font-size: 2rem;"></i>
+                        <h6 class="text-muted mb-1">עלות לאצ'</h6>
+                        <h4 class="mb-0">₪{{ "%.2f"|format(premake.cost_per_batch) }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-cash-coin text-info mb-2" style="font-size: 2rem;"></i>
+                        <h6 class="text-muted mb-1">עלות ליחידה</h6>
+                        <h4 class="mb-0">₪{{ "%.2f"|format(premake.cost_per_unit) }}</h4>
+                        <small class="text-muted">ל-{{ premake.unit }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Info -->
+        {% if premake.category %}
+        <div class="alert alert-light">
+            <i class="bi bi-tag me-2"></i><strong>קטגוריה:</strong> {{ premake.category.name }}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Components Section -->
+<h4 class="mb-3 fw-bold">מרכיבי ההכנה</h4>
+
+{% if component_costs %}
+<div class="card mb-3">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 d-flex align-items-center">
+            <i class="bi bi-list-ul text-primary me-2"></i>
+            מרכיבים
+            <span class="badge bg-primary ms-auto">{{ component_costs|length }} פריטים</span>
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">מרכיב</th>
+                        <th>כמות</th>
+                        <th>יחידה</th>
+                        <th class="text-end">עלות</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for component in component_costs %}
+                    <tr>
+                        <td>{{ component.name }}</td>
+                        <td>{{ "%.3f"|format(component.quantity) }}</td>
+                        <td>{{ component.unit }}</td>
+                        <td class="text-end fw-bold">₪{{ "%.2f"|format(component.cost) }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="table-light">
+                        <td colspan="3" class="text-end fw-bold">סה"כ עלות לאצ':</td>
+                        <td class="text-end fw-bold">₪{{ "%.2f"|format(premake.cost_per_batch) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    אין מרכיבים מוגדרים להכנה זו.
+</div>
+{% endif %}
+
+<!-- Cost Summary -->
+<div class="card border-warning">
+    <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0">
+            <i class="bi bi-calculator me-2"></i>סיכום עלויות
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <table class="table table-sm">
+                    <tbody>
+                        <tr>
+                            <td>גודל אצ':</td>
+                            <td class="text-end">{{ "%.2f"|format(premake.batch_size) }} {{ premake.unit }}</td>
+                        </tr>
+                        <tr>
+                            <td>מספר מרכיבים:</td>
+                            <td class="text-end">{{ component_costs|length }}</td>
+                        </tr>
+                        <tr class="table-warning fw-bold">
+                            <td>עלות כוללת לאצ':</td>
+                            <td class="text-end">₪{{ "%.2f"|format(premake.cost_per_batch) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <table class="table table-sm">
+                    <tbody>
+                        <tr>
+                            <td>עלות ליחידה ({{ premake.unit }}):</td>
+                            <td class="text-end fw-bold">₪{{ "%.2f"|format(premake.cost_per_unit) }}</td>
+                        </tr>
+                        <tr>
+                            <td>מלאי נוכחי:</td>
+                            <td class="text-end">{{ "%.2f"|format(premake.current_stock) if premake.current_stock != float('inf') else '∞' }} {{ premake.unit }}</td>
+                        </tr>
+                        <tr>
+                            <td>שווי מלאי:</td>
+                            <td class="text-end">
+                                {% if premake.current_stock == float('inf') %}
+                                ∞
+                                {% else %}
+                                ₪{{ "%.2f"|format(premake.current_stock * premake.cost_per_unit) }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
