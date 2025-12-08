@@ -381,6 +381,11 @@ def select_sheet():
             flash('לא נמצאו מתכונים בגיליון', 'error')
             return redirect(url_for('recipe_import.upload_recipes'))
 
+        # Query all available materials for dropdowns
+        all_raw_materials = RawMaterial.query.filter_by(is_deleted=False).order_by(RawMaterial.name).all()
+        all_premakes = Product.query.filter_by(is_premake=True).order_by(Product.name).all()
+        all_preproducts = Product.query.filter_by(is_preproduct=True).order_by(Product.name).all()
+
         # Process each recipe
         recipes_review_data = []
         all_missing_materials = []
@@ -470,7 +475,10 @@ def select_sheet():
                              category=category,
                              recipes=recipes_review_data,
                              has_missing_materials=len(all_missing_materials) > 0,
-                             missing_materials=all_missing_materials)
+                             missing_materials=all_missing_materials,
+                             all_raw_materials=all_raw_materials,
+                             all_premakes=all_premakes,
+                             all_preproducts=all_preproducts)
 
     except Exception as e:
         flash(f'שגיאה בעיבוד הגיליון: {str(e)}', 'error')
@@ -486,6 +494,14 @@ def confirm_import():
         flash('נתוני הייבוא לא נמצאו, אנא התחל מחדש', 'error')
         return redirect(url_for('recipe_import.upload_recipes'))
 
+    # Extract material mappings from form
+    material_mappings = {}
+    for key in request.form:
+        if key.startswith('mapping_'):
+            mapping_id = request.form[key]
+            if mapping_id:  # Not empty
+                material_mappings[key.replace('mapping_', '')] = int(mapping_id)
+
     try:
         metadata = import_data['metadata']
         category_id = import_data['category_id']
@@ -495,7 +511,7 @@ def confirm_import():
         created_count = 0
         updated_count = 0
 
-        for recipe in recipes:
+        for recipe_idx, recipe in enumerate(recipes):
             # Check if exists
             existing_recipe = Product.query.filter_by(
                 name=recipe['name'],
@@ -529,13 +545,35 @@ def confirm_import():
                 created_count += 1
 
             # Add components
-            for material in recipe['materials']:
-                # Match material
-                found, mat_id, _, _ = match_material(material['name'], material['type'])
+            for material_idx, material in enumerate(recipe['materials']):
+                # Check for mapping first
+                mapping_key = f"recipe{recipe_idx}_mat{material_idx}"
+                found = False
+                mat_id = None
+
+                if mapping_key in material_mappings:
+                    # Use mapped material ID
+                    mat_id = material_mappings[mapping_key]
+                    found = True
+
+                    # Validate material type matches
+                    if material['type'] == 'חומר גלם':
+                        db_mat = RawMaterial.query.get(mat_id)
+                        found = db_mat is not None and not db_mat.is_deleted
+                    elif material['type'] == 'הכנה':
+                        db_mat = Product.query.filter_by(id=mat_id, is_premake=True).first()
+                        found = db_mat is not None
+                    elif material['type'] == 'מוצר מקדים':
+                        db_mat = Product.query.filter_by(id=mat_id, is_preproduct=True).first()
+                        found = db_mat is not None
+                else:
+                    # Try original exact match
+                    found, mat_id, _, _ = match_material(material['name'], material['type'])
 
                 if not found:
-                    # Skip missing materials (should not happen if validation worked)
-                    continue
+                    # Skip missing materials or show error
+                    flash(f'חומר חסר או מיפוי שגוי: {material["name"]}', 'error')
+                    return redirect(url_for('recipe_import.upload_recipes'))
 
                 # Determine component type
                 type_map = {

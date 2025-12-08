@@ -29,7 +29,7 @@
 {% if has_missing_materials %}
 <div class="alert alert-danger" role="alert">
     <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>חומרים חסרים במערכת!</h5>
-    <p>לא ניתן לייבא את המתכונים כי החומרים הבאים לא קיימים במערכת:</p>
+    <p>בחר התאמה לחומרים החסרים מהרשימה הנפתחת, או הוסף את החומרים למערכת:</p>
     <ul class="mb-3">
         {% for material in missing_materials %}
         <li><strong>{{ material.name }}</strong> ({{ material.type }})</li>
@@ -37,13 +37,14 @@
     </ul>
     <hr>
     <p class="mb-0">
-        <i class="bi bi-info-circle me-2"></i>
-        אנא הוסף את החומרים החסרים למערכת ולאחר מכן חזור וייבא את הקובץ מחדש.
+        <i class="bi bi-lightbulb me-2"></i>
+        בחר חומר מהרשימה הנפתחת או הוסף חומרים חדשים למערכת ואז ייבא שוב.
     </p>
 </div>
 {% endif %}
 
 <!-- Recipes Review -->
+<form method="POST" action="{{ url_for('recipe_import.confirm_import') }}" id="recipeImportForm">
 <div class="accordion" id="recipesAccordion">
     {% for recipe in recipes %}
     <div class="accordion-item">
@@ -95,16 +96,39 @@
                                     {% if material.found %}
                                     <span class="badge bg-success"><i class="bi bi-check-circle"></i> נמצא</span>
                                     {% else %}
-                                    <span class="badge bg-danger"><i class="bi bi-x-circle"></i> לא נמצא</span>
+                                    <!-- Dropdown for mapping missing material -->
+                                    <select name="mapping_recipe{{ loop.parent.loop.index0 }}_mat{{ loop.index0 }}"
+                                            class="form-select form-select-sm material-mapping-select"
+                                            data-material-type="{{ material.type }}"
+                                            data-sheet-price="{{ material.sheet_price }}"
+                                            required>
+                                        <option value="">בחר חומר מהמערכת...</option>
+
+                                        {% if material.type == 'חומר גלם' %}
+                                            {% for rm in all_raw_materials %}
+                                            <option value="{{ rm.id }}" data-price="{{ rm.cost_per_unit }}">
+                                                {{ rm.name }} ({{ "%.2f"|format(rm.cost_per_unit) }} ₪/{{ rm.unit }})
+                                            </option>
+                                            {% endfor %}
+                                        {% elif material.type == 'הכנה' %}
+                                            {% for pm in all_premakes %}
+                                            <option value="{{ pm.id }}">{{ pm.name }}</option>
+                                            {% endfor %}
+                                        {% elif material.type == 'מוצר מקדים' %}
+                                            {% for pp in all_preproducts %}
+                                            <option value="{{ pp.id }}">{{ pp.name }}</option>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </select>
                                     {% endif %}
                                 </td>
                                 <td>{{ "%.1f"|format(material.weight) }}</td>
                                 <td>{{ "%.2f"|format(material.sheet_price) }} ₪</td>
-                                <td>
+                                <td class="db-price-cell">
                                     {% if material.db_price %}
                                     {{ "%.2f"|format(material.db_price) }} ₪
                                     {% else %}
-                                    <span class="text-muted">-</span>
+                                    <span class="text-muted mapped-price-placeholder">-</span>
                                     {% endif %}
                                 </td>
                                 <td>
@@ -200,24 +224,94 @@
     </div>
     {% endfor %}
 </div>
+</form>
 
 <!-- Action Buttons -->
 <div class="mt-4 d-flex justify-content-end gap-2">
     <a href="{{ url_for('recipe_import.upload_recipes') }}" class="btn btn-secondary">
         <i class="bi bi-x-circle me-2"></i> ביטול
     </a>
-    <form method="POST" action="{{ url_for('recipe_import.confirm_import') }}" class="d-inline">
-        <button type="submit" class="btn btn-success btn-lg" {% if has_missing_materials %}disabled{% endif %}>
-            <i class="bi bi-check-lg me-2"></i> אשר וייבא מתכונים
-        </button>
-    </form>
+    <button type="submit" form="recipeImportForm" class="btn btn-success btn-lg" id="confirmImportBtn"
+            {% if has_missing_materials %}disabled{% endif %}>
+        <i class="bi bi-check-lg me-2"></i> אשר וייבא מתכונים
+    </button>
 </div>
 
 {% if has_missing_materials %}
 <div class="alert alert-info mt-3">
     <i class="bi bi-info-circle me-2"></i>
-    כפתור האישור מושבת כי יש חומרים חסרים. אנא הוסף את החומרים החסרים למערכת ולאחר מכן התחל את תהליך הייבוא מחדש.
+    כפתור האישור מושבת עד שתבחר התאמה לכל החומרים החסרים מהרשימות הנפתחות.
 </div>
 {% endif %}
+
+<script>
+$(document).ready(function() {
+    // Initialize Select2 on material mapping dropdowns
+    $('.material-mapping-select').select2({
+        theme: 'bootstrap-5',
+        dir: 'rtl',
+        placeholder: 'חפש חומר...',
+        allowClear: true,
+        width: '100%'
+    });
+
+    // Count unmapped materials
+    let unmappedCount = $('.material-mapping-select').length;
+    updateSubmitButton();
+
+    // Handle material selection change
+    $('.material-mapping-select').on('change', function() {
+        const $select = $(this);
+        const selectedOption = $select.find(':selected');
+        const $row = $select.closest('tr');
+
+        if (selectedOption.val()) {
+            // Material mapped
+            unmappedCount--;
+
+            // Show mapped material price
+            const dbPrice = selectedOption.data('price');
+            if (dbPrice !== undefined) {
+                const sheetPrice = parseFloat($select.data('sheet-price'));
+                const priceDiff = Math.abs(dbPrice - sheetPrice) > 0.01;
+
+                // Update price cell
+                const priceHtml = dbPrice.toFixed(2) + ' ₪';
+                const priceClass = priceDiff ? 'text-warning' : 'text-success';
+                $row.find('.db-price-cell').html(
+                    `<span class="${priceClass}">${priceHtml}</span>`
+                );
+
+                // Update row highlight
+                if (priceDiff) {
+                    $row.removeClass('table-danger').addClass('table-warning');
+                } else {
+                    $row.removeClass('table-danger');
+                }
+            }
+        } else {
+            // Material unmapped
+            unmappedCount++;
+            $row.addClass('table-danger').removeClass('table-warning');
+            $row.find('.db-price-cell').html('<span class="text-muted">-</span>');
+        }
+
+        updateSubmitButton();
+    });
+
+    function updateSubmitButton() {
+        const $btn = $('#confirmImportBtn');
+        if (unmappedCount === 0) {
+            $btn.prop('disabled', false);
+            $btn.removeClass('btn-secondary').addClass('btn-success');
+            $btn.html('<i class="bi bi-check-lg me-2"></i> אשר וייבא מתכונים');
+        } else {
+            $btn.prop('disabled', true);
+            $btn.removeClass('btn-success').addClass('btn-secondary');
+            $btn.html(`<i class="bi bi-x-circle me-2"></i> ${unmappedCount} חומרים לא מופו`);
+        }
+    }
+});
+</script>
 
 {% endblock %}
