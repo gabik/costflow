@@ -39,13 +39,7 @@
                     <div class="card-body text-center">
                         <i class="bi bi-box-seam text-success mb-2" style="font-size: 2rem;"></i>
                         <h6 class="text-muted mb-1">מלאי נוכחי</h6>
-                        <h4 class="mb-0">
-                            {% if premake.current_stock is not none and premake.current_stock < 999999 %}
-                                {{ "%.2f"|format(premake.current_stock) }}
-                            {% else %}
-                                ∞
-                            {% endif %}
-                        </h4>
+                        <h4 class="mb-0">{{ "%.2f"|format(premake.current_stock) if premake.current_stock != float('inf') else '∞' }}</h4>
                         <small class="text-muted">{{ premake.unit }}</small>
                     </div>
                 </div>
@@ -164,22 +158,15 @@
                         </tr>
                         <tr>
                             <td>מלאי נוכחי:</td>
-                            <td class="text-end">
-                                {% if premake.current_stock is not none and premake.current_stock < 999999 %}
-                                    {{ "%.2f"|format(premake.current_stock) }}
-                                {% else %}
-                                    ∞
-                                {% endif %}
-                                {{ premake.unit }}
-                            </td>
+                            <td class="text-end">{{ "%.2f"|format(premake.current_stock) if premake.current_stock != float('inf') else '∞' }} {{ premake.unit }}</td>
                         </tr>
                         <tr>
                             <td>שווי מלאי:</td>
                             <td class="text-end">
-                                {% if premake.current_stock is not none and premake.current_stock < 999999 %}
-                                    ₪{{ "%.2f"|format(premake.current_stock * premake.cost_per_unit) }}
+                                {% if premake.current_stock == float('inf') %}
+                                ∞
                                 {% else %}
-                                    ∞
+                                ₪{{ "%.2f"|format(premake.current_stock * premake.cost_per_unit) }}
                                 {% endif %}
                             </td>
                         </tr>
