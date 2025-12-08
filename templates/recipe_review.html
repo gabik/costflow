@@ -70,6 +70,8 @@
                                value="1"
                                class="form-check-input recipe-select-checkbox"
                                id="recipeCheckbox{{ recipe_idx }}"
+                               data-recipe-idx="{{ recipe_idx }}"
+                               data-has-missing="{{ recipe.has_missing|lower }}"
                                onclick="event.stopPropagation();">
                         <label for="recipeCheckbox{{ recipe_idx }}" class="fw-bold mb-0" onclick="event.stopPropagation();">{{ recipe.name }}</label>
                     </div>
@@ -119,6 +121,8 @@
                                             class="form-select form-select-sm material-mapping-select"
                                             data-material-type="{{ material.type }}"
                                             data-sheet-price="{{ material.sheet_price }}"
+                                            data-recipe-idx="{{ recipe_idx }}"
+                                            data-material-idx="{{ loop.index0 }}"
                                             required>
                                         <option value="">בחר חומר מהמערכת...</option>
 
@@ -258,18 +262,15 @@
     <a href="{{ url_for('recipe_import.upload_recipes') }}" class="btn btn-secondary">
         <i class="bi bi-x-circle me-2"></i> ביטול
     </a>
-    <button type="submit" form="recipeImportForm" class="btn btn-success btn-lg" id="confirmImportBtn"
-            {% if has_missing_materials %}disabled{% endif %}>
+    <button type="submit" form="recipeImportForm" class="btn btn-success btn-lg" id="confirmImportBtn">
         <i class="bi bi-check-lg me-2"></i> אשר וייבא מתכונים
     </button>
 </div>
 
-{% if has_missing_materials %}
-<div class="alert alert-info mt-3">
+<div class="alert alert-info mt-3" id="mappingInfoAlert" style="display:none;">
     <i class="bi bi-info-circle me-2"></i>
-    כפתור האישור מושבת עד שתבחר התאמה לכל החומרים החסרים מהרשימות הנפתחות.
+    <span id="mappingInfoText"></span>
 </div>
-{% endif %}
 
 <script>
 $(document).ready(function() {
@@ -282,8 +283,20 @@ $(document).ready(function() {
         width: '100%'
     });
 
-    // Count unmapped materials
-    let unmappedCount = $('.material-mapping-select').length;
+    // Track unmapped materials per recipe: Map<recipeIdx, Set<materialIdx>>
+    let recipeMaterialStatus = new Map();
+
+    // Initialize material tracking from dropdowns
+    $('.material-mapping-select').each(function() {
+        const recipeIdx = $(this).data('recipe-idx');
+        const materialIdx = $(this).data('material-idx');
+
+        if (!recipeMaterialStatus.has(recipeIdx)) {
+            recipeMaterialStatus.set(recipeIdx, new Set());
+        }
+        // Add to unmapped set (since dropdowns only exist for missing materials)
+        recipeMaterialStatus.get(recipeIdx).add(materialIdx);
+    });
 
     // Track selected recipes
     let selectedRecipes = new Set();
@@ -296,10 +309,14 @@ $(document).ready(function() {
         const $select = $(this);
         const selectedOption = $select.find(':selected');
         const $row = $select.closest('tr');
+        const recipeIdx = $select.data('recipe-idx');
+        const materialIdx = $select.data('material-idx');
 
         if (selectedOption.val()) {
-            // Material mapped
-            unmappedCount--;
+            // Material mapped - remove from unmapped set
+            if (recipeMaterialStatus.has(recipeIdx)) {
+                recipeMaterialStatus.get(recipeIdx).delete(materialIdx);
+            }
 
             // Show mapped material price
             const dbPrice = selectedOption.data('price');
@@ -322,8 +339,12 @@ $(document).ready(function() {
                 }
             }
         } else {
-            // Material unmapped
-            unmappedCount++;
+            // Material unmapped - add to unmapped set
+            if (!recipeMaterialStatus.has(recipeIdx)) {
+                recipeMaterialStatus.set(recipeIdx, new Set());
+            }
+            recipeMaterialStatus.get(recipeIdx).add(materialIdx);
+
             $row.addClass('table-danger').removeClass('table-warning');
             $row.find('.db-price-cell').html('<span class="text-muted">-</span>');
         }
@@ -342,8 +363,9 @@ $(document).ready(function() {
         if (!allChecked) {
             $btn.html('<i class="bi bi-square me-1"></i> בטל בחירה');
             selectedRecipes.clear();
-            $checkboxes.each(function(index) {
-                selectedRecipes.add(index);
+            $checkboxes.each(function() {
+                const idx = parseInt($(this).data('recipe-idx'));
+                selectedRecipes.add(idx);
             });
         } else {
             $btn.html('<i class="bi bi-check-square me-1"></i> בחר הכל');
@@ -356,7 +378,7 @@ $(document).ready(function() {
 
     // Handle individual checkbox changes
     $('.recipe-select-checkbox').on('change', function() {
-        const idx = parseInt($(this).attr('name').replace('import_recipe', ''));
+        const idx = parseInt($(this).data('recipe-idx'));
         if ($(this).is(':checked')) {
             selectedRecipes.add(idx);
         } else {
@@ -372,21 +394,38 @@ $(document).ready(function() {
 
     function updateSubmitButton() {
         const $btn = $('#confirmImportBtn');
+        const $alert = $('#mappingInfoAlert');
+        const $alertText = $('#mappingInfoText');
 
-        // Check both unmapped materials AND selected recipes
-        if (unmappedCount === 0 && selectedRecipes.size > 0) {
-            $btn.prop('disabled', false);
-            $btn.removeClass('btn-secondary').addClass('btn-success');
-            $btn.html(`<i class="bi bi-check-lg me-2"></i> ייבא ${selectedRecipes.size} מתכונים`);
-        } else if (unmappedCount > 0) {
-            $btn.prop('disabled', true);
-            $btn.removeClass('btn-success').addClass('btn-secondary');
-            $btn.html(`<i class="bi bi-x-circle me-2"></i> ${unmappedCount} חומרים לא מופו`);
-        } else {
-            // No unmapped materials but no recipes selected
+        // No recipes selected
+        if (selectedRecipes.size === 0) {
             $btn.prop('disabled', true);
             $btn.removeClass('btn-success').addClass('btn-secondary');
             $btn.html('<i class="bi bi-info-circle me-2"></i> בחר מתכונים לייבוא');
+            $alert.hide();
+            return;
+        }
+
+        // Count unmapped materials in SELECTED recipes only
+        let totalUnmappedInSelected = 0;
+        for (const recipeIdx of selectedRecipes) {
+            if (recipeMaterialStatus.has(recipeIdx)) {
+                totalUnmappedInSelected += recipeMaterialStatus.get(recipeIdx).size;
+            }
+        }
+
+        // Check if all selected recipes have all materials mapped
+        if (totalUnmappedInSelected === 0) {
+            $btn.prop('disabled', false);
+            $btn.removeClass('btn-secondary').addClass('btn-success');
+            $btn.html(`<i class="bi bi-check-lg me-2"></i> ייבא ${selectedRecipes.size} מתכונים`);
+            $alert.hide();
+        } else {
+            $btn.prop('disabled', true);
+            $btn.removeClass('btn-success').addClass('btn-secondary');
+            $btn.html(`<i class="bi bi-x-circle me-2"></i> ${totalUnmappedInSelected} חומרים לא מופו במתכונים הנבחרים`);
+            $alertText.text('בחר התאמה לכל החומרים החסרים במתכונים הנבחרים מהרשימות הנפתחות.');
+            $alert.show();
         }
     }
 });
