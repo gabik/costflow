@@ -47,6 +47,7 @@
 <form method="POST" action="{{ url_for('recipe_import.confirm_import') }}" id="recipeImportForm">
 <div class="accordion" id="recipesAccordion">
     {% for recipe in recipes %}
+    {% set recipe_idx = loop.index0 %}
     <div class="accordion-item">
         <h2 class="accordion-header" id="heading{{ loop.index }}">
             <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button"
@@ -97,7 +98,7 @@
                                     <span class="badge bg-success"><i class="bi bi-check-circle"></i> נמצא</span>
                                     {% else %}
                                     <!-- Dropdown for mapping missing material -->
-                                    <select name="mapping_recipe{{ loop.parent.loop.index0 }}_mat{{ loop.index0 }}"
+                                    <select name="mapping_recipe{{ recipe_idx }}_mat{{ loop.index0 }}"
                                             class="form-select form-select-sm material-mapping-select"
                                             data-material-type="{{ material.type }}"
                                             data-sheet-price="{{ material.sheet_price }}"
