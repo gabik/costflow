@@ -138,23 +138,17 @@ def add_premake():
 
     # GET request
     premake_categories = Category.query.filter_by(type='premake').all()
-    raw_materials = RawMaterial.query.filter_by(is_deleted=False).all()
+    all_raw_materials = RawMaterial.query.filter_by(is_deleted=False).all()
     packagings = Packaging.query.all()
-    premakes = Product.query.filter_by(is_premake=True).all()
+    all_premakes = Product.query.filter_by(is_premake=True).all()
     units = ['kg', 'g', 'l', 'ml', 'piece', 'unit']
-
-    # Convert to dicts for JSON serialization in template
-    all_raw_materials = [m.to_dict() for m in raw_materials]
-    all_premakes = [p.to_dict() for p in premakes]
 
     return render_template('add_or_edit_premake.html',
                          premake=None,
                          premake_categories=premake_categories,
-                         all_raw_materials=raw_materials,
-                         all_raw_materials_json=all_raw_materials,
+                         all_raw_materials=all_raw_materials,
                          packagings=packagings,
-                         all_premakes=premakes,
-                         all_premakes_json=all_premakes,
+                         all_premakes=all_premakes,
                          units=units)
 
 @premakes_blueprint.route('/premakes/edit/<int:premake_id>', methods=['GET', 'POST'])
@@ -213,27 +207,21 @@ def edit_premake(premake_id):
 
     # GET request
     premake_categories = Category.query.filter_by(type='premake').all()
-    raw_materials = RawMaterial.query.filter_by(is_deleted=False).all()
+    all_raw_materials = RawMaterial.query.filter_by(is_deleted=False).all()
     packagings = Packaging.query.all()
     # Exclude self from nested premakes to prevent circular references
-    premakes = Product.query.filter(
+    all_premakes = Product.query.filter(
         Product.is_premake == True,
         Product.id != premake_id
     ).all()
     units = ['kg', 'g', 'l', 'ml', 'piece', 'unit']
 
-    # Convert to dicts for JSON serialization in template
-    all_raw_materials = [m.to_dict() for m in raw_materials]
-    all_premakes = [p.to_dict() for p in premakes]
-
     return render_template('add_or_edit_premake.html',
                          premake=premake,
                          premake_categories=premake_categories,
-                         all_raw_materials=raw_materials,
-                         all_raw_materials_json=all_raw_materials,
+                         all_raw_materials=all_raw_materials,
                          packagings=packagings,
-                         all_premakes=premakes,
-                         all_premakes_json=all_premakes,
+                         all_premakes=all_premakes,
                          units=units)
 
 @premakes_blueprint.route('/premakes/delete/<int:premake_id>', methods=['POST'])
