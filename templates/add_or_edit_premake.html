@@ -210,7 +210,7 @@
 <script>
     function addRawMaterialRow(materialId = '', quantity = '') {
         const container = document.getElementById('raw_materials_container');
-        const allRawMaterials = {{ all_raw_materials | default([]) | tojson | safe }};
+        const allRawMaterials = {{ all_raw_materials_json | default([]) | tojson | safe }};
 
         let optionsHtml = '<option value="" disabled selected>בחר חומר גלם...</option>';
         allRawMaterials.forEach(material => {
@@ -291,7 +291,7 @@
 
     function addPremakeRow() {
         const container = document.getElementById('premakes_container');
-        const allPremakes = {{ all_premakes | default([]) | tojson | safe }};
+        const allPremakes = {{ all_premakes_json | default([]) | tojson | safe }};
 
         let optionsHtml = '<option value="">בחר הכנה מקדימה...</option>';
         allPremakes.forEach(premake => {
