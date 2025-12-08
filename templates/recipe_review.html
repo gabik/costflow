@@ -122,8 +122,7 @@
                                             data-material-type="{{ material.type }}"
                                             data-sheet-price="{{ material.sheet_price }}"
                                             data-recipe-idx="{{ recipe_idx }}"
-                                            data-material-idx="{{ loop.index0 }}"
-                                            required>
+                                            data-material-idx="{{ loop.index0 }}">
                                         <option value="">בחר חומר מהמערכת...</option>
 
                                         {% if material.type == 'חומר גלם' %}
@@ -318,6 +317,9 @@ $(document).ready(function() {
                 recipeMaterialStatus.get(recipeIdx).delete(materialIdx);
             }
 
+            // Remove required attribute when mapped
+            $select.prop('required', false);
+
             // Show mapped material price
             const dbPrice = selectedOption.data('price');
             if (dbPrice !== undefined) {
@@ -345,6 +347,11 @@ $(document).ready(function() {
             }
             recipeMaterialStatus.get(recipeIdx).add(materialIdx);
 
+            // Add required attribute if recipe is selected
+            if (selectedRecipes.has(recipeIdx)) {
+                $select.prop('required', true);
+            }
+
             $row.addClass('table-danger').removeClass('table-warning');
             $row.find('.db-price-cell').html('<span class="text-muted">-</span>');
         }
@@ -366,10 +373,18 @@ $(document).ready(function() {
             $checkboxes.each(function() {
                 const idx = parseInt($(this).data('recipe-idx'));
                 selectedRecipes.add(idx);
+                // Add 'required' to unmapped materials in selected recipes
+                $(`.material-mapping-select[data-recipe-idx="${idx}"]`).each(function() {
+                    if (!$(this).val()) {
+                        $(this).prop('required', true);
+                    }
+                });
             });
         } else {
             $btn.html('<i class="bi bi-check-square me-1"></i> בחר הכל');
             selectedRecipes.clear();
+            // Remove 'required' from all materials
+            $('.material-mapping-select').prop('required', false);
         }
 
         updateSelectedCount();
@@ -381,8 +396,16 @@ $(document).ready(function() {
         const idx = parseInt($(this).data('recipe-idx'));
         if ($(this).is(':checked')) {
             selectedRecipes.add(idx);
+            // Add 'required' to unmapped materials in this recipe
+            $(`.material-mapping-select[data-recipe-idx="${idx}"]`).each(function() {
+                if (!$(this).val()) {
+                    $(this).prop('required', true);
+                }
+            });
         } else {
             selectedRecipes.delete(idx);
+            // Remove 'required' from materials in this recipe
+            $(`.material-mapping-select[data-recipe-idx="${idx}"]`).prop('required', false);
         }
         updateSelectedCount();
         updateSubmitButton();
