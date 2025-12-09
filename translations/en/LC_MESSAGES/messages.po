@@ -524,7 +524,7 @@ msgstr "Food Cost Percentage:"
 msgid "of revenue"
 msgstr "of revenue"
 
-msgid "Recommended target: 25-35%%"
+msgid "Recommended target: 25-35%"
 msgstr "Recommended target: 25-35%%"
 
 msgid "Food cost includes raw materials, packaging, and premakes for products produced this week."
@@ -698,7 +698,7 @@ msgstr "Sold"
 msgid "Waste"
 msgstr "Waste"
 
-msgid "Waste %%"
+msgid "Waste %"
 msgstr "Waste %%"
 
 msgid "Showing top 10 products with highest waste cost"
@@ -774,7 +774,7 @@ msgstr "No data to display"
 msgid "Weekly Trends"
 msgstr "Weekly Trends"
 
-msgid "Food Cost %%"
+msgid "Food Cost %"
 msgstr "Food Cost %%"
 
 msgid "Recipes"
