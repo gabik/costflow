@@ -33,44 +33,44 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto align-items-center">
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('main.index') }}">ראשי</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('main.index') }}">{{ _('Home') }}</a></li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="productionDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        ייצור
+                        {{ _('Production') }}
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="productionDropdown">
-                        <li><a class="dropdown-item" href="{{ url_for('production.production') }}">מוצרים</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('production.premake_production') }}">הכנות מקדימות</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('production.production') }}">{{ _('Products') }}</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('production.premake_production') }}">{{ _('Premakes') }}</a></li>
                     </ul>
                 </li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('products.products') }}">{{ _('Products') }}</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('premakes.premakes') }}">הכנות מקדימות</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('raw_materials.raw_materials') }}">חומרי גלם</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('premakes.premakes') }}">{{ _('Premakes') }}</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('raw_materials.raw_materials') }}">{{ _('Raw Materials') }}</a></li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        דו"חות
+                        {{ _('Reports') }}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg" aria-labelledby="reportsDropdown" style="border-radius: 12px;">
-                        <li><a class="dropdown-item py-2" href="{{ url_for('reports.weekly_report') }}"><i class="bi bi-calendar-week me-2"></i>דו"ח שבועי</a></li>
-                        <li><a class="dropdown-item py-2" href="{{ url_for('reports.monthly_report') }}"><i class="bi bi-calendar-month me-2"></i>דו"ח חודשי</a></li>
+                        <li><a class="dropdown-item py-2" href="{{ url_for('reports.weekly_report') }}"><i class="bi bi-calendar-week me-2"></i>{{ _('Weekly Report') }}</a></li>
+                        <li><a class="dropdown-item py-2" href="{{ url_for('reports.monthly_report') }}"><i class="bi bi-calendar-month me-2"></i>{{ _('Monthly Report') }}</a></li>
                     </ul>
                 </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        הגדרות
+                        {{ _('Settings') }}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg" aria-labelledby="navbarDropdown" style="border-radius: 12px;">
-                        <li><a class="dropdown-item py-2" href="{{ url_for('weekly_costs.weekly_costs') }}">לייבור שבועי</a></li>
-                        <li><a class="dropdown-item py-2" href="{{ url_for('labor.labor') }}">מצבת עובדים</a></li>
-                        <li><a class="dropdown-item py-2" href="{{ url_for('packaging.packaging') }}">אריזה</a></li>
-                        <li><a class="dropdown-item py-2" href="{{ url_for('suppliers.suppliers') }}">ספקים</a></li>
+                        <li><a class="dropdown-item py-2" href="{{ url_for('weekly_costs.weekly_costs') }}">{{ _('Weekly Labor') }}</a></li>
+                        <li><a class="dropdown-item py-2" href="{{ url_for('labor.labor') }}">{{ _('Employees') }}</a></li>
+                        <li><a class="dropdown-item py-2" href="{{ url_for('packaging.packaging') }}">{{ _('Packaging') }}</a></li>
+                        <li><a class="dropdown-item py-2" href="{{ url_for('suppliers.suppliers') }}">{{ _('Suppliers') }}</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item py-2" href="{{ url_for('categories.categories') }}">קטגוריות</a></li>
-                        <li><a class="dropdown-item py-2" href="{{ url_for('main.stock_audits') }}">ביקורת מלאי</a></li>
-                        <li><a class="dropdown-item py-2" href="{{ url_for('inventory.upload_inventory') }}">טעינת מלאי מקובץ</a></li>
-                        <li><a class="dropdown-item py-2" href="{{ url_for('recipe_import.upload_recipes') }}"><i class="bi bi-file-earmark-spreadsheet me-2"></i>ייבוא מתכונים</a></li>
+                        <li><a class="dropdown-item py-2" href="{{ url_for('categories.categories') }}">{{ _('Categories') }}</a></li>
+                        <li><a class="dropdown-item py-2" href="{{ url_for('main.stock_audits') }}">{{ _('Stock Audit') }}</a></li>
+                        <li><a class="dropdown-item py-2" href="{{ url_for('inventory.upload_inventory') }}">{{ _('Upload Inventory from File') }}</a></li>
+                        <li><a class="dropdown-item py-2" href="{{ url_for('recipe_import.upload_recipes') }}"><i class="bi bi-file-earmark-spreadsheet me-2"></i>{{ _('Import Recipes') }}</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item py-2 text-danger" href="{{ url_for('admin.audit_log') }}">יומן פעילות / איפוס</a></li>
+                        <li><a class="dropdown-item py-2 text-danger" href="{{ url_for('admin.audit_log') }}">{{ _('Activity Log / Reset') }}</a></li>
                     </ul>
                 </li>
             </ul>
@@ -86,7 +86,7 @@
 <!-- Footer -->
 <footer class="text-center py-4 text-muted border-top mt-auto">
     <div class="container">
-        <p class="mb-1">&copy; 2025 CostFlow. כל הזכויות שמורות.</p>
+        <p class="mb-1">&copy; 2025 CostFlow. {{ _('All rights reserved.') }}</p>
         <div class="small">
             <a href="?lang=en" class="text-decoration-none text-secondary me-2">English</a>
             <span class="text-secondary">|</span>
@@ -107,7 +107,7 @@
                 width: '100%',
                 language: {
                     noResults: function() {
-                        return "לא נמצאו תוצאות";
+                        return "{{ _('No results found') }}";
                     }
                 }
             });

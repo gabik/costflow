@@ -691,7 +691,7 @@ msgid "Waste"
 msgstr "פחת"
 
 msgid "Waste %"
-msgstr "% פחת"
+msgstr "%% פחת"
 
 msgid "Showing top 10 products with highest waste cost"
 msgstr "מוצגים 10 המוצרים עם עלות הפחת הגבוהה ביותר"
@@ -766,7 +766,7 @@ msgid "Weekly Trends"
 msgstr "מגמות שבועיות"
 
 msgid "Food Cost %"
-msgstr "Food Cost %"
+msgstr "Food Cost %%"
 
 msgid "Recipes"
 msgstr "מתכונים"
@@ -818,4 +818,123 @@ msgstr "השבוע הרווחי ביותר:"
 
 msgid "Monthly waste percentage:"
 msgstr "שיעור פחת חודשי:"
+
+# Dashboard & Index page translations
+msgid "Weekly Dashboard"
+msgstr "דשבורד שבועי"
+
+msgid "Performance, sales, and profitability overview."
+msgstr "ריכוז ביצועים, מכירות ורווחיות."
+
+msgid "New Week"
+msgstr "שבוע חדש"
+
+msgid "New Production"
+msgstr "ייצור חדש"
+
+msgid "Update Sales"
+msgstr "עדכון מכירות"
+
+msgid "Update Labor"
+msgstr "עדכון לייבור"
+
+msgid "Revenue (Sales)"
+msgstr "הכנסות (מכירות)"
+
+msgid "Labor Cost (Fixed)"
+msgstr "עלות עבודה (קבוע)"
+
+msgid "Stock Value (Cost)"
+msgstr "שווי מלאי (עלות)"
+
+msgid "Sales Stock Value"
+msgstr "שווי מלאי מכירה"
+
+msgid "Potential Value"
+msgstr "ערך פוטנציאלי"
+
+msgid "Product Performance"
+msgstr "ביצועי מוצרים"
+
+msgid "Remaining"
+msgstr "נותר"
+
+msgid "Unit Cost"
+msgstr "עלות יח'"
+
+msgid "No data to display for this week."
+msgstr "אין נתונים להצגה לשבוע זה."
+
+msgid "Start by adding sales or production."
+msgstr "התחל ע\"י הוספת מכירות או ייצור."
+
+msgid "Welcome to CostFlow"
+msgstr "ברוכים הבאים ל-CostFlow"
+
+msgid "To get started, select an existing week or create a new week."
+msgstr "כדי להתחיל, בחר שבוע קיים או צור שבוע חדש."
+
+msgid "Manage Weeks"
+msgstr "ניהול שבועות"
+
+msgid "Common Actions"
+msgstr "פעולות נפוצות"
+
+msgid "Weekly Labor"
+msgstr "לייבור שבועי"
+
+msgid "Manage weeks, employee hours and costs"
+msgstr "ניהול שבועות, שעות עובדים ועלויות"
+
+msgid "Inventory and Raw Materials"
+msgstr "מלאי וחומרי גלם"
+
+msgid "Manage purchases, suppliers and current stock"
+msgstr "ניהול רכש, ספקים ומלאי נוכחי"
+
+msgid "Product Production Log"
+msgstr "יומן ייצור מוצרים"
+
+msgid "Daily production logging for products"
+msgstr "רישום ייצור יומי של מוצרים"
+
+msgid "Premake Production Log"
+msgstr "יומן ייצור הכנות"
+
+msgid "Daily production logging for premakes"
+msgstr "רישום ייצור יומי של הכנות מקדימות"
+
+# Navigation translations (base.html)
+msgid "Home"
+msgstr "ראשי"
+
+msgid "Reports"
+msgstr "דו\"חות"
+
+msgid "Settings"
+msgstr "הגדרות"
+
+msgid "Employees"
+msgstr "מצבת עובדים"
+
+msgid "Suppliers"
+msgstr "ספקים"
+
+msgid "Stock Audit"
+msgstr "ביקורת מלאי"
+
+msgid "Upload Inventory from File"
+msgstr "טעינת מלאי מקובץ"
+
+msgid "Import Recipes"
+msgstr "ייבוא מתכונים"
+
+msgid "Activity Log / Reset"
+msgstr "יומן פעילות / איפוס"
+
+msgid "All rights reserved."
+msgstr "כל הזכויות שמורות."
+
+msgid "No results found"
+msgstr "לא נמצאו תוצאות"
 
