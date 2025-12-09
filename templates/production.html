@@ -27,8 +27,23 @@
         </select>
     </div>
     <div class="form-group mb-3">
-        <label for="quantity_produced">{{ _('Quantity Produced') }} (מספר באצ'ים)</label>
-        <input type="number" id="quantity_produced" name="quantity_produced" class="form-control" step="1" required oninput="updateProductionDetails()">
+        <label class="form-label">{{ _('Production Mode') }}</label>
+        <div class="btn-group w-100" role="group" aria-label="Production mode">
+            <input type="radio" class="btn-check" name="production_mode" id="mode_batches" value="batches" checked onchange="updateProductionMode()">
+            <label class="btn btn-outline-primary" for="mode_batches">
+                <i class="bi bi-stack me-1"></i> באצ'ים (Batches)
+            </label>
+            <input type="radio" class="btn-check" name="production_mode" id="mode_units" value="units" onchange="updateProductionMode()">
+            <label class="btn btn-outline-primary" for="mode_units">
+                <i class="bi bi-box-seam me-1"></i> יחידות (Units)
+            </label>
+        </div>
+    </div>
+
+    <div class="form-group mb-3">
+        <label for="quantity_produced" id="quantity_label">{{ _('Quantity Produced') }} (מספר באצ'ים)</label>
+        <input type="number" id="quantity_produced" name="quantity_produced" class="form-control" step="0.01" required oninput="updateProductionDetails()">
+        <div class="form-text" id="quantity_help_text" style="display: none;"></div>
     </div>
     
     <div id="production_summary" style="display: none;" class="mt-4">
@@ -200,11 +215,44 @@ function fetchRecipeData(productId) {
         .catch(error => console.error('Error loading recipe:', error));
 }
 
+function updateProductionMode() {
+    const modeUnits = document.getElementById('mode_units').checked;
+    const modeBatches = document.getElementById('mode_batches').checked;
+    const label = document.getElementById('quantity_label');
+    const helpText = document.getElementById('quantity_help_text');
+    const qtyInput = document.getElementById('quantity_produced');
+
+    if (modeUnits) {
+        label.innerHTML = '{{ _("Quantity Produced") }} (מספר יחידות)';
+        if (currentRecipe) {
+            helpText.innerHTML = `יחידה אחת = 1/${currentRecipe.products_per_recipe} באצ'`;
+            helpText.style.display = 'block';
+        }
+    } else {
+        label.innerHTML = '{{ _("Quantity Produced") }} (מספר באצ\'ים)';
+        helpText.style.display = 'none';
+    }
+
+    // Recalculate display when mode changes
+    updateProductionDetails();
+}
+
 function updateProductionDetails() {
     if (!currentRecipe) return;
 
     const qtyInput = document.getElementById('quantity_produced');
-    const batches = parseFloat(qtyInput.value) || 0;
+    const modeUnits = document.getElementById('mode_units').checked;
+    const inputValue = parseFloat(qtyInput.value) || 0;
+
+    // Calculate batches based on mode
+    let batches;
+    if (modeUnits) {
+        // User entered units, convert to batches
+        batches = inputValue / currentRecipe.products_per_recipe;
+    } else {
+        // User entered batches directly
+        batches = inputValue;
+    }
 
     // Update Total Units
     const totalUnits = batches * currentRecipe.products_per_recipe;

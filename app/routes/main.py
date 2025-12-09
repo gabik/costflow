@@ -55,7 +55,8 @@ def index():
     total_cogs = 0
     total_inventory_usage = 0
     total_labor = 0
-    total_unsold_value = 0
+    total_unsold_value = 0  # Cost value of unsold stock
+    total_sales_stock_value = 0  # Sales/revenue value of unsold stock (potential revenue)
     
     if selected_week:
         week_start = selected_week.week_start_date
@@ -224,9 +225,12 @@ def index():
             available_qty = produced_qty - sold_qty - waste_qty
             if available_qty < 0: available_qty = 0 # Should not happen with valid input but safe to clamp
             
-            # Unsold Value
+            # Unsold Value (cost basis)
             total_unsold_value += available_qty * prime_cost_per_unit
-            
+
+            # Sales Stock Value (potential revenue from unsold stock)
+            total_sales_stock_value += available_qty * product.selling_price_per_unit
+
             total_revenue += revenue
             total_cogs += cogs
             # total_inventory_usage was updated above
@@ -275,6 +279,7 @@ def index():
                            total_labor=total_labor,
                            total_inventory_usage=total_inventory_usage,
                            total_unsold_value=total_unsold_value,
+                           total_sales_stock_value=total_sales_stock_value,
                            net_profit=net_profit,
                            adjusted_profit=adjusted_profit,
                            total_stock_variance=total_stock_variance,

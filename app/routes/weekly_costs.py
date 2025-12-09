@@ -325,8 +325,11 @@ def delete_weekly_labor(week_id, entry_id):
 @weekly_costs_blueprint.route('/weekly_sales/<int:week_id>', methods=['GET', 'POST'])
 def update_weekly_sales(week_id):
     week = WeeklyLaborCost.query.get_or_404(week_id)
-    # Filter out migrated products
-    products = Product.query.filter_by(is_migrated=False).all()
+    # Filter out migrated products and premakes - only show products and preproducts (sellable items)
+    products = Product.query.filter(
+        Product.is_migrated == False,
+        db.or_(Product.is_product == True, Product.is_preproduct == True)
+    ).all()
     
     if request.method == 'POST':
         for product in products:

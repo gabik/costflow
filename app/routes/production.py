@@ -13,9 +13,18 @@ production_blueprint = Blueprint('production', __name__)
 def production():
     if request.method == 'POST':
         product_id = request.form['product_id']
-        quantity_produced = float(request.form['quantity_produced'])
+        production_mode = request.form.get('production_mode', 'batches')
+        quantity_input = float(request.form['quantity_produced'])
 
         product = Product.query.get_or_404(product_id)
+
+        # Convert quantity to batches based on production mode
+        if production_mode == 'units':
+            # User entered units, convert to batches
+            quantity_produced = quantity_input / product.products_per_recipe if product.products_per_recipe > 0 else quantity_input
+        else:
+            # User entered batches directly
+            quantity_produced = quantity_input
 
         # Track total production cost
         total_production_cost = 0
