@@ -994,6 +994,9 @@ msgstr "מספר יחידות"
 msgid "One unit"
 msgstr "יחידה אחת"
 
+msgid "Batches"
+msgstr "באצ'ים"
+
 msgid "batches"
 msgstr "באצ'ים"
 
@@ -1077,6 +1080,9 @@ msgstr "הפרשי מלאי"
 # Premake Production page translations
 msgid "Select Premake"
 msgstr "בחר הכנה מקדימה"
+
+msgid "Select premake..."
+msgstr "בחר הכנה..."
 
 msgid "Batch size (recipe):"
 msgstr "גודל באצ' (מתכון):"

@@ -1012,6 +1012,9 @@ msgstr "number of units"
 msgid "One unit"
 msgstr "One unit"
 
+msgid "Batches"
+msgstr "Batches"
+
 msgid "batches"
 msgstr "batches"
 
