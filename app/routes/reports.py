@@ -64,7 +64,7 @@ def weekly_report():
         # Calculate costs and revenue
         material_cost_sold = (sale.quantity_sold or 0) * prime_cost_per_unit
         material_cost_waste = (sale.quantity_waste or 0) * prime_cost_per_unit
-        revenue = (sale.quantity_sold or 0) * product.selling_price_per_unit
+        revenue = (sale.quantity_sold or 0) * (product.selling_price_per_unit or 0)
 
         total_material_costs += material_cost_sold + material_cost_waste
         total_revenue += revenue
@@ -356,7 +356,7 @@ def monthly_report():
 
             # Calculate costs and revenue
             material_cost = ((sale.quantity_sold or 0) + (sale.quantity_waste or 0)) * prime_cost_per_unit
-            sale_revenue = (sale.quantity_sold or 0) * product.selling_price_per_unit
+            sale_revenue = (sale.quantity_sold or 0) * (product.selling_price_per_unit or 0)
 
             product_key = product.id
             cat_name = product.category.name if product.category else 'ללא קטגוריה'
