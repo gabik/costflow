@@ -1347,3 +1347,43 @@ msgstr "כמות התוצר תחושב אוטומטית כסכום משקלי ה
 msgid "Components"
 msgstr "מרכיבים"
 
+# Product Details page translations
+msgid "units"
+msgstr "יחידות"
+
+msgid "Gross Profit per Unit"
+msgstr "רווח גולמי ליחידה"
+
+msgid "Product Components"
+msgstr "מרכיבי המוצר"
+
+msgid "items"
+msgstr "פריטים"
+
+msgid "Quantity in Recipe"
+msgstr "כמות במתכון"
+
+msgid "Components of"
+msgstr "מרכיבי"
+
+msgid "Total Premakes:"
+msgstr "סה\"כ הכנות מקדימות:"
+
+msgid "Total Preproducts:"
+msgstr "סה\"כ מוצרים מקדימים:"
+
+msgid "Total Packaging:"
+msgstr "סה\"כ אריזות:"
+
+msgid "Selling Price:"
+msgstr "מחיר מכירה:"
+
+msgid "Production Cost:"
+msgstr "עלות ייצור:"
+
+msgid "Gross Profit:"
+msgstr "רווח גולמי:"
+
+msgid "Profit Margin:"
+msgstr "אחוז רווח:"
+

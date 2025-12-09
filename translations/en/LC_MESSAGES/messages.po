@@ -1352,3 +1352,43 @@ msgstr "Product quantity will be calculated automatically as sum of component we
 msgid "Components"
 msgstr "Components"
 
+# Product Details page translations
+msgid "units"
+msgstr "units"
+
+msgid "Gross Profit per Unit"
+msgstr "Gross Profit per Unit"
+
+msgid "Product Components"
+msgstr "Product Components"
+
+msgid "items"
+msgstr "items"
+
+msgid "Quantity in Recipe"
+msgstr "Quantity in Recipe"
+
+msgid "Components of"
+msgstr "Components of"
+
+msgid "Total Premakes:"
+msgstr "Total Premakes:"
+
+msgid "Total Preproducts:"
+msgstr "Total Preproducts:"
+
+msgid "Total Packaging:"
+msgstr "Total Packaging:"
+
+msgid "Selling Price:"
+msgstr "Selling Price:"
+
+msgid "Production Cost:"
+msgstr "Production Cost:"
+
+msgid "Gross Profit:"
+msgstr "Gross Profit:"
+
+msgid "Profit Margin:"
+msgstr "Profit Margin:"
+

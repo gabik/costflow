@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ product.name }} - פירוט מוצר{% endblock %}
+{% block title %}{{ product.name }} - {{ _('Product Details') }}{% endblock %}
 {% block content %}
 
 <!-- Product Header -->
@@ -10,12 +10,12 @@
                 {{ product.name }}
                 {% if product.is_preproduct %}
                     <span class="badge bg-info ms-2" style="font-size: 0.4em;">
-                        <i class="bi bi-arrows-collapse-vertical"></i> מוצר מקדים
+                        <i class="bi bi-arrows-collapse-vertical"></i> {{ _('Preproduct') }}
                     </span>
                 {% endif %}
             </h1>
             <a href="{{ url_for('products.edit_product', product_id=product.id) }}" class="btn btn-outline-primary">
-                <i class="bi bi-pencil me-2"></i>ערוך מוצר
+                <i class="bi bi-pencil me-2"></i>{{ _('Edit Product') }}
             </a>
         </div>
 
@@ -25,9 +25,9 @@
                 <div class="card h-100">
                     <div class="card-body text-center">
                         <i class="bi bi-box text-primary mb-2" style="font-size: 2rem;"></i>
-                        <h6 class="text-muted mb-1">כמות למתכון</h6>
+                        <h6 class="text-muted mb-1">{{ _('Quantity per Recipe') }}</h6>
                         <h4 class="mb-0">{{ product.products_per_recipe }}</h4>
-                        <small class="text-muted">יחידות</small>
+                        <small class="text-muted">{{ _('units') }}</small>
                     </div>
                 </div>
             </div>
@@ -35,7 +35,7 @@
                 <div class="card h-100">
                     <div class="card-body text-center">
                         <i class="bi bi-currency-exchange text-success mb-2" style="font-size: 2rem;"></i>
-                        <h6 class="text-muted mb-1">מחיר מכירה ליחידה</h6>
+                        <h6 class="text-muted mb-1">{{ _('Selling Price per Unit') }}</h6>
                         <h4 class="mb-0">₪{{ "%.2f"|format(product.selling_price_per_unit or 0) }}</h4>
                     </div>
                 </div>
@@ -44,7 +44,7 @@
                 <div class="card h-100">
                     <div class="card-body text-center">
                         <i class="bi bi-calculator text-warning mb-2" style="font-size: 2rem;"></i>
-                        <h6 class="text-muted mb-1">עלות ייצור ליחידה</h6>
+                        <h6 class="text-muted mb-1">{{ _('Production Cost per Unit') }}</h6>
                         {% set total_cost_per_product = namespace(value=0) %}
                         {% for item in raw_materials %}
                             {% set total_cost_per_product.value = total_cost_per_product.value + item.price_per_product %}
@@ -66,7 +66,7 @@
                 <div class="card h-100">
                     <div class="card-body text-center">
                         <i class="bi bi-graph-up-arrow text-info mb-2" style="font-size: 2rem;"></i>
-                        <h6 class="text-muted mb-1">רווח גולמי ליחידה</h6>
+                        <h6 class="text-muted mb-1">{{ _('Gross Profit per Unit') }}</h6>
                         <h4 class="mb-0 {% if (product.selling_price_per_unit or 0) - total_cost_per_product.value > 0 %}text-success{% else %}text-danger{% endif %}">
                             ₪{{ "%.2f"|format((product.selling_price_per_unit or 0) - total_cost_per_product.value) }}
                         </h4>
@@ -79,7 +79,7 @@
 </div>
 
 <!-- Components Section -->
-<h4 class="mb-3 fw-bold">מרכיבי המוצר</h4>
+<h4 class="mb-3 fw-bold">{{ _('Product Components') }}</h4>
 
 <!-- Raw Materials -->
 {% if raw_materials %}
@@ -87,8 +87,8 @@
     <div class="card-header bg-light">
         <h5 class="mb-0 d-flex align-items-center">
             <i class="bi bi-egg-fried text-primary me-2"></i>
-            חומרי גלם
-            <span class="badge bg-primary ms-auto">{{ raw_materials|length }} פריטים</span>
+            {{ _('Raw Materials') }}
+            <span class="badge bg-primary ms-auto">{{ raw_materials|length }} {{ _('items') }}</span>
         </h5>
     </div>
     <div class="card-body p-0">
@@ -96,11 +96,11 @@
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        <th style="width: 40%;">חומר גלם</th>
-                        <th>כמות במתכון</th>
-                        <th>מחיר ליחידה</th>
-                        <th>עלות למתכון</th>
-                        <th class="text-end">עלות למוצר</th>
+                        <th style="width: 40%;">{{ _('Raw Material') }}</th>
+                        <th>{{ _('Quantity in Recipe') }}</th>
+                        <th>{{ _('Price per Unit') }}</th>
+                        <th>{{ _('Cost per Recipe') }}</th>
+                        <th class="text-end">{{ _('Cost per Product') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -114,7 +114,7 @@
                     </tr>
                     {% endfor %}
                     <tr class="table-light">
-                        <td colspan="4" class="text-end fw-bold">סה"כ חומרי גלם:</td>
+                        <td colspan="4" class="text-end fw-bold">{{ _('Total Raw Materials:') }}</td>
                         <td class="text-end fw-bold">
                             {% set raw_total = namespace(value=0) %}
                             {% for item in raw_materials %}
@@ -136,8 +136,8 @@
     <div class="card-header bg-light">
         <h5 class="mb-0 d-flex align-items-center">
             <i class="bi bi-layers text-warning me-2"></i>
-            הכנות מקדימות
-            <span class="badge bg-warning text-dark ms-auto">{{ premake_costs|length }} פריטים</span>
+            {{ _('Premakes') }}
+            <span class="badge bg-warning text-dark ms-auto">{{ premake_costs|length }} {{ _('items') }}</span>
         </h5>
     </div>
     <div class="card-body p-0">
@@ -145,12 +145,12 @@
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        <th style="width: 40%;">הכנה</th>
-                        <th>כמות במתכון</th>
-                        <th>יחידה</th>
-                        <th>עלות ליחידה</th>
-                        <th>עלות למתכון</th>
-                        <th class="text-end">עלות למוצר</th>
+                        <th style="width: 40%;">{{ _('Premake') }}</th>
+                        <th>{{ _('Quantity in Recipe') }}</th>
+                        <th>{{ _('Unit') }}</th>
+                        <th>{{ _('Cost per Unit') }}</th>
+                        <th>{{ _('Cost per Recipe') }}</th>
+                        <th class="text-end">{{ _('Cost per Product') }}</th>
                         <th style="width: 50px;"></th>
                     </tr>
                 </thead>
@@ -173,13 +173,13 @@
                     <tr class="collapse" id="collapsePremake{{ loop.index }}">
                         <td colspan="7" class="p-0">
                             <div class="bg-light p-3">
-                                <h6 class="mb-2">מרכיבי {{ item.name }}:</h6>
+                                <h6 class="mb-2">{{ _('Components of') }} {{ item.name }}:</h6>
                                 <table class="table table-sm mb-0">
                                     <thead>
                                         <tr>
-                                            <th>מרכיב</th>
-                                            <th>כמות ליחידה</th>
-                                            <th>יחידה</th>
+                                            <th>{{ _('Component') }}</th>
+                                            <th>{{ _('Quantity per Unit') }}</th>
+                                            <th>{{ _('Unit') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -197,7 +197,7 @@
                     </tr>
                     {% endfor %}
                     <tr class="table-light">
-                        <td colspan="5" class="text-end fw-bold">סה"כ הכנות מקדימות:</td>
+                        <td colspan="5" class="text-end fw-bold">{{ _('Total Premakes:') }}</td>
                         <td class="text-end fw-bold" colspan="2">
                             {% set premake_total = namespace(value=0) %}
                             {% for item in premake_costs %}
@@ -219,8 +219,8 @@
     <div class="card-header bg-light">
         <h5 class="mb-0 d-flex align-items-center">
             <i class="bi bi-arrows-collapse-vertical text-info me-2"></i>
-            מוצרים מקדימים
-            <span class="badge bg-info ms-auto">{{ preproduct_costs|length }} פריטים</span>
+            {{ _('Preproducts') }}
+            <span class="badge bg-info ms-auto">{{ preproduct_costs|length }} {{ _('items') }}</span>
         </h5>
     </div>
     <div class="card-body p-0">
@@ -228,12 +228,12 @@
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        <th style="width: 40%;">מוצר מקדים</th>
-                        <th>כמות במתכון</th>
-                        <th>יחידה</th>
-                        <th>עלות ליחידה</th>
-                        <th>עלות למתכון</th>
-                        <th class="text-end">עלות למוצר</th>
+                        <th style="width: 40%;">{{ _('Preproduct') }}</th>
+                        <th>{{ _('Quantity in Recipe') }}</th>
+                        <th>{{ _('Unit') }}</th>
+                        <th>{{ _('Cost per Unit') }}</th>
+                        <th>{{ _('Cost per Recipe') }}</th>
+                        <th class="text-end">{{ _('Cost per Product') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -248,7 +248,7 @@
                     </tr>
                     {% endfor %}
                     <tr class="table-light">
-                        <td colspan="5" class="text-end fw-bold">סה"כ מוצרים מקדימים:</td>
+                        <td colspan="5" class="text-end fw-bold">{{ _('Total Preproducts:') }}</td>
                         <td class="text-end fw-bold">
                             {% set preproduct_total = namespace(value=0) %}
                             {% for item in preproduct_costs %}
@@ -270,8 +270,8 @@
     <div class="card-header bg-light">
         <h5 class="mb-0 d-flex align-items-center">
             <i class="bi bi-box-seam text-secondary me-2"></i>
-            אריזות
-            <span class="badge bg-secondary ms-auto">{{ packaging_costs|length }} פריטים</span>
+            {{ _('Packaging') }}
+            <span class="badge bg-secondary ms-auto">{{ packaging_costs|length }} {{ _('items') }}</span>
         </h5>
     </div>
     <div class="card-body p-0">
@@ -279,11 +279,11 @@
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        <th style="width: 40%;">אריזה</th>
-                        <th>כמות</th>
-                        <th>מחיר לאריזה</th>
-                        <th>עלות למתכון</th>
-                        <th class="text-end">עלות למוצר</th>
+                        <th style="width: 40%;">{{ _('Packaging') }}</th>
+                        <th>{{ _('Quantity') }}</th>
+                        <th>{{ _('Price per Packaging Unit') }}</th>
+                        <th>{{ _('Cost per Recipe') }}</th>
+                        <th class="text-end">{{ _('Cost per Product') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -297,7 +297,7 @@
                     </tr>
                     {% endfor %}
                     <tr class="table-light">
-                        <td colspan="4" class="text-end fw-bold">סה"כ אריזות:</td>
+                        <td colspan="4" class="text-end fw-bold">{{ _('Total Packaging:') }}</td>
                         <td class="text-end fw-bold">
                             {% set packaging_total = namespace(value=0) %}
                             {% for item in packaging_costs %}
@@ -317,7 +317,7 @@
 <div class="card border-primary">
     <div class="card-header bg-primary text-white">
         <h5 class="mb-0">
-            <i class="bi bi-calculator me-2"></i>סיכום עלויות
+            <i class="bi bi-calculator me-2"></i>{{ _('Cost Summary') }}
         </h5>
     </div>
     <div class="card-body">
@@ -327,30 +327,30 @@
                     <tbody>
                         {% if raw_materials %}
                         <tr>
-                            <td>חומרי גלם:</td>
+                            <td>{{ _('Raw Materials:') }}</td>
                             <td class="text-end">₪{{ "%.2f"|format(raw_total.value if raw_total is defined else 0) }}</td>
                         </tr>
                         {% endif %}
                         {% if premake_costs %}
                         <tr>
-                            <td>הכנות מקדימות:</td>
+                            <td>{{ _('Premakes:') }}</td>
                             <td class="text-end">₪{{ "%.2f"|format(premake_total.value if premake_total is defined else 0) }}</td>
                         </tr>
                         {% endif %}
                         {% if preproduct_costs %}
                         <tr>
-                            <td>מוצרים מקדימים:</td>
+                            <td>{{ _('Preproducts:') }}</td>
                             <td class="text-end">₪{{ "%.2f"|format(preproduct_total.value if preproduct_total is defined else 0) }}</td>
                         </tr>
                         {% endif %}
                         {% if packaging_costs %}
                         <tr>
-                            <td>אריזות:</td>
+                            <td>{{ _('Packaging:') }}</td>
                             <td class="text-end">₪{{ "%.2f"|format(packaging_total.value if packaging_total is defined else 0) }}</td>
                         </tr>
                         {% endif %}
                         <tr class="table-primary fw-bold">
-                            <td>סה"כ עלות למוצר:</td>
+                            <td>{{ _('Total Cost per Product:') }}</td>
                             <td class="text-end">₪{{ "%.2f"|format(total_cost_per_product.value) }}</td>
                         </tr>
                     </tbody>
@@ -360,19 +360,19 @@
                 <table class="table table-sm">
                     <tbody>
                         <tr>
-                            <td>מחיר מכירה:</td>
+                            <td>{{ _('Selling Price:') }}</td>
                             <td class="text-end">₪{{ "%.2f"|format(product.selling_price_per_unit or 0) }}</td>
                         </tr>
                         <tr>
-                            <td>עלות ייצור:</td>
+                            <td>{{ _('Production Cost:') }}</td>
                             <td class="text-end">₪{{ "%.2f"|format(total_cost_per_product.value) }}</td>
                         </tr>
                         <tr class="{% if (product.selling_price_per_unit or 0) - total_cost_per_product.value > 0 %}table-success{% else %}table-danger{% endif %} fw-bold">
-                            <td>רווח גולמי:</td>
+                            <td>{{ _('Gross Profit:') }}</td>
                             <td class="text-end">₪{{ "%.2f"|format((product.selling_price_per_unit or 0) - total_cost_per_product.value) }}</td>
                         </tr>
                         <tr>
-                            <td>אחוז רווח:</td>
+                            <td>{{ _('Profit Margin:') }}</td>
                             <td class="text-end">{{ "%.1f"|format((((product.selling_price_per_unit or 0) - total_cost_per_product.value) / (product.selling_price_per_unit or 1) * 100) if (product.selling_price_per_unit or 0) > 0 else 0) }}%</td>
                         </tr>
                     </tbody>
