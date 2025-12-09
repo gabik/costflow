@@ -2611,3 +2611,39 @@ msgstr "recipes selected"
 
 msgid "unmapped materials in selected recipes"
 msgstr "unmapped materials in selected recipes"
+
+msgid "SKU"
+msgstr "SKU"
+
+msgid "Active"
+msgstr "Active"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Filter"
+msgstr "Filter"
+
+msgid "Variance"
+msgstr "Variance"
+
+msgid "Financial Value"
+msgstr "Financial Value"
+
+msgid "Auditor"
+msgstr "Auditor"
+
+msgid "Insights"
+msgstr "Insights"
+
+msgid "Hours"
+msgstr "Hours"
+
+msgid "Material types: \"חומר גלם\", \"הכנה\", \"מוצר מקדים\", \"אבדן\""
+msgstr "Material types: \"חומר גלם\", \"הכנה\", \"מוצר מקדים\", \"אבדן\""
+
+msgid "Optional - default \"g\""
+msgstr "Optional - default \"g\""
+
+msgid "Required - \"premake\" or \"product\""
+msgstr "Required - \"premake\" or \"product\""

@@ -2606,3 +2606,39 @@ msgstr "מתכונים נבחרו"
 
 msgid "unmapped materials in selected recipes"
 msgstr "חומרים ללא התאמה במתכונים נבחרים"
+
+msgid "SKU"
+msgstr "מק\"ט"
+
+msgid "Active"
+msgstr "פעיל"
+
+msgid "Status"
+msgstr "סטטוס"
+
+msgid "Filter"
+msgstr "סנן"
+
+msgid "Variance"
+msgstr "הפרש"
+
+msgid "Financial Value"
+msgstr "ערך כספי"
+
+msgid "Auditor"
+msgstr "מבקר"
+
+msgid "Insights"
+msgstr "תובנות"
+
+msgid "Hours"
+msgstr "שעות"
+
+msgid "Material types: \"חומר גלם\", \"הכנה\", \"מוצר מקדים\", \"אבדן\""
+msgstr "סוגי חומרים: \"חומר גלם\", \"הכנה\", \"מוצר מקדים\", \"אבדן\""
+
+msgid "Optional - default \"g\""
+msgstr "אופציונלי - ברירת מחדל \"g\""
+
+msgid "Required - \"premake\" or \"product\""
+msgstr "נדרש - \"premake\" או \"product\""
