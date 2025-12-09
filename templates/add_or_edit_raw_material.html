@@ -586,9 +586,12 @@
                 initialStockSection.style.display = 'block';
             }
 
-            // Re-add required attribute to supplier fields
+            // Re-add required attribute only to visible supplier fields
             document.querySelectorAll('.supplier-select, .supplier-cost').forEach(field => {
-                field.setAttribute('required', 'required');
+                // Only add required if the field is actually visible
+                if (field.offsetParent !== null) {
+                    field.setAttribute('required', 'required');
+                }
             });
         }
     }
