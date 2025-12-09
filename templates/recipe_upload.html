@@ -87,15 +87,20 @@ unit: g
             </div>
 
             {% if metadata_preview %}
-            <div class="alert alert-secondary mt-3">
-                <h6 class="alert-heading">תצוגה מקדימה של מטאדאטה (מהגיליון הראשון):</h6>
+            <div class="alert alert-secondary mt-3" id="metadata-preview">
+                <h6 class="alert-heading">תצוגה מקדימה של מטאדאטה:</h6>
                 <ul class="mb-0">
-                    <li><strong>סוג:</strong> {{ metadata_preview.type or 'לא זוהה (נדרש!)' }}</li>
-                    <li><strong>קטגוריה:</strong> {{ metadata_preview.category or 'לא זוהתה (נדרש!)' }}</li>
-                    <li><strong>יחידת מידה:</strong> {{ metadata_preview.unit }}</li>
+                    <li><strong>סוג:</strong> <span id="metadata-type">{{ metadata_preview.type or 'לא זוהה (נדרש!)' }}</span></li>
+                    <li><strong>קטגוריה:</strong> <span id="metadata-category">{{ metadata_preview.category or 'לא זוהתה (נדרש!)' }}</span></li>
+                    <li><strong>יחידת מידה:</strong> <span id="metadata-unit">{{ metadata_preview.unit }}</span></li>
                 </ul>
                 {% if not metadata_preview.type or not metadata_preview.category %}
-                <div class="alert alert-warning mt-2 mb-0">
+                <div class="alert alert-warning mt-2 mb-0" id="metadata-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>שים לב:</strong> חסרים שדות חובה במטאדאטה. ודא שהקובץ מכיל שורות type ו-category.
+                </div>
+                {% else %}
+                <div class="alert alert-warning mt-2 mb-0 d-none" id="metadata-warning">
                     <i class="bi bi-exclamation-triangle me-2"></i>
                     <strong>שים לב:</strong> חסרים שדות חובה במטאדאטה. ודא שהקובץ מכיל שורות type ו-category.
                 </div>
@@ -114,6 +119,68 @@ unit: g
         </form>
     </div>
 </div>
+{% endif %}
+
+{% if file_uploaded %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sheetSelect = document.getElementById('sheet_name');
+    const metadataType = document.getElementById('metadata-type');
+    const metadataCategory = document.getElementById('metadata-category');
+    const metadataUnit = document.getElementById('metadata-unit');
+    const metadataWarning = document.getElementById('metadata-warning');
+
+    if (sheetSelect) {
+        sheetSelect.addEventListener('change', function() {
+            const selectedSheet = this.value;
+
+            // Show loading state
+            metadataType.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>טוען...';
+            metadataCategory.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>טוען...';
+            metadataUnit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>טוען...';
+
+            // Fetch metadata for selected sheet
+            fetch('{{ url_for("recipe_import.get_sheet_metadata") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'sheet_name=' + encodeURIComponent(selectedSheet)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Update metadata display
+                metadataType.textContent = data.type || 'לא זוהה (נדרש!)';
+                metadataCategory.textContent = data.category || 'לא זוהתה (נדרש!)';
+                metadataUnit.textContent = data.unit || 'g';
+
+                // Show/hide warning based on missing fields
+                if (!data.type || !data.category) {
+                    metadataWarning.classList.remove('d-none');
+                } else {
+                    metadataWarning.classList.add('d-none');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching metadata:', error);
+                metadataType.textContent = 'שגיאה בטעינה';
+                metadataCategory.textContent = 'שגיאה בטעינה';
+                metadataUnit.textContent = 'שגיאה בטעינה';
+                metadataWarning.classList.remove('d-none');
+            });
+        });
+    }
+});
+</script>
 {% endif %}
 
 {% endblock %}

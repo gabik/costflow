@@ -381,6 +381,31 @@ def upload_recipes():
     return render_template('recipe_upload.html', file_uploaded=False)
 
 
+@recipe_import_blueprint.route('/recipes/get_sheet_metadata', methods=['POST'])
+def get_sheet_metadata():
+    """AJAX endpoint to get metadata for a specific sheet"""
+    sheet_name = request.form.get('sheet_name')
+    temp_file = session.get('recipe_temp_file')
+
+    if not temp_file or not os.path.exists(temp_file):
+        return {'error': 'הקובץ לא נמצא'}, 400
+
+    try:
+        # Read sheet
+        df = pd.read_excel(temp_file, sheet_name=sheet_name, header=None)
+
+        # Parse metadata
+        metadata = parse_metadata(df)
+
+        return {
+            'type': metadata['type'] or '',
+            'category': metadata['category'] or '',
+            'unit': metadata['unit']
+        }
+    except Exception as e:
+        return {'error': str(e)}, 500
+
+
 @recipe_import_blueprint.route('/recipes/select_sheet', methods=['POST'])
 def select_sheet():
     """Parse selected sheet and show review page"""
