@@ -44,25 +44,25 @@ msgstr "Add"
 #: templates/index.html:32 templates/product_details.html:56
 #: templates/product_details.html:60
 msgid "Packaging"
-msgstr "אריזה"
+msgstr "Packaging"
 
 #: templates/add_or_edit_packaging.html:7
 msgid "Packaging Name"
-msgstr "שם אריזה"
+msgstr "Packaging Name"
 
 #: templates/add_or_edit_packaging.html:11
 #: templates/add_or_edit_product.html:108 templates/packaging.html:12
 msgid "Quantity per Package"
-msgstr "כמות לארגז"
+msgstr "Quantity per Package"
 
 #: templates/add_or_edit_packaging.html:15
 #: templates/add_or_edit_product.html:112 templates/packaging.html:13
 msgid "Price per Package"
-msgstr "מחיר לארגז"
+msgstr "Price per Package"
 
 #: templates/add_or_edit_packaging.html:18
 msgid "Update"
-msgstr "עדכן"
+msgstr "Update"
 
 #: templates/add_or_edit_product.html:2 templates/add_or_edit_product.html:4
 #: templates/production.html:35
@@ -100,12 +100,12 @@ msgstr ""
 #: templates/add_or_edit_product.html:118 templates/packaging.html:6
 #, fuzzy
 msgid "Add Packaging"
-msgstr "אריזה"
+msgstr "Add Packaging"
 
 #: templates/add_or_edit_product.html:28
 #, fuzzy
 msgid "New Packaging"
-msgstr "אריזה"
+msgstr "New Packaging"
 
 #: templates/add_or_edit_product.html:32 templates/product_details.html:32
 msgid "Labor Costs"
@@ -297,7 +297,7 @@ msgstr ""
 #: templates/packaging.html:4
 #, fuzzy
 msgid "Manage Packaging"
-msgstr "אריזה"
+msgstr "Manage Packaging"
 
 #: templates/index.html:45
 msgid "Labor Management"
@@ -337,7 +337,7 @@ msgstr ""
 #: templates/packaging.html:14
 #, fuzzy
 msgid "Price per Unit"
-msgstr "מחיר לארגז"
+msgstr "Price per Unit"
 
 #: templates/packaging.html:15 templates/products.html:12
 #: templates/raw_materials.html:14
@@ -355,7 +355,7 @@ msgstr ""
 #: templates/product_details.html:6
 #, fuzzy
 msgid "Selling Price Per Unit:"
-msgstr "מחיר לארגז"
+msgstr "Selling Price Per Unit:"
 
 #: templates/product_details.html:13
 msgid "Amount in Recipe"
@@ -364,19 +364,19 @@ msgstr ""
 #: templates/product_details.html:14 templates/product_details.html:62
 #, fuzzy
 msgid "Price Per Unit"
-msgstr "מחיר לארגז"
+msgstr "Price Per Unit"
 
 #: templates/product_details.html:15 templates/product_details.html:39
 #: templates/product_details.html:63
 #, fuzzy
 msgid "Price Per Recipe"
-msgstr "מחיר לארגז"
+msgstr "Price Per Recipe"
 
 #: templates/product_details.html:16 templates/product_details.html:40
 #: templates/product_details.html:64
 #, fuzzy
 msgid "Price Per Product"
-msgstr "מחיר לארגז"
+msgstr "Price Per Product"
 
 #: templates/product_details.html:37
 msgid "Hours of Labor"
@@ -385,12 +385,12 @@ msgstr ""
 #: templates/product_details.html:38
 #, fuzzy
 msgid "Price Per Hour"
-msgstr "מחיר לארגז"
+msgstr "Price Per Hour"
 
 #: templates/product_details.html:61
 #, fuzzy
 msgid "Units Per Recipe"
-msgstr "כמות לארגז"
+msgstr "Units Per Recipe"
 
 #: templates/production.html:2 templates/production.html:4
 msgid "Production Logs"
@@ -415,7 +415,7 @@ msgstr ""
 #: templates/production.html:34
 #, fuzzy
 msgid "Date"
-msgstr "עדכן"
+msgstr "Date"
 
 #: templates/products.html:5
 msgid "Add New Product"
