@@ -1392,3 +1392,25 @@ msgstr "Gross Profit:"
 msgid "Profit Margin:"
 msgstr "Profit Margin:"
 
+# Premake Details page translations
+msgid "Premake Details"
+msgstr "Premake Details"
+
+msgid "Recipe details and costs"
+msgstr "Recipe details and costs"
+
+msgid "Back to list"
+msgstr "Back to list"
+
+msgid "Batch Size"
+msgstr "Batch Size"
+
+msgid "Total Cost per Batch"
+msgstr "Total Cost per Batch"
+
+msgid "% of Cost"
+msgstr "% of Cost"
+
+msgid "No components for this premake."
+msgstr "No components for this premake."
+

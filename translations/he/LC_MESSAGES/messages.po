@@ -1387,3 +1387,25 @@ msgstr "רווח גולמי:"
 msgid "Profit Margin:"
 msgstr "אחוז רווח:"
 
+# Premake Details page translations
+msgid "Premake Details"
+msgstr "פרטי הכנה מקדימה"
+
+msgid "Recipe details and costs"
+msgstr "פרטי מתכון ועלויות"
+
+msgid "Back to list"
+msgstr "חזרה לרשימה"
+
+msgid "Batch Size"
+msgstr "גודל באצ'"
+
+msgid "Total Cost per Batch"
+msgstr "עלות כוללת לבאצ'"
+
+msgid "% of Cost"
+msgstr "% מהעלות"
+
+msgid "No components for this premake."
+msgstr "אין מרכיבים להכנה זו."
+
