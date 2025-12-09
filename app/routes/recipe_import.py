@@ -234,38 +234,49 @@ def find_existing_recipe(name, is_premake):
     return False, None, []
 
 
-def calculate_recipe_diff(existing_components, new_materials):
+def calculate_recipe_diff(existing_components, new_materials, matched_materials_lookup):
     """
     Calculate diff between existing and new components.
+    Uses material IDs instead of names to handle alternative names correctly.
+
+    Args:
+        existing_components: List of ProductComponent objects from existing recipe
+        new_materials: List of material dicts from Excel sheet
+        matched_materials_lookup: Dict mapping material index to matched DB material data
+
     Returns: (added, removed, changed, unchanged)
     """
-    # Build lookup for existing components
+    # Build lookup for existing components using IDs
     existing_lookup = {}
     for comp in existing_components:
         key = None
         if comp.component_type == 'raw_material' and comp.material:
-            key = ('raw_material', comp.material.name)
+            key = ('raw_material', comp.material_id)
         elif comp.component_type == 'premake' and comp.premake:
-            key = ('premake', comp.premake.name)
+            key = ('premake', comp.component_id)
         elif comp.component_type == 'product' and comp.preproduct:
-            key = ('product', comp.preproduct.name)
+            key = ('product', comp.component_id)
         elif comp.component_type == 'loss':
-            key = ('loss', 'loss')
+            key = ('loss', 0)  # Loss has no ID
 
         if key:
             existing_lookup[key] = comp
 
-    # Build lookup for new materials
+    # Build lookup for new materials using IDs from matched data
     new_lookup = {}
-    for mat in new_materials:
-        type_map = {
-            'חומר גלם': 'raw_material',
-            'הכנה': 'premake',
-            'מוצר מקדים': 'product'
-        }
-        comp_type = type_map.get(mat['type'], 'raw_material')
-        key = (comp_type, mat['name'])
-        new_lookup[key] = mat
+    for idx, mat in enumerate(new_materials):
+        # Get matched material data
+        matched = matched_materials_lookup.get(idx)
+        if matched and matched['found']:
+            mat_id = matched['material_id']
+            type_map = {
+                'חומר גלם': 'raw_material',
+                'הכנה': 'premake',
+                'מוצר מקדים': 'product'
+            }
+            comp_type = type_map.get(mat['type'], 'raw_material')
+            key = (comp_type, mat_id)
+            new_lookup[key] = (mat, idx)  # Store both material and index
 
     added = []
     removed = []
@@ -273,7 +284,7 @@ def calculate_recipe_diff(existing_components, new_materials):
     unchanged = []
 
     # Find added and changed
-    for key, new_mat in new_lookup.items():
+    for key, (new_mat, idx) in new_lookup.items():
         if key not in existing_lookup:
             added.append(new_mat)
         else:
@@ -288,11 +299,20 @@ def calculate_recipe_diff(existing_components, new_materials):
             else:
                 unchanged.append(new_mat)
 
-    # Find removed
+    # Find removed components
     for key, existing_comp in existing_lookup.items():
         if key not in new_lookup and key[0] != 'loss':  # Don't count loss as removed
-            comp_name = key[1]
-            removed.append({'name': comp_name, 'type': key[0]})
+            # Get the component name for display
+            comp_name = None
+            if existing_comp.component_type == 'raw_material' and existing_comp.material:
+                comp_name = existing_comp.material.name
+            elif existing_comp.component_type == 'premake' and existing_comp.premake:
+                comp_name = existing_comp.premake.name
+            elif existing_comp.component_type == 'product' and existing_comp.preproduct:
+                comp_name = existing_comp.preproduct.name
+
+            if comp_name:
+                removed.append({'name': comp_name, 'type': key[0]})
 
     return added, removed, changed, unchanged
 
@@ -444,9 +464,15 @@ def select_sheet():
             # Calculate diff if exists
             diff_data = None
             if exists:
+                # Build matched materials lookup for diff calculation
+                matched_materials_lookup = {}
+                for idx, material_data in enumerate(materials_data):
+                    matched_materials_lookup[idx] = material_data
+
                 added, removed, changed, unchanged = calculate_recipe_diff(
                     existing_components,
-                    recipe['materials']
+                    recipe['materials'],
+                    matched_materials_lookup
                 )
                 diff_data = {
                     'added': added,
