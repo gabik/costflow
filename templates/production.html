@@ -20,7 +20,7 @@
     <div class="form-group mb-3">
         <label for="product_id" class="form-label">{{ _('Select Product') }}</label>
         <select id="product_id" name="product_id" class="form-select select2" required>
-            <option value="" disabled selected>בחר מוצר...</option>
+            <option value="" disabled selected>{{ _('Select product...') }}</option>
             {% for product in products %}
             <option value="{{ product.id }}">{{ product.name }}</option>
             {% endfor %}
@@ -31,38 +31,38 @@
         <div class="btn-group w-100" role="group" aria-label="Production mode">
             <input type="radio" class="btn-check" name="production_mode" id="mode_batches" value="batches" checked onchange="updateProductionMode()">
             <label class="btn btn-outline-primary" for="mode_batches">
-                <i class="bi bi-stack me-1"></i> באצ'ים (Batches)
+                <i class="bi bi-stack me-1"></i> {{ _('Batches') }}
             </label>
             <input type="radio" class="btn-check" name="production_mode" id="mode_units" value="units" onchange="updateProductionMode()">
             <label class="btn btn-outline-primary" for="mode_units">
-                <i class="bi bi-box-seam me-1"></i> יחידות (Units)
+                <i class="bi bi-box-seam me-1"></i> {{ _('Units') }}
             </label>
         </div>
     </div>
 
     <div class="form-group mb-3">
-        <label for="quantity_produced" id="quantity_label">{{ _('Quantity Produced') }} (מספר באצ'ים)</label>
+        <label for="quantity_produced" id="quantity_label">{{ _('Quantity Produced') }} ({{ _('number of batches') }})</label>
         <input type="number" id="quantity_produced" name="quantity_produced" class="form-control" step="0.01" required oninput="updateProductionDetails()">
         <div class="form-text" id="quantity_help_text" style="display: none;"></div>
     </div>
     
     <div id="production_summary" style="display: none;" class="mt-4">
         <div class="alert alert-info">
-            <h5 class="mb-0">סה"כ יחידות לייצור: <span id="total_units_display" class="fw-bold">0</span></h5>
+            <h5 class="mb-0">{{ _('Total units to produce:') }} <span id="total_units_display" class="fw-bold">0</span></h5>
         </div>
-        
-        <h5 class="mt-4">פירוט צריכת חומרים והכנות</h5>
+
+        <h5 class="mt-4">{{ _('Material and Premake Usage Breakdown') }}</h5>
         <div class="table-responsive">
             <table class="table table-sm table-bordered bg-light">
                 <thead>
                     <tr>
-                        <th>רכיב</th>
-                        <th>סוג</th>
-                        <th>מלאי נוכחי</th>
-                        <th>צריכה בייצור זה</th>
-                        <th>מלאי לאחר ייצור</th>
-                        <th>עלות יחידה</th>
-                        <th>עלות</th>
+                        <th>{{ _('Component') }}</th>
+                        <th>{{ _('Type') }}</th>
+                        <th>{{ _('Current Stock') }}</th>
+                        <th>{{ _('Usage in this production') }}</th>
+                        <th>{{ _('Stock after production') }}</th>
+                        <th>{{ _('Unit Cost') }}</th>
+                        <th>{{ _('Cost') }}</th>
                     </tr>
                 </thead>
                 <tbody id="components_usage_body">
@@ -129,7 +129,7 @@
                         <input type="text" class="form-control" id="edit_product_name" readonly>
                     </div>
                     <div class="mb-3">
-                        <label for="edit_quantity_produced" class="form-label">{{ _('Quantity Produced') }} (מספר באצ'ים)</label>
+                        <label for="edit_quantity_produced" class="form-label">{{ _('Quantity Produced') }} ({{ _('number of batches') }})</label>
                         <input type="number" class="form-control" id="edit_quantity_produced" name="quantity_produced" step="1" required>
                     </div>
                 </div>
@@ -153,7 +153,7 @@ $(document).ready(function() {
     $('.select2').select2({
         theme: 'bootstrap-5',
         width: '100%',
-        language: { noResults: () => "לא נמצאו תוצאות" }
+        language: { noResults: () => "{{ _('No results found') }}" }
     });
 
     // Handle product selection change using Select2 specific event
@@ -233,13 +233,13 @@ function updateProductionMode() {
     const qtyInput = document.getElementById('quantity_produced');
 
     if (modeUnits) {
-        label.innerHTML = '{{ _("Quantity Produced") }} (מספר יחידות)';
+        label.innerHTML = '{{ _("Quantity Produced") }} ({{ _("number of units") }})';
         if (currentRecipe) {
-            helpText.innerHTML = `יחידה אחת = 1/${currentRecipe.products_per_recipe} באצ'`;
+            helpText.innerHTML = `{{ _("One unit") }} = 1/${currentRecipe.products_per_recipe} {{ _("batches") }}`;
             helpText.style.display = 'block';
         }
     } else {
-        label.innerHTML = '{{ _("Quantity Produced") }} (מספר באצ\'ים)';
+        label.innerHTML = '{{ _("Quantity Produced") }} ({{ _("number of batches") }})';
         helpText.style.display = 'none';
     }
 
@@ -294,7 +294,7 @@ function updateProductionDetails() {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${comp.name}</td>
-                    <td>חומר גלם</td>
+                    <td>{{ _('Raw Material') }}</td>
                     <td>${consumption.stock_available.toFixed(2)} ${comp.unit}</td>
                     <td class="fw-bold">${consumption.amount_to_consume.toFixed(2)} ${comp.unit}</td>
                     <td class="${consumption.remaining_after < 0 ? 'text-danger fw-bold' : ''}">${consumption.remaining_after.toFixed(2)} ${comp.unit}</td>
@@ -319,12 +319,12 @@ function updateProductionDetails() {
 
                     // Add warning badge for deficit
                     if (consumption.is_deficit) {
-                        nameDisplay += ' <span class="badge bg-danger ms-1">חוסר</span>';
+                        nameDisplay += ' <span class="badge bg-danger ms-1">{{ _('Shortage') }}</span>';
                     }
 
                     tr.innerHTML = `
                         <td>${nameDisplay}</td>
-                        <td>${index === 0 ? 'חומר גלם' : ''}</td>
+                        <td>${index === 0 ? '{{ _("Raw Material") }}' : ''}</td>
                         <td>${consumption.stock_available.toFixed(2)} ${comp.unit}</td>
                         <td class="fw-bold">${consumption.amount_to_consume.toFixed(2)} ${comp.unit}</td>
                         <td class="${consumption.remaining_after < 0 ? 'text-danger fw-bold' : ''}">${consumption.remaining_after.toFixed(2)} ${comp.unit}</td>
@@ -359,13 +359,13 @@ function updateProductionDetails() {
             const hasDeficit = !isUnlimited && (comp.is_deficit || stockAfter < 0);
             let nameDisplay = comp.name;
             if (hasDeficit) {
-                nameDisplay += ' <span class="badge bg-danger ms-1">חוסר</span>';
+                nameDisplay += ' <span class="badge bg-danger ms-1">{{ _('Shortage') }}</span>';
             }
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${nameDisplay}</td>
-                <td>${comp.type === 'Raw Material' ? 'חומר גלם' : (comp.type === 'Preproduct' ? 'מוצר קדמי' : 'הכנה')}</td>
+                <td>${comp.type === 'Raw Material' ? '{{ _("Raw Material") }}' : (comp.type === 'Preproduct' ? '{{ _("Preproduct") }}' : '{{ _("Premake") }}')}</td>
                 <td>${currentStockDisplay}</td>
                 <td class="fw-bold">${usage.toFixed(2)} ${comp.unit}</td>
                 <td class="${!isUnlimited && stockAfter < 0 ? 'text-danger fw-bold' : ''}">${stockAfterDisplay}</td>
@@ -379,7 +379,7 @@ function updateProductionDetails() {
     // Add total cost row
     const totalRow = document.createElement('tr');
     totalRow.innerHTML = `
-        <td colspan="6" class="text-end fw-bold">סה"כ עלות ייצור</td>
+        <td colspan="6" class="text-end fw-bold">{{ _('Total production cost') }}</td>
         <td class="fw-bold">${totalRecipeCost.toFixed(2)} ₪</td>
     `;
     tbody.appendChild(totalRow);

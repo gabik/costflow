@@ -959,3 +959,111 @@ msgstr "All rights reserved."
 msgid "No results found"
 msgstr "No results found"
 
+# Products page translations
+msgid "Manage products, recipes, and costs."
+msgstr "Manage products, recipes, and costs."
+
+msgid "Image"
+msgstr "Image"
+
+msgid "Recipe Weight"
+msgstr "Recipe Weight"
+
+msgid "Unit Weight"
+msgstr "Unit Weight"
+
+msgid "Production Cost per Unit"
+msgstr "Production Cost per Unit"
+
+msgid "Selling Price"
+msgstr "Selling Price"
+
+msgid "Preproduct - Can be sold and also used as a component"
+msgstr "Preproduct - Can be sold and also used as a component"
+
+msgid "Missing raw materials:"
+msgstr "Missing raw materials:"
+
+msgid "Stock shortage"
+msgstr "Stock shortage"
+
+msgid "Convert to premake"
+msgstr "Convert to premake"
+
+msgid "This action will convert the product to a premake, transfer inventory and delete the original product. Continue?"
+msgstr "This action will convert the product to a premake, transfer inventory and delete the original product. Continue?"
+
+msgid "No products found in system."
+msgstr "No products found in system."
+
+# Production page translations
+msgid "Select product..."
+msgstr "Select product..."
+
+msgid "Production Mode"
+msgstr "Production Mode"
+
+msgid "number of batches"
+msgstr "number of batches"
+
+msgid "number of units"
+msgstr "number of units"
+
+msgid "One unit"
+msgstr "One unit"
+
+msgid "batches"
+msgstr "batches"
+
+msgid "Total units to produce:"
+msgstr "Total units to produce:"
+
+msgid "Material and Premake Usage Breakdown"
+msgstr "Material and Premake Usage Breakdown"
+
+msgid "Component"
+msgstr "Component"
+
+msgid "Type"
+msgstr "Type"
+
+msgid "Current Stock"
+msgstr "Current Stock"
+
+msgid "Usage in this production"
+msgstr "Usage in this production"
+
+msgid "Stock after production"
+msgstr "Stock after production"
+
+msgid "Shortage"
+msgstr "Shortage"
+
+msgid "Preproduct"
+msgstr "Preproduct"
+
+msgid "Total production cost"
+msgstr "Total production cost"
+
+msgid "Units Produced"
+msgstr "Units Produced"
+
+msgid "Cost/Unit"
+msgstr "Cost/Unit"
+
+msgid "Edit Production Quantity"
+msgstr "Edit Production Quantity"
+
+msgid "Are you sure you want to delete this production log?"
+msgstr "Are you sure you want to delete this production log?"
+
+msgid "Edit Production Quantity for"
+msgstr "Edit Production Quantity for"
+
+# Premakes page translations
+msgid "Manage base recipes and premakes."
+msgstr "Manage base recipes and premakes."
+
+msgid "Search premake..."
+msgstr "Search premake..."
+

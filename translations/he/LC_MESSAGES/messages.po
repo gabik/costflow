@@ -938,3 +938,111 @@ msgstr "כל הזכויות שמורות."
 msgid "No results found"
 msgstr "לא נמצאו תוצאות"
 
+# Products page translations
+msgid "Manage products, recipes, and costs."
+msgstr "ניהול מוצרים, מתכונים ועלויות."
+
+msgid "Image"
+msgstr "תמונה"
+
+msgid "Recipe Weight"
+msgstr "משקל מתכון"
+
+msgid "Unit Weight"
+msgstr "משקל יחידה"
+
+msgid "Production Cost per Unit"
+msgstr "עלות ייצור ליחידה"
+
+msgid "Selling Price"
+msgstr "מחיר מכירה"
+
+msgid "Preproduct - Can be sold and also used as a component"
+msgstr "מוצר מקדים - ניתן למכירה וגם לשימוש כרכיב"
+
+msgid "Missing raw materials:"
+msgstr "חסרים חומרי גלם:"
+
+msgid "Stock shortage"
+msgstr "חוסר במלאי"
+
+msgid "Convert to premake"
+msgstr "הפוך להכנה מקדימה"
+
+msgid "This action will convert the product to a premake, transfer inventory and delete the original product. Continue?"
+msgstr "פעולה זו תהפוך את המוצר להכנה מקדימה, תעביר את המלאי ותמחק את המוצר המקורי. האם להמשיך?"
+
+msgid "No products found in system."
+msgstr "לא נמצאו מוצרים במערכת."
+
+# Production page translations
+msgid "Select product..."
+msgstr "בחר מוצר..."
+
+msgid "Production Mode"
+msgstr "מצב ייצור"
+
+msgid "number of batches"
+msgstr "מספר באצ'ים"
+
+msgid "number of units"
+msgstr "מספר יחידות"
+
+msgid "One unit"
+msgstr "יחידה אחת"
+
+msgid "batches"
+msgstr "באצ'ים"
+
+msgid "Total units to produce:"
+msgstr "סה\"כ יחידות לייצור:"
+
+msgid "Material and Premake Usage Breakdown"
+msgstr "פירוט צריכת חומרים והכנות"
+
+msgid "Component"
+msgstr "רכיב"
+
+msgid "Type"
+msgstr "סוג"
+
+msgid "Current Stock"
+msgstr "מלאי נוכחי"
+
+msgid "Usage in this production"
+msgstr "צריכה בייצור זה"
+
+msgid "Stock after production"
+msgstr "מלאי לאחר ייצור"
+
+msgid "Shortage"
+msgstr "חוסר"
+
+msgid "Preproduct"
+msgstr "מוצר מקדים"
+
+msgid "Total production cost"
+msgstr "סה\"כ עלות ייצור"
+
+msgid "Units Produced"
+msgstr "יחידות שיוצרו"
+
+msgid "Cost/Unit"
+msgstr "עלות/יחידה"
+
+msgid "Edit Production Quantity"
+msgstr "עריכת כמות ייצור"
+
+msgid "Are you sure you want to delete this production log?"
+msgstr "האם אתה בטוח שברצונך למחוק רשומת ייצור זו?"
+
+msgid "Edit Production Quantity for"
+msgstr "עריכת כמות ייצור עבור"
+
+# Premakes page translations
+msgid "Manage base recipes and premakes."
+msgstr "ניהול מתכוני בסיס והכנות (Premakes)."
+
+msgid "Search premake..."
+msgstr "חפש הכנה מקדימה..."
+

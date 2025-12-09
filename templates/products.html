@@ -5,11 +5,11 @@
 <div class="row mb-4">
     <div class="col-12 d-flex justify-content-between align-items-center">
         <div>
-            <h1 class="display-6 fw-bold text-primary">מוצרים</h1>
-            <p class="text-secondary">ניהול מוצרים, מתכונים ועלויות.</p>
+            <h1 class="display-6 fw-bold text-primary">{{ _('Products') }}</h1>
+            <p class="text-secondary">{{ _('Manage products, recipes, and costs.') }}</p>
         </div>
         <a href="{{ url_for('products.add_product') }}" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-2"></i> הוסף מוצר חדש
+            <i class="bi bi-plus-lg me-2"></i> {{ _('Add New Product') }}
         </a>
     </div>
 </div>
@@ -19,14 +19,14 @@
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
             <tr>
-                <th style="width: 80px;">תמונה</th>
-                <th>שם המוצר</th>
-                <th>משקל מתכון</th>
-                <th>משקל יחידה</th>
-                <th>עלות ייצור ליחידה</th>
-                <th>מחיר מכירה</th>
-                <th>רווח גולמי</th>
-                <th class="text-end">פעולות</th>
+                <th style="width: 80px;">{{ _('Image') }}</th>
+                <th>{{ _('Product Name') }}</th>
+                <th>{{ _('Recipe Weight') }}</th>
+                <th>{{ _('Unit Weight') }}</th>
+                <th>{{ _('Production Cost per Unit') }}</th>
+                <th>{{ _('Selling Price') }}</th>
+                <th>{{ _('Gross Profit') }}</th>
+                <th class="text-end">{{ _('Actions') }}</th>
             </tr>
             </thead>
             <tbody>
@@ -45,15 +45,15 @@
                 <td class="fw-medium">
                     {{ product.name }}
                     {% if product.is_preproduct %}
-                        <span class="badge bg-info ms-2" title="מוצר מקדים - ניתן למכירה וגם לשימוש כרכיב">
+                        <span class="badge bg-info ms-2" title="{{ _('Preproduct - Can be sold and also used as a component') }}">
                             <i class="bi bi-arrows-collapse-vertical"></i>
                         </span>
                     {% endif %}
                     {% if not item.can_produce %}
                         <span class="badge bg-danger ms-2"
                               data-bs-toggle="tooltip"
-                              title="חסרים חומרי גלם: {% for mat in item.missing_materials %}{{ mat.name }} ({{ '%.2f'|format(mat.available) }}/{{ '%.2f'|format(mat.required) }}){% if not loop.last %}, {% endif %}{% endfor %}">
-                            <i class="bi bi-exclamation-triangle"></i> חוסר במלאי
+                              title="{{ _('Missing raw materials:') }} {% for mat in item.missing_materials %}{{ mat.name }} ({{ '%.2f'|format(mat.available) }}/{{ '%.2f'|format(mat.required) }}){% if not loop.last %}, {% endif %}{% endfor %}">
+                            <i class="bi bi-exclamation-triangle"></i> {{ _('Stock shortage') }}
                         </span>
                     {% endif %}
                 </td>
@@ -93,14 +93,14 @@
                 </td>
                 <td class="text-end">
                     <div class="btn-group">
-                        <a href="{{ url_for('products.product_detail', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary" title="צפה בפרטים">
+                        <a href="{{ url_for('products.product_detail', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('View Details') }}">
                             <i class="bi bi-eye"></i>
                         </a>
-                        <a href="{{ url_for('products.edit_product', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary" title="ערוך">
+                        <a href="{{ url_for('products.edit_product', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('Edit') }}">
                             <i class="bi bi-pencil"></i>
                         </a>
-                        <form action="{{ url_for('products.migrate_to_premake', product_id=product.id) }}" method="POST" class="d-inline" onsubmit="return confirm('פעולה זו תהפוך את המוצר להכנה מקדימה, תעביר את המלאי ותמחק את המוצר המקורי. האם להמשיך?');">
-                            <button type="submit" class="btn btn-sm btn-outline-warning" title="הפוך להכנה מקדימה">
+                        <form action="{{ url_for('products.migrate_to_premake', product_id=product.id) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ _('This action will convert the product to a premake, transfer inventory and delete the original product. Continue?') }}');">
+                            <button type="submit" class="btn btn-sm btn-outline-warning" title="{{ _('Convert to premake') }}">
                                 <i class="bi bi-arrow-repeat"></i>
                             </button>
                         </form>
@@ -109,7 +109,7 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="5" class="text-center py-4 text-muted">לא נמצאו מוצרים במערכת.</td>
+                <td colspan="5" class="text-center py-4 text-muted">{{ _('No products found in system.') }}</td>
             </tr>
             {% endfor %}
             </tbody>

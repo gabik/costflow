@@ -1,15 +1,15 @@
 {% extends "base.html" %}
-{% block title %}הכנות מקדימות - CostFlow{% endblock %}
+{% block title %}{{ _('Premakes') }} - CostFlow{% endblock %}
 
 {% block content %}
 <div class="row mb-4">
     <div class="col-12 d-flex justify-content-between align-items-center">
         <div>
-            <h1 class="display-6 fw-bold text-primary">הכנות מקדימות</h1>
-            <p class="text-secondary">ניהול מתכוני בסיס והכנות (Premakes).</p>
+            <h1 class="display-6 fw-bold text-primary">{{ _('Premakes') }}</h1>
+            <p class="text-secondary">{{ _('Manage base recipes and premakes.') }}</p>
         </div>
         <a href="{{ url_for('premakes.add_premake') }}" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-2"></i> הוסף הכנה מקדימה
+            <i class="bi bi-plus-lg me-2"></i> {{ _('Add Premake') }}
         </a>
     </div>
 </div>
@@ -21,12 +21,12 @@
             <div class="col-md-8">
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                    <input type="text" id="searchInput" class="form-control border-start-0" placeholder="חפש הכנה מקדימה...">
+                    <input type="text" id="searchInput" class="form-control border-start-0" placeholder="{{ _('Search premake...') }}">
                 </div>
             </div>
             <div class="col-md-4">
                 <select id="categoryFilter" class="form-select">
-                    <option value="all">כל הקטגוריות</option>
+                    <option value="all">{{ _('All Categories') }}</option>
                     <!-- Options populated by JS -->
                 </select>
             </div>
@@ -39,30 +39,30 @@
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
             <tr>
-                <th>שם</th>
-                <th>קטגוריה</th>
-                <th>כמות באצ'</th>
-                <th>יחידה</th>
-                <th class="text-end">פעולות</th>
+                <th>{{ _('Name') }}</th>
+                <th>{{ _('Category') }}</th>
+                <th>{{ _('Batch Quantity') }}</th>
+                <th>{{ _('Unit') }}</th>
+                <th class="text-end">{{ _('Actions') }}</th>
             </tr>
             </thead>
             <tbody>
             {% for premake in premakes %}
-            <tr class="premake-row" data-category="{{ premake.category.name if premake.category else 'ללא קטגוריה' }}">
+            <tr class="premake-row" data-category="{{ premake.category.name if premake.category else _('No Category') }}">
                 <td class="fw-medium premake-name">{{ premake.name }}</td>
-                <td><span class="badge bg-light text-dark border">{{ premake.category.name if premake.category else 'ללא קטגוריה' }}</span></td>
+                <td><span class="badge bg-light text-dark border">{{ premake.category.name if premake.category else _('No Category') }}</span></td>
                 <td>{{ "%.2f"|format(premake.batch_size) }}</td>
                 <td>{{ premake.unit }}</td>
                 <td class="text-end">
                     <div class="btn-group">
-                        <a href="{{ url_for('premakes.view_premake', premake_id=premake.id) }}" class="btn btn-sm btn-outline-secondary" title="צפה בפרטים">
+                        <a href="{{ url_for('premakes.view_premake', premake_id=premake.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('View Details') }}">
                             <i class="bi bi-eye"></i>
                         </a>
-                        <a href="{{ url_for('premakes.edit_premake', premake_id=premake.id) }}" class="btn btn-sm btn-outline-secondary" title="ערוך">
+                        <a href="{{ url_for('premakes.edit_premake', premake_id=premake.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('Edit') }}">
                             <i class="bi bi-pencil"></i>
                         </a>
-                        <form action="{{ url_for('premakes.delete_premake', premake_id=premake.id) }}" method="POST" class="d-inline" onsubmit="return confirm('האם אתה בטוח שברצונך למחוק הכנה זו?');">
-                            <button type="submit" class="btn btn-sm btn-outline-danger" title="מחק">
+                        <form action="{{ url_for('premakes.delete_premake', premake_id=premake.id) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ _('Are you sure you want to delete this premake?') }}');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ _('Delete') }}">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </form>
@@ -71,7 +71,7 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="4" class="text-center py-4 text-muted">לא נמצאו הכנות מקדימות.</td>
+                <td colspan="4" class="text-center py-4 text-muted">{{ _('No premakes found.') }}</td>
             </tr>
             {% endfor %}
             </tbody>
