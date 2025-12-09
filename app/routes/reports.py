@@ -1,7 +1,7 @@
 from datetime import datetime, date, timedelta
 from flask import Blueprint, render_template, request
 from sqlalchemy import func, and_
-from ..models import WeeklyLaborCost, WeeklyProductSales, ProductionLog, StockAudit
+from ..models import WeeklyLaborCost, WeeklyProductSales, ProductionLog, StockAudit, Product
 from .utils import calculate_prime_cost, calculate_premake_current_stock
 
 reports_blueprint = Blueprint('reports', __name__)
@@ -182,9 +182,6 @@ def weekly_report():
     # Premake Activity Analysis
     # ---------------------------------------------------
     premake_report_data = []
-
-    # Import Product model for premake queries
-    from ..models import Product
 
     # Fetch Premake Production Logs for the week (using unified Product model)
     premake_logs = ProductionLog.query.join(Product).filter(
