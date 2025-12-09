@@ -62,6 +62,7 @@
             <thead class="table-light">
             <tr>
                 <th>{{ _('Raw Material') }}</th>
+                <th>{{ _('SKU') }}</th>
                 <th>{{ _('Category') }}</th>
                 <th>{{ _('Unit') }}</th>
                 <th>{{ _('Price per Unit') }}</th>
@@ -74,6 +75,9 @@
             {% for item in materials_data %}
             <tr>
                 <td class="fw-medium">{{ item.material.name }}</td>
+                <td>
+                    <span class="text-muted">{{ item.sku if item.sku else '-' }}</span>
+                </td>
                 <td>
                     <span class="badge bg-light text-dark border">{{ item.material.category.name }}</span>
                 </td>
@@ -100,7 +104,7 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="7" class="text-center py-4 text-muted">
+                <td colspan="8" class="text-center py-4 text-muted">
                     {{ _('No raw materials found for this supplier.') }}
                 </td>
             </tr>

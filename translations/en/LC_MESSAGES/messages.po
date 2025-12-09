@@ -2281,3 +2281,6 @@ msgstr "unmapped materials in selected recipes\""
 
 msgid "unsold products remain.'"
 msgstr "unsold products remain.'"
+
+msgid "SKU"
+msgstr "SKU"
