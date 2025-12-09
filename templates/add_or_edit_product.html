@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}{{ 'עריכת מוצר' if product else 'הוספת מוצר חדש' }} - CostFlow{% endblock %}
+{% block title %}{{ _('Edit Product') if product else _('Add New Product') }} - CostFlow{% endblock %}
 
 {% block content %}
 <div class="row mb-4">
     <div class="col-12">
-        <h1 class="display-6 fw-bold text-primary">{{ 'עריכת מוצר' if product else 'הוספת מוצר חדש' }}</h1>
+        <h1 class="display-6 fw-bold text-primary">{{ _('Edit Product') if product else _('Add New Product') }}</h1>
     </div>
 </div>
 
@@ -13,14 +13,14 @@
         <div class="row">
             <div class="col-md-8">
                 <div class="mb-3">
-                    <label for="name" class="form-label">שם המוצר</label>
-                    <input type="text" id="name" name="name" class="form-control" value="{{ product.name if product else '' }}" placeholder="לדוגמה: לחם אחיד">
+                    <label for="name" class="form-label">{{ _('Product Name') }}</label>
+                    <input type="text" id="name" name="name" class="form-control" value="{{ product.name if product else '' }}" placeholder="{{ _('e.g., Uniform Bread') }}">
                 </div>
                 <div class="mb-3">
-                    <label for="category_id" class="form-label">קטגוריה</label>
+                    <label for="category_id" class="form-label">{{ _('Category') }}</label>
                     <div class="input-group">
                         <select name="category_id" id="category_id" class="form-select">
-                            <option value="">ללא קטגוריה</option>
+                            <option value="">{{ _('No Category') }}</option>
                             {% for cat in product_categories %}
                             <option value="{{ cat.id }}" {% if product and product.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
                             {% endfor %}
@@ -31,11 +31,11 @@
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label for="products_per_recipe" class="form-label">כמות מוצרים למתכון (לסיבוב ייצור)</label>
+                    <label for="products_per_recipe" class="form-label">{{ _('Units per Recipe (per production batch)') }}</label>
                     <input type="number" id="products_per_recipe" name="products_per_recipe" class="form-control" step="1" value="{{ product.products_per_recipe if product else '' }}">
                 </div>
                 <div class="mb-4">
-                    <label for="selling_price_per_unit" class="form-label">מחיר מכירה ליחידה (₪)</label>
+                    <label for="selling_price_per_unit" class="form-label">{{ _('Selling Price per Unit') }} (₪)</label>
                     <input type="number" id="selling_price_per_unit" name="selling_price_per_unit" class="form-control" step="0.01" value="{{ product.selling_price_per_unit if product else '' }}">
                 </div>
                 <div class="mb-4">
@@ -43,13 +43,13 @@
                         <input class="form-check-input" type="checkbox" id="is_preproduct" name="is_preproduct"
                                {% if product and product.is_preproduct %}checked{% endif %}>
                         <label class="form-check-label" for="is_preproduct">
-                            <strong>מוצר מקדים</strong> - ניתן למכירה וגם לשימוש כרכיב במוצרים אחרים
+                            <strong>{{ _('Preproduct') }}</strong> - {{ _('Can be sold and also used as a component in other products') }}
                         </label>
                     </div>
                 </div>
             </div>
             <div class="col-md-4 text-center">
-                <label class="form-label d-block">תמונת מוצר</label>
+                <label class="form-label d-block">{{ _('Product Image') }}</label>
                 <div class="mb-3">
                     {% if product and product.image_filename %}
                         <img src="{{ url_for('main.serve_image', filename=product.image_filename) }}" alt="Current Image" class="img-thumbnail mb-2" style="max-height: 150px;">
@@ -64,7 +64,7 @@
         </div>
 
         <!-- Premakes Section -->
-        <h4 class="mb-3 fw-bold">הכנות מקדימות</h4>
+        <h4 class="mb-3 fw-bold">{{ _('Premakes') }}</h4>
         <div id="premakes-container" class="mb-4">
             {% set premake_components = [] %}
             {% if product %}
@@ -87,7 +87,7 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <input type="number" name="premake_quantity[]" class="form-control" placeholder="כמות" step="0.001" value="{{ component.quantity }}">
+                    <input type="number" name="premake_quantity[]" class="form-control" placeholder="{{ _('Quantity') }}" step="0.001" value="{{ component.quantity }}">
                 </div>
                 <div class="col-md-3">
                         <select name="premake_unit[]" class="form-select unit-select">
@@ -104,7 +104,7 @@
              <div class="row g-2 mb-2 align-items-center premake-row">
                 <div class="col-md-5">
                     <select name="premake[]" class="form-select select2" onchange="handlePremakeChange(this)">
-                        <option value="" disabled selected>בחר הכנה מקדימה...</option>
+                        <option value="" disabled selected>{{ _('Select premake...') }}</option>
                         {% for premake_option in all_premakes %}
                             <option value="{{ premake_option.id }}" data-unit="{{ premake_option.unit }}" data-cost="{{ premake_option.cost_per_unit }}">
                                 {{ premake_option.name }}
@@ -113,7 +113,7 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <input type="number" name="premake_quantity[]" class="form-control" placeholder="כמות" step="0.001">
+                    <input type="number" name="premake_quantity[]" class="form-control" placeholder="{{ _('Quantity') }}" step="0.001">
                 </div>
                 <div class="col-md-3">
                      <select name="premake_unit[]" class="form-select unit-select">
@@ -127,11 +127,11 @@
             {% endif %}
         </div>
         <button type="button" class="btn btn-outline-primary mb-4" onclick="addPremakeRow()">
-            <i class="bi bi-plus-lg me-2"></i>הוסף הכנה מקדימה
+            <i class="bi bi-plus-lg me-2"></i>{{ _('Add Premake') }}
         </button>
 
         <!-- Preproducts Section -->
-        <h4 class="mb-3 fw-bold">מוצרים מקדימים</h4>
+        <h4 class="mb-3 fw-bold">{{ _('Preproducts') }}</h4>
         <div id="preproducts-container" class="mb-4">
             {% set preproduct_components = [] %}
             {% if product %}
@@ -147,18 +147,18 @@
                 <div class="col-md-5">
                     <select name="preproduct[]" class="form-select select2" onchange="handlePreproductChange(this)">
                         {% for preproduct_option in all_preproducts %}
-                            <option value="{{ preproduct_option.id }}" data-unit="{{ preproduct_option.unit or 'יחידה' }}" data-cost="{{ preproduct_option.cost_per_unit }}" {% if component.component_id == preproduct_option.id %}selected{% endif %}>
+                            <option value="{{ preproduct_option.id }}" data-unit="{{ preproduct_option.unit or _('Unit') }}" data-cost="{{ preproduct_option.cost_per_unit }}" {% if component.component_id == preproduct_option.id %}selected{% endif %}>
                                 {{ preproduct_option.name }}
                             </option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <input type="number" name="preproduct_quantity[]" class="form-control" placeholder="כמות" step="0.001" value="{{ component.quantity }}">
+                    <input type="number" name="preproduct_quantity[]" class="form-control" placeholder="{{ _('Quantity') }}" step="0.001" value="{{ component.quantity }}">
                 </div>
                 <div class="col-md-3">
                     <select name="preproduct_unit[]" class="form-select unit-select">
-                        <option value="יחידה">יחידה</option>
+                        <option value="{{ _('Unit') }}">{{ _('Unit') }}</option>
                     </select>
                 </div>
                 <div class="col-md-1">
@@ -171,20 +171,20 @@
             <div class="row g-2 mb-2 align-items-center preproduct-row">
                 <div class="col-md-5">
                     <select name="preproduct[]" class="form-select select2" onchange="handlePreproductChange(this)">
-                        <option value="" disabled selected>בחר מוצר מקדים...</option>
+                        <option value="" disabled selected>{{ _('Select preproduct...') }}</option>
                         {% for preproduct_option in all_preproducts %}
-                            <option value="{{ preproduct_option.id }}" data-unit="{{ preproduct_option.unit or 'יחידה' }}" data-cost="{{ preproduct_option.cost_per_unit }}">
+                            <option value="{{ preproduct_option.id }}" data-unit="{{ preproduct_option.unit or _('Unit') }}" data-cost="{{ preproduct_option.cost_per_unit }}">
                                 {{ preproduct_option.name }}
                             </option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <input type="number" name="preproduct_quantity[]" class="form-control" placeholder="כמות" step="0.001">
+                    <input type="number" name="preproduct_quantity[]" class="form-control" placeholder="{{ _('Quantity') }}" step="0.001">
                 </div>
                 <div class="col-md-3">
                     <select name="preproduct_unit[]" class="form-select unit-select">
-                        <option value="יחידה">יחידה</option>
+                        <option value="{{ _('Unit') }}">{{ _('Unit') }}</option>
                     </select>
                 </div>
                 <div class="col-md-1">
@@ -194,11 +194,11 @@
             {% endif %}
         </div>
         <button type="button" class="btn btn-outline-primary mb-4" onclick="addPreproductRow()">
-            <i class="bi bi-plus-lg me-2"></i>הוסף מוצר מקדים
+            <i class="bi bi-plus-lg me-2"></i>{{ _('Add Preproduct') }}
         </button>
 
         <!-- Raw Materials Section -->
-        <h4 class="mb-3 fw-bold">חומרי גלם נדרשים</h4>
+        <h4 class="mb-3 fw-bold">{{ _('Required Raw Materials') }}</h4>
         <div id="raw-materials-container" class="mb-4">
             {% set raw_material_components = [] %}
             {% if product %}
@@ -225,7 +225,7 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="{{ component.quantity }}" required>
+                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="{{ _('Quantity') }}" step="0.01" value="{{ component.quantity }}" required>
                 </div>
                 <div class="col-md-3">
                     <select name="raw_material_unit[]" class="form-select unit-select">
@@ -242,7 +242,7 @@
             <div class="row g-2 mb-2 align-items-center raw-material-row">
                 <div class="col-md-5">
                     <select name="raw_material[]" class="form-select select2" required onchange="handleMaterialChange(this)">
-                         <option value="" disabled selected>בחר חומר גלם...</option>
+                         <option value="" disabled selected>{{ _('Select raw material...') }}</option>
                         {% for material_option in all_raw_materials %}
                             <option value="{{ material_option.id }}"
                                     data-unit="{{ material_option.unit }}"
@@ -254,7 +254,7 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="כמות" step="0.01" required>
+                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="{{ _('Quantity') }}" step="0.01" required>
                 </div>
                 <div class="col-md-3">
                     <select name="raw_material_unit[]" class="form-select unit-select">
@@ -270,11 +270,11 @@
             {% endif %}
         </div>
         <button type="button" class="btn btn-outline-primary mb-4" onclick="addRawMaterialRow()">
-            <i class="bi bi-plus-lg me-2"></i>הוסף חומר גלם
+            <i class="bi bi-plus-lg me-2"></i>{{ _('Add Raw Material') }}
         </button>
 
         <!-- Packaging Section -->
-        <h4 class="mb-3 fw-bold">אריזות נדרשות</h4>
+        <h4 class="mb-3 fw-bold">{{ _('Required Packaging') }}</h4>
         <div id="packaging-container" class="mb-4">
             {% set packaging_components = [] %}
             {% if product %}
@@ -297,7 +297,7 @@
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <input type="number" name="packaging_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="{{ component.quantity }}">
+                    <input type="number" name="packaging_quantity[]" class="form-control" placeholder="{{ _('Quantity') }}" step="0.01" value="{{ component.quantity }}">
                 </div>
                 <div class="col-md-auto">
                     <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)"><i class="bi bi-x-lg"></i></button>
@@ -309,7 +309,7 @@
             <div class="row g-2 mb-2 align-items-center packaging-row">
                 <div class="col-md-5">
                     <select name="packaging[]" class="form-select select2">
-                        <option value="" disabled selected>בחר אריזה...</option>
+                        <option value="" disabled selected>{{ _('Select packaging...') }}</option>
                         {% for packaging_option in all_packaging %}
                             <option value="{{ packaging_option.id }}" data-cost="{{ packaging_option.price_per_unit }}">
                                 {{ packaging_option.name }}
@@ -318,7 +318,7 @@
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <input type="number" name="packaging_quantity[]" class="form-control" placeholder="כמות" step="0.01">
+                    <input type="number" name="packaging_quantity[]" class="form-control" placeholder="{{ _('Quantity') }}" step="0.01">
                 </div>
                 <div class="col-md-auto">
                     <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)"><i class="bi bi-x-lg"></i></button>
@@ -327,24 +327,24 @@
             {% endif %}
         </div>
         <button type="button" class="btn btn-outline-primary mb-4" onclick="addPackagingRow()">
-            <i class="bi bi-plus-lg me-2"></i>הוסף אריזה
+            <i class="bi bi-plus-lg me-2"></i>{{ _('Add Packaging') }}
         </button>
 
         <!-- Cost Summary Section -->
         <div class="card bg-light mt-4 mb-4">
             <div class="card-body">
-                <h5 class="card-title">סיכום עלויות (מחירי ספק ראשי)</h5>
+                <h5 class="card-title">{{ _('Cost Summary (Primary Supplier Prices)') }}</h5>
                 <div id="cost-summary">
                     <div class="row">
                         <div class="col-md-6">
-                            <strong>עלות חומרי גלם למתכון:</strong> <span id="total-materials-cost">₪0.00</span>
+                            <strong>{{ _('Raw Material Cost per Recipe:') }}</strong> <span id="total-materials-cost">₪0.00</span>
                         </div>
                         <div class="col-md-6">
-                            <strong>עלות ליחידה:</strong> <span id="cost-per-unit">₪0.00</span>
+                            <strong>{{ _('Cost per Unit:') }}</strong> <span id="cost-per-unit">₪0.00</span>
                         </div>
                     </div>
                     <small class="text-muted">
-                        * העלויות מחושבות על בסיס מחירי הספק הראשי של כל חומר גלם, שזה המחיר שישמש בייצור בפועל.
+                        * {{ _('Costs are calculated based on primary supplier prices for each raw material, which will be used in actual production.') }}
                     </small>
                 </div>
             </div>
@@ -352,9 +352,9 @@
 
         <div class="d-grid gap-2 mt-4">
             <button type="submit" class="btn btn-primary btn-lg">
-                {{ 'שמור שינויים' if product else 'הוסף מוצר' }}
+                {{ _('Save Changes') if product else _('Add Product') }}
             </button>
-            <a href="{{ url_for('products.products') }}" class="btn btn-link text-decoration-none text-secondary">ביטול וחזרה</a>
+            <a href="{{ url_for('products.products') }}" class="btn btn-link text-decoration-none text-secondary">{{ _('Cancel and Return') }}</a>
         </div>
     </form>
 </div>
@@ -370,16 +370,16 @@
         <div class="modal-content">
             <form method="POST" action="{{ url_for('raw_materials.add_raw_material') }}">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addRawMaterialModalLabel">הוספת חומר גלם חדש</h5>
+                    <h5 class="modal-title" id="addRawMaterialModalLabel">{{ _('Add New Raw Material') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="raw_material_name_modal" class="form-label">שם חומר הגלם</label>
+                        <label for="raw_material_name_modal" class="form-label">{{ _('Raw Material Name') }}</label>
                         <input type="text" id="raw_material_name_modal" name="name" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label for="raw_material_category_modal" class="form-label">קטגוריה</label>
+                        <label for="raw_material_category_modal" class="form-label">{{ _('Category') }}</label>
                         <div class="input-group">
                             <select id="raw_material_category_modal" name="category" class="form-select" required>
                                 {% for category in categories %}
@@ -392,7 +392,7 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="raw_material_unit_modal" class="form-label">יחידת מידה</label>
+                        <label for="raw_material_unit_modal" class="form-label">{{ _('Unit of Measure') }}</label>
                         <select id="raw_material_unit_modal" name="unit" class="form-select" required>
                             {% for unit in units %}
                             <option value="{{ unit }}">{{ unit }}</option>
@@ -400,17 +400,17 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="raw_material_cost_modal" class="form-label">מחיר ליחידה (₪)</label>
+                        <label for="raw_material_cost_modal" class="form-label">{{ _('Price per Unit') }} (₪)</label>
                         <input type="number" id="raw_material_cost_modal" name="cost_per_unit" class="form-control" step="0.01" required>
                     </div>
                     <div class="mb-3">
-                        <label for="raw_material_stock_modal" class="form-label">מלאי התחלתי</label>
+                        <label for="raw_material_stock_modal" class="form-label">{{ _('Initial Stock') }}</label>
                         <input type="number" id="raw_material_stock_modal" name="stock" class="form-control" step="0.01" value="0">
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
-                    <button type="submit" class="btn btn-primary">הוסף חומר גלם</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ _('Add Raw Material') }}</button>
                 </div>
             </form>
         </div>
@@ -422,14 +422,14 @@
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
              <div class="modal-header">
-                <h6 class="modal-title">הוסף קטגוריה</h6>
+                <h6 class="modal-title">{{ _('Add Category') }}</h6>
                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form action="{{ url_for('categories.add_category_from_modal') }}" method="POST">
                     <input type="hidden" name="type" id="categoryTypeInput" value="raw_material">
-                    <input type="text" name="name" class="form-control mb-2" placeholder="שם קטגוריה" required>
-                    <button type="submit" class="btn btn-sm btn-success w-100">שמור</button>
+                    <input type="text" name="name" class="form-control mb-2" placeholder="{{ _('Category Name') }}" required>
+                    <button type="submit" class="btn btn-sm btn-success w-100">{{ _('Save') }}</button>
                 </form>
             </div>
         </div>
@@ -442,26 +442,26 @@
         <div class="modal-content">
             <form method="POST" action="{{ url_for('packaging.add_packaging') }}">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addPackagingModalLabel">הוספת אריזה חדשה</h5>
+                    <h5 class="modal-title" id="addPackagingModalLabel">{{ _('Add New Packaging') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="packaging_name_modal" class="form-label">שם האריזה</label>
+                        <label for="packaging_name_modal" class="form-label">{{ _('Packaging Name') }}</label>
                         <input type="text" id="packaging_name_modal" name="name" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label for="quantity_per_package_modal" class="form-label">כמות ליחידת אריזה</label>
+                        <label for="quantity_per_package_modal" class="form-label">{{ _('Quantity per Packaging Unit') }}</label>
                         <input type="number" id="quantity_per_package_modal" name="quantity_per_package" class="form-control" step="1" required>
                     </div>
                     <div class="mb-3">
-                        <label for="price_per_package_modal" class="form-label">מחיר ליחידת אריזה (₪)</label>
+                        <label for="price_per_package_modal" class="form-label">{{ _('Price per Packaging Unit') }} (₪)</label>
                         <input type="number" id="price_per_package_modal" name="price_per_package" class="form-control" step="0.01" required>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
-                    <button type="submit" class="btn btn-primary">הוסף אריזה</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ _('Add Packaging') }}</button>
                 </div>
             </form>
         </div>
@@ -473,24 +473,24 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="addLaborModalLabel">הוסף עובד חדש</h5>
+        <h5 class="modal-title" id="addLaborModalLabel">{{ _('Add New Employee') }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <form action="{{ url_for('labor.add_labor') }}" method="POST">
             <div class="mb-3">
-                <label for="labor_name" class="form-label">שם</label>
+                <label for="labor_name" class="form-label">{{ _('Name') }}</label>
                 <input type="text" class="form-control" id="labor_name" name="name" required>
             </div>
             <div class="mb-3">
-                <label for="phone_number" class="form-label">מספר טלפון (אופציונלי)</label>
+                <label for="phone_number" class="form-label">{{ _('Phone Number (optional)') }}</label>
                 <input type="text" class="form-control" id="phone_number" name="phone_number">
             </div>
             <div class="mb-3">
-                <label for="total_hourly_rate" class="form-label">תעריף שעתי כולל (עלות מעביד)</label>
+                <label for="total_hourly_rate" class="form-label">{{ _('Total Hourly Rate (employer cost)') }}</label>
                 <input type="number" step="0.1" class="form-control" id="total_hourly_rate" name="total_hourly_rate" required>
             </div>
-            <button type="submit" class="btn btn-primary">שמור עובד</button>
+            <button type="submit" class="btn btn-primary">{{ _('Save Employee') }}</button>
         </form>
       </div>
     </div>
@@ -520,11 +520,11 @@
         const container = document.getElementById('raw-materials-container');
         const allRawMaterials = {{ all_raw_materials | default([]) | tojson | safe }};
 
-        let optionsHtml = '<option value="" disabled selected>בחר חומר גלם...</option>';
+        let optionsHtml = '<option value="" disabled selected>{{ _("Select raw material...") }}</option>';
         allRawMaterials.forEach(material => {
             const selected = materialId == material.id ? 'selected' : '';
             const displayPrice = material.display_price || material.cost_per_unit || 0;
-            const priceSource = material.price_source || 'ממוצע';
+            const priceSource = material.price_source || '{{ _("Average") }}';
             optionsHtml += `<option value="${material.id}"
                                    data-unit="${material.unit}"
                                    data-cost="${displayPrice}"
@@ -542,7 +542,7 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="${quantity}" required>
+                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="{{ _("Quantity") }}" step="0.01" value="${quantity}" required>
                 </div>
                 <div class="col-md-3">
                     <select name="raw_material_unit[]" class="form-select unit-select">
@@ -566,7 +566,7 @@
         $(rowElement).find('.select2').select2({
             theme: 'bootstrap-5',
             width: '100%',
-            language: { noResults: () => "לא נמצאו תוצאות" }
+            language: { noResults: () => "{{ _("No results found") }}" }
         });
 
         // Update unit options for the newly added row
@@ -587,7 +587,7 @@
         const container = document.getElementById('packaging-container');
         const allPackaging = {{ all_packaging | default([]) | tojson | safe }};
 
-        let optionsHtml = '<option value="" disabled selected>בחר אריזה...</option>';
+        let optionsHtml = '<option value="" disabled selected>{{ _("Select packaging...") }}</option>';
         allPackaging.forEach(pkg => {
             const selected = packagingId == pkg.id ? 'selected' : '';
             optionsHtml += `<option value="${pkg.id}" data-cost="${pkg.price_per_unit || 0}" ${selected}>${pkg.name}</option>`;
@@ -601,7 +601,7 @@
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <input type="number" name="packaging_quantity[]" class="form-control" placeholder="כמות" step="0.01" value="${quantity}">
+                    <input type="number" name="packaging_quantity[]" class="form-control" placeholder="{{ _("Quantity") }}" step="0.01" value="${quantity}">
                 </div>
                 <div class="col-md-auto">
                     <button type="button" class="btn btn-outline-danger" onclick="this.closest('.packaging-row').remove()"><i class="bi bi-x-lg"></i></button>
@@ -617,7 +617,7 @@
         $(rowElement).find('.select2').select2({
             theme: 'bootstrap-5',
             width: '100%',
-            language: { noResults: () => "לא נמצאו תוצאות" }
+            language: { noResults: () => "{{ _("No results found") }}" }
         });
     }
 
@@ -626,7 +626,7 @@
         const container = document.getElementById('premakes-container');
         const allPremakes = {{ all_premakes | default([]) | tojson | safe }};
 
-        let optionsHtml = '<option value="" disabled selected>בחר הכנה מקדימה...</option>';
+        let optionsHtml = '<option value="" disabled selected>{{ _("Select premake...") }}</option>';
         allPremakes.forEach(premake => {
             const selected = premakeId == premake.id ? 'selected' : '';
             optionsHtml += `<option value="${premake.id}" data-unit="${premake.unit}" data-cost="${premake.cost_per_unit || 0}" ${selected}>${premake.name} (${premake.unit})</option>`;
@@ -640,7 +640,7 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <input type="number" name="premake_quantity[]" class="form-control" placeholder="כמות" step="0.001" value="${quantity}" required>
+                    <input type="number" name="premake_quantity[]" class="form-control" placeholder="{{ _("Quantity") }}" step="0.001" value="${quantity}" required>
                 </div>
                 <div class="col-md-3">
                     <select name="premake_unit[]" class="form-select unit-select">
@@ -663,7 +663,7 @@
         $(rowElement).find('.select2').select2({
             theme: 'bootstrap-5',
             width: '100%',
-            language: { noResults: () => "לא נמצאו תוצאות" }
+            language: { noResults: () => "{{ _("No results found") }}" }
         });
     }
 
@@ -695,14 +695,14 @@
         // unitSelect.disabled = true; // Optional: disable if fixed to kg
     }
 
-    function addPreproductRow(preproductId = '', quantity = '', unit = 'יחידה') {
+    function addPreproductRow(preproductId = '', quantity = '', unit = '{{ _("Unit") }}') {
         const container = document.getElementById('preproducts-container');
         const allPreproducts = {{ all_preproducts | default([]) | tojson | safe }};
 
-        let optionsHtml = '<option value="" disabled selected>בחר מוצר מקדים...</option>';
+        let optionsHtml = '<option value="" disabled selected>{{ _("Select preproduct...") }}</option>';
         allPreproducts.forEach(preproduct => {
             const selected = preproductId == preproduct.id ? 'selected' : '';
-            const productUnit = preproduct.unit || 'יחידה';
+            const productUnit = preproduct.unit || '{{ _("Unit") }}';
             optionsHtml += `<option value="${preproduct.id}" data-unit="${productUnit}" data-cost="${preproduct.cost_per_unit || 0}" ${selected}>${preproduct.name}</option>`;
         });
 
@@ -714,7 +714,7 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <input type="number" name="preproduct_quantity[]" class="form-control" placeholder="כמות" step="0.001" value="${quantity}">
+                    <input type="number" name="preproduct_quantity[]" class="form-control" placeholder="{{ _("Quantity") }}" step="0.001" value="${quantity}">
                 </div>
                 <div class="col-md-3">
                     <select name="preproduct_unit[]" class="form-select unit-select">
@@ -735,7 +735,7 @@
         $(rowElement).find('.select2').select2({
             theme: 'bootstrap-5',
             width: '100%',
-            language: { noResults: () => "לא נמצאו תוצאות" }
+            language: { noResults: () => "{{ _("No results found") }}" }
         });
     }
 
@@ -744,7 +744,7 @@
         const unitSelect = row.querySelector('.unit-select');
 
         const selectedOption = selectElement.options[selectElement.selectedIndex];
-        const baseUnit = selectedOption.getAttribute('data-unit') || 'יחידה';
+        const baseUnit = selectedOption.getAttribute('data-unit') || '{{ _("Unit") }}';
 
         unitSelect.innerHTML = `<option value="${baseUnit}">${baseUnit}</option>`;
 
@@ -786,7 +786,7 @@
         $('.select2').select2({
             theme: 'bootstrap-5',
             width: '100%',
-            language: { noResults: () => "לא נמצאו תוצאות" }
+            language: { noResults: () => "{{ _("No results found") }}" }
         });
         
         // Bind Select2 change event because native onchange doesn't always fire with Select2

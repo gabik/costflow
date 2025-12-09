@@ -1114,3 +1114,94 @@ msgstr "עריכת כמות ייצור הכנה עבור"
 msgid "Are you sure you want to delete this premake production log?"
 msgstr "האם אתה בטוח שברצונך למחוק רשומת ייצור הכנה זו?"
 
+# add_or_edit_product.html new translations
+msgid "Edit Product"
+msgstr "עריכת מוצר"
+
+msgid "e.g., Uniform Bread"
+msgstr "לדוגמה: לחם אחיד"
+
+msgid "Units per Recipe (per production batch)"
+msgstr "כמות מוצרים למתכון (לסיבוב ייצור)"
+
+msgid "Selling Price per Unit"
+msgstr "מחיר מכירה ליחידה"
+
+msgid "Can be sold and also used as a component in other products"
+msgstr "ניתן למכירה וגם לשימוש כרכיב במוצרים אחרים"
+
+msgid "Product Image"
+msgstr "תמונת מוצר"
+
+msgid "Required Raw Materials"
+msgstr "חומרי גלם נדרשים"
+
+msgid "Select raw material..."
+msgstr "בחר חומר גלם..."
+
+msgid "Average"
+msgstr "ממוצע"
+
+msgid "Required Packaging"
+msgstr "אריזות נדרשות"
+
+msgid "Select packaging..."
+msgstr "בחר אריזה..."
+
+msgid "Cost Summary (Primary Supplier Prices)"
+msgstr "סיכום עלויות (מחירי ספק ראשי)"
+
+msgid "Raw Material Cost per Recipe:"
+msgstr "עלות חומרי גלם למתכון:"
+
+msgid "Cost per Unit:"
+msgstr "עלות ליחידה:"
+
+msgid "Costs are calculated based on primary supplier prices for each raw material, which will be used in actual production."
+msgstr "העלויות מחושבות על בסיס מחירי הספק הראשי של כל חומר גלם, שזה המחיר שישמש בייצור בפועל."
+
+msgid "Add Product"
+msgstr "הוסף מוצר"
+
+msgid "Cancel and Return"
+msgstr "ביטול וחזרה"
+
+msgid "Raw Material Name"
+msgstr "שם חומר הגלם"
+
+msgid "Unit of Measure"
+msgstr "יחידת מידה"
+
+msgid "Save"
+msgstr "שמור"
+
+msgid "Add New Packaging"
+msgstr "הוספת אריזה חדשה"
+
+msgid "Quantity per Packaging Unit"
+msgstr "כמות ליחידת אריזה"
+
+msgid "Price per Packaging Unit"
+msgstr "מחיר ליחידת אריזה"
+
+msgid "Add New Employee"
+msgstr "הוסף עובד חדש"
+
+msgid "Phone Number (optional)"
+msgstr "מספר טלפון (אופציונלי)"
+
+msgid "Total Hourly Rate (employer cost)"
+msgstr "תעריף שעתי כולל (עלות מעביד)"
+
+msgid "Save Employee"
+msgstr "שמור עובד"
+
+msgid "Select preproduct..."
+msgstr "בחר מוצר מקדים..."
+
+msgid "Add Preproduct"
+msgstr "הוסף מוצר מקדים"
+
+msgid "Preproducts"
+msgstr "מוצרים מקדימים"
+
