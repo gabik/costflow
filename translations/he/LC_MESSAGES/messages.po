@@ -447,6 +447,12 @@ msgstr "הכנסות"
 msgid "Material Costs"
 msgstr "עלות חומרים"
 
+msgid "Prime Costs"
+msgstr "עלויות ראשוניות"
+
+msgid "(Materials + Packaging + Premakes)"
+msgstr "(חומרי גלם + אריזה + הכנות)"
+
 msgid "Net Profit"
 msgstr "רווח נטו"
 

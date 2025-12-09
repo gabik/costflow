@@ -54,8 +54,9 @@
     <div class="col-md-3">
         <div class="card bg-danger text-white">
             <div class="card-body">
-                <h6 class="card-title">{{ _('Material Costs') }}</h6>
-                <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(total_material_costs) }}</h3>
+                <h6 class="card-title">{{ _('Prime Costs') }}</h6>
+                <small class="text-white-50">{{ _('(Materials + Packaging + Premakes)') }}</small>
+                <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(total_prime_costs) }}</h3>
             </div>
         </div>
     </div>
@@ -172,7 +173,7 @@
                         <th>{{ _('Quantity Sold') }}</th>
                         <th>{{ _('Waste Quantity') }}</th>
                         <th>{{ _('Revenue') }}</th>
-                        <th>{{ _('Material Costs') }}</th>
+                        <th>{{ _('Prime Costs') }}</th>
                         <th>{{ _('Gross Profit') }}</th>
                     </tr>
                 </thead>
@@ -184,9 +185,9 @@
                         <td>{{ cat_data.quantity_sold|int }}</td>
                         <td>{{ cat_data.quantity_waste|int }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(cat_data.revenue) }}</td>
-                        <td>{{ currency_symbol }}{{ "%.2f"|format(cat_data.material_cost) }}</td>
-                        <td class="{% if cat_data.revenue - cat_data.material_cost > 0 %}text-success{% else %}text-danger{% endif %}">
-                            {{ currency_symbol }}{{ "%.2f"|format(cat_data.revenue - cat_data.material_cost) }}
+                        <td>{{ currency_symbol }}{{ "%.2f"|format(cat_data.prime_cost) }}</td>
+                        <td class="{% if cat_data.revenue - cat_data.prime_cost > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ currency_symbol }}{{ "%.2f"|format(cat_data.revenue - cat_data.prime_cost) }}
                         </td>
                     </tr>
                     {% endfor %}
@@ -198,8 +199,8 @@
                         <th>{{ category_summaries.values()|sum(attribute='quantity_sold')|int }}</th>
                         <th>{{ category_summaries.values()|sum(attribute='quantity_waste')|int }}</th>
                         <th>{{ currency_symbol }}{{ "%.2f"|format(total_revenue) }}</th>
-                        <th>{{ currency_symbol }}{{ "%.2f"|format(total_material_costs) }}</th>
-                        <th>{{ currency_symbol }}{{ "%.2f"|format(total_revenue - total_material_costs) }}</th>
+                        <th>{{ currency_symbol }}{{ "%.2f"|format(total_prime_costs) }}</th>
+                        <th>{{ currency_symbol }}{{ "%.2f"|format(total_revenue - total_prime_costs) }}</th>
                     </tr>
                 </tfoot>
             </table>
@@ -319,7 +320,7 @@
                     <tr>
                         <th>{{ _('Total') }}</th>
                         <th></th>
-                        <th class="fw-bold">{{ labor_entries|sum(attribute='hours') }}</th>
+                        <th class="fw-bold">{{ "%.2f"|format(labor_entries|sum(attribute='hours')) }}</th>
                         <th class="fw-bold text-primary">{{ currency_symbol }}{{ "%.2f"|format(labor_costs) }}</th>
                     </tr>
                 </tfoot>

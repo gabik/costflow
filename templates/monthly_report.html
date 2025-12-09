@@ -57,9 +57,10 @@
     <div class="col-md-3">
         <div class="card bg-danger text-white">
             <div class="card-body">
-                <h6 class="card-title">{{ _('Material Costs') }}</h6>
-                <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(total_material_costs) }}</h3>
-                <small>{{ _('Weekly average:') }} {{ currency_symbol }}{{ "%.2f"|format(avg_weekly_material) }}</small>
+                <h6 class="card-title">{{ _('Prime Costs') }}</h6>
+                <small class="text-white-50">{{ _('(Materials + Packaging + Premakes)') }}</small>
+                <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(total_prime_costs) }}</h3>
+                <small>{{ _('Weekly average:') }} {{ currency_symbol }}{{ "%.2f"|format(avg_weekly_prime_cost) }}</small>
             </div>
         </div>
     </div>
@@ -277,7 +278,7 @@
                         <th>{{ _('Total Food Cost') }}</th>
                         <th>{{ _('Food Cost %') }}</th>
                         <th>{{ _('Recipes') }}</th>
-                        <th>{{ _('Material Costs') }}</th>
+                        <th>{{ _('Prime Costs') }}</th>
                         <th>{{ _('Labor Costs') }}</th>
                         <th>{{ _('Stock Discrepancies') }}</th>
                         <th>{{ _('Net Profit') }}</th>
@@ -293,7 +294,7 @@
                             {{ "%.1f"|format((week.food_cost / week.revenue * 100) if week.revenue > 0 else 0) }}%
                         </td>
                         <td>{{ week.recipes_produced }}</td>
-                        <td>{{ currency_symbol }}{{ "%.2f"|format(week.material_cost) }}</td>
+                        <td>{{ currency_symbol }}{{ "%.2f"|format(week.prime_cost) }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(week.labor_cost) }}</td>
                         <td class="{% if week.stock_variance_cost < 0 %}text-danger{% elif week.stock_variance_cost > 0 %}text-success{% endif %}">
                             {{ currency_symbol }}{{ "%.2f"|format(week.stock_variance_cost) }}
@@ -311,7 +312,7 @@
                         <th class="text-primary fw-bold">{{ currency_symbol }}{{ "%.2f"|format(total_food_cost) }}</th>
                         <th>{{ "%.1f"|format((total_food_cost / total_revenue * 100) if total_revenue > 0 else 0) }}%</th>
                         <th>{{ total_recipes_produced }}</th>
-                        <th>{{ currency_symbol }}{{ "%.2f"|format(total_material_costs) }}</th>
+                        <th>{{ currency_symbol }}{{ "%.2f"|format(total_prime_costs) }}</th>
                         <th>{{ currency_symbol }}{{ "%.2f"|format(total_labor_costs) }}</th>
                         <th class="{% if total_stock_variance_cost < 0 %}text-danger{% endif %}">
                             {{ currency_symbol }}{{ "%.2f"|format(total_stock_variance_cost) }}
@@ -343,7 +344,7 @@
                         <th>{{ _('Quantity Sold') }}</th>
                         <th>{{ _('Waste Quantity') }}</th>
                         <th>{{ _('Revenue') }}</th>
-                        <th>{{ _('Material Costs') }}</th>
+                        <th>{{ _('Prime Costs') }}</th>
                         <th>{{ _('Gross Profit') }}</th>
                         <th>{{ _('Active Weeks') }}</th>
                     </tr>
@@ -356,9 +357,9 @@
                         <td>{{ cat_data.quantity_sold|int }}</td>
                         <td>{{ cat_data.quantity_waste|int }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(cat_data.revenue) }}</td>
-                        <td>{{ currency_symbol }}{{ "%.2f"|format(cat_data.material_cost) }}</td>
-                        <td class="{% if cat_data.revenue - cat_data.material_cost > 0 %}text-success{% else %}text-danger{% endif %}">
-                            {{ currency_symbol }}{{ "%.2f"|format(cat_data.revenue - cat_data.material_cost) }}
+                        <td>{{ currency_symbol }}{{ "%.2f"|format(cat_data.prime_cost) }}</td>
+                        <td class="{% if cat_data.revenue - cat_data.prime_cost > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ currency_symbol }}{{ "%.2f"|format(cat_data.revenue - cat_data.prime_cost) }}
                         </td>
                         <td>{{ cat_data.weeks_active }}/{{ num_weeks }}</td>
                     </tr>

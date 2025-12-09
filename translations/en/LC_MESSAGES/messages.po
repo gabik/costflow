@@ -455,6 +455,12 @@ msgstr "Revenue"
 msgid "Material Costs"
 msgstr "Material Costs"
 
+msgid "Prime Costs"
+msgstr "Prime Costs"
+
+msgid "(Materials + Packaging + Premakes)"
+msgstr "(Materials + Packaging + Premakes)"
+
 msgid "Net Profit"
 msgstr "Net Profit"
 

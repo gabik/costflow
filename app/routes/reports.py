@@ -47,7 +47,7 @@ def weekly_report():
     # Get sales data with product and category info
     sales_data = []
     total_revenue = 0
-    total_material_costs = 0
+    total_prime_costs = 0
     category_summaries = {}
 
     # Get all sales for this week
@@ -66,11 +66,11 @@ def weekly_report():
         prime_cost_per_unit = calculate_prime_cost(product)
 
         # Calculate costs and revenue
-        material_cost_sold = (sale.quantity_sold or 0) * prime_cost_per_unit
-        material_cost_waste = (sale.quantity_waste or 0) * prime_cost_per_unit
+        prime_cost_sold = (sale.quantity_sold or 0) * prime_cost_per_unit
+        prime_cost_waste = (sale.quantity_waste or 0) * prime_cost_per_unit
         revenue = (sale.quantity_sold or 0) * (product.selling_price_per_unit or 0)
 
-        total_material_costs += material_cost_sold + material_cost_waste
+        total_prime_costs += prime_cost_sold + prime_cost_waste
         total_revenue += revenue
 
         cat_name = product.category.name if product.category else 'ללא קטגוריה'
@@ -88,7 +88,7 @@ def weekly_report():
             'quantity_waste': sale.quantity_waste,
             'revenue': revenue,
             'prime_cost_per_unit': prime_cost_per_unit,
-            'material_cost': material_cost_sold + material_cost_waste,
+            'prime_cost': prime_cost_sold + prime_cost_waste,
             'profit_per_unit': profit_per_unit,
             'profit_margin_pct': profit_margin_pct
         })
@@ -99,14 +99,14 @@ def weekly_report():
                 'quantity_sold': 0,
                 'quantity_waste': 0,
                 'revenue': 0,
-                'material_cost': 0,
+                'prime_cost': 0,
                 'products': []
             }
-        
+
         category_summaries[cat_name]['quantity_sold'] += sale.quantity_sold or 0
         category_summaries[cat_name]['quantity_waste'] += sale.quantity_waste or 0
         category_summaries[cat_name]['revenue'] += revenue
-        category_summaries[cat_name]['material_cost'] += material_cost_sold + material_cost_waste
+        category_summaries[cat_name]['prime_cost'] += prime_cost_sold + prime_cost_waste
         if product.name not in category_summaries[cat_name]['products']:
             category_summaries[cat_name]['products'].append(product.name)
 
@@ -280,7 +280,7 @@ def weekly_report():
             audit_by_category[cat_name]['variance_cost'] += audit.variance_cost
 
     # Calculate adjusted profit (including stock losses)
-    adjusted_profit = total_revenue - total_material_costs - weekly_cost.total_cost - abs(total_stock_variance_cost)
+    adjusted_profit = total_revenue - total_prime_costs - weekly_cost.total_cost - abs(total_stock_variance_cost)
 
     # ---------------------------------------------------
     # Waste Analysis
@@ -361,9 +361,9 @@ def weekly_report():
                          labor_entries=labor_entries,
                          category_summaries=category_summaries,
                          total_revenue=total_revenue,
-                         total_material_costs=total_material_costs,
+                         total_prime_costs=total_prime_costs,
                          labor_costs=weekly_cost.total_cost,
-                         net_profit=total_revenue - total_material_costs - weekly_cost.total_cost,
+                         net_profit=total_revenue - total_prime_costs - weekly_cost.total_cost,
                          stock_audits=stock_audits,
                          total_stock_variance_cost=total_stock_variance_cost,
                          stock_audit_count=stock_audit_count,
@@ -432,13 +432,13 @@ def monthly_report():
     weekly_summaries = []
     total_revenue = 0
     total_labor_costs = 0
-    total_material_costs = 0
+    total_prime_costs = 0
     total_stock_variance_cost = 0
 
     for week in weekly_costs:
         week_revenue = 0
         week_sales_count = 0
-        week_material_costs = 0
+        week_prime_costs = 0
         week_food_cost = 0
         week_recipes_produced = 0
 
@@ -454,7 +454,7 @@ def monthly_report():
             prime_cost_per_unit = calculate_prime_cost(product)
 
             # Calculate costs and revenue
-            material_cost = ((sale.quantity_sold or 0) + (sale.quantity_waste or 0)) * prime_cost_per_unit
+            prime_cost = ((sale.quantity_sold or 0) + (sale.quantity_waste or 0)) * prime_cost_per_unit
             sale_revenue = (sale.quantity_sold or 0) * (product.selling_price_per_unit or 0)
 
             product_key = product.id
@@ -470,14 +470,14 @@ def monthly_report():
                     'quantity_sold': 0,
                     'quantity_waste': 0,
                     'revenue': 0,
-                    'material_cost': 0,
+                    'prime_cost': 0,
                     'weeks_active': 0
                 }
 
             product_aggregates[product_key]['quantity_sold'] += sale.quantity_sold or 0
             product_aggregates[product_key]['quantity_waste'] += sale.quantity_waste or 0
             product_aggregates[product_key]['revenue'] += sale_revenue
-            product_aggregates[product_key]['material_cost'] += material_cost
+            product_aggregates[product_key]['prime_cost'] += prime_cost
             product_aggregates[product_key]['weeks_active'] += 1
 
             # Aggregate by category
@@ -486,7 +486,7 @@ def monthly_report():
                     'quantity_sold': 0,
                     'quantity_waste': 0,
                     'revenue': 0,
-                    'material_cost': 0,
+                    'prime_cost': 0,
                     'products': set(),
                     'weeks_active': set()
                 }
@@ -494,12 +494,12 @@ def monthly_report():
             category_summaries[cat_name]['quantity_sold'] += sale.quantity_sold or 0
             category_summaries[cat_name]['quantity_waste'] += sale.quantity_waste or 0
             category_summaries[cat_name]['revenue'] += sale_revenue
-            category_summaries[cat_name]['material_cost'] += material_cost
+            category_summaries[cat_name]['prime_cost'] += prime_cost
             category_summaries[cat_name]['products'].add(product.name)
             category_summaries[cat_name]['weeks_active'].add(week.week_start_date)
 
             week_revenue += sale_revenue
-            week_material_costs += material_cost
+            week_prime_costs += prime_cost
             week_sales_count += sale.quantity_sold or 0
 
         # Get stock audits for this week
@@ -540,11 +540,11 @@ def monthly_report():
             'week_start': week.week_start_date,
             'week_end': week.week_start_date + timedelta(days=6),
             'revenue': week_revenue,
-            'material_cost': week_material_costs,
+            'prime_cost': week_prime_costs,
             'labor_cost': week.total_cost,
             'stock_variance_cost': week_stock_variance_cost,
-            'profit': week_revenue - week_material_costs - week.total_cost,
-            'adjusted_profit': week_revenue - week_material_costs - week.total_cost - (week_stock_variance_cost if week_stock_variance_cost < 0 else -week_stock_variance_cost),
+            'profit': week_revenue - week_prime_costs - week.total_cost,
+            'adjusted_profit': week_revenue - week_prime_costs - week.total_cost - (week_stock_variance_cost if week_stock_variance_cost < 0 else -week_stock_variance_cost),
             'sales_count': week_sales_count,
             'audit_count': len(week_audits),
             'food_cost': week_food_cost,
@@ -553,7 +553,7 @@ def monthly_report():
 
         total_revenue += week_revenue
         total_labor_costs += week.total_cost
-        total_material_costs += week_material_costs
+        total_prime_costs += week_prime_costs
         total_stock_variance_cost += week_stock_variance_cost
 
     # Convert sets to counts for category summaries
@@ -587,14 +587,14 @@ def monthly_report():
                          category_summaries=category_summaries,
                          top_products=top_products,
                          total_revenue=total_revenue,
-                         total_material_costs=total_material_costs,
+                         total_prime_costs=total_prime_costs,
                          total_labor_costs=total_labor_costs,
                          total_stock_variance_cost=total_stock_variance_cost,
-                         net_profit=total_revenue - total_material_costs - total_labor_costs,
-                         adjusted_profit=total_revenue - total_material_costs - total_labor_costs - (total_stock_variance_cost if total_stock_variance_cost < 0 else -total_stock_variance_cost),
+                         net_profit=total_revenue - total_prime_costs - total_labor_costs,
+                         adjusted_profit=total_revenue - total_prime_costs - total_labor_costs - (total_stock_variance_cost if total_stock_variance_cost < 0 else -total_stock_variance_cost),
                          avg_weekly_revenue=avg_weekly_revenue,
                          avg_weekly_labor=avg_weekly_labor,
-                         avg_weekly_material=total_material_costs / num_weeks if num_weeks > 0 else 0,
+                         avg_weekly_prime_cost=total_prime_costs / num_weeks if num_weeks > 0 else 0,
                          avg_weekly_stock_variance=total_stock_variance_cost / num_weeks if num_weeks > 0 else 0,
                          avg_weekly_food_cost=avg_weekly_food_cost,
                          total_food_cost=total_food_cost,
