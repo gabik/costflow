@@ -455,11 +455,507 @@ msgstr ""
 
 #: templates/raw_materials.html:74
 msgid "Setting stock for "
-msgstr ""
+msgstr "Setting stock for "
 
-#~ msgid "Add"
-#~ msgstr ""
+# Weekly Report translations
+msgid "Weekly Report"
+msgstr "Weekly Report"
 
-#~ msgid "Manage Raw Materials"
-#~ msgstr ""
+msgid "Performance summary for week"
+msgstr "Performance summary for week"
+
+msgid "Select week:"
+msgstr "Select week:"
+
+msgid "Week"
+msgstr "Week"
+
+msgid "No weeks available"
+msgstr "No weeks available"
+
+msgid "Print"
+msgstr "Print"
+
+msgid "No data found for selected week"
+msgstr "No data found for selected week"
+
+msgid "Revenue"
+msgstr "Revenue"
+
+msgid "Material Costs"
+msgstr "Material Costs"
+
+msgid "Net Profit"
+msgstr "Net Profit"
+
+msgid "Product Food Cost Analysis (Food Cost)"
+msgstr "Product Food Cost Analysis (Food Cost)"
+
+msgid "Monthly Trends"
+msgstr "Monthly Trends"
+
+msgid "Total Food Cost"
+msgstr "Total Food Cost"
+
+msgid "Average Cost per Recipe"
+msgstr "Average Cost per Recipe"
+
+msgid "Total Recipes Produced"
+msgstr "Total Recipes Produced"
+
+msgid "Production Count"
+msgstr "Production Count"
+
+msgid "Total Recipes"
+msgstr "Total Recipes"
+
+msgid "Units per Recipe"
+msgstr "Units per Recipe"
+
+msgid "Cost per Recipe"
+msgstr "Cost per Recipe"
+
+msgid "Total Cost"
+msgstr "Total Cost"
+
+msgid "Food Cost Percentage:"
+msgstr "Food Cost Percentage:"
+
+msgid "of revenue"
+msgstr "of revenue"
+
+msgid "Recommended target: 25-35%%"
+msgstr "Recommended target: 25-35%%"
+
+msgid "Food cost includes raw materials, packaging, and premakes for products produced this week."
+msgstr "Food cost includes raw materials, packaging, and premakes for products produced this week."
+
+msgid "Sales by Category"
+msgstr "Sales by Category"
+
+msgid "Number of Products"
+msgstr "Number of Products"
+
+msgid "Quantity Sold"
+msgstr "Quantity Sold"
+
+msgid "Waste Quantity"
+msgstr "Waste Quantity"
+
+msgid "Gross Profit"
+msgstr "Gross Profit"
+
+msgid "Total Revenue"
+msgstr "Total Revenue"
+
+msgid "No sales data by category"
+msgstr "No sales data by category"
+
+msgid "Product Sales Details"
+msgstr "Product Sales Details"
+
+msgid "No Category"
+msgstr "No Category"
+
+msgid "No product sales data"
+msgstr "No product sales data"
+
+msgid "Premakes Activity"
+msgstr "Premakes Activity"
+
+msgid "Premake Name"
+msgstr "Premake Name"
+
+msgid "Produced"
+msgstr "Produced"
+
+msgid "Used (in products)"
+msgstr "Used (in products)"
+
+msgid "In Stock"
+msgstr "In Stock"
+
+msgid "Cost per Unit (per kg)"
+msgstr "Cost per Unit (per kg)"
+
+msgid "Total Production Value"
+msgstr "Total Production Value"
+
+msgid "Labor Cost Details"
+msgstr "Labor Cost Details"
+
+msgid "Employee"
+msgstr "Employee"
+
+msgid "Entry Count"
+msgstr "Entry Count"
+
+msgid "Total Hours"
+msgstr "Total Hours"
+
+msgid "Stock Discrepancies Found This Week"
+msgstr "Stock Discrepancies Found This Week"
+
+msgid "Discrepancy Summary"
+msgstr "Discrepancy Summary"
+
+msgid "Number of Counts:"
+msgstr "Number of Counts:"
+
+msgid "Total Monetary Value:"
+msgstr "Total Monetary Value:"
+
+msgid "Discrepancies by Category"
+msgstr "Discrepancies by Category"
+
+msgid "Counts"
+msgstr "Counts"
+
+msgid "Monetary Value"
+msgstr "Monetary Value"
+
+msgid "Adjusted Profit (including stock discrepancies):"
+msgstr "Adjusted Profit (including stock discrepancies):"
+
+msgid "instead of"
+msgstr "instead of"
+
+msgid "Difference"
+msgstr "Difference"
+
+msgid "Counter"
+msgstr "Counter"
+
+msgid "Unknown"
+msgstr "Unknown"
+
+msgid "Showing last 5 counts out of"
+msgstr "Showing last 5 counts out of"
+
+msgid "Key Insights"
+msgstr "Key Insights"
+
+msgid "Leading category:"
+msgstr "Leading category:"
+
+msgid "with revenue of"
+msgstr "with revenue of"
+
+msgid "Best-selling product:"
+msgstr "Best-selling product:"
+
+msgid "Weekly profit margin:"
+msgstr "Weekly profit margin:"
+
+msgid "Product with highest profitability:"
+msgstr "Product with highest profitability:"
+
+msgid "with profit margin of"
+msgstr "with profit margin of"
+
+msgid "Product with lowest profitability:"
+msgstr "Product with lowest profitability:"
+
+msgid "Needs review"
+msgstr "Needs review"
+
+msgid "Product with highest profit contribution:"
+msgstr "Product with highest profit contribution:"
+
+msgid "with total profit of"
+msgstr "with total profit of"
+
+msgid "Overall waste percentage:"
+msgstr "Overall waste percentage:"
+
+msgid "Cost:"
+msgstr "Cost:"
+
+msgid "Waste Analysis"
+msgstr "Waste Analysis"
+
+msgid "Total Waste"
+msgstr "Total Waste"
+
+msgid "Units"
+msgstr "Units"
+
+msgid "of production"
+msgstr "of production"
+
+msgid "Waste Cost"
+msgstr "Waste Cost"
+
+msgid "Impact on Profit"
+msgstr "Impact on Profit"
+
+msgid "Waste by Product"
+msgstr "Waste by Product"
+
+msgid "Sold"
+msgstr "Sold"
+
+msgid "Waste"
+msgstr "Waste"
+
+msgid "Waste %%"
+msgstr "Waste %%"
+
+msgid "Showing top 10 products with highest waste cost"
+msgstr "Showing top 10 products with highest waste cost"
+
+msgid "Waste by Category"
+msgstr "Waste by Category"
+
+# Monthly Report translations
+msgid "Monthly Report"
+msgstr "Monthly Report"
+
+msgid "Performance summary for month"
+msgstr "Performance summary for month"
+
+msgid "January"
+msgstr "January"
+
+msgid "February"
+msgstr "February"
+
+msgid "March"
+msgstr "March"
+
+msgid "April"
+msgstr "April"
+
+msgid "May"
+msgstr "May"
+
+msgid "June"
+msgstr "June"
+
+msgid "July"
+msgstr "July"
+
+msgid "August"
+msgstr "August"
+
+msgid "September"
+msgstr "September"
+
+msgid "October"
+msgstr "October"
+
+msgid "November"
+msgstr "November"
+
+msgid "December"
+msgstr "December"
+
+msgid "Show Report"
+msgstr "Show Report"
+
+msgid "No data found for selected month"
+msgstr "No data found for selected month"
+
+msgid "Monthly Food Cost Analysis (Food Cost)"
+msgstr "Monthly Food Cost Analysis (Food Cost)"
+
+msgid "Weekly average:"
+msgstr "Weekly average:"
+
+msgid "Target:"
+msgstr "Target:"
+
+msgid "Weekly Food Cost Trend"
+msgstr "Weekly Food Cost Trend"
+
+msgid "No data to display"
+msgstr "No data to display"
+
+msgid "Weekly Trends"
+msgstr "Weekly Trends"
+
+msgid "Food Cost %%"
+msgstr "Food Cost %%"
+
+msgid "Recipes"
+msgstr "Recipes"
+
+msgid "No weekly data"
+msgstr "No weekly data"
+
+msgid "Category Performance"
+msgstr "Category Performance"
+
+msgid "Active Weeks"
+msgstr "Active Weeks"
+
+msgid "No category data"
+msgstr "No category data"
+
+msgid "Top 10 Products"
+msgstr "Top 10 Products"
+
+msgid "No product data"
+msgstr "No product data"
+
+msgid "Monthly Insights"
+msgstr "Monthly Insights"
+
+msgid "Key Data"
+msgstr "Key Data"
+
+msgid "Number of active weeks:"
+msgstr "Number of active weeks:"
+
+msgid "Weekly average revenue:"
+msgstr "Weekly average revenue:"
+
+msgid "Monthly profit margin:"
+msgstr "Monthly profit margin:"
+
+msgid "Monthly food cost:"
+msgstr "Monthly food cost:"
+
+msgid "Weekly average cost per recipe:"
+msgstr "Weekly average cost per recipe:"
+
+msgid "Leading Performance"
+msgstr "Leading Performance"
+
+msgid "Best week:"
+msgstr "Best week:"
+
+msgid "Monthly waste percentage:"
+msgstr "Monthly waste percentage:"
+
+# Dashboard & Index page translations
+msgid "Weekly Dashboard"
+msgstr "Weekly Dashboard"
+
+msgid "Performance, sales, and profitability overview."
+msgstr "Performance, sales, and profitability overview."
+
+msgid "New Week"
+msgstr "New Week"
+
+msgid "New Production"
+msgstr "New Production"
+
+msgid "Update Sales"
+msgstr "Update Sales"
+
+msgid "Update Labor"
+msgstr "Update Labor"
+
+msgid "Revenue (Sales)"
+msgstr "Revenue (Sales)"
+
+msgid "Labor Cost (Fixed)"
+msgstr "Labor Cost (Fixed)"
+
+msgid "Production Cost"
+msgstr "Production Cost"
+
+msgid "Stock Value (Cost)"
+msgstr "Stock Value (Cost)"
+
+msgid "Sales Stock Value"
+msgstr "Sales Stock Value"
+
+msgid "Potential Value"
+msgstr "Potential Value"
+
+msgid "Product Performance"
+msgstr "Product Performance"
+
+msgid "Remaining"
+msgstr "Remaining"
+
+msgid "Unit Cost"
+msgstr "Unit Cost"
+
+msgid "No data to display for this week."
+msgstr "No data to display for this week."
+
+msgid "Start by adding sales or production."
+msgstr "Start by adding sales or production."
+
+msgid "Welcome to CostFlow"
+msgstr "Welcome to CostFlow"
+
+msgid "To get started, select an existing week or create a new week."
+msgstr "To get started, select an existing week or create a new week."
+
+msgid "Manage Weeks"
+msgstr "Manage Weeks"
+
+msgid "Common Actions"
+msgstr "Common Actions"
+
+msgid "Weekly Labor"
+msgstr "Weekly Labor"
+
+msgid "Manage weeks, employee hours and costs"
+msgstr "Manage weeks, employee hours and costs"
+
+msgid "Inventory and Raw Materials"
+msgstr "Inventory and Raw Materials"
+
+msgid "Manage purchases, suppliers and current stock"
+msgstr "Manage purchases, suppliers and current stock"
+
+msgid "Product Production Log"
+msgstr "Product Production Log"
+
+msgid "Daily production logging for products"
+msgstr "Daily production logging for products"
+
+msgid "Premake Production Log"
+msgstr "Premake Production Log"
+
+msgid "Daily production logging for premakes"
+msgstr "Daily production logging for premakes"
+
+# Navigation translations (base.html)
+msgid "CostFlow"
+msgstr "CostFlow"
+
+msgid "Home"
+msgstr "Home"
+
+msgid "Premakes"
+msgstr "Premakes"
+
+msgid "Reports"
+msgstr "Reports"
+
+msgid "Settings"
+msgstr "Settings"
+
+msgid "Employees"
+msgstr "Employees"
+
+msgid "Suppliers"
+msgstr "Suppliers"
+
+msgid "Stock Audit"
+msgstr "Stock Audit"
+
+msgid "Stock Discrepancies"
+msgstr "Stock Discrepancies"
+
+msgid "Upload Inventory from File"
+msgstr "Upload Inventory from File"
+
+msgid "Import Recipes"
+msgstr "Import Recipes"
+
+msgid "Activity Log / Reset"
+msgstr "Activity Log / Reset"
+
+msgid "All rights reserved."
+msgstr "All rights reserved."
+
+msgid "No results found"
+msgstr "No results found"
 
