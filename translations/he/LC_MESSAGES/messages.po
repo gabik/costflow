@@ -449,3 +449,373 @@ msgstr "הגדר כמות נוכחית ל"
 #~ msgid "Manage Raw Materials"
 #~ msgstr "נהל חומרי גלם"
 
+# Weekly Report - Added Dec 2024
+msgid "Weekly Report"
+msgstr "דו\"ח שבועי"
+
+msgid "Performance summary for week"
+msgstr "סיכום ביצועים לשבוע"
+
+msgid "Select week:"
+msgstr "בחר שבוע:"
+
+msgid "Week"
+msgstr "שבוע"
+
+msgid "No weeks available"
+msgstr "אין שבועות זמינים"
+
+msgid "Print"
+msgstr "הדפסה"
+
+msgid "No data found for selected week"
+msgstr "לא נמצאו נתונים עבור השבוע הנבחר"
+
+msgid "Revenue"
+msgstr "הכנסות"
+
+msgid "Material Costs"
+msgstr "עלות חומרים"
+
+msgid "Net Profit"
+msgstr "רווח נטו"
+
+msgid "Product Food Cost Analysis (Food Cost)"
+msgstr "ניתוח עלות מזון מוצרים (Food Cost)"
+
+msgid "Monthly Trends"
+msgstr "מגמות חודשיות"
+
+msgid "Total Food Cost"
+msgstr "סך עלות מזון"
+
+msgid "Average Cost per Recipe"
+msgstr "עלות ממוצעת למתכון"
+
+msgid "Total Recipes Produced"
+msgstr "סך מתכונים שיוצרו"
+
+msgid "Production Count"
+msgstr "פעמי ייצור"
+
+msgid "Total Recipes"
+msgstr "סך מתכונים"
+
+msgid "Units per Recipe"
+msgstr "יח' למתכון"
+
+msgid "Cost per Recipe"
+msgstr "עלות למתכון"
+
+msgid "Total Cost"
+msgstr "סך עלות"
+
+msgid "Food Cost Percentage:"
+msgstr "אחוז עלות מזון:"
+
+msgid "of revenue"
+msgstr "מההכנסות"
+
+msgid "Recommended target: 25-35%%"
+msgstr "יעד מומלץ: 25-35%%"
+
+msgid "Food cost includes raw materials, packaging, and premakes for products produced this week."
+msgstr "עלות המזון כוללת חומרי גלם, אריזות והכנות מקדימות (פרימייקים) עבור מוצרים שיוצרו השבוע."
+
+msgid "Sales by Category"
+msgstr "מכירות לפי קטגוריה"
+
+msgid "Number of Products"
+msgstr "מספר מוצרים"
+
+msgid "Quantity Sold"
+msgstr "כמות נמכרה"
+
+msgid "Waste Quantity"
+msgstr "כמות פחת"
+
+msgid "Gross Profit"
+msgstr "רווח גולמי"
+
+msgid "Total Revenue"
+msgstr "סך הכנסות"
+
+msgid "No sales data by category"
+msgstr "אין נתוני מכירות לפי קטגוריה"
+
+msgid "Product Sales Details"
+msgstr "פירוט מכירות מוצרים"
+
+msgid "No Category"
+msgstr "ללא קטגוריה"
+
+msgid "No product sales data"
+msgstr "אין נתוני מכירות למוצרים"
+
+msgid "Premakes Activity"
+msgstr "פעילות הכנות מקדימות"
+
+msgid "Premake Name"
+msgstr "שם ההכנה"
+
+msgid "Produced"
+msgstr "יוצר"
+
+msgid "Used (in products)"
+msgstr "שומש (במוצרים)"
+
+msgid "In Stock"
+msgstr "במלאי"
+
+msgid "Cost per Unit (per kg)"
+msgstr "עלות ליחידה (לק\"ג)"
+
+msgid "Total Production Value"
+msgstr "שווי ייצור כולל"
+
+msgid "Labor Cost Details"
+msgstr "פירוט עלויות לייבור"
+
+msgid "Employee"
+msgstr "עובד"
+
+msgid "Entry Count"
+msgstr "פעמי רישום"
+
+msgid "Total Hours"
+msgstr "סך שעות"
+
+msgid "Stock Discrepancies Found This Week"
+msgstr "הפרשי מלאי שנמצאו השבוע"
+
+msgid "Discrepancy Summary"
+msgstr "סיכום הפרשים"
+
+msgid "Number of Counts:"
+msgstr "מספר ספירות:"
+
+msgid "Total Monetary Value:"
+msgstr "סך ערך כספי:"
+
+msgid "Discrepancies by Category"
+msgstr "הפרשים לפי קטגוריה"
+
+msgid "Counts"
+msgstr "ספירות"
+
+msgid "Monetary Value"
+msgstr "ערך כספי"
+
+msgid "Adjusted Profit (including stock discrepancies):"
+msgstr "רווח מתואם (כולל הפרשי מלאי):"
+
+msgid "instead of"
+msgstr "במקום"
+
+msgid "Difference"
+msgstr "הפרש"
+
+msgid "Counter"
+msgstr "סופר"
+
+msgid "Unknown"
+msgstr "לא ידוע"
+
+msgid "Showing last 5 counts out of"
+msgstr "מוצגות 5 הספירות האחרונות מתוך"
+
+msgid "Key Insights"
+msgstr "תובנות מרכזיות"
+
+msgid "Leading category:"
+msgstr "הקטגוריה המובילה:"
+
+msgid "with revenue of"
+msgstr "עם הכנסות של"
+
+msgid "Best-selling product:"
+msgstr "המוצר הנמכר ביותר:"
+
+msgid "Weekly profit margin:"
+msgstr "שיעור הרווח השבועי:"
+
+msgid "Product with highest profitability:"
+msgstr "המוצר עם הרווחיות הגבוהה ביותר:"
+
+msgid "with profit margin of"
+msgstr "עם שיעור רווח של"
+
+msgid "Product with lowest profitability:"
+msgstr "המוצר עם הרווחיות הנמוכה ביותר:"
+
+msgid "Needs review"
+msgstr "זקוק לבחינה מחדש"
+
+msgid "Product with highest profit contribution:"
+msgstr "המוצר עם התרומה הגבוהה ביותר לרווח:"
+
+msgid "with total profit of"
+msgstr "עם רווח כולל של"
+
+msgid "Overall waste percentage:"
+msgstr "שיעור הפחת הכולל:"
+
+msgid "Cost:"
+msgstr "עלות:"
+
+msgid "Waste Analysis"
+msgstr "ניתוח פחת"
+
+msgid "Total Waste"
+msgstr "סה\"כ פחת"
+
+msgid "Units"
+msgstr "יחידות"
+
+msgid "of production"
+msgstr "מהייצור"
+
+msgid "Waste Cost"
+msgstr "עלות פחת"
+
+msgid "Impact on Profit"
+msgstr "השפעה על רווח"
+
+msgid "Waste by Product"
+msgstr "פחת לפי מוצר"
+
+msgid "Sold"
+msgstr "נמכר"
+
+msgid "Waste"
+msgstr "פחת"
+
+msgid "Waste %"
+msgstr "% פחת"
+
+msgid "Showing top 10 products with highest waste cost"
+msgstr "מוצגים 10 המוצרים עם עלות הפחת הגבוהה ביותר"
+
+msgid "Waste by Category"
+msgstr "פחת לפי קטגוריה"
+
+msgid "Monthly Report"
+msgstr "דו\"ח חודשי"
+
+msgid "Performance summary for month"
+msgstr "סיכום ביצועים לחודש"
+
+msgid "January"
+msgstr "ינואר"
+
+msgid "February"
+msgstr "פברואר"
+
+msgid "March"
+msgstr "מרץ"
+
+msgid "April"
+msgstr "אפריל"
+
+msgid "May"
+msgstr "מאי"
+
+msgid "June"
+msgstr "יוני"
+
+msgid "July"
+msgstr "יולי"
+
+msgid "August"
+msgstr "אוגוסט"
+
+msgid "September"
+msgstr "ספטמבר"
+
+msgid "October"
+msgstr "אוקטובר"
+
+msgid "November"
+msgstr "נובמבר"
+
+msgid "December"
+msgstr "דצמבר"
+
+msgid "Show Report"
+msgstr "הצג דו\"ח"
+
+msgid "No data found for selected month"
+msgstr "לא נמצאו נתונים עבור החודש הנבחר"
+
+msgid "Monthly Food Cost Analysis (Food Cost)"
+msgstr "ניתוח עלות מזון (Food Cost) - חודשי"
+
+msgid "Weekly average:"
+msgstr "ממוצע שבועי:"
+
+msgid "Target:"
+msgstr "יעד:"
+
+msgid "Weekly Food Cost Trend"
+msgstr "מגמת עלות מזון שבועית"
+
+msgid "No data to display"
+msgstr "אין נתונים להצגה"
+
+msgid "Weekly Trends"
+msgstr "מגמות שבועיות"
+
+msgid "Food Cost %"
+msgstr "Food Cost %"
+
+msgid "Recipes"
+msgstr "מתכונים"
+
+msgid "No weekly data"
+msgstr "אין נתונים שבועיים"
+
+msgid "Category Performance"
+msgstr "ביצועי קטגוריות"
+
+msgid "Active Weeks"
+msgstr "שבועות פעילים"
+
+msgid "No category data"
+msgstr "אין נתוני קטגוריות"
+
+msgid "Top 10 Products"
+msgstr "10 המוצרים המובילים"
+
+msgid "No product data"
+msgstr "אין נתוני מוצרים"
+
+msgid "Monthly Insights"
+msgstr "תובנות חודשיות"
+
+msgid "Key Data"
+msgstr "נתונים מרכזיים"
+
+msgid "Number of active weeks:"
+msgstr "מספר שבועות פעילים:"
+
+msgid "Weekly average revenue:"
+msgstr "הכנסה שבועית ממוצעת:"
+
+msgid "Monthly profit margin:"
+msgstr "שיעור רווח חודשי:"
+
+msgid "Monthly food cost:"
+msgstr "עלות מזון חודשית:"
+
+msgid "Weekly average cost per recipe:"
+msgstr "עלות מזון ממוצעת למתכון:"
+
+msgid "Leading Performance"
+msgstr "ביצועים מובילים"
+
+msgid "Best week:"
+msgstr "השבוע הרווחי ביותר:"
+
+msgid "Monthly waste percentage:"
+msgstr "שיעור פחת חודשי:"
+

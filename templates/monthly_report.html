@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}דו"ח חודשי - CostFlow{% endblock %}
+{% block title %}{{ _('Monthly Report') }} - CostFlow{% endblock %}
 
 {% block content %}
 <div class="row mb-4">
     <div class="col-12">
-        <h1 class="display-6 fw-bold text-primary">דו"ח חודשי</h1>
+        <h1 class="display-6 fw-bold text-primary">{{ _('Monthly Report') }}</h1>
         <p class="text-secondary">
-            סיכום ביצועים לחודש {{ month }}/{{ year }}
+            {{ _('Performance summary for month') }} {{ month }}/{{ year }}
             ({{ month_start.strftime('%d/%m/%Y') }} - {{ month_end.strftime('%d/%m/%Y') }})
         </p>
     </div>
@@ -19,19 +19,19 @@
             <select name="month" class="form-select" style="width: 150px;">
                 {% for m in range(1, 13) %}
                 <option value="{{ m }}" {% if m == month %}selected{% endif %}>
-                    {{ ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'][m-1] }}
+                    {{ [_('January'), _('February'), _('March'), _('April'), _('May'), _('June'), _('July'), _('August'), _('September'), _('October'), _('November'), _('December')][m-1] }}
                 </option>
                 {% endfor %}
             </select>
             <input type="number" name="year" value="{{ year }}" min="2020" max="2030" class="form-control" style="width: 100px;">
             <button type="submit" class="btn btn-primary">
-                <i class="bi bi-search me-2"></i>הצג דו"ח
+                <i class="bi bi-search me-2"></i>{{ _('Show Report') }}
             </button>
         </form>
     </div>
     <div class="col-md-6 text-end">
         <button onclick="window.print()" class="btn btn-outline-secondary">
-            <i class="bi bi-printer me-2"></i>הדפסה
+            <i class="bi bi-printer me-2"></i>{{ _('Print') }}
         </button>
     </div>
 </div>
@@ -39,7 +39,7 @@
 {% if no_data %}
 <div class="alert alert-info">
     <i class="bi bi-info-circle me-2"></i>
-    לא נמצאו נתונים עבור החודש הנבחר
+    {{ _('No data found for selected month') }}
 </div>
 {% else %}
 
@@ -48,34 +48,34 @@
     <div class="col-md-3">
         <div class="card bg-success text-white">
             <div class="card-body">
-                <h6 class="card-title">סך הכנסות</h6>
+                <h6 class="card-title">{{ _('Total Revenue') }}</h6>
                 <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(total_revenue) }}</h3>
-                <small>ממוצע שבועי: {{ currency_symbol }}{{ "%.2f"|format(avg_weekly_revenue) }}</small>
+                <small>{{ _('Weekly average:') }} {{ currency_symbol }}{{ "%.2f"|format(avg_weekly_revenue) }}</small>
             </div>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card bg-danger text-white">
             <div class="card-body">
-                <h6 class="card-title">עלות חומרים</h6>
+                <h6 class="card-title">{{ _('Material Costs') }}</h6>
                 <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(total_material_costs) }}</h3>
-                <small>ממוצע שבועי: {{ currency_symbol }}{{ "%.2f"|format(avg_weekly_material) }}</small>
+                <small>{{ _('Weekly average:') }} {{ currency_symbol }}{{ "%.2f"|format(avg_weekly_material) }}</small>
             </div>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card bg-warning text-white">
             <div class="card-body">
-                <h6 class="card-title">עלות לייבור</h6>
+                <h6 class="card-title">{{ _('Labor Costs') }}</h6>
                 <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(total_labor_costs) }}</h3>
-                <small>ממוצע שבועי: {{ currency_symbol }}{{ "%.2f"|format(avg_weekly_labor) }}</small>
+                <small>{{ _('Weekly average:') }} {{ currency_symbol }}{{ "%.2f"|format(avg_weekly_labor) }}</small>
             </div>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card bg-info text-white">
             <div class="card-body">
-                <h6 class="card-title">רווח נטו</h6>
+                <h6 class="card-title">{{ _('Net Profit') }}</h6>
                 <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(net_profit) }}</h3>
                 <small>{{ "%.1f"|format((net_profit / total_revenue * 100) if total_revenue > 0 else 0) }}%</small>
             </div>
@@ -89,35 +89,35 @@
         <div class="card border-primary">
             <div class="card-body">
                 <h5 class="card-title text-primary mb-3">
-                    <i class="bi bi-calculator me-2"></i>ניתוח עלות מזון (Food Cost) - חודשי
+                    <i class="bi bi-calculator me-2"></i>{{ _('Monthly Food Cost Analysis (Food Cost)') }}
                 </h5>
                 <div class="row">
                     <div class="col-md-3">
                         <div class="text-center">
-                            <h6 class="text-muted">סך עלות מזון</h6>
+                            <h6 class="text-muted">{{ _('Total Food Cost') }}</h6>
                             <h3 class="text-primary">{{ currency_symbol }}{{ "%.2f"|format(total_food_cost) }}</h3>
-                            <small class="text-muted">ממוצע שבועי: {{ currency_symbol }}{{ "%.2f"|format(avg_weekly_food_cost) }}</small>
+                            <small class="text-muted">{{ _('Weekly average:') }} {{ currency_symbol }}{{ "%.2f"|format(avg_weekly_food_cost) }}</small>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="text-center">
-                            <h6 class="text-muted">עלות ממוצעת למתכון</h6>
+                            <h6 class="text-muted">{{ _('Average Cost per Recipe') }}</h6>
                             <h3 class="text-info">{{ currency_symbol }}{{ "%.2f"|format(avg_food_cost_per_recipe) }}</h3>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="text-center">
-                            <h6 class="text-muted">סך מתכונים שיוצרו</h6>
+                            <h6 class="text-muted">{{ _('Total Recipes Produced') }}</h6>
                             <h3 class="text-success">{{ total_recipes_produced }}</h3>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="text-center">
-                            <h6 class="text-muted">אחוז עלות מזון</h6>
+                            <h6 class="text-muted">{{ _('Food Cost Percentage:') }}</h6>
                             <h3 class="{% if total_revenue > 0 and total_food_cost > 0 %}{% if (total_food_cost / total_revenue * 100) > 35 %}text-danger{% elif (total_food_cost / total_revenue * 100) < 25 %}text-warning{% else %}text-success{% endif %}{% else %}text-muted{% endif %}">
                                 {{ "%.1f"|format((total_food_cost / total_revenue * 100) if total_revenue > 0 else 0) }}%
                             </h3>
-                            <small class="text-muted">(יעד: 25-35%)</small>
+                            <small class="text-muted">({{ _('Target:') }} 25-35%)</small>
                         </div>
                     </div>
                 </div>
@@ -129,7 +129,7 @@
 <!-- Food Cost Trends Chart -->
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0"><i class="bi bi-bar-chart-line me-2"></i>מגמת עלות מזון שבועית</h5>
+        <h5 class="mb-0"><i class="bi bi-bar-chart-line me-2"></i>{{ _('Weekly Food Cost Trend') }}</h5>
     </div>
     <div class="card-body">
         {% if weekly_summaries %}
@@ -155,8 +155,8 @@
             </div>
             {% endfor %}
 
-            <div class="target-line" style="bottom: 30%;" title="יעד 30%">
-                <span class="target-label">יעד: 30%</span>
+            <div class="target-line" style="bottom: 30%;" title="{{ _('Target:') }} 30%">
+                <span class="target-label">{{ _('Target:') }} 30%</span>
             </div>
         </div>
 
@@ -256,7 +256,7 @@
         }
         </style>
         {% else %}
-        <p class="text-muted">אין נתונים להצגה</p>
+        <p class="text-muted">{{ _('No data to display') }}</p>
         {% endif %}
     </div>
 </div>
@@ -264,7 +264,7 @@
 <!-- Weekly Trends -->
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>מגמות שבועיות</h5>
+        <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>{{ _('Weekly Trends') }}</h5>
     </div>
     <div class="card-body">
         {% if weekly_summaries %}
@@ -272,15 +272,15 @@
             <table class="table table-hover">
                 <thead class="table-light">
                     <tr>
-                        <th>שבוע</th>
-                        <th>הכנסות</th>
-                        <th>עלות מזון</th>
-                        <th>Food Cost %</th>
-                        <th>מתכונים</th>
-                        <th>עלות חומרים</th>
-                        <th>עלות לייבור</th>
-                        <th>הפרשי מלאי</th>
-                        <th>רווח נטו</th>
+                        <th>{{ _('Week') }}</th>
+                        <th>{{ _('Revenue') }}</th>
+                        <th>{{ _('Total Food Cost') }}</th>
+                        <th>{{ _('Food Cost %') }}</th>
+                        <th>{{ _('Recipes') }}</th>
+                        <th>{{ _('Material Costs') }}</th>
+                        <th>{{ _('Labor Costs') }}</th>
+                        <th>{{ _('Stock Discrepancies') }}</th>
+                        <th>{{ _('Net Profit') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -306,7 +306,7 @@
                 </tbody>
                 <tfoot class="table-light">
                     <tr>
-                        <th>סה"כ</th>
+                        <th>{{ _('Total') }}</th>
                         <th>{{ currency_symbol }}{{ "%.2f"|format(total_revenue) }}</th>
                         <th class="text-primary fw-bold">{{ currency_symbol }}{{ "%.2f"|format(total_food_cost) }}</th>
                         <th>{{ "%.1f"|format((total_food_cost / total_revenue * 100) if total_revenue > 0 else 0) }}%</th>
@@ -322,7 +322,7 @@
             </table>
         </div>
         {% else %}
-        <p class="text-muted">אין נתונים שבועיים</p>
+        <p class="text-muted">{{ _('No weekly data') }}</p>
         {% endif %}
     </div>
 </div>
@@ -330,7 +330,7 @@
 <!-- Category Performance -->
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0"><i class="bi bi-pie-chart me-2"></i>ביצועי קטגוריות</h5>
+        <h5 class="mb-0"><i class="bi bi-pie-chart me-2"></i>{{ _('Category Performance') }}</h5>
     </div>
     <div class="card-body">
         {% if category_summaries %}
@@ -338,14 +338,14 @@
             <table class="table table-hover">
                 <thead class="table-light">
                     <tr>
-                        <th>קטגוריה</th>
-                        <th>מוצרים</th>
-                        <th>כמות נמכרה</th>
-                        <th>כמות פחת</th>
-                        <th>הכנסות</th>
-                        <th>עלות חומרים</th>
-                        <th>רווח גולמי</th>
-                        <th>שבועות פעילים</th>
+                        <th>{{ _('Category') }}</th>
+                        <th>{{ _('Products') }}</th>
+                        <th>{{ _('Quantity Sold') }}</th>
+                        <th>{{ _('Waste Quantity') }}</th>
+                        <th>{{ _('Revenue') }}</th>
+                        <th>{{ _('Material Costs') }}</th>
+                        <th>{{ _('Gross Profit') }}</th>
+                        <th>{{ _('Active Weeks') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -367,7 +367,7 @@
             </table>
         </div>
         {% else %}
-        <p class="text-muted">אין נתוני קטגוריות</p>
+        <p class="text-muted">{{ _('No category data') }}</p>
         {% endif %}
     </div>
 </div>
@@ -375,7 +375,7 @@
 <!-- Top 10 Products -->
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0"><i class="bi bi-trophy me-2"></i>10 המוצרים המובילים</h5>
+        <h5 class="mb-0"><i class="bi bi-trophy me-2"></i>{{ _('Top 10 Products') }}</h5>
     </div>
     <div class="card-body">
         {% if top_products %}
@@ -384,11 +384,11 @@
                 <thead class="table-light">
                     <tr>
                         <th>#</th>
-                        <th>מוצר</th>
-                        <th>קטגוריה</th>
-                        <th>כמות נמכרה</th>
-                        <th>הכנסות</th>
-                        <th>% מההכנסות</th>
+                        <th>{{ _('Product') }}</th>
+                        <th>{{ _('Category') }}</th>
+                        <th>{{ _('Quantity Sold') }}</th>
+                        <th>{{ _('Revenue') }}</th>
+                        <th>% {{ _('of revenue') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -406,7 +406,7 @@
             </table>
         </div>
         {% else %}
-        <p class="text-muted">אין נתוני מוצרים</p>
+        <p class="text-muted">{{ _('No product data') }}</p>
         {% endif %}
     </div>
 </div>
@@ -414,38 +414,38 @@
 <!-- Monthly Insights -->
 <div class="card">
     <div class="card-header bg-light">
-        <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>תובנות חודשיות</h5>
+        <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>{{ _('Monthly Insights') }}</h5>
     </div>
     <div class="card-body">
         <div class="row">
             <div class="col-md-6">
-                <h6 class="text-primary mb-3">נתונים מרכזיים</h6>
+                <h6 class="text-primary mb-3">{{ _('Key Data') }}</h6>
                 <ul class="list-unstyled">
                     <li class="mb-2">
                         <i class="bi bi-calendar-week text-info me-2"></i>
-                        מספר שבועות פעילים: <strong>{{ num_weeks }}</strong>
+                        {{ _('Number of active weeks:') }} <strong>{{ num_weeks }}</strong>
                     </li>
                     <li class="mb-2">
                         <i class="bi bi-graph-up text-success me-2"></i>
-                        הכנסה שבועית ממוצעת: <strong>{{ currency_symbol }}{{ "%.2f"|format(avg_weekly_revenue) }}</strong>
+                        {{ _('Weekly average revenue:') }} <strong>{{ currency_symbol }}{{ "%.2f"|format(avg_weekly_revenue) }}</strong>
                     </li>
                     <li class="mb-2">
                         <i class="bi bi-percent text-primary me-2"></i>
-                        שיעור רווח חודשי: <strong>{{ "%.1f"|format((net_profit / total_revenue * 100) if total_revenue > 0 else 0) }}%</strong>
+                        {{ _('Monthly profit margin:') }} <strong>{{ "%.1f"|format((net_profit / total_revenue * 100) if total_revenue > 0 else 0) }}%</strong>
                     </li>
                     <li class="mb-2">
                         <i class="bi bi-calculator text-info me-2"></i>
-                        עלות מזון חודשית: <strong class="text-primary">{{ currency_symbol }}{{ "%.2f"|format(total_food_cost) }}</strong>
-                        ({{ "%.1f"|format((total_food_cost / total_revenue * 100) if total_revenue > 0 else 0) }}% מההכנסות)
+                        {{ _('Monthly food cost:') }} <strong class="text-primary">{{ currency_symbol }}{{ "%.2f"|format(total_food_cost) }}</strong>
+                        ({{ "%.1f"|format((total_food_cost / total_revenue * 100) if total_revenue > 0 else 0) }}% {{ _('of revenue') }})
                     </li>
                     <li class="mb-2">
                         <i class="bi bi-graph-down text-success me-2"></i>
-                        עלות מזון ממוצעת למתכון: <strong>{{ currency_symbol }}{{ "%.2f"|format(avg_food_cost_per_recipe) }}</strong>
+                        {{ _('Weekly average cost per recipe:') }} <strong>{{ currency_symbol }}{{ "%.2f"|format(avg_food_cost_per_recipe) }}</strong>
                     </li>
                     {% if total_stock_variance_cost != 0 %}
                     <li class="mb-2">
                         <i class="bi bi-clipboard-check text-warning me-2"></i>
-                        הפרשי מלאי חודשיים: <strong class="{% if total_stock_variance_cost < 0 %}text-danger{% endif %}">
+                        {{ _('Stock Discrepancies') }}: <strong class="{% if total_stock_variance_cost < 0 %}text-danger{% endif %}">
                             {{ currency_symbol }}{{ "%.2f"|format(total_stock_variance_cost) }}
                         </strong>
                     </li>
@@ -453,14 +453,14 @@
                 </ul>
             </div>
             <div class="col-md-6">
-                <h6 class="text-primary mb-3">ביצועים מובילים</h6>
+                <h6 class="text-primary mb-3">{{ _('Leading Performance') }}</h6>
                 <ul class="list-unstyled">
                     {% if category_summaries %}
                         {% set best_category = category_summaries.items()|sort(attribute='1.revenue', reverse=True)|first %}
                         {% if best_category %}
                         <li class="mb-2">
                             <i class="bi bi-star-fill text-warning me-2"></i>
-                            קטגוריה מובילה: <strong>{{ best_category[0] }}</strong>
+                            {{ _('Leading category:') }} <strong>{{ best_category[0] }}</strong>
                             ({{ currency_symbol }}{{ "%.2f"|format(best_category[1].revenue) }})
                         </li>
                         {% endif %}
@@ -469,7 +469,7 @@
                     {% if top_products %}
                         <li class="mb-2">
                             <i class="bi bi-trophy-fill text-success me-2"></i>
-                            מוצר מוביל: <strong>{{ top_products[0].name }}</strong>
+                            {{ _('Best-selling product:') }} <strong>{{ top_products[0].name }}</strong>
                             ({{ currency_symbol }}{{ "%.2f"|format(top_products[0].revenue) }})
                         </li>
                     {% endif %}
@@ -479,7 +479,7 @@
                         {% if best_week %}
                         <li class="mb-2">
                             <i class="bi bi-award-fill text-info me-2"></i>
-                            השבוע הרווחי ביותר: <strong>{{ best_week.week_start.strftime('%d/%m') }}</strong>
+                            {{ _('Best week:') }} <strong>{{ best_week.week_start.strftime('%d/%m') }}</strong>
                             ({{ currency_symbol }}{{ "%.2f"|format(best_week.profit) }})
                         </li>
                         {% endif %}
@@ -494,9 +494,9 @@
             {% if total_sold > 0 %}
             <div class="alert alert-warning mt-3">
                 <i class="bi bi-exclamation-triangle me-2"></i>
-                <strong>שיעור פחת חודשי:</strong>
+                <strong>{{ _('Monthly waste percentage:') }}</strong>
                 {{ "%.1f"|format((total_waste / (total_sold + total_waste) * 100) if (total_sold + total_waste) > 0 else 0) }}%
-                ({{ total_waste }} יחידות מתוך {{ total_sold + total_waste }})
+                ({{ total_waste }} {{ _('Units') }} {{ _('of production') }} {{ total_sold + total_waste }})
             </div>
             {% endif %}
         {% endif %}

@@ -17,6 +17,16 @@
   - Commit message types: Feat, Fix, Chore, Refactor, Docs
   - Keep CLAUDE.md updated with the latest changes (if needed, new feature, modified model, etc..)
 
+### String Localization (CRITICAL)
+- **ALL user-facing strings MUST use Flask-Babel translations**
+- **NO hardcoded strings** in templates or Python code
+- **Templates**: Use `{{ _('English text') }}` for all visible text
+- **Python**: Import `from flask_babel import gettext as _` and use `_('text')` for flash messages and error strings
+- **Special characters**: Escape `%` as `%%` in translation strings (e.g., `_('Target: 25-35%%')`)
+- **Translation files**: `translations/he/LC_MESSAGES/messages.po` (Hebrew), `translations/en/LC_MESSAGES/messages.po` (English)
+- **After adding strings**: Run `pybabel extract -F babel.cfg -o messages.pot .` → `pybabel update -i messages.pot -d translations -l he` → Edit .po files → `pybabel compile -d translations`
+- **Reference**: See `translations_to_add.po` for 800+ pre-mapped translations
+
 ### Migration Handling
 - **Local dev has no database** - empty SQLite file only
 - **Production database**: PostgreSQL (use PostgreSQL-compatible SQL syntax)

@@ -317,7 +317,7 @@
                 </tbody>
                 <tfoot class="table-light">
                     <tr>
-                        <th>סה"כ</th>
+                        <th>{{ _('Total') }}</th>
                         <th></th>
                         <th class="fw-bold">{{ labor_entries|sum(attribute='hours') }}</th>
                         <th class="fw-bold text-primary">{{ currency_symbol }}{{ "%.2f"|format(labor_costs) }}</th>
@@ -333,28 +333,28 @@
 {% if stock_audits %}
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>הפרשי מלאי שנמצאו השבוע</h5>
+        <h5 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>{{ _('Stock Discrepancies Found This Week') }}</h5>
     </div>
     <div class="card-body">
         <div class="row mb-3">
             <div class="col-md-6">
-                <h6>סיכום הפרשים</h6>
+                <h6>{{ _('Discrepancy Summary') }}</h6>
                 <ul class="list-unstyled">
-                    <li><strong>מספר ספירות:</strong> {{ stock_audit_count }}</li>
+                    <li><strong>{{ _('Number of Counts:') }}</strong> {{ stock_audit_count }}</li>
                     <li class="{% if total_stock_variance_cost < 0 %}text-danger{% else %}text-success{% endif %}">
-                        <strong>סך ערך כספי:</strong> {{ currency_symbol }}{{ "%.2f"|format(total_stock_variance_cost) }}
+                        <strong>{{ _('Total Monetary Value:') }}</strong> {{ currency_symbol }}{{ "%.2f"|format(total_stock_variance_cost) }}
                     </li>
                 </ul>
             </div>
             <div class="col-md-6">
-                <h6>הפרשים לפי קטגוריה</h6>
+                <h6>{{ _('Discrepancies by Category') }}</h6>
                 {% if audit_by_category %}
                 <table class="table table-sm">
                     <thead>
                         <tr>
-                            <th>קטגוריה</th>
-                            <th>ספירות</th>
-                            <th>ערך כספי</th>
+                            <th>{{ _('Category') }}</th>
+                            <th>{{ _('Counts') }}</th>
+                            <th>{{ _('Monetary Value') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -376,9 +376,9 @@
         {% if total_stock_variance_cost != 0 %}
         <div class="alert alert-warning">
             <i class="bi bi-exclamation-triangle me-2"></i>
-            <strong>רווח מתואם (כולל הפרשי מלאי):</strong>
+            <strong>{{ _('Adjusted Profit (including stock discrepancies):') }}</strong>
             {{ currency_symbol }}{{ "%.2f"|format(adjusted_profit) }}
-            <small class="text-muted">(במקום {{ currency_symbol }}{{ "%.2f"|format(net_profit) }})</small>
+            <small class="text-muted">({{ _('instead of') }} {{ currency_symbol }}{{ "%.2f"|format(net_profit) }})</small>
         </div>
         {% endif %}
 
@@ -386,18 +386,18 @@
             <table class="table table-sm">
                 <thead>
                     <tr>
-                        <th>תאריך</th>
-                        <th>חומר גלם</th>
-                        <th>הפרש</th>
-                        <th>ערך כספי</th>
-                        <th>סופר</th>
+                        <th>{{ _('Date') }}</th>
+                        <th>{{ _('Raw Material') }}</th>
+                        <th>{{ _('Difference') }}</th>
+                        <th>{{ _('Monetary Value') }}</th>
+                        <th>{{ _('Counter') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for audit in stock_audits[:5] %}
                     <tr>
                         <td>{{ audit.audit_date.strftime('%d/%m %H:%M') }}</td>
-                        <td>{{ audit.raw_material.name if audit.raw_material else 'לא ידוע' }}</td>
+                        <td>{{ audit.raw_material.name if audit.raw_material else _('Unknown') }}</td>
                         <td class="{% if audit.variance < 0 %}text-danger{% endif %}">
                             {{ "%.1f"|format(audit.variance) }}
                         </td>
@@ -410,7 +410,7 @@
                 </tbody>
             </table>
             {% if stock_audits|length > 5 %}
-            <p class="text-muted small">מוצגות 5 הספירות האחרונות מתוך {{ stock_audits|length }}</p>
+            <p class="text-muted small">{{ _('Showing last 5 counts out of') }} {{ stock_audits|length }}</p>
             {% endif %}
         </div>
     </div>
@@ -420,7 +420,7 @@
 <!-- Key Insights -->
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>תובנות מרכזיות</h5>
+        <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>{{ _('Key Insights') }}</h5>
     </div>
     <div class="card-body">
         <ul class="list-unstyled mb-0">
@@ -429,7 +429,7 @@
                 {% if best_category %}
                 <li class="mb-2">
                     <i class="bi bi-star-fill text-warning me-2"></i>
-                    הקטגוריה המובילה: <strong>{{ best_category[0] }}</strong> עם הכנסות של {{ currency_symbol }}{{ "%.2f"|format(best_category[1].revenue) }}
+                    {{ _('Leading category:') }} <strong>{{ best_category[0] }}</strong> {{ _('with revenue of') }} {{ currency_symbol }}{{ "%.2f"|format(best_category[1].revenue) }}
                 </li>
                 {% endif %}
             {% endif %}
@@ -439,29 +439,29 @@
                 {% if best_product %}
                 <li class="mb-2">
                     <i class="bi bi-trophy-fill text-success me-2"></i>
-                    המוצר הנמכר ביותר: <strong>{{ best_product.name }}</strong> עם הכנסות של {{ currency_symbol }}{{ "%.2f"|format(best_product.revenue) }}
+                    {{ _('Best-selling product:') }} <strong>{{ best_product.name }}</strong> {{ _('with revenue of') }} {{ currency_symbol }}{{ "%.2f"|format(best_product.revenue) }}
                 </li>
                 {% endif %}
             {% endif %}
 
             <li class="mb-2">
                 <i class="bi bi-graph-up text-info me-2"></i>
-                שיעור הרווח השבועי: <strong>{{ "%.1f"|format((net_profit / total_revenue * 100) if total_revenue > 0 else 0) }}%</strong>
+                {{ _('Weekly profit margin:') }} <strong>{{ "%.1f"|format((net_profit / total_revenue * 100) if total_revenue > 0 else 0) }}%</strong>
             </li>
 
             {% if best_margin_product %}
             <li class="mb-2">
                 <i class="bi bi-award-fill text-success me-2"></i>
-                המוצר עם הרווחיות הגבוהה ביותר: <strong>{{ best_margin_product.name }}</strong> עם שיעור רווח של {{ "%.1f"|format(best_margin_product.profit_margin_pct) }}%
+                {{ _('Product with highest profitability:') }} <strong>{{ best_margin_product.name }}</strong> {{ _('with profit margin of') }} {{ "%.1f"|format(best_margin_product.profit_margin_pct) }}%
             </li>
             {% endif %}
 
             {% if worst_margin_product %}
             <li class="mb-2 {% if worst_margin_product.profit_margin_pct < 20 %}text-danger{% endif %}">
                 <i class="bi bi-exclamation-circle{% if worst_margin_product.profit_margin_pct < 20 %}-fill text-danger{% else %} text-warning{% endif %} me-2"></i>
-                המוצר עם הרווחיות הנמוכה ביותר: <strong>{{ worst_margin_product.name }}</strong> עם שיעור רווח של {{ "%.1f"|format(worst_margin_product.profit_margin_pct) }}%
+                {{ _('Product with lowest profitability:') }} <strong>{{ worst_margin_product.name }}</strong> {{ _('with profit margin of') }} {{ "%.1f"|format(worst_margin_product.profit_margin_pct) }}%
                 {% if worst_margin_product.profit_margin_pct < 20 %}
-                <span class="badge bg-danger">זקוק לבחינה מחדש</span>
+                <span class="badge bg-danger">{{ _('Needs review') }}</span>
                 {% endif %}
             </li>
             {% endif %}
@@ -469,15 +469,15 @@
             {% if highest_profit_product %}
             <li class="mb-2">
                 <i class="bi bi-cash-coin text-success me-2"></i>
-                המוצר עם התרומה הגבוהה ביותר לרווח: <strong>{{ highest_profit_product.name }}</strong> עם רווח כולל של {{ currency_symbol }}{{ "%.2f"|format(highest_profit_product.profit_per_unit * (highest_profit_product.quantity_sold or 0)) }}
+                {{ _('Product with highest profit contribution:') }} <strong>{{ highest_profit_product.name }}</strong> {{ _('with total profit of') }} {{ currency_symbol }}{{ "%.2f"|format(highest_profit_product.profit_per_unit * (highest_profit_product.quantity_sold or 0)) }}
             </li>
             {% endif %}
 
             {% if overall_waste_pct > 0 %}
             <li class="mb-2">
                 <i class="bi bi-exclamation-triangle text-warning me-2"></i>
-                שיעור הפחת הכולל: <strong>{{ "%.1f"|format(overall_waste_pct) }}%</strong>
-                (עלות: {{ currency_symbol }}{{ "%.2f"|format(total_waste_cost) }})
+                {{ _('Overall waste percentage:') }} <strong>{{ "%.1f"|format(overall_waste_pct) }}%</strong>
+                ({{ _('Cost:') }} {{ currency_symbol }}{{ "%.2f"|format(total_waste_cost) }})
             </li>
             {% endif %}
         </ul>
@@ -488,7 +488,7 @@
 {% if waste_details %}
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0"><i class="bi bi-trash me-2"></i>ניתוח פחת</h5>
+        <h5 class="mb-0"><i class="bi bi-trash me-2"></i>{{ _('Waste Analysis') }}</h5>
     </div>
     <div class="card-body">
         <!-- Summary Cards -->
@@ -496,16 +496,16 @@
             <div class="col-md-4">
                 <div class="card bg-warning text-white">
                     <div class="card-body text-center">
-                        <h6>סה"כ פחת</h6>
-                        <h3>{{ (category_summaries.values()|sum(attribute='quantity_waste'))|int }} יחידות</h3>
-                        <small>{{ "%.1f"|format(overall_waste_pct) }}% מהייצור</small>
+                        <h6>{{ _('Total Waste') }}</h6>
+                        <h3>{{ (category_summaries.values()|sum(attribute='quantity_waste'))|int }} {{ _('Units') }}</h3>
+                        <small>{{ "%.1f"|format(overall_waste_pct) }}% {{ _('of production') }}</small>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card bg-danger text-white">
                     <div class="card-body text-center">
-                        <h6>עלות פחת</h6>
+                        <h6>{{ _('Waste Cost') }}</h6>
                         <h3>{{ currency_symbol }}{{ "%.2f"|format(total_waste_cost) }}</h3>
                     </div>
                 </div>
@@ -513,26 +513,26 @@
             <div class="col-md-4">
                 <div class="card bg-info text-white">
                     <div class="card-body text-center">
-                        <h6>השפעה על רווח</h6>
+                        <h6>{{ _('Impact on Profit') }}</h6>
                         <h3>{{ "%.1f"|format((total_waste_cost / total_revenue * 100) if total_revenue > 0 else 0) }}%</h3>
-                        <small>מההכנסות</small>
+                        <small>{{ _('of revenue') }}</small>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Waste by Product -->
-        <h6 class="mb-3">פחת לפי מוצר</h6>
+        <h6 class="mb-3">{{ _('Waste by Product') }}</h6>
         <div class="table-responsive mb-4">
             <table class="table table-hover table-sm">
                 <thead class="table-light">
                     <tr>
-                        <th>מוצר</th>
-                        <th>קטגוריה</th>
-                        <th class="text-center">נמכר</th>
-                        <th class="text-center">פחת</th>
-                        <th class="text-center">% פחת</th>
-                        <th class="text-end">עלות פחת</th>
+                        <th>{{ _('Product') }}</th>
+                        <th>{{ _('Category') }}</th>
+                        <th class="text-center">{{ _('Sold') }}</th>
+                        <th class="text-center">{{ _('Waste') }}</th>
+                        <th class="text-center">{{ _('Waste %') }}</th>
+                        <th class="text-end">{{ _('Waste Cost') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -553,20 +553,20 @@
                 </tbody>
             </table>
             {% if waste_details|length > 10 %}
-            <p class="text-muted small">מוצגים 10 המוצרים עם עלות הפחת הגבוהה ביותר</p>
+            <p class="text-muted small">{{ _('Showing top 10 products with highest waste cost') }}</p>
             {% endif %}
         </div>
 
         <!-- Waste by Category -->
-        <h6 class="mb-3">פחת לפי קטגוריה</h6>
+        <h6 class="mb-3">{{ _('Waste by Category') }}</h6>
         <div class="table-responsive">
             <table class="table table-sm">
                 <thead class="table-light">
                     <tr>
-                        <th>קטגוריה</th>
-                        <th class="text-center">כמות פחת</th>
-                        <th class="text-center">% פחת</th>
-                        <th class="text-end">עלות כוללת</th>
+                        <th>{{ _('Category') }}</th>
+                        <th class="text-center">{{ _('Waste Quantity') }}</th>
+                        <th class="text-center">{{ _('Waste %') }}</th>
+                        <th class="text-end">{{ _('Total Cost') }}</th>
                     </tr>
                 </thead>
                 <tbody>
