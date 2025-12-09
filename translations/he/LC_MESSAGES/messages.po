@@ -1254,3 +1254,79 @@ msgstr "הספקים הבאים עם מלאי קיים הוסרו:"
 msgid "What to do with the stock?"
 msgstr "מה לעשות עם המלאי?"
 
+# raw_materials.html new translations
+msgid "Raw Materials Management"
+msgstr "ניהול חומרי גלם"
+
+msgid "Track inventory, costs, and suppliers."
+msgstr "מעקב אחר מלאי, עלויות וספקים."
+
+msgid "Search raw material..."
+msgstr "חפש חומר גלם..."
+
+msgid "Unlimited"
+msgstr "בלתי מוגבל"
+
+msgid "Stock Breakdown by Supplier"
+msgstr "פירוט מלאי לפי ספק"
+
+msgid "Total"
+msgstr "סה\"כ"
+
+msgid "suppliers"
+msgstr "ספקים"
+
+msgid "Update Count"
+msgstr "עדכן ספירה"
+
+msgid "Edit Details"
+msgstr "ערוך פרטים"
+
+msgid "Adding quantity to:"
+msgstr "הוספת כמות ל:"
+
+msgid "Select supplier for stock addition"
+msgstr "בחר ספק להוספת המלאי"
+
+msgid "Quantity to Add"
+msgstr "כמות להוספה"
+
+msgid "Update Stock"
+msgstr "עדכן מלאי"
+
+msgid "Stock Count (Manual Update)"
+msgstr "ספירת מלאי (עדכון ידני)"
+
+msgid "Update current stock for:"
+msgstr "עדכון מלאי נוכחי עבור:"
+
+msgid "Select supplier for stock update"
+msgstr "בחר ספק לעדכון המלאי"
+
+msgid "Actual Current Quantity"
+msgstr "כמות נוכחית בפועל"
+
+msgid "Who performed the count?"
+msgstr "מי ביצע את הספירה?"
+
+msgid "Delete Raw Material"
+msgstr "מחיקת חומר גלם"
+
+msgid "Are you sure you want to delete"
+msgstr "האם אתה בטוח שברצונך למחוק את"
+
+msgid "This action will also delete the stock history for this item."
+msgstr "פעולה זו תמחק גם את היסטוריית המלאי של פריט זה."
+
+msgid "Stock:"
+msgstr "מלאי:"
+
+msgid "No suppliers defined for this raw material"
+msgstr "לא הוגדרו ספקים לחומר גלם זה"
+
+msgid "Error loading suppliers"
+msgstr "שגיאה בטעינת ספקים"
+
+msgid "Current Stock:"
+msgstr "מלאי נוכחי:"
+

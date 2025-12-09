@@ -49,11 +49,11 @@
 <div class="row mb-4">
     <div class="col-12 d-flex justify-content-between align-items-center">
         <div>
-            <h1 class="display-6 fw-bold text-primary">ניהול חומרי גלם</h1>
-            <p class="text-secondary">מעקב אחר מלאי, עלויות וספקים.</p>
+            <h1 class="display-6 fw-bold text-primary">{{ _('Raw Materials Management') }}</h1>
+            <p class="text-secondary">{{ _('Track inventory, costs, and suppliers.') }}</p>
         </div>
         <a href="{{ url_for('raw_materials.add_raw_material') }}" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-2"></i> הוסף חומר גלם
+            <i class="bi bi-plus-lg me-2"></i> {{ _('Add Raw Material') }}
         </a>
     </div>
 </div>
@@ -65,12 +65,12 @@
             <div class="col-md-8">
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                    <input type="text" id="searchInput" class="form-control border-start-0" placeholder="חפש חומר גלם...">
+                    <input type="text" id="searchInput" class="form-control border-start-0" placeholder="{{ _('Search raw material...') }}">
                 </div>
             </div>
             <div class="col-md-4">
                 <select id="categoryFilter" class="form-select">
-                    <option value="all">כל הקטגוריות</option>
+                    <option value="all">{{ _('All Categories') }}</option>
                     <!-- Options populated by JS -->
                 </select>
             </div>
@@ -83,13 +83,13 @@
         <table class="table table-hover align-middle mb-0" id="materialsTable">
             <thead class="table-light">
             <tr>
-                <th>שם</th>
-                <th>קטגוריה</th>
-                <th>ספק</th>
-                <th>יחידה</th>
-                <th>עלות ליחידה</th>
-                <th>מלאי נוכחי</th>
-                <th class="text-end">פעולות</th>
+                <th>{{ _('Name') }}</th>
+                <th>{{ _('Category') }}</th>
+                <th>{{ _('Supplier') }}</th>
+                <th>{{ _('Unit') }}</th>
+                <th>{{ _('Cost Per Unit') }}</th>
+                <th>{{ _('Current Stock') }}</th>
+                <th class="text-end">{{ _('Actions') }}</th>
             </tr>
             </thead>
             <tbody>
@@ -104,7 +104,7 @@
                           data-bs-trigger="hover focus click"
                           data-bs-placement="right"
                           data-bs-html="true"
-                          data-bs-title="שמות חלופיים"
+                          data-bs-title="{{ _('Alternative Names') }}"
                           data-bs-content="<div class='alt-names-breakdown'>
                               {% for alt_name in material.alternative_names %}
                               <div class='mb-1'>
@@ -130,7 +130,7 @@
                             {% endif %}
                         </div>
                         {% if material.supplier_count > 1 %}
-                        <small class="text-muted">סה"כ {{ material.supplier_count }} ספקים</small>
+                        <small class="text-muted">{{ _('Total') }} {{ material.supplier_count }} {{ _('suppliers') }}</small>
                         {% endif %}
                     {% else %}
                         <span class="text-muted">—</span>
@@ -141,7 +141,7 @@
                 <td>
                     {% if material.is_unlimited %}
                         <span class="badge bg-primary fs-5">∞</span>
-                        <small class="text-muted d-block">בלתי מוגבל</small>
+                        <small class="text-muted d-block">{{ _('Unlimited') }}</small>
                     {% else %}
                     <span class="fw-bold {{ 'text-danger' if material.current_stock <= 0 else 'text-success' }} stock-popover"
                           role="button"
@@ -150,23 +150,23 @@
                           data-bs-trigger="hover focus click"
                           data-bs-placement="left"
                           data-bs-html="true"
-                          data-bs-title="פירוט מלאי לפי ספק"
+                          data-bs-title="{{ _('Stock Breakdown by Supplier') }}"
                           data-bs-content="{% if material.stock_breakdown %}
                               <div class='stock-breakdown'>
                                 {% for item in material.stock_breakdown %}
                                     <div class='d-flex justify-content-between mb-1'>
                                         <span>
-                                            {{ item.supplier_name }}{% if item.is_primary %} (ראשי){% endif %}:
+                                            {{ item.supplier_name }}{% if item.is_primary %} ({{ _('Primary') }}){% endif %}:
                                         </span>
                                         <span class='badge bg-{{ 'success' if item.stock > 0 else 'secondary' }} ms-2'>{{ '%.2f'|format(item.stock) }} {{ material.unit }}</span>
                                     </div>
                                 {% endfor %}
                                 {% if material.stock_breakdown|length == 0 %}
-                                    <div class='text-muted'>אין ספקים מוגדרים</div>
+                                    <div class='text-muted'>{{ _('No suppliers defined') }}</div>
                                 {% endif %}
                               </div>
                           {% else %}
-                              <div class='text-muted'>אין ספקים מוגדרים</div>
+                              <div class='text-muted'>{{ _('No suppliers defined') }}</div>
                           {% endif %}"
                           style="cursor: pointer; text-decoration: underline; text-decoration-style: dotted;">
                         <i class="bi bi-info-circle-fill text-muted small me-1"></i>{{ "%.2f"|format(material.current_stock) }}
@@ -175,16 +175,16 @@
                 </td>
                 <td class="text-end">
                     <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addStockModal" data-id="{{ material.id }}" data-name="{{ material.name }}" title="הוסף מלאי">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addStockModal" data-id="{{ material.id }}" data-name="{{ material.name }}" title="{{ _('Add Stock') }}">
                             <i class="bi bi-plus-circle"></i>
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#setStockModal" data-id="{{ material.id }}" data-name="{{ material.name }}" title="עדכן ספירה">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#setStockModal" data-id="{{ material.id }}" data-name="{{ material.name }}" title="{{ _('Update Count') }}">
                             <i class="bi bi-pencil-square"></i>
                         </button>
-                        <a href="{{ url_for('raw_materials.edit_raw_material', material_id=material.id) }}" class="btn btn-sm btn-outline-secondary" title="ערוך פרטים">
+                        <a href="{{ url_for('raw_materials.edit_raw_material', material_id=material.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('Edit Details') }}">
                             <i class="bi bi-gear"></i>
                         </a>
-                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteMaterialModal" data-id="{{ material.id }}" data-name="{{ material.name }}" title="מחק">
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteMaterialModal" data-id="{{ material.id }}" data-name="{{ material.name }}" title="{{ _('Delete') }}">
                             <i class="bi bi-trash"></i>
                         </button>
                     </div>
@@ -204,29 +204,29 @@
                 <input type="hidden" id="add_stock_raw_material_id" name="raw_material_id">
                 <input type="hidden" name="action_type" value="add">
                 <div class="modal-header">
-                    <h5 class="modal-title">הוספת מלאי</h5>
+                    <h5 class="modal-title">{{ _('Add Stock') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>הוספת כמות ל: <strong id="addStockMaterialName"></strong></p>
+                    <p>{{ _('Adding quantity to:') }} <strong id="addStockMaterialName"></strong></p>
 
                     <!-- Supplier Selection -->
                     <div class="mb-3">
-                        <label for="add_stock_supplier" class="form-label">ספק</label>
+                        <label for="add_stock_supplier" class="form-label">{{ _('Supplier') }}</label>
                         <select id="add_stock_supplier" name="supplier_id" class="form-select" required>
                             <!-- Options populated by JS based on material's suppliers -->
                         </select>
-                        <div class="form-text">בחר ספק להוספת המלאי</div>
+                        <div class="form-text">{{ _('Select supplier for stock addition') }}</div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="add_stock_quantity" class="form-label">כמות להוספה</label>
+                        <label for="add_stock_quantity" class="form-label">{{ _('Quantity to Add') }}</label>
                         <input type="number" id="add_stock_quantity" name="quantity" class="form-control" step="0.01" required>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
-                    <button type="submit" class="btn btn-success">עדכן מלאי</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
+                    <button type="submit" class="btn btn-success">{{ _('Update Stock') }}</button>
                 </div>
             </form>
         </div>
@@ -241,33 +241,33 @@
                 <input type="hidden" id="set_stock_raw_material_id" name="raw_material_id">
                 <input type="hidden" name="action_type" value="set">
                  <div class="modal-header">
-                    <h5 class="modal-title">ספירת מלאי (עדכון ידני)</h5>
+                    <h5 class="modal-title">{{ _('Stock Count (Manual Update)') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>עדכון מלאי נוכחי עבור: <strong id="setStockMaterialName"></strong></p>
+                    <p>{{ _('Update current stock for:') }} <strong id="setStockMaterialName"></strong></p>
 
                     <!-- Supplier Selection -->
                     <div class="mb-3">
-                        <label for="set_stock_supplier" class="form-label">ספק</label>
+                        <label for="set_stock_supplier" class="form-label">{{ _('Supplier') }}</label>
                         <select id="set_stock_supplier" name="supplier_id" class="form-select" required>
                             <!-- Options populated by JS based on material's suppliers -->
                         </select>
-                        <div class="form-text">בחר ספק לעדכון המלאי</div>
+                        <div class="form-text">{{ _('Select supplier for stock update') }}</div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="set_stock_quantity" class="form-label">כמות נוכחית בפועל</label>
+                        <label for="set_stock_quantity" class="form-label">{{ _('Actual Current Quantity') }}</label>
                         <input type="number" id="set_stock_quantity" name="quantity" class="form-control" step="0.01" required>
                     </div>
                     <div class="mb-3">
-                        <label for="auditor_name" class="form-label">שם הסופר</label>
-                        <input type="text" id="auditor_name" name="auditor_name" class="form-control" placeholder="מי ביצע את הספירה?" required>
+                        <label for="auditor_name" class="form-label">{{ _('Counter Name') }}</label>
+                        <input type="text" id="auditor_name" name="auditor_name" class="form-control" placeholder="{{ _('Who performed the count?') }}" required>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
-                    <button type="submit" class="btn btn-warning">עדכן ספירה</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
+                    <button type="submit" class="btn btn-warning">{{ _('Update Count') }}</button>
                 </div>
             </form>
         </div>
@@ -280,16 +280,16 @@
         <div class="modal-content">
             <form method="POST" id="deleteMaterialForm">
                 <div class="modal-header">
-                    <h5 class="modal-title text-danger">מחיקת חומר גלם</h5>
+                    <h5 class="modal-title text-danger">{{ _('Delete Raw Material') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>האם אתה בטוח שברצונך למחוק את <strong id="deleteMaterialName"></strong>?</p>
-                    <p class="text-danger small">פעולה זו תמחק גם את היסטוריית המלאי של פריט זה.</p>
+                    <p>{{ _('Are you sure you want to delete') }} <strong id="deleteMaterialName"></strong>?</p>
+                    <p class="text-danger small">{{ _('This action will also delete the stock history for this item.') }}</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
-                    <button type="submit" class="btn btn-danger">מחק</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
+                    <button type="submit" class="btn btn-danger">{{ _('Delete') }}</button>
                 </div>
             </form>
         </div>
@@ -335,8 +335,8 @@
                             const option = document.createElement('option');
                             option.value = supplier.supplier_id;
                             option.text = supplier.supplier_name +
-                                         (supplier.is_primary ? ' (ראשי)' : '') +
-                                         ' - מלאי: ' + supplier.current_stock.toFixed(2);
+                                         (supplier.is_primary ? ' ({{ _("Primary") }})' : '') +
+                                         ' - {{ _("Stock:") }} ' + supplier.current_stock.toFixed(2);
                             if (supplier.is_primary) option.selected = true;
                             select.appendChild(option);
                         });
@@ -344,7 +344,7 @@
                         // If no suppliers, add a placeholder option
                         const option = document.createElement('option');
                         option.value = '';
-                        option.text = 'לא הוגדרו ספקים לחומר גלם זה';
+                        option.text = '{{ _("No suppliers defined for this raw material") }}';
                         option.disabled = true;
                         option.selected = true;
                         select.appendChild(option);
@@ -353,7 +353,7 @@
                 .catch(error => {
                     console.error('Error fetching suppliers:', error);
                     const select = document.getElementById('add_stock_supplier');
-                    select.innerHTML = '<option value="">שגיאה בטעינת ספקים</option>';
+                    select.innerHTML = '<option value="">{{ _("Error loading suppliers") }}</option>';
                 });
         });
 
@@ -382,8 +382,8 @@
                             const option = document.createElement('option');
                             option.value = supplier.supplier_id;
                             option.text = supplier.supplier_name +
-                                         (supplier.is_primary ? ' (ראשי)' : '') +
-                                         ' - מלאי נוכחי: ' + supplier.current_stock.toFixed(2);
+                                         (supplier.is_primary ? ' ({{ _("Primary") }})' : '') +
+                                         ' - {{ _("Current Stock:") }} ' + supplier.current_stock.toFixed(2);
                             if (supplier.is_primary) option.selected = true;
                             select.appendChild(option);
                         });
@@ -391,7 +391,7 @@
                         // If no suppliers, add a placeholder option
                         const option = document.createElement('option');
                         option.value = '';
-                        option.text = 'לא הוגדרו ספקים לחומר גלם זה';
+                        option.text = '{{ _("No suppliers defined for this raw material") }}';
                         option.disabled = true;
                         option.selected = true;
                         select.appendChild(option);
@@ -400,7 +400,7 @@
                 .catch(error => {
                     console.error('Error fetching suppliers:', error);
                     const select = document.getElementById('set_stock_supplier');
-                    select.innerHTML = '<option value="">שגיאה בטעינת ספקים</option>';
+                    select.innerHTML = '<option value="">{{ _("Error loading suppliers") }}</option>';
                 });
         });
 

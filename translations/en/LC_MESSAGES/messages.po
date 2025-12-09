@@ -1262,3 +1262,79 @@ msgstr "The following suppliers with existing stock were removed:"
 msgid "What to do with the stock?"
 msgstr "What to do with the stock?"
 
+# raw_materials.html new translations
+msgid "Raw Materials Management"
+msgstr "Raw Materials Management"
+
+msgid "Track inventory, costs, and suppliers."
+msgstr "Track inventory, costs, and suppliers."
+
+msgid "Search raw material..."
+msgstr "Search raw material..."
+
+msgid "Unlimited"
+msgstr "Unlimited"
+
+msgid "Stock Breakdown by Supplier"
+msgstr "Stock Breakdown by Supplier"
+
+msgid "Total"
+msgstr "Total"
+
+msgid "suppliers"
+msgstr "suppliers"
+
+msgid "Update Count"
+msgstr "Update Count"
+
+msgid "Edit Details"
+msgstr "Edit Details"
+
+msgid "Adding quantity to:"
+msgstr "Adding quantity to:"
+
+msgid "Select supplier for stock addition"
+msgstr "Select supplier for stock addition"
+
+msgid "Quantity to Add"
+msgstr "Quantity to Add"
+
+msgid "Update Stock"
+msgstr "Update Stock"
+
+msgid "Stock Count (Manual Update)"
+msgstr "Stock Count (Manual Update)"
+
+msgid "Update current stock for:"
+msgstr "Update current stock for:"
+
+msgid "Select supplier for stock update"
+msgstr "Select supplier for stock update"
+
+msgid "Actual Current Quantity"
+msgstr "Actual Current Quantity"
+
+msgid "Who performed the count?"
+msgstr "Who performed the count?"
+
+msgid "Delete Raw Material"
+msgstr "Delete Raw Material"
+
+msgid "Are you sure you want to delete"
+msgstr "Are you sure you want to delete"
+
+msgid "This action will also delete the stock history for this item."
+msgstr "This action will also delete the stock history for this item."
+
+msgid "Stock:"
+msgstr "Stock:"
+
+msgid "No suppliers defined for this raw material"
+msgstr "No suppliers defined for this raw material"
+
+msgid "Error loading suppliers"
+msgstr "Error loading suppliers"
+
+msgid "Current Stock:"
+msgstr "Current Stock:"
+
