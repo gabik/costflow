@@ -2642,3 +2642,24 @@ msgstr "אופציונלי - ברירת מחדל \"g\""
 
 msgid "Required - \"premake\" or \"product\""
 msgstr "נדרש - \"premake\" או \"product\""
+
+msgid "Contact Person:"
+msgstr "איש קשר:"
+
+msgid "Phone:"
+msgstr "טלפון:"
+
+msgid "Status:"
+msgstr "סטטוס:"
+
+msgid "Raw Materials of"
+msgstr "חומרי גלם של"
+
+msgid "Raw Materials - "
+msgstr "חומרי גלם - "
+
+msgid "Premake"
+msgstr "הכנה מקדימה"
+
+msgid "unsold products remain."
+msgstr "נותרו מוצרים שלא נמכרו."

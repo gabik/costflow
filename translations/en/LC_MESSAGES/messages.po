@@ -2647,3 +2647,24 @@ msgstr "Optional - default \"g\""
 
 msgid "Required - \"premake\" or \"product\""
 msgstr "Required - \"premake\" or \"product\""
+
+msgid "Contact Person:"
+msgstr "Contact Person:"
+
+msgid "Phone:"
+msgstr "Phone:"
+
+msgid "Status:"
+msgstr "Status:"
+
+msgid "Raw Materials of"
+msgstr "Raw Materials of"
+
+msgid "Raw Materials - "
+msgstr "Raw Materials - "
+
+msgid "Premake"
+msgstr "Premake"
+
+msgid "unsold products remain."
+msgstr "unsold products remain."
