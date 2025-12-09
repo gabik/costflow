@@ -73,8 +73,8 @@ msgstr "אחוז עלות מזון:"
 msgid "of revenue"
 msgstr "מההכנסות"
 
-msgid "Recommended target: 25-35%"
-msgstr "יעד מומלץ: 25-35%"
+msgid "Recommended target: 25-35%%"
+msgstr "יעד מומלץ: 25-35%%"
 
 # Table Headers
 msgid "Product"
