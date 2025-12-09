@@ -1,22 +1,22 @@
 {% extends "base.html" %}
-{% block title %}יומן פעילות - CostFlow{% endblock %}
+{% block title %}{{ _('Activity Log') }} - CostFlow{% endblock %}
 
 {% block content %}
 <div class="row mb-4">
     <div class="col-12 d-flex justify-content-between align-items-center">
         <div>
-            <h1 class="display-6 fw-bold text-primary">יומן פעילות מערכת</h1>
-            <p class="text-secondary">מעקב אחר שינויים ופעולות משתמשים.</p>
+            <h1 class="display-6 fw-bold text-primary">{{ _('System Activity Log') }}</h1>
+            <p class="text-secondary">{{ _('Track changes and user actions.') }}</p>
         </div>
         <div class="d-flex gap-2">
             <a href="{{ url_for('admin.backup_db') }}" class="btn btn-success">
-                <i class="bi bi-download me-2"></i> גיבוי נתונים
+                <i class="bi bi-download me-2"></i> {{ _('Backup Data') }}
             </a>
             <button class="btn btn-warning text-dark" data-bs-toggle="modal" data-bs-target="#restoreDbModal">
-                <i class="bi bi-upload me-2"></i> שחזור מגיבוי
+                <i class="bi bi-upload me-2"></i> {{ _('Restore from Backup') }}
             </button>
             <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#resetDbModal">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i> איפוס מערכת מלא
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ _('Full System Reset') }}
             </button>
         </div>
     </div>
@@ -27,11 +27,11 @@
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
                 <tr>
-                    <th>זמן</th>
-                    <th>פעולה</th>
-                    <th>סוג יעד</th>
-                    <th>מזהה יעד</th>
-                    <th>פרטים</th>
+                    <th>{{ _('Time') }}</th>
+                    <th>{{ _('Action') }}</th>
+                    <th>{{ _('Target Type') }}</th>
+                    <th>{{ _('Target ID') }}</th>
+                    <th>{{ _('Details') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -40,15 +40,15 @@
                     <td class="text-muted small" dir="ltr">{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                     <td>
                         {% if log.action == 'CREATE' %}
-                            <span class="badge bg-success">יצירה</span>
+                            <span class="badge bg-success">{{ _('Create') }}</span>
                         {% elif log.action == 'UPDATE' %}
-                            <span class="badge bg-warning text-dark">עדכון</span>
+                            <span class="badge bg-warning text-dark">{{ _('Update') }}</span>
                         {% elif log.action == 'DELETE' %}
-                            <span class="badge bg-danger">מחיקה</span>
+                            <span class="badge bg-danger">{{ _('Delete') }}</span>
                         {% elif log.action == 'RESET' %}
-                            <span class="badge bg-dark">איפוס</span>
+                            <span class="badge bg-dark">{{ _('Reset') }}</span>
                         {% elif log.action == 'RESTORE' %}
-                            <span class="badge bg-info text-dark">שחזור</span>
+                            <span class="badge bg-info text-dark">{{ _('Restore') }}</span>
                         {% else %}
                             <span class="badge bg-secondary">{{ log.action }}</span>
                         {% endif %}
@@ -59,7 +59,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="5" class="text-center py-4 text-muted">אין רישומים ביומן.</td>
+                    <td colspan="5" class="text-center py-4 text-muted">{{ _('No records in the log.') }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -73,20 +73,20 @@
         <div class="modal-content">
             <form method="POST" action="{{ url_for('admin.restore_db') }}" enctype="multipart/form-data">
                 <div class="modal-header bg-warning">
-                    <h5 class="modal-title text-dark">שחזור מגיבוי</h5>
+                    <h5 class="modal-title text-dark">{{ _('Restore from Backup') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="fw-bold">פעולה זו תדרוס את כל הנתונים במערכת!</p>
-                    <p>העלה קובץ גיבוי (JSON) לשחזור המצב.</p>
+                    <p class="fw-bold">{{ _('This action will overwrite all data in the system!') }}</p>
+                    <p>{{ _('Upload a backup file (JSON) to restore the state.') }}</p>
                     <div class="mb-3">
-                        <label for="backup_file" class="form-label">קובץ גיבוי</label>
+                        <label for="backup_file" class="form-label">{{ _('Backup File') }}</label>
                         <input type="file" class="form-control" name="backup_file" accept=".json" required>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
-                    <button type="submit" class="btn btn-warning">שחזר נתונים</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
+                    <button type="submit" class="btn btn-warning">{{ _('Restore Data') }}</button>
                 </div>
             </form>
         </div>
@@ -99,17 +99,17 @@
         <div class="modal-content">
             <form method="POST" action="{{ url_for('admin.reset_db') }}">
                 <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">אזהרה: איפוס מערכת</h5>
+                    <h5 class="modal-title">{{ _('Warning: System Reset') }}</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="fw-bold">פעולה זו תמחק את כל הנתונים במערכת!</p>
-                    <p>כל המוצרים, חומרי הגלם, ההיסטוריה והיומנים יימחקו לצמיתות. לא ניתן לשחזר מידע זה.</p>
-                    <p>האם אתה בטוח שברצונך להמשיך?</p>
+                    <p class="fw-bold">{{ _('This action will delete all data in the system!') }}</p>
+                    <p>{{ _('All products, raw materials, history and logs will be permanently deleted. This information cannot be recovered.') }}</p>
+                    <p>{{ _('Are you sure you want to continue?') }}</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
-                    <button type="submit" class="btn btn-danger">כן, אפס את המערכת</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
+                    <button type="submit" class="btn btn-danger">{{ _('Yes, reset the system') }}</button>
                 </div>
             </form>
         </div>

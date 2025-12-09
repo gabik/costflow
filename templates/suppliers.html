@@ -1,15 +1,15 @@
 {% extends "base.html" %}
-{% block title %}ספקים - CostFlow{% endblock %}
+{% block title %}{{ _('Suppliers') }} - CostFlow{% endblock %}
 
 {% block content %}
 <div class="row mb-4">
     <div class="col-12 d-flex justify-content-between align-items-center">
         <div>
-            <h1 class="display-6 fw-bold text-primary">ניהול ספקים</h1>
-            <p class="text-secondary">ניהול ספקי חומרי גלם ומחירים.</p>
+            <h1 class="display-6 fw-bold text-primary">{{ _('Manage Suppliers') }}</h1>
+            <p class="text-secondary">{{ _('Manage raw material suppliers and prices.') }}</p>
         </div>
         <a href="{{ url_for('suppliers.add_supplier') }}" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-2"></i> הוסף ספק חדש
+            <i class="bi bi-plus-lg me-2"></i> {{ _('Add New Supplier') }}
         </a>
     </div>
 </div>
@@ -19,13 +19,13 @@
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
             <tr>
-                <th>שם הספק</th>
-                <th>איש קשר</th>
-                <th>טלפון</th>
-                <th>אימייל</th>
-                <th class="text-center">חומרים פעילים</th>
-                <th>סטטוס</th>
-                <th class="text-end">פעולות</th>
+                <th>{{ _('Supplier Name') }}</th>
+                <th>{{ _('Contact Person') }}</th>
+                <th>{{ _('Phone') }}</th>
+                <th>{{ _('Email') }}</th>
+                <th class="text-center">{{ _('Active Materials') }}</th>
+                <th>{{ _('Status') }}</th>
+                <th class="text-end">{{ _('Actions') }}</th>
             </tr>
             </thead>
             <tbody>
@@ -46,33 +46,33 @@
                 </td>
                 <td>
                     {% if supplier.is_active %}
-                        <span class="badge bg-success">פעיל</span>
+                        <span class="badge bg-success">{{ _('Active') }}</span>
                     {% else %}
-                        <span class="badge bg-secondary">לא פעיל</span>
+                        <span class="badge bg-secondary">{{ _('Inactive') }}</span>
                     {% endif %}
                 </td>
                 <td class="text-end">
                     <div class="btn-group" role="group">
                         <a href="{{ url_for('suppliers.supplier_materials', supplier_id=supplier.id) }}"
-                           class="btn btn-sm btn-outline-secondary" title="צפה בחומרים">
+                           class="btn btn-sm btn-outline-secondary" title="{{ _('View Materials') }}">
                             <i class="bi bi-box-seam"></i>
                         </a>
                         <a href="{{ url_for('suppliers.edit_supplier', supplier_id=supplier.id) }}"
-                           class="btn btn-sm btn-outline-secondary" title="ערוך">
+                           class="btn btn-sm btn-outline-secondary" title="{{ _('Edit') }}">
                             <i class="bi bi-pencil"></i>
                         </a>
                         <form method="POST" action="{{ url_for('suppliers.toggle_supplier', supplier_id=supplier.id) }}"
                               class="d-inline">
                             <button type="submit" class="btn btn-sm btn-outline-warning"
-                                    title="{{ 'השבת' if not supplier.is_active else 'הפוך ללא פעיל' }}">
+                                    title="{{ _('Reactivate') if not supplier.is_active else _('Deactivate') }}">
                                 <i class="bi bi-toggle-{{ 'off' if supplier.is_active else 'on' }}"></i>
                             </button>
                         </form>
                         {% if supplier.active_materials_count == 0 %}
                         <form method="POST" action="{{ url_for('suppliers.delete_supplier', supplier_id=supplier.id) }}"
                               class="d-inline"
-                              onsubmit="return confirm('האם למחוק את הספק {{ supplier.name }}?');">
-                            <button type="submit" class="btn btn-sm btn-outline-danger" title="מחק">
+                              onsubmit="return confirm('{{ _('Delete supplier') }} {{ supplier.name }}?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ _('Delete') }}">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </form>
@@ -83,7 +83,7 @@
             {% else %}
             <tr>
                 <td colspan="7" class="text-center py-4 text-muted">
-                    לא נמצאו ספקים במערכת.
+                    {{ _('No suppliers found in the system.') }}
                 </td>
             </tr>
             {% endfor %}
@@ -97,12 +97,12 @@
     {% if show_inactive %}
         <a href="{{ url_for('suppliers.suppliers', show_inactive='false') }}"
            class="btn btn-outline-secondary">
-            <i class="bi bi-eye-slash me-2"></i>הסתר ספקים לא פעילים
+            <i class="bi bi-eye-slash me-2"></i>{{ _('Hide Inactive Suppliers') }}
         </a>
     {% else %}
         <a href="{{ url_for('suppliers.suppliers', show_inactive='true') }}"
            class="btn btn-outline-secondary">
-            <i class="bi bi-eye me-2"></i>הצג ספקים לא פעילים
+            <i class="bi bi-eye me-2"></i>{{ _('Show Inactive Suppliers') }}
         </a>
     {% endif %}
 </div>

@@ -256,34 +256,10 @@ msgid "Welcome to the Waste Tracking System"
 msgstr "מערכת ניהול עלויות"
 
 #: templates/index.html:6
-msgid ""
-"Your one-stop solution to manage raw materials, production, and inventory"
-" efficiently"
-msgstr "ניהול עלויות תהליכי הייצור"
-
-#: templates/index.html:7
-msgid ""
-"Navigate through the system using the menu or explore the key features "
-"below"
-msgstr "נווט אל האזור הרצוי בעזרת הכפתורים"
-
-#: templates/index.html:15
-msgid ""
-"Track your inventory, update stock levels, and manage raw material "
-"categories seamlessly"
-msgstr "נהל ועקוב אחר חומרי הגלם"
-
-#: templates/index.html:16
 msgid "Go to Raw Materials"
 msgstr "חומרי גלם"
 
 #: templates/index.html:24
-msgid ""
-"Log production activities and analyze raw material usage for optimized "
-"operations"
-msgstr "נהל יומן ייצור על מנת לזהות פחת עודף"
-
-#: templates/index.html:25 templates/production.html:24
 msgid "Log Production"
 msgstr "יומן ייצור"
 
@@ -309,12 +285,6 @@ msgid "Manage Labor"
 msgstr "ניהול עובדים"
 
 #: templates/index.html:55
-msgid ""
-"Organize your raw materials and packaging into categories for easy "
-"management"
-msgstr "נהל קטגוריות חומרי גלם, שיוך לקטוגרויות ייעל את מציאתם"
-
-#: templates/labor.html:7 templates/product_details.html:36
 msgid "Employee Name"
 msgstr "שם עובד"
 
@@ -1579,3 +1549,212 @@ msgstr "קטגוריה:"
 
 msgid "Cost per Unit"
 msgstr "עלות ליחידה"
+msgid "Manage Suppliers"
+msgstr "ניהול ספקים"
+
+msgid "Manage raw material suppliers and prices."
+msgstr "ניהול ספקי חומרי גלם ומחירים."
+
+msgid "Active Materials"
+msgstr "חומרים פעילים"
+
+msgid "View Materials"
+msgstr "צפה בחומרים"
+
+msgid "Reactivate"
+msgstr "השבת"
+
+msgid "Deactivate"
+msgstr "הפוך ללא פעיל"
+
+msgid "Delete supplier"
+msgstr "למחוק את הספק"
+
+msgid "No suppliers found in the system."
+msgstr "לא נמצאו ספקים במערכת."
+
+msgid "Hide Inactive Suppliers"
+msgstr "הסתר ספקים לא פעילים"
+
+msgid "Show Inactive Suppliers"
+msgstr "הצג ספקים לא פעילים"
+
+msgid "Supplier"
+msgstr "ספק"
+
+msgid "Unique name to identify supplier in the system"
+msgstr "שם ייחודי לזיהוי הספק במערכת"
+
+msgid "Name of contact person at supplier"
+msgstr "שם איש הקשר אצל הספק"
+
+msgid "Phone number for contact"
+msgstr "מספר טלפון ליצירת קשר"
+
+msgid "Email address for correspondence"
+msgstr "כתובת אימייל לתכתובת"
+
+msgid "Address"
+msgstr "כתובת"
+
+msgid "Street, City, Postal Code"
+msgstr "רחוב, עיר, מיקוד"
+
+msgid "Physical address of supplier"
+msgstr "כתובת פיזית של הספק"
+
+msgid "Supplier Information"
+msgstr "מידע על ספקים"
+
+msgid "Suppliers in the system allow managing multiple sources for raw materials with different prices."
+msgstr "ספקים במערכת מאפשרים לנהל מספר מקורות לחומרי גלם עם מחירים שונים."
+
+msgid "Each supplier can provide multiple raw materials"
+msgstr "כל ספק יכול לספק מספר חומרי גלם"
+
+msgid "Each raw material can be supplied by multiple suppliers"
+msgstr "כל חומר גלם יכול להיות מסופק ע\"י מספר ספקים"
+
+msgid "The system will automatically choose the cheapest supplier during production"
+msgstr "המערכת תבחר אוטומטית בספק הזול ביותר בעת ייצור"
+
+msgid "Inventory is managed separately for each supplier"
+msgstr "מלאי מנוהל נפרדת לכל ספק"
+
+msgid "Created on:"
+msgstr "נוצר בתאריך:"
+
+msgid "Activity Log"
+msgstr "יומן פעילות"
+
+msgid "System Activity Log"
+msgstr "יומן פעילות מערכת"
+
+msgid "Track changes and user actions."
+msgstr "מעקב אחר שינויים ופעולות משתמשים."
+
+msgid "Backup Data"
+msgstr "גיבוי נתונים"
+
+msgid "Restore from Backup"
+msgstr "שחזור מגיבוי"
+
+msgid "Full System Reset"
+msgstr "איפוס מערכת מלא"
+
+msgid "Time"
+msgstr "זמן"
+
+msgid "Action"
+msgstr "פעולה"
+
+msgid "Target Type"
+msgstr "סוג יעד"
+
+msgid "Target ID"
+msgstr "מזהה יעד"
+
+msgid "Create"
+msgstr "יצירה"
+
+msgid "Reset"
+msgstr "איפוס"
+
+msgid "Restore"
+msgstr "שחזור"
+
+msgid "No records in the log."
+msgstr "אין רישומים ביומן."
+
+msgid "This action will overwrite all data in the system!"
+msgstr "פעולה זו תדרוס את כל הנתונים במערכת!"
+
+msgid "Upload a backup file (JSON) to restore the state."
+msgstr "העלה קובץ גיבוי (JSON) לשחזור המצב."
+
+msgid "Backup File"
+msgstr "קובץ גיבוי"
+
+msgid "Restore Data"
+msgstr "שחזר נתונים"
+
+msgid "Warning: System Reset"
+msgstr "אזהרה: איפוס מערכת"
+
+msgid "This action will delete all data in the system!"
+msgstr "פעולה זו תמחק את כל הנתונים במערכת!"
+
+msgid "All products, raw materials, history and logs will be permanently deleted. This information cannot be recovered."
+msgstr "כל המוצרים, חומרי הגלם, ההיסטוריה והיומנים יימחקו לצמיתות. לא ניתן לשחזר מידע זה."
+
+msgid "Are you sure you want to continue?"
+msgstr "האם אתה בטוח שברצונך להמשיך?"
+
+msgid "Yes, reset the system"
+msgstr "כן, אפס את המערכת"
+
+msgid "Classify raw materials into groups."
+msgstr "סיווג חומרי גלם לקבוצות."
+
+msgid "Classify products into sales groups."
+msgstr "סיווג מוצרים לקבוצות מכירה."
+
+msgid "Delete this category?"
+msgstr "למחוק קטגוריה זו?"
+
+msgid "No categories found."
+msgstr "לא נמצאו קטגוריות."
+
+msgid "Update Inventory from File"
+msgstr "עדכון מלאי מקובץ"
+
+msgid "Upload Excel file to update quantities and prices."
+msgstr "העלאת קובץ אקסל לעדכון כמויות ומחירים."
+
+msgid "Upload Excel File"
+msgstr "העלה קובץ אקסל"
+
+msgid "File must contain columns: Product Name, Total Quantity, Average Price."
+msgstr "הקובץ חייב להכיל את העמודות: שם מוצר, סה\"כ כמות, מחיר ממוצע."
+
+msgid "Optional columns: SKU, Supplier (for more accurate identification)"
+msgstr "עמודות אופציונליות: מק\"ט, ספק (לזיהוי מדויק יותר)"
+
+msgid "Load File"
+msgstr "טען קובץ"
+
+msgid "Review Data and Confirm Changes"
+msgstr "סקירת נתונים ואישור שינויים"
+
+msgid "SKU / Supplier"
+msgstr "מק\"ט / ספק"
+
+msgid "Price in File"
+msgstr "מחיר בקובץ"
+
+msgid "Price in System"
+msgstr "מחיר במערכת"
+
+msgid "Action Required"
+msgstr "פעולה נדרשת"
+
+msgid "SKU:"
+msgstr "מק\"ט:"
+
+msgid "Identified by SKU"
+msgstr "זוהה לפי מק''ט"
+
+msgid "New"
+msgstr "חדש"
+
+msgid "Exists"
+msgstr "קיים"
+
+msgid "Update price to"
+msgstr "עדכן מחיר ל-"
+
+msgid "Same price"
+msgstr "מחיר זהה"
+
+msgid "Confirm and Update Inventory"
+msgstr "אשר ועדכן מלאי"

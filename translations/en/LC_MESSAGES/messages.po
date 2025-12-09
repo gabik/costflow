@@ -258,34 +258,10 @@ msgid "Welcome to the Waste Tracking System"
 msgstr ""
 
 #: templates/index.html:6
-msgid ""
-"Your one-stop solution to manage raw materials, production, and inventory"
-" efficiently"
-msgstr ""
-
-#: templates/index.html:7
-msgid ""
-"Navigate through the system using the menu or explore the key features "
-"below"
-msgstr ""
-
-#: templates/index.html:15
-msgid ""
-"Track your inventory, update stock levels, and manage raw material "
-"categories seamlessly"
-msgstr ""
-
-#: templates/index.html:16
 msgid "Go to Raw Materials"
 msgstr ""
 
 #: templates/index.html:24
-msgid ""
-"Log production activities and analyze raw material usage for optimized "
-"operations"
-msgstr ""
-
-#: templates/index.html:25 templates/production.html:24
 msgid "Log Production"
 msgstr ""
 
@@ -312,12 +288,6 @@ msgid "Manage Labor"
 msgstr ""
 
 #: templates/index.html:55
-msgid ""
-"Organize your raw materials and packaging into categories for easy "
-"management"
-msgstr ""
-
-#: templates/labor.html:7 templates/product_details.html:36
 msgid "Employee Name"
 msgstr ""
 
@@ -1584,3 +1554,212 @@ msgstr "Category:"
 
 msgid "Cost per Unit"
 msgstr "Cost per Unit"
+msgid "Manage Suppliers"
+msgstr "Manage Suppliers"
+
+msgid "Manage raw material suppliers and prices."
+msgstr "Manage raw material suppliers and prices."
+
+msgid "Active Materials"
+msgstr "Active Materials"
+
+msgid "View Materials"
+msgstr "View Materials"
+
+msgid "Reactivate"
+msgstr "Reactivate"
+
+msgid "Deactivate"
+msgstr "Deactivate"
+
+msgid "Delete supplier"
+msgstr "Delete supplier"
+
+msgid "No suppliers found in the system."
+msgstr "No suppliers found in the system."
+
+msgid "Hide Inactive Suppliers"
+msgstr "Hide Inactive Suppliers"
+
+msgid "Show Inactive Suppliers"
+msgstr "Show Inactive Suppliers"
+
+msgid "Supplier"
+msgstr "Supplier"
+
+msgid "Unique name to identify supplier in the system"
+msgstr "Unique name to identify supplier in the system"
+
+msgid "Name of contact person at supplier"
+msgstr "Name of contact person at supplier"
+
+msgid "Phone number for contact"
+msgstr "Phone number for contact"
+
+msgid "Email address for correspondence"
+msgstr "Email address for correspondence"
+
+msgid "Address"
+msgstr "Address"
+
+msgid "Street, City, Postal Code"
+msgstr "Street, City, Postal Code"
+
+msgid "Physical address of supplier"
+msgstr "Physical address of supplier"
+
+msgid "Supplier Information"
+msgstr "Supplier Information"
+
+msgid "Suppliers in the system allow managing multiple sources for raw materials with different prices."
+msgstr "Suppliers in the system allow managing multiple sources for raw materials with different prices."
+
+msgid "Each supplier can provide multiple raw materials"
+msgstr "Each supplier can provide multiple raw materials"
+
+msgid "Each raw material can be supplied by multiple suppliers"
+msgstr "Each raw material can be supplied by multiple suppliers"
+
+msgid "The system will automatically choose the cheapest supplier during production"
+msgstr "The system will automatically choose the cheapest supplier during production"
+
+msgid "Inventory is managed separately for each supplier"
+msgstr "Inventory is managed separately for each supplier"
+
+msgid "Created on:"
+msgstr "Created on:"
+
+msgid "Activity Log"
+msgstr "Activity Log"
+
+msgid "System Activity Log"
+msgstr "System Activity Log"
+
+msgid "Track changes and user actions."
+msgstr "Track changes and user actions."
+
+msgid "Backup Data"
+msgstr "Backup Data"
+
+msgid "Restore from Backup"
+msgstr "Restore from Backup"
+
+msgid "Full System Reset"
+msgstr "Full System Reset"
+
+msgid "Time"
+msgstr "Time"
+
+msgid "Action"
+msgstr "Action"
+
+msgid "Target Type"
+msgstr "Target Type"
+
+msgid "Target ID"
+msgstr "Target ID"
+
+msgid "Create"
+msgstr "Create"
+
+msgid "Reset"
+msgstr "Reset"
+
+msgid "Restore"
+msgstr "Restore"
+
+msgid "No records in the log."
+msgstr "No records in the log."
+
+msgid "This action will overwrite all data in the system!"
+msgstr "This action will overwrite all data in the system!"
+
+msgid "Upload a backup file (JSON) to restore the state."
+msgstr "Upload a backup file (JSON) to restore the state."
+
+msgid "Backup File"
+msgstr "Backup File"
+
+msgid "Restore Data"
+msgstr "Restore Data"
+
+msgid "Warning: System Reset"
+msgstr "Warning: System Reset"
+
+msgid "This action will delete all data in the system!"
+msgstr "This action will delete all data in the system!"
+
+msgid "All products, raw materials, history and logs will be permanently deleted. This information cannot be recovered."
+msgstr "All products, raw materials, history and logs will be permanently deleted. This information cannot be recovered."
+
+msgid "Are you sure you want to continue?"
+msgstr "Are you sure you want to continue?"
+
+msgid "Yes, reset the system"
+msgstr "Yes, reset the system"
+
+msgid "Classify raw materials into groups."
+msgstr "Classify raw materials into groups."
+
+msgid "Classify products into sales groups."
+msgstr "Classify products into sales groups."
+
+msgid "Delete this category?"
+msgstr "Delete this category?"
+
+msgid "No categories found."
+msgstr "No categories found."
+
+msgid "Update Inventory from File"
+msgstr "Update Inventory from File"
+
+msgid "Upload Excel file to update quantities and prices."
+msgstr "Upload Excel file to update quantities and prices."
+
+msgid "Upload Excel File"
+msgstr "Upload Excel File"
+
+msgid "File must contain columns: Product Name, Total Quantity, Average Price."
+msgstr "File must contain columns: Product Name, Total Quantity, Average Price."
+
+msgid "Optional columns: SKU, Supplier (for more accurate identification)"
+msgstr "Optional columns: SKU, Supplier (for more accurate identification)"
+
+msgid "Load File"
+msgstr "Load File"
+
+msgid "Review Data and Confirm Changes"
+msgstr "Review Data and Confirm Changes"
+
+msgid "SKU / Supplier"
+msgstr "SKU / Supplier"
+
+msgid "Price in File"
+msgstr "Price in File"
+
+msgid "Price in System"
+msgstr "Price in System"
+
+msgid "Action Required"
+msgstr "Action Required"
+
+msgid "SKU:"
+msgstr "SKU:"
+
+msgid "Identified by SKU"
+msgstr "Identified by SKU"
+
+msgid "New"
+msgstr "New"
+
+msgid "Exists"
+msgstr "Exists"
+
+msgid "Update price to"
+msgstr "Update price to"
+
+msgid "Same price"
+msgstr "Same price"
+
+msgid "Confirm and Update Inventory"
+msgstr "Confirm and Update Inventory"
