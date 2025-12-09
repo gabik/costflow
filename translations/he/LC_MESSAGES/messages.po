@@ -1074,3 +1074,37 @@ msgstr "עלות ייצור"
 msgid "Stock Discrepancies"
 msgstr "הפרשי מלאי"
 
+# Premake Production page translations
+msgid "Select Premake"
+msgstr "בחר הכנה מקדימה"
+
+msgid "Batch size (recipe):"
+msgstr "גודל באצ' (מתכון):"
+
+msgid "Number of batches to produce"
+msgstr "מספר באצ'ים לייצור"
+
+msgid "Enter the number of batches to produce. Each batch is"
+msgstr "הכנס את מספר הבאצ'ים לייצור. כל באצ' הוא"
+
+msgid "Total quantity to produce:"
+msgstr "סה\"כ כמות לייצור:"
+
+msgid "Premake Production History"
+msgstr "היסטוריית ייצור הכנות"
+
+msgid "Number of batches"
+msgstr "מספר באצ'ים"
+
+msgid "Enter the number of batches produced. Each batch is"
+msgstr "הכנס את מספר הבאצ'ים שיוצרו. כל באצ' הוא"
+
+msgid "Edit Premake Production Quantity"
+msgstr "עריכת כמות ייצור הכנה"
+
+msgid "Edit Premake Production Quantity for"
+msgstr "עריכת כמות ייצור הכנה עבור"
+
+msgid "Are you sure you want to delete this premake production log?"
+msgstr "האם אתה בטוח שברצונך למחוק רשומת ייצור הכנה זו?"
+

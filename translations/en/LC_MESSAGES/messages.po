@@ -1085,3 +1085,37 @@ msgstr "No premakes found."
 msgid "View Details"
 msgstr "View Details"
 
+# Premake Production page translations
+msgid "Select Premake"
+msgstr "Select Premake"
+
+msgid "Batch size (recipe):"
+msgstr "Batch size (recipe):"
+
+msgid "Number of batches to produce"
+msgstr "Number of batches to produce"
+
+msgid "Enter the number of batches to produce. Each batch is"
+msgstr "Enter the number of batches to produce. Each batch is"
+
+msgid "Total quantity to produce:"
+msgstr "Total quantity to produce:"
+
+msgid "Premake Production History"
+msgstr "Premake Production History"
+
+msgid "Number of batches"
+msgstr "Number of batches"
+
+msgid "Enter the number of batches produced. Each batch is"
+msgstr "Enter the number of batches produced. Each batch is"
+
+msgid "Edit Premake Production Quantity"
+msgstr "Edit Premake Production Quantity"
+
+msgid "Edit Premake Production Quantity for"
+msgstr "Edit Premake Production Quantity for"
+
+msgid "Are you sure you want to delete this premake production log?"
+msgstr "Are you sure you want to delete this premake production log?"
+
