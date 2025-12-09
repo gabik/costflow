@@ -98,7 +98,9 @@ def add_premake():
 
         # Auto-calculate batch_size as sum of all component quantities
         batch_size = 0
-        for i in range(len(component_types)):
+        # Use minimum length to avoid index errors
+        min_len = min(len(component_types), len(component_ids), len(quantities))
+        for i in range(min_len):
             if component_types[i] and component_ids[i] and quantities[i]:
                 batch_size += float(quantities[i])
 
@@ -178,7 +180,9 @@ def edit_premake(premake_id):
 
         # Auto-calculate batch_size as sum of all component quantities
         batch_size = 0
-        for i in range(len(component_types)):
+        # Use minimum length to avoid index errors
+        min_len = min(len(component_types), len(component_ids), len(quantities))
+        for i in range(min_len):
             if component_types[i] and component_ids[i] and quantities[i]:
                 batch_size += float(quantities[i])
 
