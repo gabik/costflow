@@ -35,6 +35,10 @@ Costflow is a Flask-based web application for cost management and inventory trac
 - **Database**: SQLAlchemy ORM with SQLite (default) or PostgreSQL
 - **Frontend**: Jinja2 templates with HTML/CSS
 - **Internationalization**: Flask-Babel (Hebrew default, English available)
+  - Translation files: `translations/he/` and `translations/en/`
+  - Language switching: `?lang=en` or `?lang=he` parameter
+  - Template usage: `{{ _('English text') }}` for translatable strings
+  - Python usage: `from flask_babel import gettext as _` then `_('text')`
 - **Data Processing**: Pandas, OpenPyxl for Excel operations
 
 ## Application Architecture
@@ -257,3 +261,82 @@ unit: g
 - Stock calculations use 'set' (absolute) or 'add' (incremental) operations
 - Weekly dashboard uses weighted average of actual production costs
 - Migration endpoint pattern: `/migrate_[feature_name]` for remote DB updates
+
+## Translation & Internationalization
+
+### Overview
+- **System**: Flask-Babel for i18n support
+- **Supported Languages**: Hebrew (he) - default, English (en)
+- **Language Selection**: Via `?lang=en` or `?lang=he` URL parameter (persists in session)
+- **Translation Files**: `translations/{lang}/LC_MESSAGES/messages.po` and `.mo`
+
+### Translation Workflow
+
+#### For Templates (Jinja2)
+Use the `_()` function for all user-facing strings:
+```html
+<!-- English as key -->
+<h1>{{ _('Weekly Report') }}</h1>
+<button>{{ _('Save Changes') }}</button>
+
+<!-- With variables -->
+<p>{{ _('Performance summary for week') }} {{ week_start.strftime('%d/%m/%Y') }}</p>
+```
+
+#### For Python Code
+Import and use gettext:
+```python
+from flask_babel import gettext as _
+
+# Flash messages
+flash(_('Product created successfully'), 'success')
+flash(_('Error: Invalid data'), 'error')
+
+# Variables
+return _('Total items: {}').format(count)
+```
+
+### Working with Translation Files
+
+#### Extract Translatable Strings
+```bash
+# Scan all templates and Python files
+pybabel extract -F babel.cfg -o messages.pot .
+```
+
+#### Update Translation Catalogs
+```bash
+# Update existing translations
+pybabel update -i messages.pot -d translations -l he
+pybabel update -i messages.pot -d translations -l en
+```
+
+#### Edit Translation Files
+Open `translations/he/LC_MESSAGES/messages.po`:
+```po
+msgid "Weekly Report"
+msgstr "דו\"ח שבועי"
+
+msgid "Revenue"
+msgstr "הכנסות"
+```
+
+#### Compile Translations
+```bash
+# Compile .po files to .mo (binary) for production use
+pybabel compile -d translations
+```
+
+### Translation Status
+- **Templates**: Partially migrated (~5% complete)
+- **Python Routes**: Not yet migrated
+- **Reference File**: `translations_to_add.po` contains 800+ pre-mapped Hebrew↔English translations
+- **Guide**: See `TRANSLATION_GUIDE.md` for complete migration instructions
+
+### Adding New Strings
+1. Add string in templates: `{{ _('New String') }}`
+2. Extract: `pybabel extract -F babel.cfg -o messages.pot .`
+3. Update: `pybabel update -i messages.pot -d translations`
+4. Edit `.po` files to add Hebrew translation
+5. Compile: `pybabel compile -d translations`
+6. Restart app to load new translations

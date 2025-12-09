@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}דו"ח שבועי - CostFlow{% endblock %}
+{% block title %}{{ _('Weekly Report') }} - CostFlow{% endblock %}
 
 {% block content %}
 <div class="row mb-4">
     <div class="col-12">
-        <h1 class="display-6 fw-bold text-primary">דו"ח שבועי</h1>
+        <h1 class="display-6 fw-bold text-primary">{{ _('Weekly Report') }}</h1>
         <p class="text-secondary">
-            סיכום ביצועים לשבוע {{ week_start.strftime('%d/%m/%Y') }} - {{ week_end.strftime('%d/%m/%Y') }}
+            {{ _('Performance summary for week') }} {{ week_start.strftime('%d/%m/%Y') }} - {{ week_end.strftime('%d/%m/%Y') }}
         </p>
     </div>
 </div>
@@ -15,21 +15,21 @@
 <div class="row mb-4">
     <div class="col-md-6">
         <form method="GET" action="{{ url_for('reports.weekly_report') }}" class="d-flex gap-2 align-items-center">
-            <label for="week_start" class="form-label mb-0 text-nowrap">בחר שבוע:</label>
+            <label for="week_start" class="form-label mb-0 text-nowrap">{{ _('Select week:') }}</label>
             <select name="week_start" id="week_start" class="form-select select2" onchange="this.form.submit()">
                 {% for week in weeks %}
                 <option value="{{ week.week_start_date.strftime('%Y-%m-%d') }}" {% if week_start and week_start == week.week_start_date %}selected{% endif %}>
-                    שבוע {{ week.week_start_date.strftime('%d/%m/%Y') }}
+                    {{ _('Week') }} {{ week.week_start_date.strftime('%d/%m/%Y') }}
                 </option>
                 {% else %}
-                <option disabled>אין שבועות זמינים</option>
+                <option disabled>{{ _('No weeks available') }}</option>
                 {% endfor %}
             </select>
         </form>
     </div>
     <div class="col-md-6 text-end">
         <button onclick="window.print()" class="btn btn-outline-secondary">
-            <i class="bi bi-printer me-2"></i>הדפסה
+            <i class="bi bi-printer me-2"></i>{{ _('Print') }}
         </button>
     </div>
 </div>
@@ -37,7 +37,7 @@
 {% if no_data %}
 <div class="alert alert-info">
     <i class="bi bi-info-circle me-2"></i>
-    לא נמצאו נתונים עבור השבוע הנבחר
+    {{ _('No data found for selected week') }}
 </div>
 {% else %}
 
@@ -46,7 +46,7 @@
     <div class="col-md-3">
         <div class="card bg-success text-white">
             <div class="card-body">
-                <h6 class="card-title">הכנסות</h6>
+                <h6 class="card-title">{{ _('Revenue') }}</h6>
                 <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(total_revenue) }}</h3>
             </div>
         </div>
@@ -54,7 +54,7 @@
     <div class="col-md-3">
         <div class="card bg-danger text-white">
             <div class="card-body">
-                <h6 class="card-title">עלות חומרים</h6>
+                <h6 class="card-title">{{ _('Material Costs') }}</h6>
                 <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(total_material_costs) }}</h3>
             </div>
         </div>
@@ -62,7 +62,7 @@
     <div class="col-md-3">
         <div class="card bg-warning text-white">
             <div class="card-body">
-                <h6 class="card-title">עלות לייבור</h6>
+                <h6 class="card-title">{{ _('Labor Costs') }}</h6>
                 <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(labor_costs) }}</h3>
             </div>
         </div>
@@ -70,7 +70,7 @@
     <div class="col-md-3">
         <div class="card bg-info text-white">
             <div class="card-body">
-                <h6 class="card-title">רווח נטו</h6>
+                <h6 class="card-title">{{ _('Net Profit') }}</h6>
                 <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(net_profit) }}</h3>
                 <small>{{ "%.1f"|format((net_profit / total_revenue * 100) if total_revenue > 0 else 0) }}%</small>
             </div>
@@ -81,28 +81,28 @@
 <!-- Food Cost Analysis -->
 <div class="card mb-4">
     <div class="card-header bg-light d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="bi bi-calculator me-2"></i>ניתוח עלות מזון מוצרים (Food Cost)</h5>
+        <h5 class="mb-0"><i class="bi bi-calculator me-2"></i>{{ _('Product Food Cost Analysis (Food Cost)') }}</h5>
         <a href="{{ url_for('reports.monthly_report') }}" class="btn btn-sm btn-outline-primary">
-            <i class="bi bi-bar-chart-line me-1"></i>מגמות חודשיות
+            <i class="bi bi-bar-chart-line me-1"></i>{{ _('Monthly Trends') }}
         </a>
     </div>
     <div class="card-body">
         <div class="row mb-3">
             <div class="col-md-4">
                 <div class="text-center">
-                    <h6 class="text-muted">סך עלות מזון</h6>
+                    <h6 class="text-muted">{{ _('Total Food Cost') }}</h6>
                     <h3 class="text-primary">{{ currency_symbol }}{{ "%.2f"|format(total_food_cost) }}</h3>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="text-center">
-                    <h6 class="text-muted">עלות ממוצעת למתכון</h6>
+                    <h6 class="text-muted">{{ _('Average Cost per Recipe') }}</h6>
                     <h3 class="text-info">{{ currency_symbol }}{{ "%.2f"|format(avg_food_cost_per_recipe) }}</h3>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="text-center">
-                    <h6 class="text-muted">סך מתכונים שיוצרו</h6>
+                    <h6 class="text-muted">{{ _('Total Recipes Produced') }}</h6>
                     <h3 class="text-success">{{ total_recipes_produced }}</h3>
                 </div>
             </div>
@@ -113,12 +113,12 @@
             <table class="table table-sm">
                 <thead>
                     <tr>
-                        <th>מוצר</th>
-                        <th>פעמי ייצור</th>
-                        <th>סך מתכונים</th>
-                        <th>יח' למתכון</th>
-                        <th>עלות למתכון</th>
-                        <th>סך עלות</th>
+                        <th>{{ _('Product') }}</th>
+                        <th>{{ _('Production Count') }}</th>
+                        <th>{{ _('Total Recipes') }}</th>
+                        <th>{{ _('Units per Recipe') }}</th>
+                        <th>{{ _('Cost per Recipe') }}</th>
+                        <th>{{ _('Total Cost') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -142,14 +142,14 @@
         {% if total_revenue > 0 and total_food_cost > 0 %}
         <div class="alert alert-info mt-3">
             <i class="bi bi-info-circle me-2"></i>
-            <strong>אחוז עלות מזון:</strong>
+            <strong>{{ _('Food Cost Percentage:') }}</strong>
             {{ "%.1f"|format((total_food_cost / total_revenue * 100)) }}%
-            מההכנסות
-            <small class="text-muted">(יעד מומלץ: 25-35%)</small>
+            {{ _('of revenue') }}
+            <small class="text-muted">({{ _('Recommended target: 25-35%') }})</small>
         </div>
         <div class="alert alert-secondary mt-2">
             <small><i class="bi bi-info-circle me-2"></i>
-            עלות המזון כוללת חומרי גלם, אריזות והכנות מקדימות (פרימייקים) עבור מוצרים שיוצרו השבוע.
+            {{ _('Food cost includes raw materials, packaging, and premakes for products produced this week.') }}
             </small>
         </div>
         {% endif %}
@@ -159,7 +159,7 @@
 <!-- Sales by Category -->
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0"><i class="bi bi-pie-chart me-2"></i>מכירות לפי קטגוריה</h5>
+        <h5 class="mb-0"><i class="bi bi-pie-chart me-2"></i>{{ _('Sales by Category') }}</h5>
     </div>
     <div class="card-body">
         {% if category_summaries %}
@@ -167,13 +167,13 @@
             <table class="table table-hover">
                 <thead class="table-light">
                     <tr>
-                        <th>קטגוריה</th>
-                        <th>מספר מוצרים</th>
-                        <th>כמות נמכרה</th>
-                        <th>כמות פחת</th>
-                        <th>הכנסות</th>
-                        <th>עלות חומרים</th>
-                        <th>רווח גולמי</th>
+                        <th>{{ _('Category') }}</th>
+                        <th>{{ _('Number of Products') }}</th>
+                        <th>{{ _('Quantity Sold') }}</th>
+                        <th>{{ _('Waste Quantity') }}</th>
+                        <th>{{ _('Revenue') }}</th>
+                        <th>{{ _('Material Costs') }}</th>
+                        <th>{{ _('Gross Profit') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -193,7 +193,7 @@
                 </tbody>
                 <tfoot class="table-light">
                     <tr>
-                        <th>סה"כ</th>
+                        <th>{{ _('Total') }}</th>
                         <th>-</th>
                         <th>{{ category_summaries.values()|sum(attribute='quantity_sold')|int }}</th>
                         <th>{{ category_summaries.values()|sum(attribute='quantity_waste')|int }}</th>
@@ -205,7 +205,7 @@
             </table>
         </div>
         {% else %}
-        <p class="text-muted">אין נתוני מכירות לפי קטגוריה</p>
+        <p class="text-muted">{{ _('No sales data by category') }}</p>
         {% endif %}
     </div>
 </div>
@@ -213,7 +213,7 @@
 <!-- Product Sales Details -->
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0"><i class="bi bi-box-seam me-2"></i>פירוט מכירות מוצרים</h5>
+        <h5 class="mb-0"><i class="bi bi-box-seam me-2"></i>{{ _('Product Sales Details') }}</h5>
     </div>
     <div class="card-body">
         {% if sales_data %}
@@ -221,19 +221,19 @@
             <table class="table table-hover">
                 <thead class="table-light">
                     <tr>
-                        <th>מוצר</th>
-                        <th>קטגוריה</th>
-                        <th>מחיר יחידה</th>
-                        <th>כמות נמכרה</th>
-                        <th>כמות פחת</th>
-                        <th>הכנסות</th>
+                        <th>{{ _('Product') }}</th>
+                        <th>{{ _('Category') }}</th>
+                        <th>{{ _('Unit Price') }}</th>
+                        <th>{{ _('Quantity Sold') }}</th>
+                        <th>{{ _('Waste Quantity') }}</th>
+                        <th>{{ _('Revenue') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for sale in sales_data %}
                     <tr>
                         <td class="fw-medium">{{ sale.name }}</td>
-                        <td>{{ sale.category_name or 'ללא קטגוריה' }}</td>
+                        <td>{{ sale.category_name or _('No Category') }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(sale.selling_price_per_unit or 0) }}</td>
                         <td>{{ sale.quantity_sold|int }}</td>
                         <td>{{ sale.quantity_waste|int }}</td>
@@ -244,7 +244,7 @@
             </table>
         </div>
         {% else %}
-        <p class="text-muted">אין נתוני מכירות למוצרים</p>
+        <p class="text-muted">{{ _('No product sales data') }}</p>
         {% endif %}
     </div>
 </div>
@@ -253,19 +253,19 @@
 {% if premake_report_data %}
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0"><i class="bi bi-blender me-2"></i>פעילות הכנות מקדימות</h5>
+        <h5 class="mb-0"><i class="bi bi-blender me-2"></i>{{ _('Premakes Activity') }}</h5>
     </div>
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead class="table-light">
                     <tr>
-                        <th>שם ההכנה</th>
-                        <th class="text-center">יוצר</th>
-                        <th class="text-center">שומש (במוצרים)</th>
-                        <th class="text-center">במלאי</th>
-                        <th class="text-center">עלות ליחידה (לק"ג)</th>
-                        <th class="text-center">שווי ייצור כולל</th>
+                        <th>{{ _('Premake Name') }}</th>
+                        <th class="text-center">{{ _('Produced') }}</th>
+                        <th class="text-center">{{ _('Used (in products)') }}</th>
+                        <th class="text-center">{{ _('In Stock') }}</th>
+                        <th class="text-center">{{ _('Cost per Unit (per kg)') }}</th>
+                        <th class="text-center">{{ _('Total Production Value') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -290,17 +290,17 @@
 {% if labor_entries %}
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0"><i class="bi bi-people me-2"></i>פירוט עלויות לייבור</h5>
+        <h5 class="mb-0"><i class="bi bi-people me-2"></i>{{ _('Labor Cost Details') }}</h5>
     </div>
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead class="table-light">
                     <tr>
-                        <th>עובד</th>
-                        <th>פעמי רישום</th>
-                        <th>סך שעות</th>
-                        <th>סך עלות</th>
+                        <th>{{ _('Employee') }}</th>
+                        <th>{{ _('Entry Count') }}</th>
+                        <th>{{ _('Total Hours') }}</th>
+                        <th>{{ _('Total Cost') }}</th>
                     </tr>
                 </thead>
                 <tbody>
