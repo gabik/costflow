@@ -4,8 +4,8 @@
 {% block content %}
 <div class="row mb-4">
     <div class="col-12">
-        <h1 class="display-6 fw-bold text-primary">ניהול עובדים ועלויות</h1>
-        <p class="text-secondary">מעקב אחר עלויות כוח אדם ושכר שעתי.</p>
+        <h1 class="display-6 fw-bold text-primary">{{ _('Employee and Cost Management') }}</h1>
+        <p class="text-secondary">{{ _('Track labor costs and hourly wages.') }}</p>
     </div>
 </div>
 
@@ -14,25 +14,25 @@
     <div class="col-lg-4">
         <div class="card shadow-sm h-100">
             <div class="card-header bg-white">
-                <h5 class="mb-0">הוסף עובד / תפקיד חדש</h5>
+                <h5 class="mb-0">{{ _('Add New Employee / Role') }}</h5>
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ url_for('labor.add_labor') }}">
                     <div class="mb-3">
-                        <label for="name" class="form-label">שם עובד / תפקיד</label>
-                        <input type="text" id="name" name="name" class="form-control" placeholder="לדוגמה: אופה ראשי" required>
+                        <label for="name" class="form-label">{{ _('Employee Name / Role') }}</label>
+                        <input type="text" id="name" name="name" class="form-control" placeholder="{{ _('e.g., Head Baker') }}" required>
                     </div>
                     <div class="mb-3">
-                        <label for="phone_number" class="form-label">טלפון</label>
+                        <label for="phone_number" class="form-label">{{ _('Phone') }}</label>
                         <input type="text" id="phone_number" name="phone_number" class="form-control" placeholder="050-0000000">
                     </div>
                     <div class="mb-3">
-                        <label for="total_hourly_rate" class="form-label">עלות כוללת לשעה (₪)</label>
+                        <label for="total_hourly_rate" class="form-label">{{ _('Total Hourly Cost (₪)') }}</label>
                         <input type="number" id="total_hourly_rate" name="total_hourly_rate" class="form-control" step="0.01" required>
-                        <div class="form-text small">כולל שכר יסוד ועלויות מעביד.</div>
+                        <div class="form-text small">{{ _('Including base salary and employer costs.') }}</div>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-person-plus-fill me-2"></i> הוסף עובד
+                        <i class="bi bi-person-plus-fill me-2"></i> {{ _('Add Employee') }}
                     </button>
                 </form>
             </div>
@@ -43,16 +43,16 @@
     <div class="col-lg-8">
         <div class="card shadow-sm h-100">
             <div class="card-header bg-white">
-                <h5 class="mb-0">רשימת עובדים</h5>
+                <h5 class="mb-0">{{ _('Employee List') }}</h5>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>שם</th>
-                            <th>טלפון</th>
-                            <th>עלות לשעה</th>
-                            <th class="text-end">פעולות</th>
+                            <th>{{ _('Name') }}</th>
+                            <th>{{ _('Phone') }}</th>
+                            <th>{{ _('Hourly Cost') }}</th>
+                            <th class="text-end">{{ _('Actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -63,11 +63,11 @@
                             <td class="text-success fw-bold">{{ currency_symbol }}{{ "%.2f"|format(labor_item.total_hourly_rate) }}</td>
                             <td class="text-end">
                                 <a href="{{ url_for('labor.edit_labor', labor_id=labor_item.id) }}" class="btn btn-sm btn-outline-primary me-2">
-                                    <i class="bi bi-pencil"></i> ערוך
+                                    <i class="bi bi-pencil"></i> {{ _('Edit') }}
                                 </a>
-                                <form action="{{ url_for('labor.delete_labor', labor_id=labor_item.id) }}" method="POST" class="d-inline" onsubmit="return confirm('האם אתה בטוח שברצונך למחוק את {{ labor_item.name }}?\nפעולה זו אינה הפיכה.');">
+                                <form action="{{ url_for('labor.delete_labor', labor_id=labor_item.id) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ _('Are you sure you want to delete') }} {{ labor_item.name }}?\n{{ _('This action is irreversible.') }}');">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-trash"></i> מחק
+                                        <i class="bi bi-trash"></i> {{ _('Delete') }}
                                     </button>
                                 </form>
                             </td>
@@ -75,7 +75,7 @@
                         {% else %}
                         <tr>
                             <td colspan="4" class="text-center py-4 text-muted">
-                                לא נמצאו עובדים ברשימה.
+                                {{ _('No employees found in the list.') }}
                             </td>
                         </tr>
                         {% endfor %}

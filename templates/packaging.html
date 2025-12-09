@@ -6,7 +6,7 @@
     <div class="col-12 d-flex justify-content-between align-items-center">
         <div>
             <h1 class="display-6 fw-bold text-primary">{{ _('Manage Packaging') }}</h1>
-            <p class="text-secondary">ניהול סוגי אריזות ומחירים.</p>
+            <p class="text-secondary">{{ _('Manage packaging types and prices.') }}</p>
         </div>
         <a href="{{ url_for('packaging.add_packaging') }}" class="btn btn-primary">
             <i class="bi bi-plus-lg me-2"></i> {{ _('Add Packaging') }}
@@ -38,7 +38,7 @@
                         <a href="{{ url_for('packaging.edit_packaging', packaging_id=packaging.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('Edit') }}">
                             <i class="bi bi-pencil"></i>
                         </a>
-                        <form method="POST" action="{{ url_for('packaging.delete_packaging', packaging_id=packaging.id) }}" class="d-inline" onsubmit="return confirm('האם אתה בטוח שברצונך למחוק פריט זה?');">
+                        <form method="POST" action="{{ url_for('packaging.delete_packaging', packaging_id=packaging.id) }}" class="d-inline" onsubmit="return confirm('{{ _('Are you sure you want to delete this item?') }}');">
                             <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ _('Delete') }}">
                                 <i class="bi bi-trash"></i>
                             </button>
@@ -48,7 +48,7 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="5" class="text-center py-4 text-muted">לא נמצאו אריזות במערכת.</td>
+                <td colspan="5" class="text-center py-4 text-muted">{{ _('No packaging found in the system.') }}</td>
             </tr>
             {% endfor %}
             </tbody>

@@ -1470,3 +1470,108 @@ msgstr "Add Update"
 msgid "Attention: The quantity entered exceeds the available stock produced this week."
 msgstr "Attention: The quantity entered exceeds the available stock produced this week."
 
+
+msgid "Back to List"
+msgstr "Back to List"
+
+msgid "Cost per Batch"
+msgstr "Cost per Batch"
+
+msgid "per"
+msgstr "per"
+
+msgid "Preparation Components"
+msgstr "Preparation Components"
+
+msgid "Total Cost per Batch:"
+msgstr "Total Cost per Batch:"
+
+msgid "No components defined for this preparation."
+msgstr "No components defined for this preparation."
+
+msgid "Batch Size:"
+msgstr "Batch Size:"
+
+msgid "Number of Components:"
+msgstr "Number of Components:"
+
+msgid "Total Batch Cost:"
+msgstr "Total Batch Cost:"
+
+msgid "Stock Value:"
+msgstr "Stock Value:"
+
+msgid "Edit Employee / Role"
+msgstr "Edit Employee / Role"
+
+msgid "Employee Name / Role"
+msgstr "Employee Name / Role"
+
+msgid "Total Hourly Cost (₪)"
+msgstr "Total Hourly Cost (₪)"
+
+msgid "Including base salary and employer costs."
+msgstr "Including base salary and employer costs."
+
+msgid "Manage packaging types and prices."
+msgstr "Manage packaging types and prices."
+
+msgid "Are you sure you want to delete this item?"
+msgstr "Are you sure you want to delete this item?"
+
+msgid "No packaging found in the system."
+msgstr "No packaging found in the system."
+
+msgid "Weekly Costs Management"
+msgstr "Weekly Costs Management"
+
+msgid "Track work hours and costs by week."
+msgstr "Track work hours and costs by week."
+
+msgid "Start Date"
+msgstr "Start Date"
+
+msgid "Number of Employees"
+msgstr "Number of Employees"
+
+msgid "Details and Update"
+msgstr "Details and Update"
+
+msgid "No weekly costs defined yet."
+msgstr "No weekly costs defined yet."
+
+msgid "Open New Week"
+msgstr "Open New Week"
+
+msgid "Week Start Date (Sunday)"
+msgstr "Week Start Date (Sunday)"
+
+msgid "Create and Open Details"
+msgstr "Create and Open Details"
+
+msgid "Employee and Cost Management"
+msgstr "Employee and Cost Management"
+
+msgid "Track labor costs and hourly wages."
+msgstr "Track labor costs and hourly wages."
+
+msgid "Add New Employee / Role"
+msgstr "Add New Employee / Role"
+
+msgid "e.g., Head Baker"
+msgstr "e.g., Head Baker"
+
+msgid "Add Employee"
+msgstr "Add Employee"
+
+msgid "Employee List"
+msgstr "Employee List"
+
+msgid "Hourly Cost"
+msgstr "Hourly Cost"
+
+msgid "This action is irreversible."
+msgstr "This action is irreversible."
+
+msgid "No employees found in the list."
+msgstr "No employees found in the list."

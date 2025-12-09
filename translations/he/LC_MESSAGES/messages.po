@@ -1465,3 +1465,108 @@ msgstr "הוסף עדכון"
 msgid "Attention: The quantity entered exceeds the available stock produced this week."
 msgstr "שים לב: הכמות שהוזנה עולה על המלאי הזמין שיוצר השבוע."
 
+
+msgid "Back to List"
+msgstr "חזרה לרשימה"
+
+msgid "Cost per Batch"
+msgstr "עלות לאצ'"
+
+msgid "per"
+msgstr "ל-"
+
+msgid "Preparation Components"
+msgstr "מרכיבי ההכנה"
+
+msgid "Total Cost per Batch:"
+msgstr "סה\"כ עלות לאצ':"
+
+msgid "No components defined for this preparation."
+msgstr "אין מרכיבים מוגדרים להכנה זו."
+
+msgid "Batch Size:"
+msgstr "גודל אצ':"
+
+msgid "Number of Components:"
+msgstr "מספר מרכיבים:"
+
+msgid "Total Batch Cost:"
+msgstr "עלות כוללת לאצ':"
+
+msgid "Stock Value:"
+msgstr "שווי מלאי:"
+
+msgid "Edit Employee / Role"
+msgstr "עריכת עובד / תפקיד"
+
+msgid "Employee Name / Role"
+msgstr "שם עובד / תפקיד"
+
+msgid "Total Hourly Cost (₪)"
+msgstr "עלות כוללת לשעה (₪)"
+
+msgid "Including base salary and employer costs."
+msgstr "כולל שכר יסוד ועלויות מעביד."
+
+msgid "Manage packaging types and prices."
+msgstr "ניהול סוגי אריזות ומחירים."
+
+msgid "Are you sure you want to delete this item?"
+msgstr "האם אתה בטוח שברצונך למחוק פריט זה?"
+
+msgid "No packaging found in the system."
+msgstr "לא נמצאו אריזות במערכת."
+
+msgid "Weekly Costs Management"
+msgstr "ניהול עלויות שבועיות"
+
+msgid "Track work hours and costs by week."
+msgstr "מעקב אחר שעות עבודה ועלויות לפי שבוע."
+
+msgid "Start Date"
+msgstr "תאריך התחלה"
+
+msgid "Number of Employees"
+msgstr "מספר עובדים"
+
+msgid "Details and Update"
+msgstr "פרטים ועדכון"
+
+msgid "No weekly costs defined yet."
+msgstr "לא הוגדרו עלויות שבועיות עדיין."
+
+msgid "Open New Week"
+msgstr "פתיחת שבוע חדש"
+
+msgid "Week Start Date (Sunday)"
+msgstr "תאריך התחלת שבוע (יום ראשון)"
+
+msgid "Create and Open Details"
+msgstr "צור ופתח לפרטים"
+
+msgid "Employee and Cost Management"
+msgstr "ניהול עובדים ועלויות"
+
+msgid "Track labor costs and hourly wages."
+msgstr "מעקב אחר עלויות כוח אדם ושכר שעתי."
+
+msgid "Add New Employee / Role"
+msgstr "הוסף עובד / תפקיד חדש"
+
+msgid "e.g., Head Baker"
+msgstr "לדוגמה: אופה ראשי"
+
+msgid "Add Employee"
+msgstr "הוסף עובד"
+
+msgid "Employee List"
+msgstr "רשימת עובדים"
+
+msgid "Hourly Cost"
+msgstr "עלות לשעה"
+
+msgid "This action is irreversible."
+msgstr "פעולה זו אינה הפיכה."
+
+msgid "No employees found in the list."
+msgstr "לא נמצאו עובדים ברשימה."
