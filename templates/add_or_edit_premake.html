@@ -116,7 +116,7 @@
                     <div class="row g-2 mb-2 align-items-center raw-material-row">
                         <input type="hidden" name="component_type[]" value="raw_material">
                         <div class="col-md-6">
-                            <select name="component_id[]" class="form-select select2" required>
+                            <select name="component_id[]" class="form-select select2" onchange="handleMaterialChange(this)" required>
                                 <option value="" disabled selected>בחר חומר גלם...</option>
                                 {% for mat_opt in all_raw_materials %}
                                 <option value="{{ mat_opt.id }}" data-unit="{{ mat_opt.unit }}">
@@ -127,8 +127,11 @@
                         </div>
                         <div class="col-md-5">
                             <div class="input-group">
-                                <input type="number" step="0.001" name="quantity[]" class="form-control" placeholder="כמות" required>
-                                <span class="input-group-text unit-display">kg</span>
+                                <input type="number" step="0.001" name="quantity[]" class="form-control quantity-input" placeholder="כמות" required data-base-unit="kg">
+                                <select class="form-select unit-selector" style="max-width: 80px;">
+                                    <option value="kg">kg</option>
+                                    <option value="g">g</option>
+                                </select>
                             </div>
                         </div>
                         <div class="col-md-1">
