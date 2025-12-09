@@ -2,6 +2,57 @@
 
 ## Important Instructions for Claude
 
+### ⚠️ MANDATORY: String Localization (ZERO TOLERANCE FOR HARDCODED STRINGS)
+
+**BEFORE writing ANY code, you MUST follow these rules:**
+
+#### 🚫 NEVER DO THIS (Hardcoded Strings):
+```python
+# ❌ WRONG - Python
+flash('Product created successfully', 'success')
+return render_template('page.html', title='My Page')
+
+# ❌ WRONG - Templates
+<h1>Product List</h1>
+<button>Save Changes</button>
+<p>Total: 100 items</p>
+```
+
+#### ✅ ALWAYS DO THIS (Translated Strings):
+```python
+# ✅ CORRECT - Python
+from flask_babel import gettext as _
+flash(_('Product created successfully'), 'success')
+return render_template('page.html', title=_('My Page'))
+
+# ✅ CORRECT - Templates
+<h1>{{ _('Product List') }}</h1>
+<button>{{ _('Save Changes') }}</button>
+<p>{{ _('Total: {} items').format(count) }}</p>
+```
+
+#### Absolute Requirements:
+- **100% of user-facing strings** MUST be wrapped in `_()` function
+- **Templates**: EVERY visible text uses `{{ _('English text') }}`
+- **Python**: EVERY flash message, label, button text, error message uses `_('text')`
+- **Special characters**: Escape `%` as `%%` in translations (e.g., `_('Target: 25-35%%')`)
+- **No exceptions**: Button labels, headings, messages, tooltips, placeholders - ALL must be translated
+
+#### Workflow for Every Code Change:
+1. **Write code** with `_()` around ALL user-facing strings (use English as the key)
+2. **Extract strings**: `pybabel extract -F babel.cfg -o messages.pot .`
+3. **Update catalogs**: `pybabel update -i messages.pot -d translations -l he` (and `-l en` if needed)
+4. **Add translations**: Edit `translations/he/LC_MESSAGES/messages.po` to add Hebrew translations
+5. **Compile**: `pybabel compile -d translations`
+6. **Reference**: Check `translations_to_add.po` for 800+ pre-mapped translations
+
+#### Translation Files:
+- Hebrew: `translations/he/LC_MESSAGES/messages.po`
+- English: `translations/en/LC_MESSAGES/messages.po`
+- Reference: `translations_to_add.po` (800+ existing translations)
+
+**This is NON-NEGOTIABLE. Every single string you write must be translatable.**
+
 ### Git and Testing Responsibilities
 - **Git operations**: User handles all git commits and pushes
 - **Testing**: User performs all testing
@@ -16,16 +67,6 @@
     ```
   - Commit message types: Feat, Fix, Chore, Refactor, Docs
   - Keep CLAUDE.md updated with the latest changes (if needed, new feature, modified model, etc..)
-
-### String Localization (CRITICAL)
-- **ALL user-facing strings MUST use Flask-Babel translations**
-- **NO hardcoded strings** in templates or Python code
-- **Templates**: Use `{{ _('English text') }}` for all visible text
-- **Python**: Import `from flask_babel import gettext as _` and use `_('text')` for flash messages and error strings
-- **Special characters**: Escape `%` as `%%` in translation strings (e.g., `_('Target: 25-35%%')`)
-- **Translation files**: `translations/he/LC_MESSAGES/messages.po` (Hebrew), `translations/en/LC_MESSAGES/messages.po` (English)
-- **After adding strings**: Run `pybabel extract -F babel.cfg -o messages.pot .` → `pybabel update -i messages.pot -d translations -l he` → Edit .po files → `pybabel compile -d translations`
-- **Reference**: See `translations_to_add.po` for 800+ pre-mapped translations
 
 ### Migration Handling
 - **Local dev has no database** - empty SQLite file only

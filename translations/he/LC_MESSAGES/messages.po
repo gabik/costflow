@@ -2277,5 +2277,332 @@ msgstr ""
 msgid "unsold products remain.'"
 msgstr ""
 
-msgid "SKU"
-msgstr "מק\"ט"
+msgid "0 recipes selected"
+msgstr "0 מתכונים נבחרו"
+
+msgid "Add Employee Hours"
+msgstr "הוסף שעות עובד"
+
+msgid "Add to List"
+msgstr "הוסף לרשימה"
+
+msgid "Added:"
+msgstr "נוסף:"
+
+msgid "Affected Categories"
+msgstr "קטגוריות מושפעות"
+
+msgid "After metadata, blank row, then recipes"
+msgstr "אחרי המטא-דאטה, שורה ריקה ואז מתכונים"
+
+msgid "Analysis by Category"
+msgstr "ניתוח לפי קטגוריה"
+
+msgid "Approve and Close Week"
+msgstr "אשר וסגור שבוע"
+
+msgid "Audit History"
+msgstr "היסטוריית ביקורת"
+
+msgid "Average financial variance per count:"
+msgstr "הפרש כספי ממוצע לספירה:"
+
+msgid "Calculated Cost"
+msgstr "עלות מחושבת"
+
+msgid "Changes (compared to existing recipe):"
+msgstr "שינויים (בהשוואה למתכון קיים):"
+
+msgid "Close Week - Reset Inventory"
+msgstr "סגירת שבוע - אתחול מלאי"
+
+msgid "Columns: name, type, price/kg, weight (g), total price"
+msgstr "עמודות: שם, סוג, מחיר/ק״ג, משקל (ג׳), מחיר כולל"
+
+msgid "Confirm and Import Recipes"
+msgstr "אשר וייבא מתכונים"
+
+msgid "Continue to Review"
+msgstr "המשך לסקירה"
+
+msgid "Cost calculated automatically according to employee rate (including employer costs)."
+msgstr "עלות מחושבת אוטומטית לפי תעריף עובד (כולל עלויות מעסיק)."
+
+msgid "Cost per 100g:"
+msgstr "עלות ל-100 ג׳:"
+
+msgid "Deselect All"
+msgstr "בטל בחירה"
+
+msgid "Different"
+msgstr "שונה"
+
+msgid "Each recipe starts with title, 2 header rows, then materials"
+msgstr "כל מתכון מתחיל עם כותרת, 2 שורות כותרת ואז חומרים"
+
+msgid "Employee / Role"
+msgstr "עובד / תפקיד"
+
+msgid "Enter hours in HH:MM format (example: 8:30)"
+msgstr "הזן שעות בפורמט HH:MM (דוגמה: 8:30)"
+
+msgid "Enter in HH:MM format (example: 8:30 for eight and a half hours)"
+msgstr "הזן בפורמט HH:MM (דוגמה: 8:30 לשמונה שעות וחצי)"
+
+msgid "Error loading"
+msgstr "שגיאה בטעינה"
+
+msgid "Error updating price"
+msgstr "שגיאה בעדכון מחיר"
+
+msgid "Error updating price:"
+msgstr "שגיאה בעדכון מחיר:"
+
+msgid "Example: 8:30"
+msgstr "דוגמה: 8:30"
+
+msgid "Exists - Will Update"
+msgstr "קיים - יעודכן"
+
+msgid "File uploaded successfully"
+msgstr "הקובץ הועלה בהצלחה"
+
+msgid "First rows must contain metadata:"
+msgstr "השורות הראשונות חייבות להכיל מטא-דאטה:"
+
+msgid "For the week ending on"
+msgstr "לשבוע המסתיים ב"
+
+msgid "Found (alternative name)"
+msgstr "נמצא (שם חלופי)"
+
+msgid "Found via alternative name"
+msgstr "נמצא דרך שם חלופי"
+
+msgid "From Date"
+msgstr "מתאריך"
+
+msgid "Gross Weight:"
+msgstr "משקל ברוטו:"
+
+msgid "Import Recipes from Excel"
+msgstr "ייבוא מתכונים מאקסל"
+
+msgid "Leftovers found in inventory from last week"
+msgstr "נמצאו שאריות במלאי מהשבוע שעבר"
+
+msgid "List of all raw materials supplied by this supplier."
+msgstr "רשימת כל חומרי הגלם המסופקים על ידי ספק זה."
+
+msgid "Loss Value (Cost)"
+msgstr "ערך הפסד (עלות)"
+
+msgid "Material with highest discrepancies:"
+msgstr "חומר עם אי-התאמות הגבוהות ביותר:"
+
+msgid "Materials with High Discrepancies"
+msgstr "חומרים עם אי-התאמות גבוהות"
+
+msgid "Materials:"
+msgstr "חומרים:"
+
+msgid "Metadata preview:"
+msgstr "תצוגה מקדימה של מטא-דאטה:"
+
+msgid "Missing Materials"
+msgstr "חומרים חסרים"
+
+msgid "Missing materials in system!"
+msgstr "חומרים חסרים במערכת!"
+
+msgid "Most problematic category:"
+msgstr "קטגוריה הבעייתית ביותר:"
+
+msgid "Net Weight:"
+msgstr "משקל נטו:"
+
+msgid "No changes"
+msgstr "אין שינויים"
+
+msgid "No cost"
+msgstr "ללא עלות"
+
+msgid "No hours have been entered for this week yet."
+msgstr "לא הוזנו שעות לשבוע זה עדיין."
+
+msgid "No stock audits found for the requested period"
+msgstr "לא נמצאו ביקורות מלאי לתקופה המבוקשת"
+
+msgid "Not detected (required!)"
+msgstr "לא זוהה (נדרש!)"
+
+msgid "Physical Quantity"
+msgstr "כמות פיזית"
+
+msgid "Premake Leftovers"
+msgstr "שאריות הכנות"
+
+msgid "Price in Sheet"
+msgstr "מחיר בגיליון"
+
+msgid "Primary"
+msgstr "ראשי"
+
+msgid "Primary Supplier"
+msgstr "ספק ראשי"
+
+msgid "Product Leftovers"
+msgstr "שאריות מוצרים"
+
+msgid "Quantity Changed:"
+msgstr "כמות שונתה:"
+
+msgid "Quantity Remaining"
+msgstr "כמות נותרת"
+
+msgid "Quantity Variance"
+msgstr "הפרש כמות"
+
+msgid "Remove this entry?"
+msgstr "להסיר רשומה זו?"
+
+msgid "Removed:"
+msgstr "הוסר:"
+
+msgid "Required - existing category name in system"
+msgstr "נדרש - שם קטגוריה קיימת במערכת"
+
+msgid "Required file format:"
+msgstr "פורמט קובץ נדרש:"
+
+msgid "Required metadata fields are missing. Ensure the file contains type and category rows."
+msgstr "שדות מטא-דאטה נדרשים חסרים. ודא שהקובץ מכיל שורות type ו-category."
+
+msgid "Return to update sales data for the previous week (if sold)."
+msgstr "חזור לעדכון נתוני מכירות לשבוע הקודם (אם נמכר)."
+
+msgid "Review Recipes for Import"
+msgstr "סקירת מתכונים לייבוא"
+
+msgid "Same"
+msgstr "זהה"
+
+msgid "Search material..."
+msgstr "חפש חומר..."
+
+msgid "Secondary"
+msgstr "משני"
+
+msgid "Select All"
+msgstr "בחר הכל"
+
+msgid "Select Excel file:"
+msgstr "בחר קובץ אקסל:"
+
+msgid "Select a match for all missing materials in selected recipes from the dropdowns."
+msgstr "בחר התאמה לכל החומרים החסרים במתכונים הנבחרים מהרשימות."
+
+msgid "Select a match for missing materials from the dropdown, or add the materials to the system:"
+msgstr "בחר התאמה לחומרים חסרים מהרשימה, או הוסף את החומרים למערכת:"
+
+msgid "Select a material from the dropdown or add new materials to the system and then import again."
+msgstr "בחר חומר מהרשימה או הוסף חומרים חדשים למערכת ואז ייבא שוב."
+
+msgid "Select employee..."
+msgstr "בחר עובד..."
+
+msgid "Select material from system..."
+msgstr "בחר חומר מהמערכת..."
+
+msgid "Select recipes to import"
+msgstr "בחר מתכונים לייבוא"
+
+msgid "Select sheet to import:"
+msgstr "בחר גיליון לייבוא:"
+
+msgid "Set as primary supplier for this material"
+msgstr "הגדר כספק ראשי לחומר זה"
+
+msgid "Shortages"
+msgstr "חסרים"
+
+msgid "Should we reset inventory and transfer the balance to waste (loss)?"
+msgstr "האם לאפס את המלאי ולהעביר את היתרה לפסולת (הפסד)?"
+
+msgid "Supplied Raw Materials"
+msgstr "חומרי גלם מסופקים"
+
+msgid "Surplus"
+msgstr "עודף"
+
+msgid "System Quantity"
+msgstr "כמות במערכת"
+
+msgid "To Date"
+msgstr "עד תאריך"
+
+msgid "Total Variance"
+msgstr "סך הפרשים"
+
+msgid "Total Variance (Financial)"
+msgstr "סך הפרשים (כספי)"
+
+msgid "Total cost for this week"
+msgstr "עלות כוללת לשבוע זה"
+
+msgid "Total estimated loss (unmarked for transfer):"
+msgstr "סך הפסד משוער (ללא סימון להעברה):"
+
+msgid "Total losses from inventory discrepancies:"
+msgstr "סך הפסדים מאי-התאמות במלאי:"
+
+msgid "Total recipes:"
+msgstr "סך מתכונים:"
+
+msgid "Track inventory discrepancies and loss analysis"
+msgstr "מעקב אחר אי-התאמות במלאי וניתוח הפסדים"
+
+msgid "Transfer to next week?"
+msgstr "להעביר לשבוע הבא?"
+
+msgid "Unmarked items will be transferred to waste. Marked items will remain in inventory/available."
+msgstr "פריטים ללא סימון יועברו לפסולת. פריטים מסומנים יישארו במלאי/זמינים."
+
+msgid "Update Raw Material Price"
+msgstr "עדכון מחיר חומר גלם"
+
+msgid "Upload Different File"
+msgstr "העלה קובץ אחר"
+
+msgid "Upload Recipe File"
+msgstr "העלה קובץ מתכונים"
+
+msgid "Upload an Excel file with recipes for premakes or products"
+msgstr "העלה קובץ אקסל עם מתכונים להכנות או מוצרים"
+
+msgid "Value (Cost)"
+msgstr "ערך (עלות)"
+
+msgid "Week Details"
+msgstr "פרטי שבוע"
+
+msgid "Weight (g)"
+msgstr "משקל (ג׳)"
+
+msgid "Weight and Cost Summary:"
+msgstr "סיכום משקל ועלות:"
+
+msgid "Work Hours (HH:MM)"
+msgstr "שעות עבודה (HH:MM)"
+
+msgid "Work Hours Details"
+msgstr "פירוט שעות עבודה"
+
+msgid "counts"
+msgstr "ספירות"
+
+msgid "recipes selected"
+msgstr "מתכונים נבחרו"
+
+msgid "unmapped materials in selected recipes"
+msgstr "חומרים ללא התאמה במתכונים נבחרים"

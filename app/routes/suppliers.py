@@ -191,6 +191,7 @@ def supplier_materials(supplier_id):
             'material': material,
             'cost_per_unit': link.cost_per_unit,
             'is_primary': link.is_primary,
+            'sku': link.sku,
             'current_stock': stock
         })
 
@@ -206,6 +207,7 @@ def link_material_to_supplier():
         supplier_id = request.form.get('supplier_id')
         cost_per_unit = float(request.form.get('cost_per_unit'))
         is_primary = request.form.get('is_primary') == 'true'
+        sku = request.form.get('sku', '').strip() or None
 
         # Check if link already exists
         existing = RawMaterialSupplier.query.filter_by(
@@ -217,13 +219,15 @@ def link_material_to_supplier():
             # Update existing link
             existing.cost_per_unit = cost_per_unit
             existing.is_primary = is_primary
+            existing.sku = sku
         else:
             # Create new link
             new_link = RawMaterialSupplier(
                 raw_material_id=material_id,
                 supplier_id=supplier_id,
                 cost_per_unit=cost_per_unit,
-                is_primary=is_primary
+                is_primary=is_primary,
+                sku=sku
             )
             db.session.add(new_link)
 
@@ -238,8 +242,9 @@ def link_material_to_supplier():
 
         material = RawMaterial.query.get(material_id)
         supplier = Supplier.query.get(supplier_id)
+        sku_info = f" (SKU: {sku})" if sku else ""
         log_audit("UPDATE", "RawMaterialSupplier", None,
-                 f"Linked {material.name} to {supplier.name} at {cost_per_unit}/unit")
+                 f"Linked {material.name} to {supplier.name} at {cost_per_unit}/unit{sku_info}")
 
         return jsonify({'success': True})
 
