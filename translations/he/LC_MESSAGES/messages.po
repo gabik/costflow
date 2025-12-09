@@ -1330,3 +1330,20 @@ msgstr "שגיאה בטעינת ספקים"
 msgid "Current Stock:"
 msgstr "מלאי נוכחי:"
 
+
+# add_or_edit_premake.html new translations
+msgid "Edit Premake"
+msgstr "ערוך הכנה מקדימה"
+
+msgid "Select category..."
+msgstr "בחר קטגוריה..."
+
+msgid "Unit of Measure (of product)"
+msgstr "יחידת מידה (של התוצר)"
+
+msgid "Product quantity will be calculated automatically as sum of component weights."
+msgstr "כמות התוצר תחושב אוטומטית כסכום משקלי המרכיבים."
+
+msgid "Components"
+msgstr "מרכיבים"
+

@@ -1335,6 +1335,20 @@ msgstr "No suppliers defined for this raw material"
 msgid "Error loading suppliers"
 msgstr "Error loading suppliers"
 
-msgid "Current Stock:"
-msgstr "Current Stock:"
+
+# add_or_edit_premake.html new translations
+msgid "Edit Premake"
+msgstr "Edit Premake"
+
+msgid "Select category..."
+msgstr "Select category..."
+
+msgid "Unit of Measure (of product)"
+msgstr "Unit of Measure (of product)"
+
+msgid "Product quantity will be calculated automatically as sum of component weights."
+msgstr "Product quantity will be calculated automatically as sum of component weights."
+
+msgid "Components"
+msgstr "Components"
 

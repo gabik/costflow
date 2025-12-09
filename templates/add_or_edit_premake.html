@@ -1,24 +1,24 @@
 {% extends "base.html" %}
-{% block title %}{{ 'ערוך' if premake else 'הוסף' }} הכנה מקדימה - CostFlow{% endblock %}
+{% block title %}{{ _('Edit Premake') if premake else _('Add Premake') }} - CostFlow{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <h2>{{ 'ערוך' if premake else 'הוסף' }} הכנה מקדימה</h2>
+    <h2>{{ _('Edit Premake') if premake else _('Add Premake') }}</h2>
 
     <form method="POST" class="needs-validation" novalidate onsubmit="convertUnitsBeforeSubmit(event)">
         <div class="row">
             <div class="col-md-6">
                 <div class="mb-3">
-                    <label for="name" class="form-label">שם ההכנה</label>
+                    <label for="name" class="form-label">{{ _('Premake Name') }}</label>
                     <input type="text" class="form-control" id="name" name="name" value="{{ premake.name if premake else '' }}" required>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="mb-3">
-                    <label for="category_id" class="form-label">קטגוריה</label>
+                    <label for="category_id" class="form-label">{{ _('Category') }}</label>
                     <div class="input-group">
                         <select class="form-select" id="category_id" name="category_id">
-                            <option value="">בחר קטגוריה</option>
+                            <option value="">{{ _('Select category...') }}</option>
                             {% for category in premake_categories %}
                             <option value="{{ category.id }}" {% if premake and premake.category_id == category.id %}selected{% endif %}>
                                 {{ category.name }}
@@ -36,26 +36,26 @@
         <div class="row">
             <div class="col-md-6">
                  <div class="mb-3">
-                    <label for="unit" class="form-label">יחידת מידה (של התוצר)</label>
+                    <label for="unit" class="form-label">{{ _('Unit of Measure (of product)') }}</label>
                     <select class="form-select" id="unit" name="unit" required>
                         {% for u in units %}
                         <option value="{{ u }}" {% if (premake and premake.unit == u) or (not premake and u == 'kg') %}selected{% endif %}>{{ u }}</option>
                         {% endfor %}
                     </select>
-                    <div class="form-text">כמות התוצר תחושב אוטומטית כסכום משקלי המרכיבים.</div>
+                    <div class="form-text">{{ _('Product quantity will be calculated automatically as sum of component weights.') }}</div>
                 </div>
             </div>
         </div>
 
         <hr>
-        <h4>מרכיבים</h4>
+        <h4>{{ _('Components') }}</h4>
 
         <!-- Raw Materials Section -->
         <div class="card mb-3">
             <div class="card-header bg-light">
-                חומרי גלם
+                {{ _('Raw Materials') }}
                 <button type="button" class="btn btn-sm btn-primary float-end" onclick="addRawMaterialRow()">
-                    <i class="bi bi-plus-lg"></i> הוסף
+                    <i class="bi bi-plus-lg"></i> {{ _('Add') }}
                 </button>
             </div>
             <div class="card-body">
@@ -74,7 +74,7 @@
                             <input type="hidden" name="component_type[]" value="raw_material">
                             <div class="col-md-6">
                                 <select name="component_id[]" class="form-select select2" required>
-                                    <option value="">בחר חומר גלם</option>
+                                    <option value="">{{ _('Select raw material...') }}</option>
                                     {% for mat_opt in all_raw_materials %}
                                     <option value="{{ mat_opt.id }}" data-unit="{{ mat_opt.unit }}" {% if mat_opt.id == component.component_id %}selected{% endif %}>
                                         {{ mat_opt.name }} ({{ mat_opt.unit }}) - {{ "%.2f"|format(mat_opt.cost_per_unit) }} ₪
@@ -84,7 +84,7 @@
                             </div>
                             <div class="col-md-5">
                                 <div class="input-group">
-                                    <input type="number" step="0.001" name="quantity[]" class="form-control quantity-input" placeholder="כמות" value="{{ "%.3f"|format(component.quantity) }}" required data-base-unit="{{ component.material.unit if component.material else 'kg' }}">
+                                    <input type="number" step="0.001" name="quantity[]" class="form-control quantity-input" placeholder="{{ _('Quantity') }}" value="{{ "%.3f"|format(component.quantity) }}" required data-base-unit="{{ component.material.unit if component.material else 'kg' }}">
                                     <select class="form-select unit-selector" style="max-width: 80px;">
                                         {% if component.material %}
                                             {% if component.material.unit in ['kg', 'g'] %}
@@ -117,7 +117,7 @@
                         <input type="hidden" name="component_type[]" value="raw_material">
                         <div class="col-md-6">
                             <select name="component_id[]" class="form-select select2" onchange="handleMaterialChange(this)" required>
-                                <option value="" disabled selected>בחר חומר גלם...</option>
+                                <option value="" disabled selected>{{ _('Select raw material...') }}</option>
                                 {% for mat_opt in all_raw_materials %}
                                 <option value="{{ mat_opt.id }}" data-unit="{{ mat_opt.unit }}">
                                     {{ mat_opt.name }} ({{ mat_opt.unit }}) - {{ mat_opt.cost_per_unit }} ₪
@@ -127,7 +127,7 @@
                         </div>
                         <div class="col-md-5">
                             <div class="input-group">
-                                <input type="number" step="0.001" name="quantity[]" class="form-control quantity-input" placeholder="כמות" required data-base-unit="kg">
+                                <input type="number" step="0.001" name="quantity[]" class="form-control quantity-input" placeholder="{{ _('Quantity') }}" required data-base-unit="kg">
                                 <select class="form-select unit-selector" style="max-width: 80px;">
                                     <option value="kg">kg</option>
                                     <option value="g">g</option>
@@ -148,9 +148,9 @@
         <!-- Premakes Section -->
         <div class="card mb-3">
             <div class="card-header bg-light">
-                הכנות מקדימות
+                {{ _('Premakes') }}
                 <button type="button" class="btn btn-sm btn-primary float-end" onclick="addPremakeRow()">
-                    <i class="bi bi-plus-lg"></i> הוסף
+                    <i class="bi bi-plus-lg"></i> {{ _('Add') }}
                 </button>
             </div>
             <div class="card-body">
@@ -169,7 +169,7 @@
                             <input type="hidden" name="component_type[]" value="premake">
                             <div class="col-md-6">
                                 <select name="component_id[]" class="form-select select2">
-                                    <option value="">בחר הכנה מקדימה</option>
+                                    <option value="">{{ _('Select premake...') }}</option>
                                     {% for premake_opt in all_premakes %}
                                     <option value="{{ premake_opt.id }}" data-unit="{{ premake_opt.unit }}" {% if premake_opt.id == component.component_id %}selected{% endif %}>
                                         {{ premake_opt.name }} ({{ premake_opt.unit }})
@@ -179,7 +179,7 @@
                             </div>
                             <div class="col-md-5">
                                 <div class="input-group">
-                                    <input type="number" step="0.001" name="quantity[]" class="form-control" placeholder="כמות" value="{{ "%.3f"|format(component.quantity) }}" required>
+                                    <input type="number" step="0.001" name="quantity[]" class="form-control" placeholder="{{ _('Quantity') }}" value="{{ "%.3f"|format(component.quantity) }}" required>
                                     <span class="input-group-text">{{ component.premake.unit if component.premake else '' }}</span>
                                 </div>
                             </div>
@@ -195,8 +195,8 @@
         </div>
 
         <div class="mt-4">
-            <button type="submit" class="btn btn-success">שמור</button>
-            <a href="{{ url_for('premakes.premakes') }}" class="btn btn-secondary">ביטול</a>
+            <button type="submit" class="btn btn-success">{{ _('Save') }}</button>
+            <a href="{{ url_for('premakes.premakes') }}" class="btn btn-secondary">{{ _('Cancel') }}</a>
         </div>
     </form>
 </div>
@@ -206,14 +206,14 @@
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
              <div class="modal-header">
-                <h6 class="modal-title">הוסף קטגוריה</h6>
+                <h6 class="modal-title">{{ _('Add Category') }}</h6>
                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form action="{{ url_for('categories.add_category_from_modal') }}" method="POST">
                     <input type="hidden" name="type" id="categoryTypeInput" value="premake">
-                    <input type="text" name="name" class="form-control mb-2" placeholder="שם קטגוריה" required>
-                    <button type="submit" class="btn btn-sm btn-success w-100">שמור</button>
+                    <input type="text" name="name" class="form-control mb-2" placeholder="{{ _('Category Name') }}" required>
+                    <button type="submit" class="btn btn-sm btn-success w-100">{{ _('Save') }}</button>
                 </form>
             </div>
         </div>
@@ -227,7 +227,7 @@
         const container = document.getElementById('raw_materials_container');
         const allRawMaterials = {{ all_raw_materials_json | default([]) | tojson | safe }};
 
-        let optionsHtml = '<option value="" disabled selected>בחר חומר גלם...</option>';
+        let optionsHtml = '<option value="" disabled selected>{{ _("Select raw material...") }}</option>';
         allRawMaterials.forEach(material => {
             const selected = materialId == material.id ? 'selected' : '';
             optionsHtml += `<option value="${material.id}" data-unit="${material.unit}" ${selected}>${material.name} (${material.unit}) - ${material.cost_per_unit} ₪</option>`;
@@ -243,7 +243,7 @@
                 </div>
                 <div class="col-md-5">
                     <div class="input-group">
-                        <input type="number" name="quantity[]" class="form-control quantity-input" placeholder="כמות" step="0.001" value="${quantity}" required data-base-unit="kg">
+                        <input type="number" name="quantity[]" class="form-control quantity-input" placeholder="{{ _("Quantity") }}" step="0.001" value="${quantity}" required data-base-unit="kg">
                         <select class="form-select unit-selector" style="max-width: 80px;">
                             <option value="kg">kg</option>
                             <option value="g">g</option>
@@ -256,18 +256,18 @@
                     </button>
                 </div>
             </div>`;
-        
+
         const template = document.createElement('div');
         template.innerHTML = rowHtml.trim();
         const rowElement = template.firstChild;
-        
+
         container.appendChild(rowElement);
-        
+
         // Initialize Select2
         $(rowElement).find('.select2').select2({
             theme: 'bootstrap-5',
             width: '100%',
-            language: { noResults: () => "לא נמצאו תוצאות" }
+            language: { noResults: () => "{{ _("No results found") }}" }
         });
     }
 
@@ -308,7 +308,7 @@
         const container = document.getElementById('premakes_container');
         const allPremakes = {{ all_premakes_json | default([]) | tojson | safe }};
 
-        let optionsHtml = '<option value="">בחר הכנה מקדימה...</option>';
+        let optionsHtml = '<option value="">{{ _("Select premake...") }}</option>';
         allPremakes.forEach(premake => {
             optionsHtml += `<option value="${premake.id}" data-unit="${premake.unit}">${premake.name} (${premake.unit})</option>`;
         });
@@ -323,7 +323,7 @@
                 </div>
                 <div class="col-md-5">
                     <div class="input-group">
-                        <input type="number" name="quantity[]" class="form-control" placeholder="כמות" step="0.001" required>
+                        <input type="number" name="quantity[]" class="form-control" placeholder="{{ _("Quantity") }}" step="0.001" required>
                         <span class="input-group-text unit-display"></span>
                     </div>
                 </div>
@@ -344,7 +344,7 @@
         $(rowElement).find('.select2').select2({
             theme: 'bootstrap-5',
             width: '100%',
-            language: { noResults: () => "לא נמצאו תוצאות" }
+            language: { noResults: () => "{{ _("No results found") }}" }
         });
     }
 
@@ -401,7 +401,7 @@
         $('.select2').select2({
             theme: 'bootstrap-5',
             width: '100%',
-            language: { noResults: () => "לא נמצאו תוצאות" }
+            language: { noResults: () => "{{ _("No results found") }}" }
         });
 
         // Handle Add Category Modal Type
