@@ -1436,3 +1436,37 @@ msgstr "Cost Summary"
 msgid "Total Raw Materials:"
 msgstr "Total Raw Materials:"
 
+# update_weekly_sales.html translations
+msgid "Update Weekly Sales"
+msgstr "Update Weekly Sales"
+
+msgid "Enter the quantities sold this week for each product."
+msgstr "Enter the quantities sold this week for each product."
+
+msgid "Produced This Week"
+msgstr "Produced This Week"
+
+msgid "Sold So Far"
+msgstr "Sold So Far"
+
+msgid "Add Sales"
+msgstr "Add Sales"
+
+msgid "Waste So Far"
+msgstr "Waste So Far"
+
+msgid "Add Waste"
+msgstr "Add Waste"
+
+msgid "Produced:"
+msgstr "Produced:"
+
+msgid "Remaining:"
+msgstr "Remaining:"
+
+msgid "Add Update"
+msgstr "Add Update"
+
+msgid "Attention: The quantity entered exceeds the available stock produced this week."
+msgstr "Attention: The quantity entered exceeds the available stock produced this week."
+

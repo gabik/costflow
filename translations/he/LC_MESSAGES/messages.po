@@ -1431,3 +1431,37 @@ msgstr "סיכום עלויות"
 msgid "Total Raw Materials:"
 msgstr "סה\"כ חומרי גלם:"
 
+# update_weekly_sales.html translations
+msgid "Update Weekly Sales"
+msgstr "עדכון מכירות שבועי"
+
+msgid "Enter the quantities sold this week for each product."
+msgstr "הזן את הכמויות שנמכרו השבוע עבור כל מוצר."
+
+msgid "Produced This Week"
+msgstr "יוצר השבוע"
+
+msgid "Sold So Far"
+msgstr "נמכר עד כה"
+
+msgid "Add Sales"
+msgstr "הוסף מכירה"
+
+msgid "Waste So Far"
+msgstr "פחת עד כה"
+
+msgid "Add Waste"
+msgstr "הוסף פחת"
+
+msgid "Produced:"
+msgstr "יוצר:"
+
+msgid "Remaining:"
+msgstr "נותר:"
+
+msgid "Add Update"
+msgstr "הוסף עדכון"
+
+msgid "Attention: The quantity entered exceeds the available stock produced this week."
+msgstr "שים לב: הכמות שהוזנה עולה על המלאי הזמין שיוצר השבוע."
+

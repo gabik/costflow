@@ -1,17 +1,17 @@
 {% extends "base.html" %}
-{% block title %}עדכון מכירות שבועי - CostFlow{% endblock %}
+{% block title %}{{ _('Update Weekly Sales') }} - CostFlow{% endblock %}
 
 {% block content %}
 <div class="row mb-4 align-items-center">
     <div class="col">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">דשבורד</a></li>
-                <li class="breadcrumb-item active" aria-current="page">עדכון מכירות ({{ week.week_start_date.strftime('%d/%m') }})</li>
+                <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">{{ _('Home') }}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ _('Update Sales') }} ({{ week.week_start_date.strftime('%d/%m') }})</li>
             </ol>
         </nav>
-        <h1 class="display-6 fw-bold text-primary">עדכון מכירות שבועי</h1>
-        <p class="text-secondary">הזן את הכמויות שנמכרו השבוע עבור כל מוצר.</p>
+        <h1 class="display-6 fw-bold text-primary">{{ _('Update Weekly Sales') }}</h1>
+        <p class="text-secondary">{{ _('Enter the quantities sold this week for each product.') }}</p>
     </div>
 </div>
 
@@ -22,13 +22,13 @@
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th style="width: 60px;">תמונה</th>
-                            <th>מוצר</th>
-                            <th>יוצר השבוע</th>
-                            <th>נמכר עד כה</th>
-                            <th style="width: 150px;">הוסף מכירה</th>
-                            <th>פחת עד כה</th>
-                            <th style="width: 150px;">הוסף פחת</th>
+                            <th style="width: 60px;">{{ _('Image') }}</th>
+                            <th>{{ _('Product') }}</th>
+                            <th>{{ _('Produced This Week') }}</th>
+                            <th>{{ _('Sold So Far') }}</th>
+                            <th style="width: 150px;">{{ _('Add Sales') }}</th>
+                            <th>{{ _('Waste So Far') }}</th>
+                            <th style="width: 150px;">{{ _('Add Waste') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -47,8 +47,8 @@
                             </td>
                             <td class="fw-medium">{{ product.name }}</td>
                             <td>
-                                <span class="badge bg-secondary text-white produced-badge">יוצר: {{ produced | int }}</span>
-                                <span class="badge bg-info text-dark remaining-badge ms-1">נותר: {{ (produced - sales.sold - sales.waste) | int }}</span>
+                                <span class="badge bg-secondary text-white produced-badge">{{ _('Produced:') }} {{ produced | int }}</span>
+                                <span class="badge bg-info text-dark remaining-badge ms-1">{{ _('Remaining:') }} {{ (produced - sales.sold - sales.waste) | int }}</span>
                             </td>
                             <td class="text-center fw-bold text-success">
                                 {{ sales.sold | int }}
@@ -67,11 +67,11 @@
                     </tbody>
                 </table>
             </div>
-            
+
             <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                <a href="{{ url_for('main.index') }}" class="btn btn-secondary me-md-2">ביטול</a>
+                <a href="{{ url_for('main.index') }}" class="btn btn-secondary me-md-2">{{ _('Cancel') }}</a>
                 <button type="submit" class="btn btn-primary btn-lg px-5">
-                    <i class="bi bi-plus-lg me-2"></i> הוסף עדכון
+                    <i class="bi bi-plus-lg me-2"></i> {{ _('Add Update') }}
                 </button>
             </div>
         </form>
@@ -81,26 +81,26 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const rows = document.querySelectorAll('.product-row');
-    
+
     rows.forEach(row => {
         const remainingBadge = row.querySelector('.remaining-badge');
         const salesInput = row.querySelector('.sales-input');
         const wasteInput = row.querySelector('.waste-input');
-        
+
         const produced = parseInt(row.dataset.produced) || 0;
         const initialSold = parseInt(row.dataset.initialSold) || 0;
         const initialWaste = parseInt(row.dataset.initialWaste) || 0;
-        
+
         function updateValidation() {
             const currentSold = parseInt(salesInput.value) || 0;
             const currentWaste = parseInt(wasteInput.value) || 0;
-            
+
             // Remaining = Produced - (Already Sold + New Sales) - (Already Waste + New Waste)
             const remaining = produced - (initialSold + currentSold) - (initialWaste + currentWaste);
-            
+
             // Update badge
-            remainingBadge.textContent = 'נותר: ' + remaining;
-            
+            remainingBadge.textContent = "{{ _("Remaining:") }}" + ' ' + remaining;
+
             if (remaining < 0) {
                 remainingBadge.classList.replace('bg-info', 'bg-danger');
                 remainingBadge.classList.add('text-white');
@@ -113,16 +113,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 wasteInput.classList.remove('is-invalid');
             }
         }
-        
+
         salesInput.addEventListener('input', updateValidation);
         wasteInput.addEventListener('input', updateValidation);
     });
-    
+
     // Prevent submit if invalid
     document.querySelector('form').addEventListener('submit', function(e) {
         if (document.querySelectorAll('.is-invalid').length > 0) {
             e.preventDefault();
-            alert('שים לב: הכמות שהוזנה עולה על המלאי הזמין שיוצר השבוע.');
+            alert("{{ _("Attention: The quantity entered exceeds the available stock produced this week.") }}");
         }
     });
 });
