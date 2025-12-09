@@ -449,6 +449,16 @@
 
     // Check for removed suppliers with stock before form submission
     function checkRemovedSuppliers() {
+        // Remove 'required' from any hidden or invisible fields to prevent validation errors
+        document.querySelectorAll('input[required], select[required]').forEach(field => {
+            const isHidden = field.offsetParent === null ||
+                           window.getComputedStyle(field).display === 'none' ||
+                           window.getComputedStyle(field).visibility === 'hidden';
+            if (isHidden) {
+                field.removeAttribute('required');
+            }
+        });
+
         // Only check if we're editing an existing material
         {% if not material %}
         return true; // Allow form submission for new materials
