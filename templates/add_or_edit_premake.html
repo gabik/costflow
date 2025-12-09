@@ -5,7 +5,7 @@
 <div class="container mt-4">
     <h2>{{ 'ערוך' if premake else 'הוסף' }} הכנה מקדימה</h2>
 
-    <form method="POST" class="needs-validation" novalidate>
+    <form method="POST" class="needs-validation" novalidate onsubmit="convertUnitsBeforeSubmit(event)">
         <div class="row">
             <div class="col-md-6">
                 <div class="mb-3">
@@ -84,8 +84,23 @@
                             </div>
                             <div class="col-md-5">
                                 <div class="input-group">
-                                    <input type="number" step="0.001" name="quantity[]" class="form-control" placeholder="כמות" value="{{ "%.3f"|format(component.quantity) }}" required>
-                                    <span class="input-group-text">{{ component.material.unit if component.material else 'kg' }}</span>
+                                    <input type="number" step="0.001" name="quantity[]" class="form-control quantity-input" placeholder="כמות" value="{{ "%.3f"|format(component.quantity) }}" required data-base-unit="{{ component.material.unit if component.material else 'kg' }}">
+                                    <select class="form-select unit-selector" style="max-width: 80px;">
+                                        {% if component.material %}
+                                            {% if component.material.unit in ['kg', 'g'] %}
+                                                <option value="kg" {% if component.material.unit == 'kg' %}selected{% endif %}>kg</option>
+                                                <option value="g" {% if component.material.unit == 'g' %}selected{% endif %}>g</option>
+                                            {% elif component.material.unit in ['l', 'ml'] %}
+                                                <option value="l" {% if component.material.unit == 'l' %}selected{% endif %}>l</option>
+                                                <option value="ml" {% if component.material.unit == 'ml' %}selected{% endif %}>ml</option>
+                                            {% else %}
+                                                <option value="{{ component.material.unit }}">{{ component.material.unit }}</option>
+                                            {% endif %}
+                                        {% else %}
+                                            <option value="kg">kg</option>
+                                            <option value="g">g</option>
+                                        {% endif %}
+                                    </select>
                                 </div>
                             </div>
                             <div class="col-md-1">
@@ -225,8 +240,11 @@
                 </div>
                 <div class="col-md-5">
                     <div class="input-group">
-                        <input type="number" name="quantity[]" class="form-control" placeholder="כמות" step="0.001" value="${quantity}" required>
-                        <span class="input-group-text unit-display">unit</span>
+                        <input type="number" name="quantity[]" class="form-control quantity-input" placeholder="כמות" step="0.001" value="${quantity}" required data-base-unit="kg">
+                        <select class="form-select unit-selector" style="max-width: 80px;">
+                            <option value="kg">kg</option>
+                            <option value="g">g</option>
+                        </select>
                     </div>
                 </div>
                 <div class="col-md-1">
@@ -256,13 +274,30 @@
 
     function handleMaterialChange(selectElement) {
         const row = selectElement.closest('.row');
-        const unitDisplay = row.querySelector('.unit-display');
+        const unitSelector = row.querySelector('.unit-selector');
+        const quantityInput = row.querySelector('.quantity-input');
 
         const selectedOption = selectElement.options[selectElement.selectedIndex];
         const baseUnit = selectedOption.getAttribute('data-unit');
 
-        if (unitDisplay && baseUnit) {
-            unitDisplay.textContent = baseUnit;
+        if (unitSelector && baseUnit) {
+            // Update the unit selector options based on material's base unit
+            unitSelector.innerHTML = '';
+
+            if (baseUnit === 'kg' || baseUnit === 'g') {
+                unitSelector.innerHTML = '<option value="kg">kg</option><option value="g">g</option>';
+                unitSelector.value = baseUnit;
+            } else if (baseUnit === 'l' || baseUnit === 'ml') {
+                unitSelector.innerHTML = '<option value="l">l</option><option value="ml">ml</option>';
+                unitSelector.value = baseUnit;
+            } else {
+                unitSelector.innerHTML = `<option value="${baseUnit}">${baseUnit}</option>`;
+            }
+
+            // Store base unit in data attribute
+            if (quantityInput) {
+                quantityInput.setAttribute('data-base-unit', baseUnit);
+            }
         }
     }
 
@@ -322,6 +357,40 @@
         } else {
             unitDisplay.textContent = '';
         }
+    }
+
+    function convertUnitsBeforeSubmit(event) {
+        // Convert all quantities to their base units before submitting
+        const rawMaterialRows = document.querySelectorAll('.raw-material-row');
+
+        rawMaterialRows.forEach(row => {
+            const quantityInput = row.querySelector('.quantity-input');
+            const unitSelector = row.querySelector('.unit-selector');
+
+            if (quantityInput && unitSelector) {
+                const baseUnit = quantityInput.getAttribute('data-base-unit');
+                const currentUnit = unitSelector.value;
+                let quantity = parseFloat(quantityInput.value) || 0;
+
+                // Convert to base unit if needed
+                if (baseUnit !== currentUnit) {
+                    if (baseUnit === 'kg' && currentUnit === 'g') {
+                        quantity = quantity / 1000; // g to kg
+                    } else if (baseUnit === 'g' && currentUnit === 'kg') {
+                        quantity = quantity * 1000; // kg to g
+                    } else if (baseUnit === 'l' && currentUnit === 'ml') {
+                        quantity = quantity / 1000; // ml to l
+                    } else if (baseUnit === 'ml' && currentUnit === 'l') {
+                        quantity = quantity * 1000; // l to ml
+                    }
+
+                    quantityInput.value = quantity;
+                }
+            }
+        });
+
+        // Allow form to submit
+        return true;
     }
 
     document.addEventListener('DOMContentLoaded', function() {
