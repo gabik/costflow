@@ -211,14 +211,28 @@ def add_product():
     categories = Category.query.filter_by(type='raw_material').all()
     product_categories = Category.query.filter_by(type='product').all()
 
-    all_packaging = [p.to_dict() for p in Packaging.query.all()]
+    # Enhanced packaging data with price_per_unit
+    all_packaging = []
+    for pkg in Packaging.query.all():
+        pkg_dict = pkg.to_dict()
+        pkg_dict['price_per_unit'] = pkg.price_per_unit
+        all_packaging.append(pkg_dict)
+
     all_labor = [labor_item.to_dict() for labor_item in Labor.query.all()]
 
-    # Get products that can be used as premakes
-    all_premakes = [p.to_dict() for p in Product.query.filter_by(is_premake=True).all()]
+    # Enhanced premakes data with cost_per_unit
+    all_premakes = []
+    for p in Product.query.filter_by(is_premake=True).all():
+        premake_dict = p.to_dict()
+        premake_dict['cost_per_unit'] = calculate_premake_cost_per_unit(p)
+        all_premakes.append(premake_dict)
 
-    # Get products that can be used as preproducts (components)
-    all_preproducts = [p.to_dict() for p in Product.query.filter_by(is_preproduct=True).all()]
+    # Enhanced preproducts data with cost_per_unit
+    all_preproducts = []
+    for p in Product.query.filter_by(is_preproduct=True).all():
+        preproduct_dict = p.to_dict()
+        preproduct_dict['cost_per_unit'] = calculate_prime_cost(p)
+        all_preproducts.append(preproduct_dict)
 
     return render_template(
         'add_or_edit_product.html',
@@ -551,14 +565,28 @@ def edit_product(product_id):
 
         all_raw_materials.append(material_dict)
 
-    all_packaging = [p.to_dict() for p in Packaging.query.all()]
+    # Enhanced packaging data with price_per_unit
+    all_packaging = []
+    for pkg in Packaging.query.all():
+        pkg_dict = pkg.to_dict()
+        pkg_dict['price_per_unit'] = pkg.price_per_unit
+        all_packaging.append(pkg_dict)
+
     all_labor = [labor_item.to_dict() for labor_item in Labor.query.all()]
 
-    # Get products that can be used as premakes
-    all_premakes = [p.to_dict() for p in Product.query.filter_by(is_premake=True).all()]
+    # Enhanced premakes data with cost_per_unit
+    all_premakes = []
+    for p in Product.query.filter_by(is_premake=True).all():
+        premake_dict = p.to_dict()
+        premake_dict['cost_per_unit'] = calculate_premake_cost_per_unit(p)
+        all_premakes.append(premake_dict)
 
-    # Get products that can be used as preproducts (components)
-    all_preproducts = [p.to_dict() for p in Product.query.filter_by(is_preproduct=True).all()]
+    # Enhanced preproducts data with cost_per_unit
+    all_preproducts = []
+    for p in Product.query.filter_by(is_preproduct=True).all():
+        preproduct_dict = p.to_dict()
+        preproduct_dict['cost_per_unit'] = calculate_prime_cost(p)
+        all_preproducts.append(preproduct_dict)
 
     categories = Category.query.filter_by(type='raw_material').all()
     product_categories = Category.query.filter_by(type='product').all()

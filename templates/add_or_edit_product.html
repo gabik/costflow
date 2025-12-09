@@ -80,7 +80,7 @@
                 <div class="col-md-5">
                     <select name="premake[]" class="form-select select2" onchange="handlePremakeChange(this)">
                         {% for premake_option in all_premakes %}
-                            <option value="{{ premake_option.id }}" data-unit="{{ premake_option.unit }}" {% if component.component_id == premake_option.id %}selected{% endif %}>
+                            <option value="{{ premake_option.id }}" data-unit="{{ premake_option.unit }}" data-cost="{{ premake_option.cost_per_unit }}" {% if component.component_id == premake_option.id %}selected{% endif %}>
                                 {{ premake_option.name }}
                             </option>
                         {% endfor %}
@@ -106,7 +106,7 @@
                     <select name="premake[]" class="form-select select2" onchange="handlePremakeChange(this)">
                         <option value="" disabled selected>בחר הכנה מקדימה...</option>
                         {% for premake_option in all_premakes %}
-                            <option value="{{ premake_option.id }}" data-unit="{{ premake_option.unit }}">
+                            <option value="{{ premake_option.id }}" data-unit="{{ premake_option.unit }}" data-cost="{{ premake_option.cost_per_unit }}">
                                 {{ premake_option.name }}
                             </option>
                         {% endfor %}
@@ -147,7 +147,7 @@
                 <div class="col-md-5">
                     <select name="preproduct[]" class="form-select select2" onchange="handlePreproductChange(this)">
                         {% for preproduct_option in all_preproducts %}
-                            <option value="{{ preproduct_option.id }}" data-unit="{{ preproduct_option.unit or 'יחידה' }}" {% if component.component_id == preproduct_option.id %}selected{% endif %}>
+                            <option value="{{ preproduct_option.id }}" data-unit="{{ preproduct_option.unit or 'יחידה' }}" data-cost="{{ preproduct_option.cost_per_unit }}" {% if component.component_id == preproduct_option.id %}selected{% endif %}>
                                 {{ preproduct_option.name }}
                             </option>
                         {% endfor %}
@@ -173,7 +173,7 @@
                     <select name="preproduct[]" class="form-select select2" onchange="handlePreproductChange(this)">
                         <option value="" disabled selected>בחר מוצר מקדים...</option>
                         {% for preproduct_option in all_preproducts %}
-                            <option value="{{ preproduct_option.id }}" data-unit="{{ preproduct_option.unit or 'יחידה' }}">
+                            <option value="{{ preproduct_option.id }}" data-unit="{{ preproduct_option.unit or 'יחידה' }}" data-cost="{{ preproduct_option.cost_per_unit }}">
                                 {{ preproduct_option.name }}
                             </option>
                         {% endfor %}
@@ -290,7 +290,7 @@
                 <div class="col-md-5">
                     <select name="packaging[]" class="form-select select2">
                         {% for packaging_option in all_packaging %}
-                            <option value="{{ packaging_option.id }}" {% if component.component_id == packaging_option.id %}selected{% endif %}>
+                            <option value="{{ packaging_option.id }}" data-cost="{{ packaging_option.price_per_unit }}" {% if component.component_id == packaging_option.id %}selected{% endif %}>
                                 {{ packaging_option.name }}
                             </option>
                         {% endfor %}
@@ -311,7 +311,7 @@
                     <select name="packaging[]" class="form-select select2">
                         <option value="" disabled selected>בחר אריזה...</option>
                         {% for packaging_option in all_packaging %}
-                            <option value="{{ packaging_option.id }}">
+                            <option value="{{ packaging_option.id }}" data-cost="{{ packaging_option.price_per_unit }}">
                                 {{ packaging_option.name }}
                             </option>
                         {% endfor %}
@@ -590,7 +590,7 @@
         let optionsHtml = '<option value="" disabled selected>בחר אריזה...</option>';
         allPackaging.forEach(pkg => {
             const selected = packagingId == pkg.id ? 'selected' : '';
-            optionsHtml += `<option value="${pkg.id}" ${selected}>${pkg.name}</option>`;
+            optionsHtml += `<option value="${pkg.id}" data-cost="${pkg.price_per_unit || 0}" ${selected}>${pkg.name}</option>`;
         });
 
         const rowHtml = `
@@ -629,7 +629,7 @@
         let optionsHtml = '<option value="" disabled selected>בחר הכנה מקדימה...</option>';
         allPremakes.forEach(premake => {
             const selected = premakeId == premake.id ? 'selected' : '';
-            optionsHtml += `<option value="${premake.id}" data-unit="${premake.unit}" ${selected}>${premake.name} (${premake.unit})</option>`;
+            optionsHtml += `<option value="${premake.id}" data-unit="${premake.unit}" data-cost="${premake.cost_per_unit || 0}" ${selected}>${premake.name} (${premake.unit})</option>`;
         });
 
         const rowHtml = `
@@ -703,7 +703,7 @@
         allPreproducts.forEach(preproduct => {
             const selected = preproductId == preproduct.id ? 'selected' : '';
             const productUnit = preproduct.unit || 'יחידה';
-            optionsHtml += `<option value="${preproduct.id}" data-unit="${productUnit}" ${selected}>${preproduct.name}</option>`;
+            optionsHtml += `<option value="${preproduct.id}" data-unit="${productUnit}" data-cost="${preproduct.cost_per_unit || 0}" ${selected}>${preproduct.name}</option>`;
         });
 
         const rowHtml = `
@@ -747,6 +747,11 @@
         const baseUnit = selectedOption.getAttribute('data-unit') || 'יחידה';
 
         unitSelect.innerHTML = `<option value="${baseUnit}">${baseUnit}</option>`;
+
+        // Trigger cost recalculation
+        if (typeof calculateTotalCost === 'function') {
+            calculateTotalCost();
+        }
     }
 
     function updateUnitOptions(selectElement, baseUnit, selectedUnit = null) {
@@ -855,6 +860,45 @@
                 }
             });
 
+            // Calculate premakes cost
+            document.querySelectorAll('.premake-row').forEach(row => {
+                const select = row.querySelector('select[name="premake[]"]');
+                const quantityInput = row.querySelector('input[name="premake_quantity[]"]');
+
+                if (select && select.value && quantityInput && quantityInput.value) {
+                    const selectedOption = select.options[select.selectedIndex];
+                    const cost = parseFloat(selectedOption.dataset.cost) || 0;
+                    const quantity = parseFloat(quantityInput.value) || 0;
+                    totalCost += cost * quantity;
+                }
+            });
+
+            // Calculate preproducts cost
+            document.querySelectorAll('.preproduct-row').forEach(row => {
+                const select = row.querySelector('select[name="preproduct[]"]');
+                const quantityInput = row.querySelector('input[name="preproduct_quantity[]"]');
+
+                if (select && select.value && quantityInput && quantityInput.value) {
+                    const selectedOption = select.options[select.selectedIndex];
+                    const cost = parseFloat(selectedOption.dataset.cost) || 0;
+                    const quantity = parseFloat(quantityInput.value) || 0;
+                    totalCost += cost * quantity;
+                }
+            });
+
+            // Calculate packaging cost
+            document.querySelectorAll('.packaging-row').forEach(row => {
+                const select = row.querySelector('select[name="packaging[]"]');
+                const quantityInput = row.querySelector('input[name="packaging_quantity[]"]');
+
+                if (select && select.value && quantityInput && quantityInput.value) {
+                    const selectedOption = select.options[select.selectedIndex];
+                    const cost = parseFloat(selectedOption.dataset.cost) || 0;
+                    const quantity = parseFloat(quantityInput.value) || 0;
+                    totalCost += cost * quantity;
+                }
+            });
+
             // Update display
             const totalMaterialsCostEl = document.getElementById('total-materials-cost');
             const costPerUnitEl = document.getElementById('cost-per-unit');
@@ -867,15 +911,28 @@
             }
         }
 
-        // Attach to input change events
+        // Attach to input change events for ALL component types
         document.addEventListener('input', function(e) {
-            if (e.target.name === 'raw_material_quantity[]' || e.target.name === 'products_per_recipe') {
+            if (e.target.name === 'raw_material_quantity[]' ||
+                e.target.name === 'premake_quantity[]' ||
+                e.target.name === 'preproduct_quantity[]' ||
+                e.target.name === 'packaging_quantity[]' ||
+                e.target.name === 'products_per_recipe') {
                 calculateTotalCost();
             }
         });
 
-        // Also recalculate when material selection changes
+        // Also recalculate when ANY component selection changes
         $(document.body).on('select2:select', 'select[name="raw_material[]"]', function() {
+            calculateTotalCost();
+        });
+        $(document.body).on('select2:select', 'select[name="premake[]"]', function() {
+            calculateTotalCost();
+        });
+        $(document.body).on('select2:select', 'select[name="preproduct[]"]', function() {
+            calculateTotalCost();
+        });
+        $(document.body).on('select2:select', 'select[name="packaging[]"]', function() {
             calculateTotalCost();
         });
 
