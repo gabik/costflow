@@ -251,7 +251,7 @@ def calculate_recipe_diff(existing_components, new_materials, matched_materials_
     for comp in existing_components:
         key = None
         if comp.component_type == 'raw_material' and comp.material:
-            key = ('raw_material', comp.material_id)
+            key = ('raw_material', comp.component_id)  # Use component_id, not material_id!
         elif comp.component_type == 'premake' and comp.premake:
             key = ('premake', comp.component_id)
         elif comp.component_type == 'product' and comp.preproduct:
@@ -332,6 +332,16 @@ def calculate_100g_cost(total_weight, total_cost):
 def upload_recipes():
     """Upload Excel file and select sheet"""
     if request.method == 'POST':
+        # Clean up any previous temp files from abandoned imports
+        old_temp_file = session.get('recipe_temp_file')
+        old_data_file = session.get('recipe_data_file')
+        if old_temp_file and os.path.exists(old_temp_file):
+            os.remove(old_temp_file)
+        if old_data_file and os.path.exists(old_data_file):
+            os.remove(old_data_file)
+        session.pop('recipe_temp_file', None)
+        session.pop('recipe_data_file', None)
+
         if 'recipe_file' not in request.files:
             flash('לא נבחר קובץ', 'error')
             return redirect(request.url)
@@ -501,12 +511,16 @@ def select_sheet():
                 'diff': diff_data
             })
 
-        # Store data in session for confirm step
-        session['recipe_import_data'] = {
-            'metadata': metadata,
-            'category_id': category.id,
-            'recipes': recipes
-        }
+        # Store data in temporary JSON file (session cookie has 4KB limit!)
+        temp_data_file = temp_file.replace('.xlsx', '_data.json').replace('.xls', '_data.json')
+        with open(temp_data_file, 'w', encoding='utf-8') as f:
+            json.dump({
+                'metadata': metadata,
+                'category_id': category.id,
+                'recipes': recipes
+            }, f, ensure_ascii=False)
+
+        session['recipe_data_file'] = temp_data_file
 
         return render_template('recipe_review.html',
                              metadata=metadata,
@@ -526,10 +540,18 @@ def select_sheet():
 @recipe_import_blueprint.route('/recipes/confirm', methods=['POST'])
 def confirm_import():
     """Confirm and save recipes to database"""
-    import_data = session.get('recipe_import_data')
+    temp_data_file = session.get('recipe_data_file')
 
-    if not import_data:
+    if not temp_data_file or not os.path.exists(temp_data_file):
         flash('נתוני הייבוא לא נמצאו, אנא התחל מחדש', 'error')
+        return redirect(url_for('recipe_import.upload_recipes'))
+
+    # Read recipe data from temporary JSON file
+    try:
+        with open(temp_data_file, 'r', encoding='utf-8') as f:
+            import_data = json.load(f)
+    except Exception as e:
+        flash(f'שגיאה בקריאת נתוני הייבוא: {str(e)}', 'error')
         return redirect(url_for('recipe_import.upload_recipes'))
 
     # Extract material mappings from form
@@ -722,12 +744,14 @@ def confirm_import():
 
         db.session.commit()
 
-        # Clean up
+        # Clean up temporary files
         temp_file = session.get('recipe_temp_file')
         if temp_file and os.path.exists(temp_file):
             os.remove(temp_file)
+        if temp_data_file and os.path.exists(temp_data_file):
+            os.remove(temp_data_file)
         session.pop('recipe_temp_file', None)
-        session.pop('recipe_import_data', None)
+        session.pop('recipe_data_file', None)
 
         # Success message
         flash(f'ייבוא הושלם בהצלחה: {created_count} מתכונים חדשים, {updated_count} מתכונים עודכנו', 'success')
