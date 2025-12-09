@@ -49,13 +49,13 @@ def raw_materials():
         stock_breakdown = []
         for link in supplier_links:
             stock = calculate_supplier_stock(material.id, link.supplier_id)
-            if stock > 0 or link.is_primary:  # Include primary even if 0 stock
-                stock_breakdown.append({
-                    'supplier_name': link.supplier.name,
-                    'stock': stock,
-                    'is_primary': link.is_primary,
-                    'cost_per_unit': link.cost_per_unit
-                })
+            # Include all suppliers (even with 0 stock)
+            stock_breakdown.append({
+                'supplier_name': link.supplier.name,
+                'stock': stock,
+                'is_primary': link.is_primary,
+                'cost_per_unit': link.cost_per_unit
+            })
 
         # Sort by primary first, then by stock amount
         stock_breakdown.sort(key=lambda x: (-x['is_primary'], -x['stock']))
@@ -230,11 +230,52 @@ def edit_raw_material(material_id):
         is_unlimited = request.form.get('is_unlimited') == 'on'  # Checkbox value
         material.is_unlimited = is_unlimited
 
+        # Get alternative names from form (do this early for all materials)
+        new_alternative_names = request.form.getlist('alternative_names[]')
+
         # Skip supplier handling for unlimited materials
         if is_unlimited:
             # Remove all existing supplier links if switching to unlimited
             RawMaterialSupplier.query.filter_by(raw_material_id=material.id).delete()
             material.cost_per_unit = 0
+
+            # Handle alternative names for unlimited materials before returning
+            # Get existing alternative names
+            existing_alt_names = {alt.alternative_name: alt for alt in material.alternative_names}
+            new_alt_names_set = set()
+
+            # Process new alternative names
+            for alt_name in new_alternative_names:
+                if alt_name and alt_name.strip():
+                    alt_name_stripped = alt_name.strip()
+                    new_alt_names_set.add(alt_name_stripped)
+
+                    # If it's a new alternative name, validate and add
+                    if alt_name_stripped not in existing_alt_names:
+                        is_unique, existing_material_name = validate_alternative_name_uniqueness(alt_name_stripped, material.id)
+                        if not is_unique:
+                            flash(f'השם החלופי "{alt_name_stripped}" כבר קיים עבור חומר: {existing_material_name}', 'error')
+                            db.session.rollback()
+                            categories = Category.query.filter_by(type='raw_material').all()
+                            suppliers_list = Supplier.query.filter_by(is_active=True).all()
+                            return render_template('add_or_edit_raw_material.html',
+                                                 material=material,
+                                                 categories=categories,
+                                                 suppliers=suppliers_list,
+                                                 units_list=units_list())
+
+                        # Add new alternative name
+                        new_alt_name_record = RawMaterialAlternativeName(
+                            raw_material_id=material.id,
+                            alternative_name=alt_name_stripped
+                        )
+                        db.session.add(new_alt_name_record)
+
+            # Remove alternative names that were deleted
+            for existing_name, existing_record in existing_alt_names.items():
+                if existing_name not in new_alt_names_set:
+                    db.session.delete(existing_record)
+
             db.session.commit()
             return redirect(url_for('raw_materials.raw_materials'))
 
@@ -248,9 +289,6 @@ def edit_raw_material(material_id):
         for supplier_id in supplier_ids:
             if supplier_id:
                 new_supplier_ids.add(int(supplier_id))
-
-        # Get alternative names from form
-        new_alternative_names = request.form.getlist('alternative_names[]')
 
         # Find removed suppliers
         removed_supplier_ids = existing_supplier_ids - new_supplier_ids
