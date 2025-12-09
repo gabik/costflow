@@ -448,10 +448,13 @@ msgid "Material Costs"
 msgstr "עלות חומרים"
 
 msgid "Prime Costs"
-msgstr "עלויות ראשוניות"
+msgstr "עלות ייצור"
 
 msgid "(Materials + Packaging + Premakes)"
-msgstr "(חומרי גלם + אריזה + הכנות)"
+msgstr "(מוצרים + מלאי הכנות)"
+
+msgid "(Products + Premake Inventory)"
+msgstr "(מוצרים + מלאי הכנות)"
 
 msgid "Net Profit"
 msgstr "רווח נטו"
@@ -497,6 +500,9 @@ msgstr "יעד מומלץ: 25-35%%"
 
 msgid "Food cost includes raw materials, packaging, and premakes for products produced this week."
 msgstr "עלות המזון כוללת חומרי גלם, אריזות והכנות מקדימות (פרימייקים) עבור מוצרים שיוצרו השבוע."
+
+msgid "Production cost includes all products made this week (materials + packaging + premakes used) PLUS the value of premakes produced but not consumed (inventory increase). This represents the total cost of everything produced."
+msgstr "עלות הייצור כוללת את כל המוצרים שיוצרו השבוע (חומרי גלם + אריזה + הכנות שנוצלו) בתוספת ערך ההכנות שיוצרו אך לא נצרכו (עלייה במלאי). זה מייצג את העלות הכוללת של כל מה שיוצר."
 
 msgid "Sales by Category"
 msgstr "מכירות לפי קטגוריה"
@@ -2669,3 +2675,18 @@ msgstr "הכנה מקדימה"
 
 msgid "unsold products remain."
 msgstr "נותרו מוצרים שלא נמכרו."
+
+msgid "Product Cost"
+msgstr "עלות מוצרים"
+
+msgid "Products sold + waste"
+msgstr "מוצרים שנמכרו + פסולת"
+
+msgid "Premake Stock Value Increase"
+msgstr "עליית ערך מלאי הכנות"
+
+msgid "Produced - Consumed"
+msgstr "יוצר - נצרך"
+
+msgid "Total Production Cost"
+msgstr "עלות ייצור כוללת"

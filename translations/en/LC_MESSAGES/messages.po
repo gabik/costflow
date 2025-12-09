@@ -456,10 +456,13 @@ msgid "Material Costs"
 msgstr "Material Costs"
 
 msgid "Prime Costs"
-msgstr "Prime Costs"
+msgstr "Production Cost"
 
 msgid "(Materials + Packaging + Premakes)"
-msgstr "(Materials + Packaging + Premakes)"
+msgstr "(Products + Premake Inventory)"
+
+msgid "(Products + Premake Inventory)"
+msgstr "(Products + Premake Inventory)"
 
 msgid "Net Profit"
 msgstr "Net Profit"
@@ -505,6 +508,9 @@ msgstr "Recommended target: 25-35%%"
 
 msgid "Food cost includes raw materials, packaging, and premakes for products produced this week."
 msgstr "Food cost includes raw materials, packaging, and premakes for products produced this week."
+
+msgid "Production cost includes all products made this week (materials + packaging + premakes used) PLUS the value of premakes produced but not consumed (inventory increase). This represents the total cost of everything produced."
+msgstr "Production cost includes all products made this week (materials + packaging + premakes used) PLUS the value of premakes produced but not consumed (inventory increase). This represents the total cost of everything produced."
 
 msgid "Sales by Category"
 msgstr "Sales by Category"
@@ -2674,3 +2680,18 @@ msgstr "Premake"
 
 msgid "unsold products remain."
 msgstr "unsold products remain."
+
+msgid "Product Cost"
+msgstr "Product Cost"
+
+msgid "Products sold + waste"
+msgstr "Products sold + waste"
+
+msgid "Premake Stock Value Increase"
+msgstr "Premake Stock Value Increase"
+
+msgid "Produced - Consumed"
+msgstr "Produced - Consumed"
+
+msgid "Total Production Cost"
+msgstr "Total Production Cost"

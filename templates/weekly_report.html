@@ -54,9 +54,9 @@
     <div class="col-md-3">
         <div class="card bg-danger text-white">
             <div class="card-body">
-                <h6 class="card-title">{{ _('Prime Costs') }}</h6>
-                <small class="text-white-50">{{ _('(Materials + Packaging + Premakes)') }}</small>
-                <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(total_prime_costs) }}</h3>
+                <h6 class="card-title">{{ _('Production Cost') }}</h6>
+                <small class="text-white-50">{{ _('Products + Premake Inventory') }}</small>
+                <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(total_production_cost) }}</h3>
             </div>
         </div>
     </div>
@@ -89,19 +89,28 @@
     </div>
     <div class="card-body">
         <div class="row mb-3">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="text-center">
-                    <h6 class="text-muted">{{ _('Total Food Cost') }}</h6>
-                    <h3 class="text-primary">{{ currency_symbol }}{{ "%.2f"|format(total_food_cost) }}</h3>
+                    <h6 class="text-muted">{{ _('Product Cost') }}</h6>
+                    <h3 class="text-primary">{{ currency_symbol }}{{ "%.2f"|format(total_product_cost) }}</h3>
+                    <small class="text-muted">{{ _('Products sold + waste') }}</small>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="text-center">
-                    <h6 class="text-muted">{{ _('Average Cost per Recipe') }}</h6>
-                    <h3 class="text-info">{{ currency_symbol }}{{ "%.2f"|format(avg_food_cost_per_recipe) }}</h3>
+                    <h6 class="text-muted">{{ _('Premake Stock Value Increase') }}</h6>
+                    <h3 class="text-warning">{{ currency_symbol }}{{ "%.2f"|format(total_premake_stock_value) }}</h3>
+                    <small class="text-muted">{{ _('Produced - Consumed') }}</small>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
+                <div class="text-center">
+                    <h6 class="text-muted">{{ _('Total Production Cost') }}</h6>
+                    <h3 class="text-danger fw-bold">{{ currency_symbol }}{{ "%.2f"|format(total_production_cost) }}</h3>
+                    <small class="text-muted">{{ _('Products + Premake Inventory') }}</small>
+                </div>
+            </div>
+            <div class="col-md-3">
                 <div class="text-center">
                     <h6 class="text-muted">{{ _('Total Recipes Produced') }}</h6>
                     <h3 class="text-success">{{ total_recipes_produced }}</h3>
@@ -150,7 +159,7 @@
         </div>
         <div class="alert alert-secondary mt-2">
             <small><i class="bi bi-info-circle me-2"></i>
-            {{ _('Food cost includes raw materials, packaging, and premakes for products produced this week.') }}
+            {{ _('Production cost includes all products made this week (materials + packaging + premakes used) PLUS the value of premakes produced but not consumed (inventory increase). This represents the total cost of everything produced.') }}
             </small>
         </div>
         {% endif %}
@@ -173,7 +182,7 @@
                         <th>{{ _('Quantity Sold') }}</th>
                         <th>{{ _('Waste Quantity') }}</th>
                         <th>{{ _('Revenue') }}</th>
-                        <th>{{ _('Prime Costs') }}</th>
+                        <th>{{ _('Production Cost') }}</th>
                         <th>{{ _('Gross Profit') }}</th>
                     </tr>
                 </thead>
@@ -185,9 +194,9 @@
                         <td>{{ cat_data.quantity_sold|int }}</td>
                         <td>{{ cat_data.quantity_waste|int }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(cat_data.revenue) }}</td>
-                        <td>{{ currency_symbol }}{{ "%.2f"|format(cat_data.prime_cost) }}</td>
-                        <td class="{% if cat_data.revenue - cat_data.prime_cost > 0 %}text-success{% else %}text-danger{% endif %}">
-                            {{ currency_symbol }}{{ "%.2f"|format(cat_data.revenue - cat_data.prime_cost) }}
+                        <td>{{ currency_symbol }}{{ "%.2f"|format(cat_data.product_cost) }}</td>
+                        <td class="{% if cat_data.revenue - cat_data.product_cost > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ currency_symbol }}{{ "%.2f"|format(cat_data.revenue - cat_data.product_cost) }}
                         </td>
                     </tr>
                     {% endfor %}
@@ -199,8 +208,8 @@
                         <th>{{ category_summaries.values()|sum(attribute='quantity_sold')|int }}</th>
                         <th>{{ category_summaries.values()|sum(attribute='quantity_waste')|int }}</th>
                         <th>{{ currency_symbol }}{{ "%.2f"|format(total_revenue) }}</th>
-                        <th>{{ currency_symbol }}{{ "%.2f"|format(total_prime_costs) }}</th>
-                        <th>{{ currency_symbol }}{{ "%.2f"|format(total_revenue - total_prime_costs) }}</th>
+                        <th>{{ currency_symbol }}{{ "%.2f"|format(total_production_cost) }}</th>
+                        <th>{{ currency_symbol }}{{ "%.2f"|format(total_revenue - total_production_cost) }}</th>
                     </tr>
                 </tfoot>
             </table>
