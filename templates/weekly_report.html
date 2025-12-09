@@ -229,7 +229,7 @@
                     <tr>
                         <td class="fw-medium">{{ sale.name }}</td>
                         <td>{{ sale.category_name or 'ללא קטגוריה' }}</td>
-                        <td>{{ currency_symbol }}{{ "%.2f"|format(sale.selling_price_per_unit) }}</td>
+                        <td>{{ currency_symbol }}{{ "%.2f"|format(sale.selling_price_per_unit or 0) }}</td>
                         <td>{{ sale.quantity_sold|int }}</td>
                         <td>{{ sale.quantity_waste|int }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(sale.revenue) }}</td>

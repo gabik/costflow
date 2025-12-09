@@ -36,7 +36,7 @@
                     <div class="card-body text-center">
                         <i class="bi bi-currency-exchange text-success mb-2" style="font-size: 2rem;"></i>
                         <h6 class="text-muted mb-1">מחיר מכירה ליחידה</h6>
-                        <h4 class="mb-0">₪{{ "%.2f"|format(product.selling_price_per_unit) }}</h4>
+                        <h4 class="mb-0">₪{{ "%.2f"|format(product.selling_price_per_unit or 0) }}</h4>
                     </div>
                 </div>
             </div>
@@ -67,10 +67,10 @@
                     <div class="card-body text-center">
                         <i class="bi bi-graph-up-arrow text-info mb-2" style="font-size: 2rem;"></i>
                         <h6 class="text-muted mb-1">רווח גולמי ליחידה</h6>
-                        <h4 class="mb-0 {% if product.selling_price_per_unit - total_cost_per_product.value > 0 %}text-success{% else %}text-danger{% endif %}">
-                            ₪{{ "%.2f"|format(product.selling_price_per_unit - total_cost_per_product.value) }}
+                        <h4 class="mb-0 {% if (product.selling_price_per_unit or 0) - total_cost_per_product.value > 0 %}text-success{% else %}text-danger{% endif %}">
+                            ₪{{ "%.2f"|format((product.selling_price_per_unit or 0) - total_cost_per_product.value) }}
                         </h4>
-                        <small class="text-muted">{{ "%.1f"|format(((product.selling_price_per_unit - total_cost_per_product.value) / product.selling_price_per_unit * 100) if product.selling_price_per_unit > 0 else 0) }}%</small>
+                        <small class="text-muted">{{ "%.1f"|format((((product.selling_price_per_unit or 0) - total_cost_per_product.value) / (product.selling_price_per_unit or 1) * 100) if (product.selling_price_per_unit or 0) > 0 else 0) }}%</small>
                     </div>
                 </div>
             </div>
@@ -361,19 +361,19 @@
                     <tbody>
                         <tr>
                             <td>מחיר מכירה:</td>
-                            <td class="text-end">₪{{ "%.2f"|format(product.selling_price_per_unit) }}</td>
+                            <td class="text-end">₪{{ "%.2f"|format(product.selling_price_per_unit or 0) }}</td>
                         </tr>
                         <tr>
                             <td>עלות ייצור:</td>
                             <td class="text-end">₪{{ "%.2f"|format(total_cost_per_product.value) }}</td>
                         </tr>
-                        <tr class="{% if product.selling_price_per_unit - total_cost_per_product.value > 0 %}table-success{% else %}table-danger{% endif %} fw-bold">
+                        <tr class="{% if (product.selling_price_per_unit or 0) - total_cost_per_product.value > 0 %}table-success{% else %}table-danger{% endif %} fw-bold">
                             <td>רווח גולמי:</td>
-                            <td class="text-end">₪{{ "%.2f"|format(product.selling_price_per_unit - total_cost_per_product.value) }}</td>
+                            <td class="text-end">₪{{ "%.2f"|format((product.selling_price_per_unit or 0) - total_cost_per_product.value) }}</td>
                         </tr>
                         <tr>
                             <td>אחוז רווח:</td>
-                            <td class="text-end">{{ "%.1f"|format(((product.selling_price_per_unit - total_cost_per_product.value) / product.selling_price_per_unit * 100) if product.selling_price_per_unit > 0 else 0) }}%</td>
+                            <td class="text-end">{{ "%.1f"|format((((product.selling_price_per_unit or 0) - total_cost_per_product.value) / (product.selling_price_per_unit or 1) * 100) if (product.selling_price_per_unit or 0) > 0 else 0) }}%</td>
                         </tr>
                     </tbody>
                 </table>

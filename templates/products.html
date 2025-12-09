@@ -79,11 +79,11 @@
                     {{ currency_symbol }}{{ "%.2f" | format(item.prime_cost) }}
                 </td>
                 <td>
-                    {{ currency_symbol }}{{ "%.2f" | format(product.selling_price_per_unit) }}
+                    {{ currency_symbol }}{{ "%.2f" | format(product.selling_price_per_unit or 0) }}
                 </td>
                 <td>
-                    {% if product.selling_price_per_unit > 0 %}
-                        {% set margin = (product.selling_price_per_unit - item.prime_cost) / product.selling_price_per_unit * 100 %}
+                    {% if (product.selling_price_per_unit or 0) > 0 %}
+                        {% set margin = ((product.selling_price_per_unit or 0) - item.prime_cost) / (product.selling_price_per_unit or 1) * 100 %}
                         <span class="badge {{ 'bg-success' if margin > 20 else 'bg-warning text-dark' if margin > 0 else 'bg-danger' }}">
                             {{ "%.1f" | format(margin) }}%
                         </span>
