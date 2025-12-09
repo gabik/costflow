@@ -169,21 +169,27 @@ def weekly_report():
     # Premake Activity Analysis
     # ---------------------------------------------------
     premake_report_data = []
-    
-    # Fetch Premake Production Logs for the week
-    premake_logs = ProductionLog.query.filter(
+
+    # Import Product model for premake queries
+    from ..models import Product
+
+    # Fetch Premake Production Logs for the week (using unified Product model)
+    premake_logs = ProductionLog.query.join(Product).filter(
         and_(
             func.date(ProductionLog.timestamp) >= week_start,
             func.date(ProductionLog.timestamp) <= week_end,
-            ProductionLog.premake_id != None
+            Product.is_premake == True
         )
     ).all()
-    
+
     premake_production = {}
     for log in premake_logs:
+        product = log.product
+        if not product:
+            continue
         # Premake quantity is in Batches. Total units = Batches * Batch Size
-        units_produced = log.quantity_produced * log.premake.batch_size
-        premake_production[log.premake_id] = premake_production.get(log.premake_id, 0) + units_produced
+        units_produced = log.quantity_produced * (product.batch_size or 1)
+        premake_production[product.id] = premake_production.get(product.id, 0) + units_produced
 
     # Calculate Premake Usage (from Product Production Logs already fetched)
     premake_usage = {}
@@ -197,29 +203,24 @@ def weekly_report():
                 usage = component.quantity * log.quantity_produced
                 premake_usage[component.component_id] = premake_usage.get(component.component_id, 0) + usage
 
-    # Process Premakes for Report
-    all_premakes = Premake.query.all()
+    # Process Premakes for Report (using unified Product model)
+    all_premakes = Product.query.filter_by(is_premake=True).all()
     for premake in all_premakes:
         produced = premake_production.get(premake.id, 0)
         used = premake_usage.get(premake.id, 0)
-        
+
         # Calculate current stock for premake
         current_premake_stock = calculate_premake_current_stock(premake.id)
 
-        # Calculate Cost Per Unit
-        cost_per_batch = 0
-        for comp in premake.components:
-            if comp.component_type == 'raw_material' and comp.material:
-                cost_per_batch += comp.quantity * comp.material.cost_per_unit
-        
-        cost_per_unit = cost_per_batch / premake.batch_size if premake.batch_size > 0 else 0
-        
+        # Calculate Cost Per Unit using prime_cost function
+        cost_per_unit = calculate_prime_cost(premake)
+
         # Inventory Value Change (Produced - Used)
         stock_change = produced - used
-        
+
         if produced == 0 and used == 0 and current_premake_stock == 0:
             continue
-            
+
         premake_report_data.append({
             'name': premake.name,
             'unit': premake.unit,
