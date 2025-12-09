@@ -450,6 +450,16 @@
     // Check for removed suppliers with stock before form submission
     function checkRemovedSuppliers() {
         // Remove 'required' from any hidden or invisible fields to prevent validation errors
+        const suppliersSection = document.getElementById('suppliersSection');
+
+        // If suppliers section is hidden (unlimited mode), remove required from all supplier fields
+        if (suppliersSection && suppliersSection.style.display === 'none') {
+            document.querySelectorAll('.supplier-select, .supplier-cost').forEach(field => {
+                field.removeAttribute('required');
+            });
+        }
+
+        // Also check for individual hidden fields
         document.querySelectorAll('input[required], select[required]').forEach(field => {
             const isHidden = field.offsetParent === null ||
                            window.getComputedStyle(field).display === 'none' ||
