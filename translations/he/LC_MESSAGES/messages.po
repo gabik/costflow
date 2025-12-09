@@ -1576,3 +1576,6 @@ msgstr "עלות"
 
 msgid "Category:"
 msgstr "קטגוריה:"
+
+msgid "Cost per Unit"
+msgstr "עלות ליחידה"

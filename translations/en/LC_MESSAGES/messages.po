@@ -1581,3 +1581,6 @@ msgstr "Cost"
 
 msgid "Category:"
 msgstr "Category:"
+
+msgid "Cost per Unit"
+msgstr "Cost per Unit"
