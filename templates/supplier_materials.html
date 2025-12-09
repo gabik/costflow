@@ -97,7 +97,7 @@
                 </td>
                 <td class="text-end">
                     <button class="btn btn-sm btn-outline-secondary"
-                            onclick="editMaterialPrice({{ item.material.id }}, '{{ item.material.name }}', {{ item.cost_per_unit }}, {{ item.is_primary|lower }}, '{{ item.sku if item.sku else '' }}')">
+                            onclick="editMaterialPrice({{ item.material.id }}, '{{ item.material.name|replace("\\", "\\\\")|replace("'", "\\'")|replace('"', '\\"') }}', {{ item.cost_per_unit }}, {{ item.is_primary|lower }}, '{{ (item.sku if item.sku else '')|replace("\\", "\\\\")|replace("'", "\\'")|replace('"', '\\"') }}')">
                         <i class="bi bi-pencil"></i>
                     </button>
                 </td>
