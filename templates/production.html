@@ -200,15 +200,25 @@ $(document).ready(function() {
 
 function fetchRecipeData(productId) {
     console.log('Fetching recipe for product:', productId);
-    const quantity = parseFloat(document.getElementById('quantity_produced').value) || 1;
-    fetch(`/api/product_recipe/${productId}?quantity=${quantity}`)
+    const inputValue = parseFloat(document.getElementById('quantity_produced').value) || 1;
+    const modeUnits = document.getElementById('mode_units').checked;
+
+    // Convert to batches if in units mode
+    let batches;
+    if (modeUnits && currentRecipe) {
+        batches = inputValue / currentRecipe.products_per_recipe;
+    } else {
+        batches = inputValue;
+    }
+
+    fetch(`/api/product_recipe/${productId}?quantity=${batches}`)
         .then(response => {
             if (!response.ok) throw new Error('Network response was not ok');
             return response.json();
         })
         .then(data => {
             currentRecipe = data;
-            currentRecipe.fetched_quantity = quantity; // Track what quantity this data is for
+            currentRecipe.fetched_quantity = batches; // Track what quantity this data is for
             updateProductionDetails();
             document.getElementById('production_summary').style.display = 'block';
         })
