@@ -1409,3 +1409,25 @@ msgstr "% מהעלות"
 msgid "No components for this premake."
 msgstr "אין מרכיבים להכנה זו."
 
+# Missing product_details.html translations
+msgid "Quantity per Recipe"
+msgstr "כמות למתכון"
+
+msgid "Cost per Product"
+msgstr "עלות למוצר"
+
+msgid "Total Cost per Product:"
+msgstr "סה\"כ עלות למוצר:"
+
+msgid "Premakes:"
+msgstr "הכנות מקדימות:"
+
+msgid "Raw Materials:"
+msgstr "חומרי גלם:"
+
+msgid "Cost Summary"
+msgstr "סיכום עלויות"
+
+msgid "Total Raw Materials:"
+msgstr "סה\"כ חומרי גלם:"
+

@@ -1414,3 +1414,25 @@ msgstr "% of Cost"
 msgid "No components for this premake."
 msgstr "No components for this premake."
 
+# Missing product_details.html translations
+msgid "Quantity per Recipe"
+msgstr "Quantity per Recipe"
+
+msgid "Cost per Product"
+msgstr "Cost per Product"
+
+msgid "Total Cost per Product:"
+msgstr "Total Cost per Product:"
+
+msgid "Premakes:"
+msgstr "Premakes:"
+
+msgid "Raw Materials:"
+msgstr "Raw Materials:"
+
+msgid "Cost Summary"
+msgstr "Cost Summary"
+
+msgid "Total Raw Materials:"
+msgstr "Total Raw Materials:"
+
