@@ -1205,3 +1205,52 @@ msgstr "הוסף מוצר מקדים"
 msgid "Preproducts"
 msgstr "מוצרים מקדימים"
 
+# add_or_edit_raw_material.html new translations
+msgid "Add New Supplier"
+msgstr "הוספת ספק חדש"
+
+msgid "Supplier Name"
+msgstr "שם הספק"
+
+msgid "Contact Person"
+msgstr "איש קשר"
+
+msgid "Phone"
+msgstr "טלפון"
+
+msgid "Add Supplier"
+msgstr "הוסף ספק"
+
+msgid "Handle Existing Stock"
+msgstr "טיפול במלאי קיים"
+
+msgid "Transfer stock to another supplier"
+msgstr "העברת המלאי לספק אחר"
+
+msgid "Mark stock as waste"
+msgstr "סימון המלאי כפחת"
+
+msgid "Keep stock as is"
+msgstr "השאר את המלאי כמו שהוא"
+
+msgid "Confirm"
+msgstr "אישור"
+
+msgid "Select supplier..."
+msgstr "בחר ספק..."
+
+msgid "Optional SKU"
+msgstr "מק''ט אופציונלי"
+
+msgid "Alternative name for material (e.g., White Flour)"
+msgstr "שם חלופי לחומר (למשל: קמח לבן)"
+
+msgid "Delete this alternative name?"
+msgstr "האם למחוק שם חלופי זה?"
+
+msgid "The following suppliers with existing stock were removed:"
+msgstr "הספקים הבאים עם מלאי קיים הוסרו:"
+
+msgid "What to do with the stock?"
+msgstr "מה לעשות עם המלאי?"
+

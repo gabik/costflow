@@ -22,7 +22,7 @@
 {% block content %}
 <div class="row mb-4">
     <div class="col-12">
-        <h1 class="display-6 fw-bold text-primary">{{ 'עריכת חומר גלם' if material else 'הוספת חומר גלם חדש' }}</h1>
+        <h1 class="display-6 fw-bold text-primary">{{ _('Edit Raw Material') if material else _('Add New Raw Material') }}</h1>
     </div>
 </div>
 
@@ -33,16 +33,16 @@
                 <form method="POST" onsubmit="return checkRemovedSuppliers()">
                     <!-- Name -->
                     <div class="mb-3">
-                        <label for="name" class="form-label">שם חומר הגלם</label>
-                        <input type="text" id="name" name="name" class="form-control" value="{{ material.name if material else '' }}" placeholder="לדוגמה: קמח לבן" required>
+                        <label for="name" class="form-label">{{ _('Raw Material Name') }}</label>
+                        <input type="text" id="name" name="name" class="form-control" value="{{ material.name if material else '' }}" placeholder="{{ _('e.g., White Flour') }}" required>
                     </div>
 
                     <!-- Category -->
                     <div class="mb-3">
-                        <label for="category" class="form-label">קטגוריה</label>
+                        <label for="category" class="form-label">{{ _('Category') }}</label>
                         <div class="input-group">
                             <select id="category" name="category" class="form-select" required>
-                                <option value="" disabled selected>בחר קטגוריה...</option>
+                                <option value="" disabled selected>{{ _('Select category...') }}</option>
                                 {% for category in categories %}
                                 <option value="{{ category.id }}" {% if material and material.category_id == category.id %}selected{% endif %}>
                                     {{ category.name }}
@@ -57,7 +57,7 @@
 
                     <!-- Unit -->
                     <div class="mb-3">
-                        <label for="unit" class="form-label">יחידת מידה</label>
+                        <label for="unit" class="form-label">{{ _('Unit of Measure') }}</label>
                         <select class="form-select" id="unit" name="unit" required>
                             {% for unit in units %}
                             <option value="{{ unit }}" {% if (material and material.unit == unit) or (not material and unit == 'kg') %}selected{% endif %}>{{ unit }}</option>
@@ -72,18 +72,18 @@
                                    class="form-check-input" onchange="toggleUnlimitedMode()"
                                    {% if material and material.is_unlimited %}checked{% endif %}>
                             <label class="form-check-label" for="is_unlimited">
-                                <strong>חומר בלתי מוגבל</strong> (מלאי אינסופי, ללא עלות)
+                                <strong>{{ _('Unlimited Material') }}</strong> ({{ _('infinite stock, no cost') }})
                             </label>
-                            <div class="form-text">סמן עבור חומרים כמו מים, שאינם דורשים מעקב מלאי או עלות.</div>
+                            <div class="form-text">{{ _('Check for materials like water that do not require stock tracking or cost.') }}</div>
                         </div>
                     </div>
 
                     <!-- Alternative Names Section -->
                     <div class="mb-4">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="form-label fw-bold">שמות חלופיים (אופציונלי)</label>
+                            <label class="form-label fw-bold">{{ _('Alternative Names (optional)') }}</label>
                             <button type="button" class="btn btn-sm btn-outline-primary" onclick="addAlternativeNameRow()">
-                                <i class="bi bi-plus-circle"></i> הוסף שם חלופי
+                                <i class="bi bi-plus-circle"></i> {{ _('Add Alternative Name') }}
                             </button>
                         </div>
 
@@ -95,7 +95,7 @@
                                            class="form-control"
                                            name="alternative_names[]"
                                            value="{{ alt_name.alternative_name }}"
-                                           placeholder="שם חלופי לחומר (למשל: קמח לבן)">
+                                           placeholder="{{ _('Alternative name for material (e.g., White Flour)') }}">
                                     <input type="hidden" name="alternative_name_ids[]" value="{{ alt_name.id }}">
                                     <button type="button" class="btn btn-outline-danger" onclick="removeAlternativeNameRow(this)">
                                         <i class="bi bi-trash"></i>
@@ -105,28 +105,28 @@
                             {% endif %}
                         </div>
                         <small class="text-muted">
-                            שמות חלופיים עוזרים בייבוא מתכונים - למשל "קמח לבן" עבור "קמח לבן T55 12 ק''ג"
+                            {{ _('Alternative names help with recipe imports - e.g., "White Flour" for "White Flour T55 12kg"') }}
                         </small>
                     </div>
 
                     <!-- Multiple Suppliers Section -->
                     <div class="mb-4" id="suppliersSection">
-                        <h5>ספקים ומחירים</h5>
+                        <h5>{{ _('Suppliers and Prices') }}</h5>
 
                         <!-- Column headers -->
                         <div class="row g-2 mb-2 fw-bold text-muted small">
                             {% if material %}
-                            <div class="col-3">ספק</div>
-                            <div class="col-2">מק"ט (SKU)</div>
-                            <div class="col-2">מחיר ליחידה</div>
-                            <div class="col-2">מלאי נוכחי</div>
-                            <div class="col-2 text-center">ספק ראשי</div>
+                            <div class="col-3">{{ _('Supplier') }}</div>
+                            <div class="col-2">{{ _('SKU') }}</div>
+                            <div class="col-2">{{ _('Price per Unit') }}</div>
+                            <div class="col-2">{{ _('Current Stock') }}</div>
+                            <div class="col-2 text-center">{{ _('Primary Supplier') }}</div>
                             <div class="col-1"></div>
                             {% else %}
-                            <div class="col-4">ספק</div>
-                            <div class="col-3">מק"ט (SKU)</div>
-                            <div class="col-3">מחיר ליחידה</div>
-                            <div class="col-1 text-center">ספק ראשי</div>
+                            <div class="col-4">{{ _('Supplier') }}</div>
+                            <div class="col-3">{{ _('SKU') }}</div>
+                            <div class="col-3">{{ _('Price per Unit') }}</div>
+                            <div class="col-1 text-center">{{ _('Primary Supplier') }}</div>
                             <div class="col-1"></div>
                             {% endif %}
                         </div>
@@ -136,28 +136,28 @@
                         </div>
 
                         <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addSupplierRow()">
-                            <i class="bi bi-plus-lg"></i> הוסף ספק
+                            <i class="bi bi-plus-lg"></i> {{ _('Add Supplier') }}
                         </button>
                         <button type="button" class="btn btn-sm btn-outline-secondary ms-1 mt-2"
                                 data-bs-toggle="modal" data-bs-target="#addSupplierModal">
-                            <i class="bi bi-building-add"></i> ספק חדש
+                            <i class="bi bi-building-add"></i> {{ _('New Supplier') }}
                         </button>
                     </div>
 
                     <!-- Stock (Only for new items) -->
                     {% if not material %}
                     <div class="mb-4" id="initialStockSection">
-                        <label for="stock" class="form-label">מלאי התחלתי</label>
+                        <label for="stock" class="form-label">{{ _('Initial Stock') }}</label>
                         <input type="number" id="stock" name="stock" class="form-control" step="0.01" value="0">
-                        <div class="form-text">ניתן לעדכן מלאי גם לאחר מכן דרך מסך ניהול המלאי.</div>
+                        <div class="form-text">{{ _('Stock can be updated later through the inventory management screen.') }}</div>
                     </div>
                     {% endif %}
 
                     <div class="d-grid gap-2 mt-4">
                         <button type="submit" class="btn btn-primary btn-lg">
-                            {{ 'שמור שינויים' if material else 'הוסף חומר גלם' }}
+                            {{ _('Save Changes') if material else _('Add Raw Material') }}
                         </button>
-                        <a href="{{ url_for('raw_materials.raw_materials') }}" class="btn btn-link text-decoration-none text-secondary">ביטול וחזרה</a>
+                        <a href="{{ url_for('raw_materials.raw_materials') }}" class="btn btn-link text-decoration-none text-secondary">{{ _('Cancel and Return') }}</a>
                     </div>
                 </form>
             </div>
@@ -172,18 +172,18 @@
             <form method="POST" action="{{ url_for('categories.add_category_from_modal') }}">
                 <input type="hidden" name="type" id="categoryTypeInput" value="raw_material">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addCategoryModalLabel">הוספת קטגוריה חדשה</h5>
+                    <h5 class="modal-title" id="addCategoryModalLabel">{{ _('Add New Category') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="new_category_name" class="form-label">שם הקטגוריה</label>
+                        <label for="new_category_name" class="form-label">{{ _('Category Name') }}</label>
                         <input type="text" id="new_category_name" name="name" class="form-control" required>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
-                    <button type="submit" class="btn btn-primary">הוסף קטגוריה</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ _('Add Category') }}</button>
                 </div>
             </form>
         </div>
@@ -196,29 +196,29 @@
         <div class="modal-content">
             <form method="POST" action="{{ url_for('suppliers.quick_add_supplier') }}">
                 <div class="modal-header">
-                    <h5 class="modal-title">הוספת ספק חדש</h5>
+                    <h5 class="modal-title">{{ _('Add New Supplier') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="supplier_name" class="form-label">שם הספק *</label>
+                        <label for="supplier_name" class="form-label">{{ _('Supplier Name') }} *</label>
                         <input type="text" id="supplier_name" name="name"
                                class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label for="contact_person" class="form-label">איש קשר</label>
+                        <label for="contact_person" class="form-label">{{ _('Contact Person') }}</label>
                         <input type="text" id="contact_person" name="contact_person"
                                class="form-control">
                     </div>
                     <div class="mb-3">
-                        <label for="phone" class="form-label">טלפון</label>
+                        <label for="phone" class="form-label">{{ _('Phone') }}</label>
                         <input type="tel" id="phone" name="phone" class="form-control">
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary"
-                            data-bs-dismiss="modal">ביטול</button>
-                    <button type="submit" class="btn btn-primary">הוסף ספק</button>
+                            data-bs-dismiss="modal">{{ _('Cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ _('Add Supplier') }}</button>
                 </div>
             </form>
         </div>
@@ -230,7 +230,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">טיפול במלאי קיים</h5>
+                <h5 class="modal-title">{{ _('Handle Existing Stock') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -241,7 +241,7 @@
                         <input class="form-check-input" type="radio" name="stock_handling_choice"
                                id="transferStock" value="transfer" checked>
                         <label class="form-check-label" for="transferStock">
-                            העברת המלאי לספק אחר
+                            {{ _('Transfer stock to another supplier') }}
                         </label>
                     </div>
 
@@ -257,7 +257,7 @@
                         <input class="form-check-input" type="radio" name="stock_handling_choice"
                                id="wasteStock" value="waste">
                         <label class="form-check-label" for="wasteStock">
-                            סימון המלאי כפחת
+                            {{ _('Mark stock as waste') }}
                         </label>
                     </div>
                 </div>
@@ -267,14 +267,14 @@
                         <input class="form-check-input" type="radio" name="stock_handling_choice"
                                id="keepStock" value="keep">
                         <label class="form-check-label" for="keepStock">
-                            השאר את המלאי כמו שהוא
+                            {{ _('Keep stock as is') }}
                         </label>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="confirmStockHandling()">אישור</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+                <button type="button" class="btn btn-primary" onclick="confirmStockHandling()">{{ _('Confirm') }}</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
             </div>
         </div>
     </div>
@@ -290,7 +290,7 @@
         <div class="row g-2 align-items-center">
             <div class="col-3 supplier-col">
                 <select class="form-select supplier-select" name="supplier_ids[]">
-                    <option value="">בחר ספק...</option>
+                    <option value="">{{ _('Select supplier...') }}</option>
                     {% for supplier in suppliers %}
                     <option value="{{ supplier.id }}">{{ supplier.name }}</option>
                     {% endfor %}
@@ -298,7 +298,7 @@
             </div>
             <div class="col-2 sku-col">
                 <input type="text" class="form-control supplier-sku" name="supplier_skus[]"
-                       placeholder="מק''ט אופציונלי">
+                       placeholder="{{ _('Optional SKU') }}">
             </div>
             <div class="col-2 cost-col">
                 <div class="input-group">
@@ -325,7 +325,7 @@
         <input type="text"
                class="form-control"
                name="alternative_names[]"
-               placeholder="שם חלופי לחומר (למשל: קמח לבן)">
+               placeholder="{{ _('Alternative name for material (e.g., White Flour)') }}">
         <input type="hidden" name="alternative_name_ids[]" value="">
         <button type="button" class="btn btn-outline-danger" onclick="removeAlternativeNameRow(this)">
             <i class="bi bi-trash"></i>
@@ -442,7 +442,7 @@
         const input = row.querySelector('input[name="alternative_names[]"]');
 
         // If empty or confirmed, remove
-        if (!input.value || confirm('האם למחוק שם חלופי זה?')) {
+        if (!input.value || confirm('{{ _("Delete this alternative name?") }}')) {
             row.remove();
         }
     }
@@ -510,11 +510,11 @@
         const modal = new bootstrap.Modal(document.getElementById('stockTransferModal'));
 
         // Build message
-        let message = 'הספקים הבאים עם מלאי קיים הוסרו:<br><ul>';
+        let message = '{{ _("The following suppliers with existing stock were removed:") }}<br><ul>';
         removedSuppliersWithStock.forEach(supplier => {
             message += `<li>${supplier.name}: ${supplier.stock} {{ material.unit if material else "" }}</li>`;
         });
-        message += '</ul>מה לעשות עם המלאי?';
+        message += '</ul>{{ _("What to do with the stock?") }}';
 
         document.getElementById('stockTransferMessage').innerHTML = message;
 

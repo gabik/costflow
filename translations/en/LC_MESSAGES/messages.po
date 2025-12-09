@@ -1213,3 +1213,52 @@ msgstr "Add Preproduct"
 msgid "Preproducts"
 msgstr "Preproducts"
 
+# add_or_edit_raw_material.html new translations
+msgid "Add New Supplier"
+msgstr "Add New Supplier"
+
+msgid "Supplier Name"
+msgstr "Supplier Name"
+
+msgid "Contact Person"
+msgstr "Contact Person"
+
+msgid "Phone"
+msgstr "Phone"
+
+msgid "Add Supplier"
+msgstr "Add Supplier"
+
+msgid "Handle Existing Stock"
+msgstr "Handle Existing Stock"
+
+msgid "Transfer stock to another supplier"
+msgstr "Transfer stock to another supplier"
+
+msgid "Mark stock as waste"
+msgstr "Mark stock as waste"
+
+msgid "Keep stock as is"
+msgstr "Keep stock as is"
+
+msgid "Confirm"
+msgstr "Confirm"
+
+msgid "Select supplier..."
+msgstr "Select supplier..."
+
+msgid "Optional SKU"
+msgstr "Optional SKU"
+
+msgid "Alternative name for material (e.g., White Flour)"
+msgstr "Alternative name for material (e.g., White Flour)"
+
+msgid "Delete this alternative name?"
+msgstr "Delete this alternative name?"
+
+msgid "The following suppliers with existing stock were removed:"
+msgstr "The following suppliers with existing stock were removed:"
+
+msgid "What to do with the stock?"
+msgstr "What to do with the stock?"
+
