@@ -35,7 +35,7 @@ msgstr "Edit"
 #: templates/add_or_edit_raw_material.html:2
 #: templates/add_or_edit_raw_material.html:4
 msgid "Add"
-msgstr "הוסף"
+msgstr "Add"
 
 #: templates/add_or_edit_packaging.html:2
 #: templates/add_or_edit_packaging.html:4
