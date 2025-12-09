@@ -54,10 +54,10 @@ def weekly_costs():
                         if remaining > 0:
                             # Calculate Prime Cost
                             prime_cost_per_unit = calculate_prime_cost(product)
-                            
+
                             cost_value = remaining * prime_cost_per_unit
-                            potential_rev = remaining * product.selling_price_per_unit
-                            
+                            potential_rev = remaining * (product.selling_price_per_unit or 0)
+
                             total_loss += cost_value
                             total_potential_revenue += potential_rev
                             
