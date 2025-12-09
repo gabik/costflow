@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}ייבוא מתכונים - CostFlow{% endblock %}
+{% block title %}{{ _('Import Recipes') }} - CostFlow{% endblock %}
 
 {% block content %}
 <div class="row mb-4">
     <div class="col-12">
-        <h1 class="display-6 fw-bold text-primary">ייבוא מתכונים מאקסל</h1>
-        <p class="text-secondary">העלאת קובץ אקסל עם מתכונים להכנות או מוצרים</p>
+        <h1 class="display-6 fw-bold text-primary">{{ _('Import Recipes from Excel') }}</h1>
+        <p class="text-secondary">{{ _('Upload an Excel file with recipes for premakes or products') }}</p>
     </div>
 </div>
 
@@ -26,33 +26,33 @@
     <div class="card-body p-5">
         <div class="text-center mb-4">
             <i class="bi bi-file-earmark-spreadsheet display-1 text-success mb-3"></i>
-            <h4 class="mb-3">העלה קובץ מתכונים</h4>
+            <h4 class="mb-3">{{ _('Upload Recipe File') }}</h4>
         </div>
 
         <!-- Instructions -->
         <div class="alert alert-info mb-4">
-            <h6 class="alert-heading"><i class="bi bi-info-circle me-2"></i>פורמט הקובץ הנדרש:</h6>
+            <h6 class="alert-heading"><i class="bi bi-info-circle me-2"></i>{{ _('Required file format:') }}</h6>
             <ol class="mb-2">
-                <li>השורות הראשונות חייבות להכיל מטאדאטה:</li>
+                <li>{{ _('First rows must contain metadata:') }}</li>
                 <pre class="bg-light p-2 mb-2" style="direction: ltr; text-align: left;">
 # Recipe Import Metadata
 type: premake
 category: בצקים
 unit: g
 </pre>
-                <li><strong>type:</strong> חובה - "premake" או "product"</li>
-                <li><strong>category:</strong> חובה - שם קטגוריה קיימת במערכת</li>
-                <li><strong>unit:</strong> אופציונלי - ברירת מחדל "g"</li>
-                <li>אחרי המטאדאטה שורה ריקה, ואז המתכונים</li>
-                <li>כל מתכון מתחיל בכותרת, 2 שורות כותרות, ואז חומרי הגלם</li>
-                <li>סוגי חומרים: "חומר גלם", "הכנה", "מוצר מקדים", "אבדן"</li>
-                <li>עמודות: שם, סוג, מחיר לק"ג, משקל (ג'), מחיר במתכון</li>
+                <li><strong>type:</strong> {{ _('Required - "premake" or "product"') }}</li>
+                <li><strong>category:</strong> {{ _('Required - existing category name in system') }}</li>
+                <li><strong>unit:</strong> {{ _('Optional - default "g"') }}</li>
+                <li>{{ _('After metadata, blank row, then recipes') }}</li>
+                <li>{{ _('Each recipe starts with title, 2 header rows, then materials') }}</li>
+                <li>{{ _('Material types: "חומר גלם", "הכנה", "מוצר מקדים", "אבדן"') }}</li>
+                <li>{{ _('Columns: name, type, price/kg, weight (g), total price') }}</li>
             </ol>
         </div>
 
         <form method="POST" enctype="multipart/form-data" class="text-center" style="max-width: 500px; margin: 0 auto;">
             <div class="mb-3 text-start">
-                <label for="recipe_file" class="form-label">בחר קובץ אקסל:</label>
+                <label for="recipe_file" class="form-label">{{ _('Select Excel file:') }}</label>
                 <input type="file"
                        name="recipe_file"
                        id="recipe_file"
@@ -61,7 +61,7 @@ unit: g
                        required>
             </div>
             <button type="submit" class="btn btn-primary btn-lg w-100">
-                <i class="bi bi-upload me-2"></i> טען קובץ
+                <i class="bi bi-upload me-2"></i> {{ _('Load File') }}
             </button>
         </form>
     </div>
@@ -71,13 +71,13 @@ unit: g
 <!-- Step 2: Sheet Selection -->
 <div class="card shadow-sm">
     <div class="card-header bg-white">
-        <h5 class="mb-0"><i class="bi bi-check-circle text-success me-2"></i>הקובץ הועלה בהצלחה</h5>
+        <h5 class="mb-0"><i class="bi bi-check-circle text-success me-2"></i>{{ _('File uploaded successfully') }}</h5>
     </div>
     <div class="card-body p-4">
         <form method="POST" action="{{ url_for('recipe_import.select_sheet') }}">
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="sheet_name" class="form-label">בחר גיליון לייבוא:</label>
+                    <label for="sheet_name" class="form-label">{{ _('Select sheet to import:') }}</label>
                     <select name="sheet_name" id="sheet_name" class="form-select" required>
                         {% for sheet in sheet_names %}
                         <option value="{{ sheet }}">{{ sheet }}</option>
@@ -88,21 +88,21 @@ unit: g
 
             {% if metadata_preview %}
             <div class="alert alert-secondary mt-3" id="metadata-preview">
-                <h6 class="alert-heading">תצוגה מקדימה של מטאדאטה:</h6>
+                <h6 class="alert-heading">{{ _('Metadata preview:') }}</h6>
                 <ul class="mb-0">
-                    <li><strong>סוג:</strong> <span id="metadata-type">{{ metadata_preview.type or 'לא זוהה (נדרש!)' }}</span></li>
-                    <li><strong>קטגוריה:</strong> <span id="metadata-category">{{ metadata_preview.category or 'לא זוהתה (נדרש!)' }}</span></li>
-                    <li><strong>יחידת מידה:</strong> <span id="metadata-unit">{{ metadata_preview.unit }}</span></li>
+                    <li><strong>{{ _('Type:') }}</strong> <span id="metadata-type">{{ metadata_preview.type or _('Not detected (required!)') }}</span></li>
+                    <li><strong>{{ _('Category:') }}</strong> <span id="metadata-category">{{ metadata_preview.category or _('Not detected (required!)') }}</span></li>
+                    <li><strong>{{ _('Unit:') }}</strong> <span id="metadata-unit">{{ metadata_preview.unit }}</span></li>
                 </ul>
                 {% if not metadata_preview.type or not metadata_preview.category %}
                 <div class="alert alert-warning mt-2 mb-0" id="metadata-warning">
                     <i class="bi bi-exclamation-triangle me-2"></i>
-                    <strong>שים לב:</strong> חסרים שדות חובה במטאדאטה. ודא שהקובץ מכיל שורות type ו-category.
+                    <strong>{{ _('Note:') }}</strong> {{ _('Required metadata fields are missing. Ensure the file contains type and category rows.') }}
                 </div>
                 {% else %}
                 <div class="alert alert-warning mt-2 mb-0 d-none" id="metadata-warning">
                     <i class="bi bi-exclamation-triangle me-2"></i>
-                    <strong>שים לב:</strong> חסרים שדות חובה במטאדאטה. ודא שהקובץ מכיל שורות type ו-category.
+                    <strong>{{ _('Note:') }}</strong> {{ _('Required metadata fields are missing. Ensure the file contains type and category rows.') }}
                 </div>
                 {% endif %}
             </div>
@@ -110,10 +110,10 @@ unit: g
 
             <div class="mt-4 d-flex justify-content-end gap-2">
                 <a href="{{ url_for('recipe_import.upload_recipes') }}" class="btn btn-secondary">
-                    <i class="bi bi-arrow-counterclockwise me-2"></i> העלה קובץ אחר
+                    <i class="bi bi-arrow-counterclockwise me-2"></i> {{ _('Upload Different File') }}
                 </a>
                 <button type="submit" class="btn btn-primary btn-lg">
-                    <i class="bi bi-arrow-left me-2"></i> המשך לסקירה
+                    <i class="bi bi-arrow-left me-2"></i> {{ _('Continue to Review') }}
                 </button>
             </div>
         </form>
@@ -135,9 +135,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const selectedSheet = this.value;
 
             // Show loading state
-            metadataType.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>טוען...';
-            metadataCategory.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>טוען...';
-            metadataUnit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>טוען...';
+            metadataType.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>{{ _("Loading...") }}';
+            metadataCategory.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>{{ _("Loading...") }}';
+            metadataUnit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>{{ _("Loading...") }}';
 
             // Fetch metadata for selected sheet
             fetch('{{ url_for("recipe_import.get_sheet_metadata") }}', {
@@ -159,8 +159,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 // Update metadata display
-                metadataType.textContent = data.type || 'לא זוהה (נדרש!)';
-                metadataCategory.textContent = data.category || 'לא זוהתה (נדרש!)';
+                metadataType.textContent = data.type || '{{ _("Not detected (required!)") }}';
+                metadataCategory.textContent = data.category || '{{ _("Not detected (required!)") }}';
                 metadataUnit.textContent = data.unit || 'g';
 
                 // Show/hide warning based on missing fields
@@ -172,9 +172,9 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 console.error('Error fetching metadata:', error);
-                metadataType.textContent = 'שגיאה בטעינה';
-                metadataCategory.textContent = 'שגיאה בטעינה';
-                metadataUnit.textContent = 'שגיאה בטעינה';
+                metadataType.textContent = '{{ _("Error loading") }}';
+                metadataCategory.textContent = '{{ _("Error loading") }}';
+                metadataUnit.textContent = '{{ _("Error loading") }}';
                 metadataWarning.classList.remove('d-none');
             });
         });

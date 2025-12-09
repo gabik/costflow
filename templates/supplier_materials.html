@@ -1,17 +1,17 @@
 {% extends "base.html" %}
-{% block title %}חומרי גלם של {{ supplier.name }} - CostFlow{% endblock %}
+{% block title %}{{ _('Raw Materials of') }} {{ supplier.name }} - CostFlow{% endblock %}
 
 {% block content %}
 <div class="row mb-4">
     <div class="col-12">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ url_for('suppliers.suppliers') }}">ספקים</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('suppliers.suppliers') }}">{{ _('Suppliers') }}</a></li>
                 <li class="breadcrumb-item active" aria-current="page">{{ supplier.name }}</li>
             </ol>
         </nav>
-        <h1 class="display-6 fw-bold text-primary">חומרי גלם - {{ supplier.name }}</h1>
-        <p class="text-secondary">רשימת כל חומרי הגלם המסופקים על ידי ספק זה.</p>
+        <h1 class="display-6 fw-bold text-primary">{{ _('Raw Materials - ') }}{{ supplier.name }}</h1>
+        <p class="text-secondary">{{ _('List of all raw materials supplied by this supplier.') }}</p>
     </div>
 </div>
 
@@ -21,13 +21,13 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-3">
-                        <strong>איש קשר:</strong> {{ supplier.contact_person or '-' }}
+                        <strong>{{ _('Contact Person:') }}</strong> {{ supplier.contact_person or '-' }}
                     </div>
                     <div class="col-md-3">
-                        <strong>טלפון:</strong> {{ supplier.phone or '-' }}
+                        <strong>{{ _('Phone:') }}</strong> {{ supplier.phone or '-' }}
                     </div>
                     <div class="col-md-3">
-                        <strong>אימייל:</strong>
+                        <strong>{{ _('Email:') }}</strong>
                         {% if supplier.email %}
                             <a href="mailto:{{ supplier.email }}">{{ supplier.email }}</a>
                         {% else %}
@@ -35,16 +35,16 @@
                         {% endif %}
                     </div>
                     <div class="col-md-3">
-                        <strong>סטטוס:</strong>
+                        <strong>{{ _('Status:') }}</strong>
                         <span class="badge bg-{{ 'success' if supplier.is_active else 'secondary' }}">
-                            {{ 'פעיל' if supplier.is_active else 'לא פעיל' }}
+                            {{ _('Active') if supplier.is_active else _('Inactive') }}
                         </span>
                     </div>
                 </div>
                 {% if supplier.address %}
                 <div class="row mt-2">
                     <div class="col-12">
-                        <strong>כתובת:</strong> {{ supplier.address }}
+                        <strong>{{ _('Address:') }}</strong> {{ supplier.address }}
                     </div>
                 </div>
                 {% endif %}
@@ -55,19 +55,19 @@
 
 <div class="card shadow-sm">
     <div class="card-header bg-white">
-        <h5 class="mb-0">חומרי גלם מסופקים</h5>
+        <h5 class="mb-0">{{ _('Supplied Raw Materials') }}</h5>
     </div>
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
             <tr>
-                <th>חומר גלם</th>
-                <th>קטגוריה</th>
-                <th>יחידה</th>
-                <th>מחיר ליחידה</th>
-                <th>מלאי נוכחי</th>
-                <th class="text-center">ספק ראשי</th>
-                <th class="text-end">פעולות</th>
+                <th>{{ _('Raw Material') }}</th>
+                <th>{{ _('Category') }}</th>
+                <th>{{ _('Unit') }}</th>
+                <th>{{ _('Price per Unit') }}</th>
+                <th>{{ _('Current Stock') }}</th>
+                <th class="text-center">{{ _('Primary Supplier') }}</th>
+                <th class="text-end">{{ _('Actions') }}</th>
             </tr>
             </thead>
             <tbody>
@@ -86,9 +86,9 @@
                 </td>
                 <td class="text-center">
                     {% if item.is_primary %}
-                        <span class="badge bg-primary">ראשי</span>
+                        <span class="badge bg-primary">{{ _('Primary') }}</span>
                     {% else %}
-                        <span class="badge bg-light text-dark">משני</span>
+                        <span class="badge bg-light text-dark">{{ _('Secondary') }}</span>
                     {% endif %}
                 </td>
                 <td class="text-end">
@@ -101,7 +101,7 @@
             {% else %}
             <tr>
                 <td colspan="7" class="text-center py-4 text-muted">
-                    לא נמצאו חומרי גלם לספק זה.
+                    {{ _('No raw materials found for this supplier.') }}
                 </td>
             </tr>
             {% endfor %}
@@ -115,31 +115,31 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">עדכון מחיר חומר גלם</h5>
+                <h5 class="modal-title">{{ _('Update Raw Material Price') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="editPriceForm">
                     <input type="hidden" id="edit_material_id">
                     <div class="mb-3">
-                        <label class="form-label">חומר גלם</label>
+                        <label class="form-label">{{ _('Raw Material') }}</label>
                         <input type="text" class="form-control" id="edit_material_name" readonly>
                     </div>
                     <div class="mb-3">
-                        <label for="edit_cost_per_unit" class="form-label">מחיר ליחידה</label>
+                        <label for="edit_cost_per_unit" class="form-label">{{ _('Price per Unit') }}</label>
                         <input type="number" class="form-control" id="edit_cost_per_unit" step="0.01" required>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="edit_is_primary">
                         <label class="form-check-label" for="edit_is_primary">
-                            הגדר כספק ראשי לחומר זה
+                            {{ _('Set as primary supplier for this material') }}
                         </label>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
-                <button type="button" class="btn btn-primary" onclick="saveMaterialPrice()">שמור</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
+                <button type="button" class="btn btn-primary" onclick="saveMaterialPrice()">{{ _('Save') }}</button>
             </div>
         </div>
     </div>
@@ -176,11 +176,11 @@ function saveMaterialPrice() {
         if (data.success) {
             location.reload();
         } else {
-            alert('שגיאה בעדכון המחיר: ' + data.error);
+            alert('{{ _("Error updating price:") }} ' + data.error);
         }
     })
     .catch(error => {
-        alert('שגיאה בעדכון המחיר');
+        alert('{{ _("Error updating price") }}');
         console.error(error);
     });
 }

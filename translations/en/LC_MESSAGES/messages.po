@@ -1763,3 +1763,521 @@ msgstr "Same price"
 
 msgid "Confirm and Update Inventory"
 msgstr "Confirm and Update Inventory"
+
+# Translations added from batch 3 (final 6 files)
+
+msgid "0 recipes selected'"
+msgstr "0 recipes selected'"
+
+msgid "Actions'"
+msgstr "Actions'"
+
+msgid "Active'"
+msgstr "Active'"
+
+msgid "Add Employee Hours'"
+msgstr "Add Employee Hours'"
+
+msgid "Add to List'"
+msgstr "Add to List'"
+
+msgid "Added:'"
+msgstr "Added:'"
+
+msgid "Address:'"
+msgstr "Address:'"
+
+msgid "Affected Categories'"
+msgstr "Affected Categories'"
+
+msgid "After metadata, blank row, then recipes'"
+msgstr "After metadata, blank row, then recipes'"
+
+msgid "All Materials'"
+msgstr "All Materials'"
+
+msgid "Analysis by Category'"
+msgstr "Analysis by Category'"
+
+msgid "Approve and Close Week'"
+msgstr "Approve and Close Week'"
+
+msgid "Audit History'"
+msgstr "Audit History'"
+
+msgid "Auditor'"
+msgstr "Auditor'"
+
+msgid "Average financial variance per count:'"
+msgstr "Average financial variance per count:'"
+
+msgid "Calculated Cost'"
+msgstr "Calculated Cost'"
+
+msgid "Cancel'"
+msgstr "Cancel'"
+
+msgid "Category'"
+msgstr "Category'"
+
+msgid "Category:'"
+msgstr "Category:'"
+
+msgid "Changes (compared to existing recipe):'"
+msgstr "Changes (compared to existing recipe):'"
+
+msgid "Close Week - Reset Inventory'"
+msgstr "Close Week - Reset Inventory'"
+
+msgid "Columns: name, type, price/kg, weight (g), total price'"
+msgstr "Columns: name, type, price/kg, weight (g), total price'"
+
+msgid "Confirm and Import Recipes'"
+msgstr "Confirm and Import Recipes'"
+
+msgid "Contact Person:'"
+msgstr "Contact Person:'"
+
+msgid "Continue to Review'"
+msgstr "Continue to Review'"
+
+msgid "Cost calculated automatically according to employee rate (including employer costs).'"
+msgstr "Cost calculated automatically according to employee rate (including employer costs).'"
+
+msgid "Cost per 100g:'"
+msgstr "Cost per 100g:'"
+
+msgid "Counts'"
+msgstr "Counts'"
+
+msgid "Current Stock'"
+msgstr "Current Stock'"
+
+msgid "Date'"
+msgstr "Date'"
+
+msgid "Deselect All\""
+msgstr "Deselect All\""
+
+msgid "Different'"
+msgstr "Different'"
+
+msgid "Each recipe starts with title, 2 header rows, then materials'"
+msgstr "Each recipe starts with title, 2 header rows, then materials'"
+
+msgid "Email:'"
+msgstr "Email:'"
+
+msgid "Employee / Role'"
+msgstr "Employee / Role'"
+
+msgid "Employee Name'"
+msgstr "Employee Name'"
+
+msgid "Enter hours in HH:MM format (example: 8:30)'"
+msgstr "Enter hours in HH:MM format (example: 8:30)'"
+
+msgid "Enter in HH:MM format (example: 8:30 for eight and a half hours)'"
+msgstr "Enter in HH:MM format (example: 8:30 for eight and a half hours)'"
+
+msgid "Error loading\""
+msgstr "Error loading\""
+
+msgid "Error updating price\""
+msgstr "Error updating price\""
+
+msgid "Error updating price:\""
+msgstr "Error updating price:\""
+
+msgid "Example: 8:30'"
+msgstr "Example: 8:30'"
+
+msgid "Exists - Will Update'"
+msgstr "Exists - Will Update'"
+
+msgid "File uploaded successfully'"
+msgstr "File uploaded successfully'"
+
+msgid "Filter'"
+msgstr "Filter'"
+
+msgid "Financial Value'"
+msgstr "Financial Value'"
+
+msgid "First rows must contain metadata:'"
+msgstr "First rows must contain metadata:'"
+
+msgid "For the week ending on'"
+msgstr "For the week ending on'"
+
+msgid "Found (alternative name)'"
+msgstr "Found (alternative name)'"
+
+msgid "Found via alternative name'"
+msgstr "Found via alternative name'"
+
+msgid "Found'"
+msgstr "Found'"
+
+msgid "From Date'"
+msgstr "From Date'"
+
+msgid "Gross Weight:'"
+msgstr "Gross Weight:'"
+
+msgid "Hours'"
+msgstr "Hours'"
+
+msgid "Import Recipes from Excel'"
+msgstr "Import Recipes from Excel'"
+
+msgid "Import Recipes'"
+msgstr "Import Recipes'"
+
+msgid "Import\""
+msgstr "Import\""
+
+msgid "Insights'"
+msgstr "Insights'"
+
+msgid "Leftovers found in inventory from last week'"
+msgstr "Leftovers found in inventory from last week'"
+
+msgid "List of all raw materials supplied by this supplier.'"
+msgstr "List of all raw materials supplied by this supplier.'"
+
+msgid "Load File'"
+msgstr "Load File'"
+
+msgid "Loading...\""
+msgstr "Loading...\""
+
+msgid "Loss Value (Cost)'"
+msgstr "Loss Value (Cost)'"
+
+msgid "Loss'"
+msgstr "Loss'"
+
+msgid "Loss:'"
+msgstr "Loss:'"
+
+msgid "Match'"
+msgstr "Match'"
+
+msgid "Material types: \""
+msgstr "Material types: \""
+
+msgid "Material with highest discrepancies:'"
+msgstr "Material with highest discrepancies:'"
+
+msgid "Materials with High Discrepancies'"
+msgstr "Materials with High Discrepancies'"
+
+msgid "Materials:'"
+msgstr "Materials:'"
+
+msgid "Metadata preview:'"
+msgstr "Metadata preview:'"
+
+msgid "Missing Materials'"
+msgstr "Missing Materials'"
+
+msgid "Missing materials in system!'"
+msgstr "Missing materials in system!'"
+
+msgid "Most problematic category:'"
+msgstr "Most problematic category:'"
+
+msgid "Name'"
+msgstr "Name'"
+
+msgid "Net Weight:'"
+msgstr "Net Weight:'"
+
+msgid "New'"
+msgstr "New'"
+
+msgid "No changes'"
+msgstr "No changes'"
+
+msgid "No cost'"
+msgstr "No cost'"
+
+msgid "No data to display'"
+msgstr "No data to display'"
+
+msgid "No hours have been entered for this week yet.'"
+msgstr "No hours have been entered for this week yet.'"
+
+msgid "No raw materials found for this supplier.'"
+msgstr "No raw materials found for this supplier.'"
+
+msgid "No stock audits found for the requested period'"
+msgstr "No stock audits found for the requested period'"
+
+msgid "Not detected (required!)\""
+msgstr "Not detected (required!)\""
+
+msgid "Note:'"
+msgstr "Note:'"
+
+msgid "Optional - default \""
+msgstr "Optional - default \""
+
+msgid "Phone:'"
+msgstr "Phone:'"
+
+msgid "Physical Quantity'"
+msgstr "Physical Quantity'"
+
+msgid "Premake Leftovers'"
+msgstr "Premake Leftovers'"
+
+msgid "Premake'"
+msgstr "Premake'"
+
+msgid "Price in Sheet'"
+msgstr "Price in Sheet'"
+
+msgid "Price in System'"
+msgstr "Price in System'"
+
+msgid "Price per Unit'"
+msgstr "Price per Unit'"
+
+msgid "Primary Supplier'"
+msgstr "Primary Supplier'"
+
+msgid "Primary'"
+msgstr "Primary'"
+
+msgid "Product Leftovers'"
+msgstr "Product Leftovers'"
+
+msgid "Product'"
+msgstr "Product'"
+
+msgid "Quantity Changed:'"
+msgstr "Quantity Changed:'"
+
+msgid "Quantity Remaining'"
+msgstr "Quantity Remaining'"
+
+msgid "Quantity Variance'"
+msgstr "Quantity Variance'"
+
+msgid "Raw Material'"
+msgstr "Raw Material'"
+
+msgid "Raw Materials - '"
+msgstr "Raw Materials - '"
+
+msgid "Raw Materials of'"
+msgstr "Raw Materials of'"
+
+msgid "Remove this entry?'"
+msgstr "Remove this entry?'"
+
+msgid "Removed:'"
+msgstr "Removed:'"
+
+msgid "Required - \""
+msgstr "Required - \""
+
+msgid "Required - existing category name in system'"
+msgstr "Required - existing category name in system'"
+
+msgid "Required file format:'"
+msgstr "Required file format:'"
+
+msgid "Required metadata fields are missing. Ensure the file contains type and category rows.'"
+msgstr "Required metadata fields are missing. Ensure the file contains type and category rows.'"
+
+msgid "Return to update sales data for the previous week (if sold).'"
+msgstr "Return to update sales data for the previous week (if sold).'"
+
+msgid "Review Recipes for Import'"
+msgstr "Review Recipes for Import'"
+
+msgid "Same'"
+msgstr "Same'"
+
+msgid "Save'"
+msgstr "Save'"
+
+msgid "Search material...\""
+msgstr "Search material...\""
+
+msgid "Secondary'"
+msgstr "Secondary'"
+
+msgid "Select All\""
+msgstr "Select All\""
+
+msgid "Select All'"
+msgstr "Select All'"
+
+msgid "Select Excel file:'"
+msgstr "Select Excel file:'"
+
+msgid "Select a match for all missing materials in selected recipes from the dropdowns.\""
+msgstr "Select a match for all missing materials in selected recipes from the dropdowns.\""
+
+msgid "Select a match for missing materials from the dropdown, or add the materials to the system:'"
+msgstr "Select a match for missing materials from the dropdown, or add the materials to the system:'"
+
+msgid "Select a material from the dropdown or add new materials to the system and then import again.'"
+msgstr "Select a material from the dropdown or add new materials to the system and then import again.'"
+
+msgid "Select employee...'"
+msgstr "Select employee...'"
+
+msgid "Select material from system...'"
+msgstr "Select material from system...'"
+
+msgid "Select recipes to import\""
+msgstr "Select recipes to import\""
+
+msgid "Select sheet to import:'"
+msgstr "Select sheet to import:'"
+
+msgid "Set as primary supplier for this material'"
+msgstr "Set as primary supplier for this material'"
+
+msgid "Shortages'"
+msgstr "Shortages'"
+
+msgid "Should we reset inventory and transfer the balance to waste (loss)?'"
+msgstr "Should we reset inventory and transfer the balance to waste (loss)?'"
+
+msgid "Status'"
+msgstr "Status'"
+
+msgid "Status:'"
+msgstr "Status:'"
+
+msgid "Stock Audit'"
+msgstr "Stock Audit'"
+
+msgid "Supplied Raw Materials'"
+msgstr "Supplied Raw Materials'"
+
+msgid "Suppliers'"
+msgstr "Suppliers'"
+
+msgid "Surplus'"
+msgstr "Surplus'"
+
+msgid "System Quantity'"
+msgstr "System Quantity'"
+
+msgid "To Date'"
+msgstr "To Date'"
+
+msgid "Total Cost:'"
+msgstr "Total Cost:'"
+
+msgid "Total Variance (Financial)'"
+msgstr "Total Variance (Financial)'"
+
+msgid "Total Variance'"
+msgstr "Total Variance'"
+
+msgid "Total cost for this week'"
+msgstr "Total cost for this week'"
+
+msgid "Total estimated loss (unmarked for transfer):'"
+msgstr "Total estimated loss (unmarked for transfer):'"
+
+msgid "Total losses from inventory discrepancies:'"
+msgstr "Total losses from inventory discrepancies:'"
+
+msgid "Total recipes:'"
+msgstr "Total recipes:'"
+
+msgid "Track inventory discrepancies and loss analysis'"
+msgstr "Track inventory discrepancies and loss analysis'"
+
+msgid "Transfer to next week?'"
+msgstr "Transfer to next week?'"
+
+msgid "Type'"
+msgstr "Type'"
+
+msgid "Type:'"
+msgstr "Type:'"
+
+msgid "Unit'"
+msgstr "Unit'"
+
+msgid "Unit:'"
+msgstr "Unit:'"
+
+msgid "Unmarked items will be transferred to waste. Marked items will remain in inventory/available.'"
+msgstr "Unmarked items will be transferred to waste. Marked items will remain in inventory/available.'"
+
+msgid "Update Raw Material Price'"
+msgstr "Update Raw Material Price'"
+
+msgid "Update Sales'"
+msgstr "Update Sales'"
+
+msgid "Upload Different File'"
+msgstr "Upload Different File'"
+
+msgid "Upload Recipe File'"
+msgstr "Upload Recipe File'"
+
+msgid "Upload an Excel file with recipes for premakes or products'"
+msgstr "Upload an Excel file with recipes for premakes or products'"
+
+msgid "Value (Cost)'"
+msgstr "Value (Cost)'"
+
+msgid "Variance'"
+msgstr "Variance'"
+
+msgid "Week Details'"
+msgstr "Week Details'"
+
+msgid "Week'"
+msgstr "Week'"
+
+msgid "Weekly Labor'"
+msgstr "Weekly Labor'"
+
+msgid "Weight (g)'"
+msgstr "Weight (g)'"
+
+msgid "Weight and Cost Summary:'"
+msgstr "Weight and Cost Summary:'"
+
+msgid "Work Hours (HH:MM)'"
+msgstr "Work Hours (HH:MM)'"
+
+msgid "Work Hours Details'"
+msgstr "Work Hours Details'"
+
+msgid "counts'"
+msgstr "counts'"
+
+msgid "g'"
+msgstr "g'"
+
+msgid "hour'"
+msgstr "hour'"
+
+msgid "recipes selected\""
+msgstr "recipes selected\""
+
+msgid "recipes\""
+msgstr "recipes\""
+
+msgid "units'"
+msgstr "units'"
+
+msgid "unmapped materials in selected recipes\""
+msgstr "unmapped materials in selected recipes\""
+
+msgid "unsold products remain.'"
+msgstr "unsold products remain.'"
