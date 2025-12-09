@@ -88,9 +88,9 @@
     <div class="container">
         <p class="mb-1">&copy; 2025 CostFlow. {{ _('All rights reserved.') }}</p>
         <div class="small">
-            <a href="?lang=en" class="text-decoration-none text-secondary me-2">English</a>
+            <a href="{{ request.path }}?lang=en" class="text-decoration-none text-secondary me-2">English</a>
             <span class="text-secondary">|</span>
-            <a href="?lang=he" class="text-decoration-none text-secondary ms-2">עברית</a>
+            <a href="{{ request.path }}?lang=he" class="text-decoration-none text-secondary ms-2">עברית</a>
         </div>
     </div>
 </footer>

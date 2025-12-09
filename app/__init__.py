@@ -18,6 +18,12 @@ def create_app():
     def inject_locale():
         return dict(get_locale=get_locale)
 
+    @app.before_request
+    def before_request():
+        """Capture language parameter and save to session for persistence across pages"""
+        if 'lang' in request.args:
+            session['lang'] = request.args.get('lang')
+
     # Load configurations
     DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///waste_tracking.db")
     app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
