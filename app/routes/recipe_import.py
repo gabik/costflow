@@ -234,7 +234,7 @@ def find_existing_recipe(name, is_premake):
     return False, None, []
 
 
-def calculate_recipe_diff(existing_components, new_materials, matched_materials_lookup):
+def calculate_recipe_diff(existing_components, new_materials, matched_materials_lookup, metadata):
     """
     Calculate diff between existing and new components.
     Uses material IDs instead of names to handle alternative names correctly.
@@ -243,6 +243,7 @@ def calculate_recipe_diff(existing_components, new_materials, matched_materials_
         existing_components: List of ProductComponent objects from existing recipe
         new_materials: List of material dicts from Excel sheet
         matched_materials_lookup: Dict mapping material index to matched DB material data
+        metadata: Recipe metadata dict containing 'unit' for unit conversion
 
     Returns: (added, removed, changed, unchanged)
     """
@@ -289,12 +290,36 @@ def calculate_recipe_diff(existing_components, new_materials, matched_materials_
             added.append(new_mat)
         else:
             existing_comp = existing_lookup[key]
-            # Check if quantity changed
-            if abs(existing_comp.quantity - new_mat['weight']) > 0.01:
+
+            # Get matched material to determine base unit for conversion
+            matched = matched_materials_lookup.get(idx)
+            material_unit = None
+
+            if matched and matched['found']:
+                # Get base unit from the material
+                comp_type = key[0]
+                mat_id = matched['material_id']
+
+                if comp_type == 'raw_material':
+                    db_mat = RawMaterial.query.get(mat_id)
+                    material_unit = db_mat.unit if db_mat else 'kg'
+                elif comp_type in ['premake', 'product']:
+                    db_prod = Product.query.get(mat_id)
+                    material_unit = db_prod.unit if db_prod else 'g'
+
+            # Convert new quantity to material's base unit for fair comparison
+            new_quantity_converted = convert_to_base_unit(
+                new_mat['weight'],
+                metadata['unit'],  # Recipe unit (e.g., 'g')
+                material_unit      # Material's base unit (e.g., 'kg')
+            ) if material_unit else new_mat['weight']
+
+            # Check if quantity changed (compare in same units)
+            if abs(existing_comp.quantity - new_quantity_converted) > 0.01:
                 changed.append({
                     'material': new_mat,
                     'old_quantity': existing_comp.quantity,
-                    'new_quantity': new_mat['weight']
+                    'new_quantity': new_mat['weight']  # Keep original for display
                 })
             else:
                 unchanged.append(new_mat)
@@ -507,7 +532,8 @@ def select_sheet():
                 added, removed, changed, unchanged = calculate_recipe_diff(
                     existing_components,
                     recipe['materials'],
-                    matched_materials_lookup
+                    matched_materials_lookup,
+                    metadata
                 )
                 diff_data = {
                     'added': added,
