@@ -81,7 +81,7 @@
 <!-- Food Cost Analysis -->
 <div class="card mb-4">
     <div class="card-header bg-light d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="bi bi-calculator me-2"></i>ניתוח עלות מזון (Food Cost)</h5>
+        <h5 class="mb-0"><i class="bi bi-calculator me-2"></i>ניתוח עלות מזון מוצרים (Food Cost)</h5>
         <a href="{{ url_for('reports.monthly_report') }}" class="btn btn-sm btn-outline-primary">
             <i class="bi bi-bar-chart-line me-1"></i>מגמות חודשיות
         </a>
@@ -146,6 +146,11 @@
             {{ "%.1f"|format((total_food_cost / total_revenue * 100)) }}%
             מההכנסות
             <small class="text-muted">(יעד מומלץ: 25-35%)</small>
+        </div>
+        <div class="alert alert-secondary mt-2">
+            <small><i class="bi bi-info-circle me-2"></i>
+            עלות המזון כוללת חומרי גלם, אריזות והכנות מקדימות (פרימייקים) עבור מוצרים שיוצרו השבוע.
+            </small>
         </div>
         {% endif %}
     </div>
@@ -259,7 +264,7 @@
                         <th class="text-center">יוצר</th>
                         <th class="text-center">שומש (במוצרים)</th>
                         <th class="text-center">במלאי</th>
-                        <th class="text-center">עלות ליחידה</th>
+                        <th class="text-center">עלות ליחידה (לק"ג)</th>
                         <th class="text-center">שווי ייצור כולל</th>
                     </tr>
                 </thead>
@@ -413,7 +418,7 @@
 {% endif %}
 
 <!-- Key Insights -->
-<div class="card">
+<div class="card mb-4">
     <div class="card-header bg-light">
         <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>תובנות מרכזיות</h5>
     </div>
@@ -444,19 +449,145 @@
                 שיעור הרווח השבועי: <strong>{{ "%.1f"|format((net_profit / total_revenue * 100) if total_revenue > 0 else 0) }}%</strong>
             </li>
 
-            {% if category_summaries %}
-                {% set total_waste = category_summaries.values()|sum(attribute='quantity_waste') %}
-                {% set total_sold = category_summaries.values()|sum(attribute='quantity_sold') %}
-                {% if total_sold > 0 %}
-                <li class="mb-2">
-                    <i class="bi bi-exclamation-triangle text-warning me-2"></i>
-                    שיעור הפחת הכולל: <strong>{{ "%.1f"|format((total_waste / (total_sold + total_waste) * 100) if (total_sold + total_waste) > 0 else 0) }}%</strong>
-                </li>
+            {% if best_margin_product %}
+            <li class="mb-2">
+                <i class="bi bi-award-fill text-success me-2"></i>
+                המוצר עם הרווחיות הגבוהה ביותר: <strong>{{ best_margin_product.name }}</strong> עם שיעור רווח של {{ "%.1f"|format(best_margin_product.profit_margin_pct) }}%
+            </li>
+            {% endif %}
+
+            {% if worst_margin_product %}
+            <li class="mb-2 {% if worst_margin_product.profit_margin_pct < 20 %}text-danger{% endif %}">
+                <i class="bi bi-exclamation-circle{% if worst_margin_product.profit_margin_pct < 20 %}-fill text-danger{% else %} text-warning{% endif %} me-2"></i>
+                המוצר עם הרווחיות הנמוכה ביותר: <strong>{{ worst_margin_product.name }}</strong> עם שיעור רווח של {{ "%.1f"|format(worst_margin_product.profit_margin_pct) }}%
+                {% if worst_margin_product.profit_margin_pct < 20 %}
+                <span class="badge bg-danger">זקוק לבחינה מחדש</span>
                 {% endif %}
+            </li>
+            {% endif %}
+
+            {% if highest_profit_product %}
+            <li class="mb-2">
+                <i class="bi bi-cash-coin text-success me-2"></i>
+                המוצר עם התרומה הגבוהה ביותר לרווח: <strong>{{ highest_profit_product.name }}</strong> עם רווח כולל של {{ currency_symbol }}{{ "%.2f"|format(highest_profit_product.profit_per_unit * (highest_profit_product.quantity_sold or 0)) }}
+            </li>
+            {% endif %}
+
+            {% if overall_waste_pct > 0 %}
+            <li class="mb-2">
+                <i class="bi bi-exclamation-triangle text-warning me-2"></i>
+                שיעור הפחת הכולל: <strong>{{ "%.1f"|format(overall_waste_pct) }}%</strong>
+                (עלות: {{ currency_symbol }}{{ "%.2f"|format(total_waste_cost) }})
+            </li>
             {% endif %}
         </ul>
     </div>
 </div>
+
+<!-- Waste Analysis -->
+{% if waste_details %}
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0"><i class="bi bi-trash me-2"></i>ניתוח פחת</h5>
+    </div>
+    <div class="card-body">
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card bg-warning text-white">
+                    <div class="card-body text-center">
+                        <h6>סה"כ פחת</h6>
+                        <h3>{{ (category_summaries.values()|sum(attribute='quantity_waste'))|int }} יחידות</h3>
+                        <small>{{ "%.1f"|format(overall_waste_pct) }}% מהייצור</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-danger text-white">
+                    <div class="card-body text-center">
+                        <h6>עלות פחת</h6>
+                        <h3>{{ currency_symbol }}{{ "%.2f"|format(total_waste_cost) }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <h6>השפעה על רווח</h6>
+                        <h3>{{ "%.1f"|format((total_waste_cost / total_revenue * 100) if total_revenue > 0 else 0) }}%</h3>
+                        <small>מההכנסות</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Waste by Product -->
+        <h6 class="mb-3">פחת לפי מוצר</h6>
+        <div class="table-responsive mb-4">
+            <table class="table table-hover table-sm">
+                <thead class="table-light">
+                    <tr>
+                        <th>מוצר</th>
+                        <th>קטגוריה</th>
+                        <th class="text-center">נמכר</th>
+                        <th class="text-center">פחת</th>
+                        <th class="text-center">% פחת</th>
+                        <th class="text-end">עלות פחת</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in waste_details[:10] %}
+                    <tr {% if item.waste_pct > 15 %}class="table-danger"{% elif item.waste_pct > 10 %}class="table-warning"{% endif %}>
+                        <td class="fw-medium">{{ item.product_name }}</td>
+                        <td>{{ item.category_name }}</td>
+                        <td class="text-center">{{ item.quantity_sold|int }}</td>
+                        <td class="text-center">{{ item.quantity_waste|int }}</td>
+                        <td class="text-center">
+                            <span class="badge {% if item.waste_pct > 15 %}bg-danger{% elif item.waste_pct > 10 %}bg-warning{% else %}bg-success{% endif %}">
+                                {{ "%.1f"|format(item.waste_pct) }}%
+                            </span>
+                        </td>
+                        <td class="text-end text-danger fw-bold">{{ currency_symbol }}{{ "%.2f"|format(item.waste_cost) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if waste_details|length > 10 %}
+            <p class="text-muted small">מוצגים 10 המוצרים עם עלות הפחת הגבוהה ביותר</p>
+            {% endif %}
+        </div>
+
+        <!-- Waste by Category -->
+        <h6 class="mb-3">פחת לפי קטגוריה</h6>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead class="table-light">
+                    <tr>
+                        <th>קטגוריה</th>
+                        <th class="text-center">כמות פחת</th>
+                        <th class="text-center">% פחת</th>
+                        <th class="text-end">עלות כוללת</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cat_name, cat_data in waste_by_category.items() %}
+                    <tr>
+                        <td class="fw-medium">{{ cat_name }}</td>
+                        <td class="text-center">{{ cat_data.total_waste_qty|int }}</td>
+                        <td class="text-center">
+                            <span class="badge {% if cat_data.waste_pct > 15 %}bg-danger{% elif cat_data.waste_pct > 10 %}bg-warning{% else %}bg-success{% endif %}">
+                                {{ "%.1f"|format(cat_data.waste_pct) }}%
+                            </span>
+                        </td>
+                        <td class="text-end">{{ currency_symbol }}{{ "%.2f"|format(cat_data.total_waste_cost) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 {% endif %}
 

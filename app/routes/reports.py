@@ -58,6 +58,10 @@ def weekly_report():
         if not product:
             continue
 
+        # Filter out premakes - only show actual sellable products
+        if not product.is_product or product.is_premake:
+            continue
+
         # Calculate prime cost (materials + packaging + premakes)
         prime_cost_per_unit = calculate_prime_cost(product)
 
@@ -71,6 +75,10 @@ def weekly_report():
 
         cat_name = product.category.name if product.category else 'ללא קטגוריה'
 
+        # Calculate profit metrics
+        profit_per_unit = (product.selling_price_per_unit or 0) - prime_cost_per_unit
+        profit_margin_pct = (profit_per_unit / (product.selling_price_per_unit or 1) * 100) if product.selling_price_per_unit else 0
+
         # Add to sales data
         sales_data.append({
             'name': product.name,
@@ -80,7 +88,9 @@ def weekly_report():
             'quantity_waste': sale.quantity_waste,
             'revenue': revenue,
             'prime_cost_per_unit': prime_cost_per_unit,
-            'material_cost': material_cost_sold + material_cost_waste
+            'material_cost': material_cost_sold + material_cost_waste,
+            'profit_per_unit': profit_per_unit,
+            'profit_margin_pct': profit_margin_pct
         })
 
         # Update category summaries
@@ -100,11 +110,14 @@ def weekly_report():
         if product.name not in category_summaries[cat_name]['products']:
             category_summaries[cat_name]['products'].append(product.name)
 
-    # Calculate Food Cost from Production
-    production_logs = ProductionLog.query.filter(
+    # Calculate Food Cost from Production - PRODUCTS ONLY
+    # Premake costs are already included in product costs via calculate_prime_cost()
+    production_logs = ProductionLog.query.join(Product).filter(
         and_(
             func.date(ProductionLog.timestamp) >= week_start,
-            func.date(ProductionLog.timestamp) <= week_end
+            func.date(ProductionLog.timestamp) <= week_end,
+            Product.is_product == True,  # Only actual products
+            Product.is_premake == False   # Exclude premakes (avoid double counting)
         )
     ).all()
 
@@ -183,13 +196,18 @@ def weekly_report():
     ).all()
 
     premake_production = {}
+    premake_batches = {}  # Track batches separately for correct value calculation
     for log in premake_logs:
         product = log.product
         if not product:
             continue
-        # Premake quantity is in Batches. Total units = Batches * Batch Size
-        units_produced = log.quantity_produced * (product.batch_size or 1)
+        # log.quantity_produced is number of batches
+        batches_produced = log.quantity_produced
+        # Calculate total units (kg) produced
+        units_produced = batches_produced * (product.batch_size or 1)
+
         premake_production[product.id] = premake_production.get(product.id, 0) + units_produced
+        premake_batches[product.id] = premake_batches.get(product.id, 0) + batches_produced
 
     # Calculate Premake Usage (from Product Production Logs already fetched)
     premake_usage = {}
@@ -206,30 +224,35 @@ def weekly_report():
     # Process Premakes for Report (using unified Product model)
     all_premakes = Product.query.filter_by(is_premake=True).all()
     for premake in all_premakes:
-        produced = premake_production.get(premake.id, 0)
+        produced_kg = premake_production.get(premake.id, 0)
+        produced_batches = premake_batches.get(premake.id, 0)
         used = premake_usage.get(premake.id, 0)
 
         # Calculate current stock for premake
         current_premake_stock = calculate_premake_current_stock(premake.id)
 
-        # Calculate Cost Per Unit using prime_cost function
-        cost_per_unit = calculate_prime_cost(premake)
+        # Calculate cost per BATCH (what calculate_prime_cost returns for premakes)
+        cost_per_batch = calculate_prime_cost(premake)
+        # Calculate cost per kg for display
+        cost_per_kg = cost_per_batch / (premake.batch_size or 1) if premake.batch_size else 0
 
         # Inventory Value Change (Produced - Used)
-        stock_change = produced - used
+        stock_change = produced_kg - used
 
-        if produced == 0 and used == 0 and current_premake_stock == 0:
+        if produced_kg == 0 and used == 0 and current_premake_stock == 0:
             continue
 
         premake_report_data.append({
             'name': premake.name,
             'unit': premake.unit,
-            'produced': produced,
+            'produced': produced_kg,  # Show kg for consistency
+            'batches_produced': produced_batches,  # For value calc
             'used': used,
             'stock_change': stock_change,
             'current_stock': current_premake_stock,
-            'cost_per_unit': cost_per_unit,
-            'total_value_produced': produced * cost_per_unit
+            'cost_per_unit': cost_per_kg,  # Cost per kg for display
+            'cost_per_batch': cost_per_batch,  # For correct value calc
+            'total_value_produced': produced_batches * cost_per_batch  # FIXED: batches × $/batch
         })
 
     # Get stock audits for the week
@@ -262,6 +285,77 @@ def weekly_report():
     # Calculate adjusted profit (including stock losses)
     adjusted_profit = total_revenue - total_material_costs - weekly_cost.total_cost - abs(total_stock_variance_cost)
 
+    # ---------------------------------------------------
+    # Waste Analysis
+    # ---------------------------------------------------
+    waste_details = []
+    waste_by_category = {}
+
+    for sale in week_sales:
+        product = sale.product
+        if not product or not product.is_product or product.is_premake:
+            continue
+
+        if (sale.quantity_waste or 0) > 0 or (sale.quantity_sold or 0) > 0:
+            prime_cost = calculate_prime_cost(product)
+            waste_qty = sale.quantity_waste or 0
+            sold_qty = sale.quantity_sold or 0
+            total_qty = waste_qty + sold_qty
+
+            waste_cost = waste_qty * prime_cost
+            waste_pct = (waste_qty / total_qty * 100) if total_qty > 0 else 0
+
+            cat_name = product.category.name if product.category else 'ללא קטגוריה'
+
+            # Per-product waste
+            waste_details.append({
+                'product_name': product.name,
+                'category_name': cat_name,
+                'quantity_sold': sold_qty,
+                'quantity_waste': waste_qty,
+                'total_produced': total_qty,
+                'waste_cost': waste_cost,
+                'waste_pct': waste_pct,
+                'prime_cost_per_unit': prime_cost
+            })
+
+            # By category
+            if cat_name not in waste_by_category:
+                waste_by_category[cat_name] = {
+                    'total_waste_qty': 0,
+                    'total_waste_cost': 0,
+                    'total_produced_qty': 0
+                }
+            waste_by_category[cat_name]['total_waste_qty'] += waste_qty
+            waste_by_category[cat_name]['total_waste_cost'] += waste_cost
+            waste_by_category[cat_name]['total_produced_qty'] += total_qty
+
+    # Calculate category waste %
+    for cat_data in waste_by_category.values():
+        cat_data['waste_pct'] = (cat_data['total_waste_qty'] / cat_data['total_produced_qty'] * 100) if cat_data['total_produced_qty'] > 0 else 0
+
+    # Sort by waste cost descending
+    waste_details.sort(key=lambda x: x['waste_cost'], reverse=True)
+
+    # Total waste metrics
+    total_waste_qty = sum(w['quantity_waste'] for w in waste_details)
+    total_waste_cost = sum(w['waste_cost'] for w in waste_details)
+    total_produced_qty = sum(w['total_produced'] for w in waste_details)
+    overall_waste_pct = (total_waste_qty / total_produced_qty * 100) if total_produced_qty > 0 else 0
+
+    # ---------------------------------------------------
+    # Profit Insights
+    # ---------------------------------------------------
+    # Best profit margin product
+    best_margin_product = max(sales_data, key=lambda x: x['profit_margin_pct']) if sales_data else None
+
+    # Worst profit margin product (with sales > 0)
+    products_with_sales = [s for s in sales_data if s['quantity_sold'] > 0]
+    worst_margin_product = min(products_with_sales, key=lambda x: x['profit_margin_pct']) if products_with_sales else None
+
+    # Highest total profit product
+    highest_profit_product = max(sales_data, key=lambda x: x['profit_per_unit'] * (x['quantity_sold'] or 0)) if sales_data else None
+
     return render_template('weekly_report.html',
                          weeks=all_weeks,
                          week_start=week_start,
@@ -283,6 +377,13 @@ def weekly_report():
                          total_recipes_produced=total_recipes_produced,
                          production_details=production_details,
                          premake_report_data=premake_report_data,
+                         waste_details=waste_details,
+                         waste_by_category=waste_by_category,
+                         total_waste_cost=total_waste_cost,
+                         overall_waste_pct=overall_waste_pct,
+                         best_margin_product=best_margin_product,
+                         worst_margin_product=worst_margin_product,
+                         highest_profit_product=highest_profit_product,
                          no_data=False)
 
 # Monthly Report - Aggregating Weekly Reports
