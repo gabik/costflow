@@ -26,7 +26,7 @@ msgstr ""
 #: templates/packaging.html:26 templates/products.html:42
 #: templates/raw_materials.html:34
 msgid "Edit"
-msgstr "עדכן"
+msgstr "Edit"
 
 #: templates/add_or_edit_packaging.html:2
 #: templates/add_or_edit_packaging.html:4
@@ -1066,4 +1066,22 @@ msgstr "Manage base recipes and premakes."
 
 msgid "Search premake..."
 msgstr "Search premake..."
+
+msgid "Batch Quantity"
+msgstr "Batch Quantity"
+
+msgid "All Categories"
+msgstr "All Categories"
+
+msgid "Add Premake"
+msgstr "Add Premake"
+
+msgid "Are you sure you want to delete this premake?"
+msgstr "Are you sure you want to delete this premake?"
+
+msgid "No premakes found."
+msgstr "No premakes found."
+
+msgid "View Details"
+msgstr "View Details"
 

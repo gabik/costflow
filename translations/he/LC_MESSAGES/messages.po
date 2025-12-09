@@ -908,6 +908,9 @@ msgstr "רישום ייצור יומי של הכנות מקדימות"
 msgid "Home"
 msgstr "ראשי"
 
+msgid "Premakes"
+msgstr "הכנות מקדימות"
+
 msgid "Reports"
 msgstr "דו\"חות"
 
@@ -1045,4 +1048,29 @@ msgstr "ניהול מתכוני בסיס והכנות (Premakes)."
 
 msgid "Search premake..."
 msgstr "חפש הכנה מקדימה..."
+
+msgid "Batch Quantity"
+msgstr "כמות באצ'"
+
+msgid "All Categories"
+msgstr "כל הקטגוריות"
+
+msgid "Add Premake"
+msgstr "הוסף הכנה מקדימה"
+
+msgid "Are you sure you want to delete this premake?"
+msgstr "האם אתה בטוח שברצונך למחוק הכנה מקדימה זו?"
+
+msgid "No premakes found."
+msgstr "לא נמצאו הכנות מקדימות."
+
+msgid "View Details"
+msgstr "צפה בפרטים"
+
+# Dashboard page translations
+msgid "Production Cost"
+msgstr "עלות ייצור"
+
+msgid "Stock Discrepancies"
+msgstr "הפרשי מלאי"
 
