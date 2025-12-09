@@ -1570,3 +1570,9 @@ msgstr "פעולה זו אינה הפיכה."
 
 msgid "No employees found in the list."
 msgstr "לא נמצאו עובדים ברשימה."
+
+msgid "Cost"
+msgstr "עלות"
+
+msgid "Category:"
+msgstr "קטגוריה:"

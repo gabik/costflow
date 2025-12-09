@@ -1575,3 +1575,9 @@ msgstr "This action is irreversible."
 
 msgid "No employees found in the list."
 msgstr "No employees found in the list."
+
+msgid "Cost"
+msgstr "Cost"
+
+msgid "Category:"
+msgstr "Category:"
