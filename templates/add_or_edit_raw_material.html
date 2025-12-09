@@ -78,6 +78,37 @@
                         </div>
                     </div>
 
+                    <!-- Alternative Names Section -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-bold">שמות חלופיים (אופציונלי)</label>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addAlternativeNameRow()">
+                                <i class="bi bi-plus-circle"></i> הוסף שם חלופי
+                            </button>
+                        </div>
+
+                        <div id="alternativeNamesContainer">
+                            {% if material and material.alternative_names %}
+                                {% for alt_name in material.alternative_names %}
+                                <div class="alternative-name-row input-group mb-2">
+                                    <input type="text"
+                                           class="form-control"
+                                           name="alternative_names[]"
+                                           value="{{ alt_name.alternative_name }}"
+                                           placeholder="שם חלופי לחומר (למשל: קמח לבן)">
+                                    <input type="hidden" name="alternative_name_ids[]" value="{{ alt_name.id }}">
+                                    <button type="button" class="btn btn-outline-danger" onclick="removeAlternativeNameRow(this)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        <small class="text-muted">
+                            שמות חלופיים עוזרים בייבוא מתכונים - למשל "קמח לבן" עבור "קמח לבן T55 12 ק''ג"
+                        </small>
+                    </div>
+
                     <!-- Multiple Suppliers Section -->
                     <div class="mb-4" id="suppliersSection">
                         <h5>ספקים ומחירים</h5>
@@ -288,6 +319,19 @@
         </div>
     </div>
 </template>
+
+<template id="alternativeNameRowTemplate">
+    <div class="alternative-name-row input-group mb-2">
+        <input type="text"
+               class="form-control"
+               name="alternative_names[]"
+               placeholder="שם חלופי לחומר (למשל: קמח לבן)">
+        <input type="hidden" name="alternative_name_ids[]" value="">
+        <button type="button" class="btn btn-outline-danger" onclick="removeAlternativeNameRow(this)">
+            <i class="bi bi-trash"></i>
+        </button>
+    </div>
+</template>
 {% endblock %}
 
 {% block scripts %}
@@ -383,6 +427,23 @@
         if (radio && radio.checked) {
             const row = radio.closest('.supplier-row');
             row.classList.add('border-primary', 'border-2', 'bg-light');
+        }
+    }
+
+    // Alternative Names Functions
+    function addAlternativeNameRow() {
+        const template = document.getElementById('alternativeNameRowTemplate');
+        const clone = template.content.cloneNode(true);
+        document.getElementById('alternativeNamesContainer').appendChild(clone);
+    }
+
+    function removeAlternativeNameRow(button) {
+        const row = button.closest('.alternative-name-row');
+        const input = row.querySelector('input[name="alternative_names[]"]');
+
+        // If empty or confirmed, remove
+        if (!input.value || confirm('האם למחוק שם חלופי זה?')) {
+            row.remove();
         }
     }
 

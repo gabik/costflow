@@ -3,7 +3,7 @@ import tempfile
 import json
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 import pandas as pd
-from ..models import db, Product, ProductComponent, RawMaterial, Category
+from ..models import db, Product, ProductComponent, RawMaterial, RawMaterialAlternativeName, Category
 from .utils import log_audit, convert_to_base_unit
 
 recipe_import_blueprint = Blueprint('recipe_import', __name__)
@@ -173,15 +173,26 @@ def parse_recipes_from_sheet(df, metadata_end_row):
 def match_material(name, material_type):
     """
     Match material by exact name in appropriate table.
-    Returns: (found, material_id, current_price, db_material)
+    For raw materials, also tries matching by alternative names.
+    Returns: (found, material_id, current_price, db_material, matched_via_alternative)
     """
     found = False
     material_id = None
     current_price = None
     db_material = None
+    matched_via_alternative = False
 
     if material_type == 'חומר גלם':
+        # Try primary name first
         db_material = RawMaterial.query.filter_by(name=name, is_deleted=False).first()
+
+        # If not found, try alternative names
+        if not db_material:
+            alt_name_record = RawMaterialAlternativeName.query.filter_by(alternative_name=name).first()
+            if alt_name_record and not alt_name_record.raw_material.is_deleted:
+                db_material = alt_name_record.raw_material
+                matched_via_alternative = True
+
         if db_material:
             found = True
             material_id = db_material.id
@@ -211,7 +222,7 @@ def match_material(name, material_type):
             from .utils import calculate_prime_cost
             current_price = calculate_prime_cost(db_material)
 
-    return found, material_id, current_price, db_material
+    return found, material_id, current_price, db_material, matched_via_alternative
 
 
 def find_existing_recipe(name, is_premake):
@@ -400,7 +411,7 @@ def select_sheet():
             has_missing = False
 
             for material in recipe['materials']:
-                found, mat_id, current_price, db_material = match_material(
+                found, mat_id, current_price, db_material, matched_via_alternative = match_material(
                     material['name'],
                     material['type']
                 )
@@ -413,6 +424,7 @@ def select_sheet():
 
                 materials_data.append({
                     'name': material['name'],
+                    'matched_via_alternative': matched_via_alternative,
                     'type': material['type'],
                     'weight': material['weight'],
                     'sheet_price': material['price_per_kg'],
@@ -578,11 +590,38 @@ def confirm_import():
                     # Use mapped material ID
                     mat_id = material_mappings[mapping_key]
                     found = True
+                    original_name = material['name']  # Name from Excel
 
                     # Validate material type matches
                     if material['type'] == 'חומר גלם':
                         db_mat = RawMaterial.query.get(mat_id)
                         found = db_mat is not None and not db_mat.is_deleted
+
+                        # Auto-add alternative name for raw materials
+                        if found and db_mat.name != original_name:
+                            # Check if alternative name already exists
+                            existing_alt = RawMaterialAlternativeName.query.filter_by(
+                                alternative_name=original_name
+                            ).first()
+
+                            if existing_alt:
+                                # Error: name already exists for another material
+                                flash(f'שם חלופי "{original_name}" כבר קיים עבור חומר אחר: {existing_alt.raw_material.name}', 'error')
+                                db.session.rollback()
+                                return redirect(url_for('recipe_import.upload_recipes'))
+
+                            # Check if already an alternative for this material
+                            has_alt = any(alt.alternative_name == original_name for alt in db_mat.alternative_names)
+
+                            if not has_alt:
+                                # Add new alternative name
+                                new_alt = RawMaterialAlternativeName(
+                                    raw_material_id=mat_id,
+                                    alternative_name=original_name
+                                )
+                                db.session.add(new_alt)
+                                # Note: Will be committed with the rest of the import
+
                     elif material['type'] == 'הכנה':
                         db_mat = Product.query.filter_by(id=mat_id, is_premake=True).first()
                         found = db_mat is not None
@@ -591,7 +630,7 @@ def confirm_import():
                         found = db_mat is not None
                 else:
                     # Try original exact match
-                    found, mat_id, _, _ = match_material(material['name'], material['type'])
+                    found, mat_id, _, _, _ = match_material(material['name'], material['type'])
 
                 if not found:
                     # Skip missing materials or show error

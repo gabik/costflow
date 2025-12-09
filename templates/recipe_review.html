@@ -114,7 +114,13 @@
                                 <td><small class="text-muted">{{ material.type }}</small></td>
                                 <td>
                                     {% if material.found %}
-                                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> נמצא</span>
+                                        {% if material.matched_via_alternative %}
+                                        <span class="badge bg-info" title="נמצא באמצעות שם חלופי">
+                                            <i class="bi bi-tag-fill"></i> נמצא (שם חלופי)
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-success"><i class="bi bi-check-circle"></i> נמצא</span>
+                                        {% endif %}
                                     {% else %}
                                     <!-- Dropdown for mapping missing material -->
                                     <select name="mapping_recipe{{ recipe_idx }}_mat{{ loop.index0 }}"

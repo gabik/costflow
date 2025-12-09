@@ -1,9 +1,27 @@
 from datetime import datetime
-from flask import Blueprint, render_template, request, redirect, url_for, jsonify
-from ..models import db, RawMaterial, StockLog, ProductComponent, StockAudit, Category, Product, ProductionLog, Supplier, RawMaterialSupplier
+from flask import Blueprint, render_template, request, redirect, url_for, jsonify, flash
+from ..models import db, RawMaterial, RawMaterialAlternativeName, StockLog, ProductComponent, StockAudit, Category, Product, ProductionLog, Supplier, RawMaterialSupplier
 from .utils import log_audit, get_or_create_general_category, units_list, calculate_supplier_stock, calculate_total_material_stock
 
 raw_materials_blueprint = Blueprint('raw_materials', __name__)
+
+# ----------------------------
+# Helper Functions
+# ----------------------------
+def validate_alternative_name_uniqueness(name, exclude_material_id=None):
+    """
+    Check if alternative name already exists for another material.
+    Returns: (is_unique, existing_material_name)
+    """
+    if not name or not name.strip():
+        return True, None
+
+    name = name.strip()
+    existing = RawMaterialAlternativeName.query.filter_by(alternative_name=name).first()
+
+    if existing and existing.raw_material_id != exclude_material_id:
+        return False, existing.raw_material.name
+    return True, None
 
 # ----------------------------
 # Raw Materials Management
@@ -75,6 +93,9 @@ def add_raw_material():
         supplier_costs = request.form.getlist('supplier_costs[]')
         supplier_skus = request.form.getlist('supplier_skus[]')
         primary_supplier_value = request.form.get('primary_supplier')
+
+        # Get alternative names
+        alternative_names = request.form.getlist('alternative_names[]')
 
         # For unlimited materials, cost should be 0 (or user-specified)
         if is_unlimited:
@@ -154,6 +175,28 @@ def add_raw_material():
                 )
                 db.session.add(initial_stock_log)
 
+        # Add alternative names
+        for alt_name in alternative_names:
+            if alt_name and alt_name.strip():
+                # Validate uniqueness
+                is_unique, existing_material_name = validate_alternative_name_uniqueness(alt_name.strip())
+                if not is_unique:
+                    flash(f'השם החלופי "{alt_name}" כבר קיים עבור חומר: {existing_material_name}', 'error')
+                    db.session.rollback()
+                    categories = Category.query.filter_by(type='raw_material').all()
+                    suppliers = Supplier.query.all()
+                    return render_template('add_or_edit_raw_material.html',
+                                         categories=categories,
+                                         suppliers=suppliers,
+                                         units_list=units_list())
+
+                # Add alternative name
+                alt_name_record = RawMaterialAlternativeName(
+                    raw_material_id=new_material.id,
+                    alternative_name=alt_name.strip()
+                )
+                db.session.add(alt_name_record)
+
         db.session.commit()
 
         # Handle modal submissions
@@ -205,6 +248,9 @@ def edit_raw_material(material_id):
         for supplier_id in supplier_ids:
             if supplier_id:
                 new_supplier_ids.add(int(supplier_id))
+
+        # Get alternative names from form
+        new_alternative_names = request.form.getlist('alternative_names[]')
 
         # Find removed suppliers
         removed_supplier_ids = existing_supplier_ids - new_supplier_ids
@@ -309,6 +355,43 @@ def edit_raw_material(material_id):
                     is_primary=True
                 )
                 db.session.add(supplier_link)
+
+        # Handle alternative names
+        # Get existing alternative names
+        existing_alt_names = {alt.alternative_name: alt for alt in material.alternative_names}
+        new_alt_names_set = set()
+
+        # Process new alternative names
+        for alt_name in new_alternative_names:
+            if alt_name and alt_name.strip():
+                alt_name_stripped = alt_name.strip()
+                new_alt_names_set.add(alt_name_stripped)
+
+                # If it's a new alternative name, validate and add
+                if alt_name_stripped not in existing_alt_names:
+                    is_unique, existing_material_name = validate_alternative_name_uniqueness(alt_name_stripped, material.id)
+                    if not is_unique:
+                        flash(f'השם החלופי "{alt_name_stripped}" כבר קיים עבור חומר: {existing_material_name}', 'error')
+                        db.session.rollback()
+                        categories = Category.query.filter_by(type='raw_material').all()
+                        suppliers_list = Supplier.query.filter_by(is_active=True).all()
+                        return render_template('add_or_edit_raw_material.html',
+                                             material=material,
+                                             categories=categories,
+                                             suppliers=suppliers_list,
+                                             units_list=units_list())
+
+                    # Add new alternative name
+                    new_alt_name_record = RawMaterialAlternativeName(
+                        raw_material_id=material.id,
+                        alternative_name=alt_name_stripped
+                    )
+                    db.session.add(new_alt_name_record)
+
+        # Remove alternative names that were deleted
+        for existing_name, existing_record in existing_alt_names.items():
+            if existing_name not in new_alt_names_set:
+                db.session.delete(existing_record)
 
         db.session.commit()
         return redirect(url_for('raw_materials.raw_materials'))

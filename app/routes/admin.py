@@ -321,3 +321,53 @@ def migrate_reset_premake_stocks():
             'error': str(e)
         }), 500
 
+@admin_blueprint.route('/migrate_add_alternative_names', methods=['GET', 'POST'])
+def migrate_add_alternative_names():
+    """
+    Migration to create the raw_material_alternative_name table.
+    Allows users to define alternative names for raw materials to improve recipe import matching.
+    """
+    from ..models import RawMaterial
+
+    if request.method == 'GET':
+        # Show preview
+        material_count = RawMaterial.query.filter_by(is_deleted=False).count()
+
+        return jsonify({
+            'title': 'Create Alternative Names Table',
+            'description': 'Create new table to store alternative names for raw materials. This will enable automatic matching of different material names during recipe import.',
+            'count': material_count,
+            'preview_data': [{
+                'info': f'{material_count} active raw materials will be able to have alternative names',
+                'note': 'This migration creates a new table with unique constraint on alternative names'
+            }]
+        })
+
+    # POST - Execute migration
+    try:
+        # Create table using raw SQL (PostgreSQL-compatible)
+        db.session.execute("""
+            CREATE TABLE IF NOT EXISTS raw_material_alternative_name (
+                id SERIAL PRIMARY KEY,
+                raw_material_id INTEGER NOT NULL,
+                alternative_name VARCHAR(200) NOT NULL UNIQUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (raw_material_id) REFERENCES raw_material(id) ON DELETE CASCADE
+            )
+        """)
+
+        db.session.commit()
+        log_audit("MIGRATION", "RawMaterialAlternativeName", details="Created raw_material_alternative_name table")
+
+        return jsonify({
+            'success': True,
+            'message': 'Successfully created raw_material_alternative_name table',
+            'info': 'You can now add alternative names to raw materials for better recipe import matching'
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+

@@ -100,6 +100,18 @@ class RawMaterial(db.Model):
         }
 
 
+class RawMaterialAlternativeName(db.Model):
+    __tablename__ = 'raw_material_alternative_name'
+
+    id = db.Column(db.Integer, primary_key=True)
+    raw_material_id = db.Column(db.Integer, db.ForeignKey('raw_material.id'), nullable=False)
+    alternative_name = db.Column(db.String(200), nullable=False, unique=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationship
+    raw_material = db.relationship('RawMaterial', backref=db.backref('alternative_names', lazy=True, cascade='all, delete-orphan'))
+
+
 class Labor(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
