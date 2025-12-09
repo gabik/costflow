@@ -4,7 +4,7 @@ import json
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 import pandas as pd
 from ..models import db, Product, ProductComponent, RawMaterial, Category
-from .utils import log_audit
+from .utils import log_audit, convert_to_base_unit
 
 recipe_import_blueprint = Blueprint('recipe_import', __name__)
 
@@ -610,21 +610,44 @@ def confirm_import():
                 weight_key = f"recipe{recipe_idx}_mat{material_idx}"
                 quantity = weight_modifications.get(weight_key, material['weight'])
 
+                # Get material's base unit and convert quantity
+                material_unit = None
+                if comp_type == 'raw_material':
+                    db_mat = RawMaterial.query.get(mat_id)
+                    material_unit = db_mat.unit if db_mat else 'kg'
+                elif comp_type in ['premake', 'product']:
+                    db_prod = Product.query.get(mat_id)
+                    material_unit = db_prod.unit if db_prod else 'g'
+
+                # Convert from Excel unit to material's base unit
+                final_quantity = convert_to_base_unit(
+                    quantity,
+                    metadata['unit'],  # e.g., 'g' from Excel
+                    material_unit      # e.g., 'kg' from DB
+                )
+
                 component = ProductComponent(
                     product_id=product.id,
                     component_type=comp_type,
                     component_id=mat_id,
-                    quantity=quantity
+                    quantity=final_quantity
                 )
                 db.session.add(component)
 
             # Add loss component if exists
             if recipe.get('loss'):
+                # Convert loss weight from Excel unit to grams (typical for loss)
+                final_loss_quantity = convert_to_base_unit(
+                    recipe['loss']['weight'],  # Negative value
+                    metadata['unit'],          # e.g., 'g' from Excel
+                    'g'                        # Loss typically stored in grams
+                )
+
                 loss_component = ProductComponent(
                     product_id=product.id,
                     component_type='loss',
                     component_id=0,  # No reference needed
-                    quantity=recipe['loss']['weight']  # Negative value
+                    quantity=final_loss_quantity
                 )
                 db.session.add(loss_component)
 
