@@ -2695,4 +2695,4 @@ msgid "Profit/Unit"
 msgstr "רווח ליחידה"
 
 msgid "Margin %"
-msgstr "% רווח"
+msgstr "%% רווח"
