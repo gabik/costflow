@@ -75,29 +75,15 @@ def apply_supplier_discount(cost_per_unit, supplier):
     Returns:
         Discounted price
     """
-    # DEBUG LOGGING - TEMPORARY
-    print(f"DEBUG apply_supplier_discount: cost={cost_per_unit}")
-    print(f"DEBUG supplier: {supplier}")
-    if supplier:
-        print(f"DEBUG supplier.name: {supplier.name if hasattr(supplier, 'name') else 'NO NAME'}")
-        print(f"DEBUG has discount_percentage: {hasattr(supplier, 'discount_percentage')}")
-        if hasattr(supplier, 'discount_percentage'):
-            print(f"DEBUG discount_percentage value: {supplier.discount_percentage}")
-
     if not supplier or not hasattr(supplier, 'discount_percentage'):
-        print(f"DEBUG returning original - supplier check failed")
         return cost_per_unit
 
     discount_percentage = supplier.discount_percentage or 0.0
-    print(f"DEBUG discount_percentage after or: {discount_percentage}")
 
     if discount_percentage <= 0:
-        print(f"DEBUG returning original - discount <= 0")
         return cost_per_unit
 
-    result = cost_per_unit * (1 - discount_percentage / 100.0)
-    print(f"DEBUG returning discounted: {result}")
-    return result
+    return cost_per_unit * (1 - discount_percentage / 100.0)
 
 
 def get_material_discounted_price(material_id, supplier_id):
@@ -134,16 +120,12 @@ def get_primary_supplier_discounted_price(material):
     Returns:
         Discounted price from primary supplier, or average if no primary
     """
-    print(f"\n>>> get_primary_supplier_discounted_price called for material: {material.name}")
     # Find primary supplier
     for link in material.supplier_links:
-        print(f"    - Checking supplier link: is_primary={link.is_primary}, supplier={link.supplier}")
         if link.is_primary:
-            print(f"    - Found primary supplier, calling apply_supplier_discount")
             return apply_supplier_discount(link.cost_per_unit, link.supplier)
 
     # Fallback to average (no discount applied to average)
-    print(f"    - No primary supplier found, returning average: {material.cost_per_unit}")
     return material.cost_per_unit
 
 def log_audit(action, target_type, target_id=None, details=None):
