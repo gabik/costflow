@@ -22,7 +22,15 @@ def premakes():
         cost_per_batch = 0
         for comp in premake.components:
             if comp.component_type == 'raw_material' and comp.material:
-                cost_per_batch += comp.quantity * comp.material.cost_per_unit
+                # Get supplier price
+                supplier_price = 0
+                for link in comp.material.supplier_links:
+                    if link.is_primary:
+                        supplier_price = link.cost_per_unit
+                        break
+                if supplier_price == 0 and comp.material.supplier_links:
+                    supplier_price = comp.material.supplier_links[0].cost_per_unit
+                cost_per_batch += comp.quantity * supplier_price
             elif comp.component_type == 'packaging' and comp.packaging:
                 cost_per_batch += comp.quantity * comp.packaging.price_per_unit
 
@@ -51,12 +59,15 @@ def view_premake(premake_id):
 
         if comp.component_type == 'raw_material' and comp.material:
             # Get both original and discounted prices
-            comp_original_price = comp.material.cost_per_unit
             # Find primary supplier original price
+            comp_original_price = 0
             for link in comp.material.supplier_links:
                 if link.is_primary:
                     comp_original_price = link.cost_per_unit
                     break
+            # If no primary, use first supplier
+            if comp_original_price == 0 and comp.material.supplier_links:
+                comp_original_price = comp.material.supplier_links[0].cost_per_unit
             comp_discounted_price = get_primary_supplier_discounted_price(comp.material)
             comp_cost = comp.quantity * comp_discounted_price
             comp_name = comp.material.name
@@ -76,11 +87,14 @@ def view_premake(premake_id):
                     discounted_price = get_primary_supplier_discounted_price(nested_comp.material)
                     nested_cost_per_unit += (nested_comp.quantity * discounted_price) / comp.premake.batch_size if comp.premake.batch_size > 0 else 0
                     # Also calculate original for comparison
-                    original_price = nested_comp.material.cost_per_unit
+                    original_price = 0
                     for link in nested_comp.material.supplier_links:
                         if link.is_primary:
                             original_price = link.cost_per_unit
                             break
+                    # If no primary, use first supplier
+                    if original_price == 0 and nested_comp.material.supplier_links:
+                        original_price = nested_comp.material.supplier_links[0].cost_per_unit
                     nested_original_cost_per_unit += (nested_comp.quantity * original_price) / comp.premake.batch_size if comp.premake.batch_size > 0 else 0
                 elif nested_comp.component_type == 'packaging' and nested_comp.packaging:
                     nested_cost_per_unit += (nested_comp.quantity * nested_comp.packaging.price_per_unit) / comp.premake.batch_size if comp.premake.batch_size > 0 else 0

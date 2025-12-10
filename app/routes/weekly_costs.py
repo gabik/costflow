@@ -105,7 +105,15 @@ def weekly_costs():
                             cost_per_batch = 0
                             for comp in premake.components:
                                 if comp.component_type == 'raw_material' and comp.material:
-                                    cost_per_batch += comp.quantity * comp.material.cost_per_unit
+                                    # Get supplier price
+                                    supplier_price = 0
+                                    for link in comp.material.supplier_links:
+                                        if link.is_primary:
+                                            supplier_price = link.cost_per_unit
+                                            break
+                                    if supplier_price == 0 and comp.material.supplier_links:
+                                        supplier_price = comp.material.supplier_links[0].cost_per_unit
+                                    cost_per_batch += comp.quantity * supplier_price
                             
                             cost_per_unit = cost_per_batch / premake.batch_size if premake.batch_size > 0 else 0
                             cost_value = remaining * cost_per_unit
@@ -117,12 +125,31 @@ def weekly_costs():
                                 'quantity': remaining,
                                 'cost_value': cost_value
                             })
-                    
-                    if leftovers or premake_leftovers:
-                        return render_template('close_week.html', 
+
+                    # Calculate Packaging Stock
+                    from .utils import calculate_packaging_stock
+                    from ..models import Packaging
+
+                    packaging_leftovers = []
+                    all_packaging = Packaging.query.all()
+                    for packaging in all_packaging:
+                        current_stock = calculate_packaging_stock(packaging.id)
+                        if current_stock > 0:
+                            cost_value = current_stock * packaging.price_per_unit
+                            total_loss += cost_value
+
+                            packaging_leftovers.append({
+                                'packaging': packaging,
+                                'quantity': current_stock,
+                                'cost_value': cost_value
+                            })
+
+                    if leftovers or premake_leftovers or packaging_leftovers:
+                        return render_template('close_week.html',
                                                leftovers=leftovers,
                                                premake_leftovers=premake_leftovers,
-                                               previous_week=previous_week, 
+                                               packaging_leftovers=packaging_leftovers,
+                                               previous_week=previous_week,
                                                new_week_start_date=date_str,
                                                total_loss=total_loss,
                                                total_potential_revenue=total_potential_revenue)
@@ -260,9 +287,40 @@ def close_week_confirm():
             log_audit("PREMAKE_WASTE", "Product", premake.id,
                      f"Wasted {current_stock:.2f} {premake.unit} of {premake.name} (Cost: ₪{waste_cost:.2f}) when closing week {prev_week.week_start_date}")
 
+    # 3. Packaging Leftovers
+    from .utils import calculate_packaging_stock
+    from ..models import Packaging
+
+    all_packaging = Packaging.query.all()
+    for packaging in all_packaging:
+        # Check if user marked to keep
+        keep_key = f"keep_packaging_{packaging.id}"
+        if keep_key in request.form:
+            continue  # Skip wasting (it stays in stock)
+
+        # User chose to waste this packaging - set stock to 0
+        current_stock = calculate_packaging_stock(packaging.id)
+
+        if current_stock > 0:
+            # Calculate cost of wasted stock for audit trail
+            waste_cost = current_stock * packaging.price_per_unit
+
+            # Set stock to 0
+            stock_log = StockLog(
+                packaging_id=packaging.id,
+                action_type='set',  # Use 'set' not 'add'
+                quantity=0,  # Set to 0, not negative
+                timestamp=new_week_start_dt
+            )
+            db.session.add(stock_log)
+
+            # Log the waste for audit trail
+            log_audit("PACKAGING_WASTE", "Packaging", packaging.id,
+                     f"Wasted {current_stock:.2f} units of {packaging.name} (Cost: ₪{waste_cost:.2f}) when closing week {prev_week.week_start_date}")
+
     db.session.commit()
     log_audit("CLOSE_WEEK", "WeeklySales", prev_week.id, f"Closed week {prev_week.week_start_date}. Processed leftovers.")
-    
+
     # Create New Week
     week_start = datetime.strptime(new_week_date, '%Y-%m-%d').date()
     week = WeeklyLaborCost.query.filter_by(week_start_date=week_start).first()

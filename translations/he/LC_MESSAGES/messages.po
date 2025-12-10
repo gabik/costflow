@@ -2768,3 +2768,31 @@ msgstr "מחיר מקורי"
 msgid "Discounted Price"
 msgstr "מחיר אחרי הנחה"
 
+
+msgid "Unlimited Material"
+msgstr "חומר ללא הגבלה"
+
+msgid "infinite stock, no cost"
+msgstr "מלאי אינסופי, ללא עלות"
+
+msgid "Check for materials like water that do not require stock tracking or cost."
+msgstr "סמן עבור חומרים כמו מים שאינם דורשים מעקב מלאי או עלות."
+
+msgid "Alternative Names (optional)"
+msgstr "שמות חלופיים (אופציונלי)"
+
+msgid "Alternative names help with recipe imports - e.g., \"White Flour\" for \"White Flour T55 12kg\""
+msgstr "שמות חלופיים עוזרים בייבוא מתכונים - לדוגמה, \"קמח לבן\" עבור \"קמח לבן T55 12 ק\"ג\""
+
+msgid "Suppliers and Prices"
+msgstr "ספקים ומחירים"
+
+msgid "Edit Raw Material"
+msgstr "עריכת חומר גלם"
+
+msgid "New Supplier"
+msgstr "ספק חדש"
+
+msgid "Add Alternative Name"
+msgstr "הוסף שם חלופי"
+

@@ -12,6 +12,7 @@ class StockLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     raw_material_id = db.Column(db.Integer, db.ForeignKey('raw_material.id'), nullable=True)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=True)  # Unified field for products/premakes
+    packaging_id = db.Column(db.Integer, db.ForeignKey('packaging.id'), nullable=True)  # For packaging stock tracking
     supplier_id = db.Column(db.Integer, db.ForeignKey('supplier.id'), nullable=True)  # Track supplier for raw materials
     action_type = db.Column(db.String(10), nullable=False)  # 'add' or 'set'
     quantity = db.Column(db.Float, nullable=False)
@@ -19,6 +20,7 @@ class StockLog(db.Model):
 
     raw_material = db.relationship('RawMaterial', backref='stock_logs')
     product = db.relationship('Product', backref='stock_logs', foreign_keys=[product_id])
+    packaging = db.relationship('Packaging', backref='stock_logs')
     supplier = db.relationship('Supplier', backref='stock_logs')
 
 class ProductionLog(db.Model):
@@ -292,6 +294,7 @@ class StockAudit(db.Model):
     audit_date = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     raw_material_id = db.Column(db.Integer, db.ForeignKey('raw_material.id'), nullable=True)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=True)  # Unified field for products/premakes
+    packaging_id = db.Column(db.Integer, db.ForeignKey('packaging.id'), nullable=True)  # For packaging audit
     system_quantity = db.Column(db.Float, nullable=False)  # Calculated stock before audit
     physical_quantity = db.Column(db.Float, nullable=False)  # Actual count
     variance = db.Column(db.Float, nullable=False)  # physical - system
@@ -303,6 +306,7 @@ class StockAudit(db.Model):
     # Relationships
     raw_material = db.relationship('RawMaterial', backref='stock_audits')
     product = db.relationship('Product', backref='stock_audits', foreign_keys=[product_id])
+    packaging = db.relationship('Packaging', backref='stock_audits')
     stock_log = db.relationship('StockLog', backref='audit')
 
     def to_dict(self):

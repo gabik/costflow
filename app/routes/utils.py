@@ -664,6 +664,105 @@ def deduct_material_stock(material_id, quantity_needed):
 
     return deductions
 
+def calculate_packaging_stock(packaging_id):
+    """
+    Calculate current stock for a packaging item.
+    Similar to calculate_supplier_stock but simpler (no supplier logic).
+    """
+    from ..models import StockLog
+
+    # Find the last 'set' action if any
+    last_set = StockLog.query.filter_by(
+        packaging_id=packaging_id,
+        action_type='set'
+    ).order_by(StockLog.timestamp.desc()).first()
+
+    # Start with the last set value or 0
+    stock = last_set.quantity if last_set else 0
+
+    # Add all subsequent 'add' actions (including negative for consumption)
+    add_logs = StockLog.query.filter(
+        StockLog.packaging_id == packaging_id,
+        StockLog.action_type == 'add',
+        StockLog.timestamp > (last_set.timestamp if last_set else datetime.min)
+    ).all()
+
+    for log in add_logs:
+        stock += log.quantity
+
+    return max(0, stock)  # Ensure non-negative
+
+def deduct_packaging_stock(packaging_id, quantity_needed):
+    """
+    Deduct packaging stock during production.
+    Returns None (no supplier tracking for packaging).
+    Raises InsufficientStockError if not enough stock.
+    """
+    from ..models import db, StockLog, Packaging, InsufficientStockError
+
+    # Check available stock
+    available = calculate_packaging_stock(packaging_id)
+
+    if available < quantity_needed:
+        packaging = Packaging.query.get(packaging_id)
+        packaging_name = packaging.name if packaging else f"ID {packaging_id}"
+
+        from flask_babel import gettext as _
+        raise InsufficientStockError(
+            _('Insufficient packaging stock for %(name)s. Required: %(required).2f, Available: %(available).2f').replace(
+                '%(name)s', packaging_name
+            ).replace(
+                '%(required).2f', f"{quantity_needed:.2f}"
+            ).replace(
+                '%(available).2f', f"{available:.2f}"
+            )
+        )
+
+    # Create stock log for deduction (negative add)
+    stock_log = StockLog(
+        packaging_id=packaging_id,
+        action_type='add',
+        quantity=-quantity_needed  # Negative for deduction
+    )
+    db.session.add(stock_log)
+
+    # Return None as there's no supplier tracking for packaging
+    return None
+
+def calculate_packaging_stock_at_date(packaging_id, cutoff_date):
+    """
+    Calculate packaging stock at a specific date.
+    Used for reporting and historical analysis.
+    """
+    from ..models import StockLog
+
+    # Find the last 'set' action before cutoff date
+    last_set = StockLog.query.filter(
+        StockLog.packaging_id == packaging_id,
+        StockLog.action_type == 'set',
+        StockLog.timestamp <= cutoff_date
+    ).order_by(StockLog.timestamp.desc()).first()
+
+    # Start with the last set value or 0
+    stock = last_set.quantity if last_set else 0
+
+    # Add all 'add' actions between last_set and cutoff_date
+    query = StockLog.query.filter(
+        StockLog.packaging_id == packaging_id,
+        StockLog.action_type == 'add',
+        StockLog.timestamp <= cutoff_date
+    )
+
+    if last_set:
+        query = query.filter(StockLog.timestamp > last_set.timestamp)
+
+    add_logs = query.all()
+
+    for log in add_logs:
+        stock += log.quantity
+
+    return max(0, stock)  # Ensure non-negative
+
 def calculate_100g_cost(product):
     """
     Calculate cost per 100g for a product or premake.

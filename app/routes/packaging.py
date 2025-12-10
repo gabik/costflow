@@ -1,5 +1,7 @@
-from flask import Blueprint, render_template, request, redirect, url_for
-from ..models import db, Packaging
+from flask import Blueprint, render_template, request, redirect, url_for, jsonify
+from flask_babel import gettext as _
+from ..models import db, Packaging, StockLog
+from .utils import calculate_packaging_stock
 
 packaging_blueprint = Blueprint('packaging', __name__)
 
@@ -9,7 +11,20 @@ packaging_blueprint = Blueprint('packaging', __name__)
 @packaging_blueprint.route('/packaging', methods=['GET'])
 def packaging():
     all_packaging = Packaging.query.all()
-    return render_template('packaging.html', packaging=all_packaging)
+
+    # Calculate stock for each packaging item
+    packaging_with_stock = []
+    for pkg in all_packaging:
+        stock = calculate_packaging_stock(pkg.id)
+        packaging_with_stock.append({
+            'id': pkg.id,
+            'name': pkg.name,
+            'quantity_per_package': pkg.quantity_per_package,
+            'price_per_package': pkg.price_per_package,
+            'current_stock': stock
+        })
+
+    return render_template('packaging.html', packaging=packaging_with_stock)
 
 @packaging_blueprint.route('/packaging/add', methods=['GET', 'POST'])
 def add_packaging():
@@ -47,3 +62,56 @@ def delete_packaging(packaging_id):
     db.session.delete(packaging_item)
     db.session.commit()
     return redirect(url_for('packaging.packaging'))
+
+# ----------------------------
+# Stock Management
+# ----------------------------
+@packaging_blueprint.route('/packaging/update_stock', methods=['POST'])
+def update_packaging_stock():
+    """Update packaging stock (add or set)"""
+    from datetime import datetime
+
+    packaging_id = request.form.get('packaging_id', type=int)
+    action_type = request.form.get('action_type')  # 'add' or 'set'
+    quantity = request.form.get('quantity', type=float)
+
+    if not packaging_id or not action_type or quantity is None:
+        return jsonify({'success': False, 'error': _('Missing required fields')}), 400
+
+    packaging = Packaging.query.get(packaging_id)
+    if not packaging:
+        return jsonify({'success': False, 'error': _('Packaging not found')}), 404
+
+    # Create stock log entry
+    stock_log = StockLog(
+        packaging_id=packaging_id,
+        action_type=action_type,
+        quantity=quantity,
+        timestamp=datetime.utcnow()
+    )
+    db.session.add(stock_log)
+    db.session.commit()
+
+    # Calculate new stock
+    new_stock = calculate_packaging_stock(packaging_id)
+
+    return jsonify({
+        'success': True,
+        'message': _('Stock updated successfully'),
+        'new_stock': new_stock
+    })
+
+@packaging_blueprint.route('/api/packaging/<int:packaging_id>/stock', methods=['GET'])
+def get_packaging_stock(packaging_id):
+    """Get current stock for a packaging item"""
+    packaging = Packaging.query.get(packaging_id)
+    if not packaging:
+        return jsonify({'error': _('Packaging not found')}), 404
+
+    current_stock = calculate_packaging_stock(packaging_id)
+
+    return jsonify({
+        'packaging_id': packaging_id,
+        'name': packaging.name,
+        'current_stock': current_stock
+    })

@@ -370,3 +370,81 @@ def migrate_add_alternative_names():
             'success': False,
             'error': str(e)
         }), 500
+
+@admin_blueprint.route('/migrate_add_packaging_stock', methods=['GET', 'POST'])
+def migrate_add_packaging_stock():
+    """
+    Migration to add packaging stock support.
+    Adds packaging_id column to StockLog and StockAudit tables.
+    """
+    from flask_babel import gettext as _
+    from ..models import Packaging, StockLog, StockAudit
+
+    if request.method == 'GET':
+        # Show preview
+        packaging_count = Packaging.query.count()
+
+        return jsonify({
+            'title': _('Add Packaging Stock Management'),
+            'description': _('Add packaging_id columns to StockLog and StockAudit tables to enable packaging inventory tracking'),
+            'count': packaging_count,
+            'preview_data': [
+                {
+                    'table': 'stock_log',
+                    'action': _('Add packaging_id column (nullable, foreign key to packaging)')
+                },
+                {
+                    'table': 'stock_audit',
+                    'action': _('Add packaging_id column (nullable, foreign key to packaging)')
+                },
+                {
+                    'info': _('%(count)d packaging items will have stock tracking enabled').replace('%(count)d', str(packaging_count)),
+                    'note': _('All packaging items will start with 0 stock')
+                }
+            ]
+        })
+
+    # POST - Execute migration
+    try:
+        # Add packaging_id column to stock_log
+        db.session.execute('''
+            ALTER TABLE stock_log
+            ADD COLUMN packaging_id INTEGER
+        ''')
+
+        # Add foreign key constraint for stock_log
+        db.session.execute('''
+            ALTER TABLE stock_log
+            ADD CONSTRAINT fk_stock_log_packaging
+            FOREIGN KEY (packaging_id) REFERENCES packaging(id)
+        ''')
+
+        # Add packaging_id column to stock_audit
+        db.session.execute('''
+            ALTER TABLE stock_audit
+            ADD COLUMN packaging_id INTEGER
+        ''')
+
+        # Add foreign key constraint for stock_audit
+        db.session.execute('''
+            ALTER TABLE stock_audit
+            ADD CONSTRAINT fk_stock_audit_packaging
+            FOREIGN KEY (packaging_id) REFERENCES packaging(id)
+        ''')
+
+        db.session.commit()
+
+        # Log the migration
+        log_audit("MIGRATION", "Packaging", details="Added packaging_id to StockLog and StockAudit tables")
+
+        return jsonify({
+            'success': True,
+            'message': _('Successfully added packaging stock support'),
+            'info': _('You can now track packaging inventory and it will be deducted during production')
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500

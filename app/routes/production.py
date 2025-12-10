@@ -84,8 +84,21 @@ def production():
                     # subtracts consumption from ProductionLogs.
 
                 elif component.component_type == 'packaging' and component.packaging:
-                    # Calculate packaging cost
+                    # Calculate packaging cost and deduct stock
                     required_qty = component.quantity * quantity_produced
+
+                    # Check and deduct packaging stock
+                    from .utils import calculate_packaging_stock, deduct_packaging_stock
+                    available_stock = calculate_packaging_stock(component.component_id)
+                    if available_stock < required_qty:
+                        raise InsufficientStockError(
+                            f"אין מספיק מלאי עבור אריזה {component.packaging.name}. "
+                            f"נדרש: {required_qty:.2f}, זמין: {available_stock:.2f}"
+                        )
+
+                    # Deduct the packaging stock
+                    deduct_packaging_stock(component.component_id, required_qty)
+
                     packaging_cost = component.packaging.price_per_unit * required_qty
                     total_production_cost += packaging_cost
 
@@ -216,8 +229,21 @@ def premake_production():
                         })
 
                 elif component.component_type == 'packaging' and component.packaging:
-                    # Calculate packaging cost
+                    # Calculate packaging cost and deduct stock
                     required_qty = component.quantity * quantity_batches
+
+                    # Check and deduct packaging stock
+                    from .utils import calculate_packaging_stock, deduct_packaging_stock
+                    available_stock = calculate_packaging_stock(component.component_id)
+                    if available_stock < required_qty:
+                        raise InsufficientStockError(
+                            f"אין מספיק מלאי עבור אריזה {component.packaging.name}. "
+                            f"נדרש: {required_qty:.2f}, זמין: {available_stock:.2f}"
+                        )
+
+                    # Deduct the packaging stock
+                    deduct_packaging_stock(component.component_id, required_qty)
+
                     packaging_cost = component.packaging.price_per_unit * required_qty
                     total_production_cost += packaging_cost
 

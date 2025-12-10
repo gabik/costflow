@@ -447,6 +447,39 @@ def weekly_report():
     # Highest total profit product
     highest_profit_product = max(sales_data, key=lambda x: x['profit_per_unit'] * (x['quantity_sold'] or 0)) if sales_data else None
 
+    # ---------------------------------------------------
+    # Packaging Inventory
+    # ---------------------------------------------------
+    from .utils import calculate_packaging_stock, calculate_packaging_stock_at_date
+    from ..models import Packaging
+
+    packaging_inventory_data = []
+    total_packaging_stock_value = 0
+
+    all_packaging = Packaging.query.all()
+    for packaging in all_packaging:
+        # Get stock at beginning and end of week
+        beginning_stock = calculate_packaging_stock_at_date(packaging.id, week_start)
+        ending_stock = calculate_packaging_stock_at_date(packaging.id, week_end + timedelta(days=1))
+
+        # Calculate usage (beginning + additions - ending)
+        # Note: We don't track additions separately for packaging right now
+        usage = beginning_stock - ending_stock if beginning_stock > ending_stock else 0
+
+        stock_value = ending_stock * packaging.price_per_unit
+        total_packaging_stock_value += stock_value
+
+        if ending_stock > 0 or usage > 0:  # Only include if there's stock or usage
+            packaging_inventory_data.append({
+                'id': packaging.id,
+                'name': packaging.name,
+                'beginning_stock': beginning_stock,
+                'ending_stock': ending_stock,
+                'usage': usage,
+                'price_per_unit': packaging.price_per_unit,
+                'stock_value': stock_value
+            })
+
     return render_template('weekly_report.html',
                          weeks=all_weeks,
                          week_start=week_start,
@@ -484,6 +517,9 @@ def weekly_report():
                          best_margin_product=best_margin_product,
                          worst_margin_product=worst_margin_product,
                          highest_profit_product=highest_profit_product,
+                         # Packaging inventory
+                         packaging_inventory_data=packaging_inventory_data,
+                         total_packaging_stock_value=total_packaging_stock_value,
                          no_data=False)
 
 # Monthly Report - Aggregating Weekly Reports

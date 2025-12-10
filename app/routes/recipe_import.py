@@ -202,7 +202,10 @@ def match_material(name, material_type):
                 if link.is_primary:
                     primary_price = link.cost_per_unit
                     break
-            current_price = primary_price if primary_price else db_material.cost_per_unit
+            # If no primary, use first supplier
+            if not primary_price and db_material.supplier_links:
+                primary_price = db_material.supplier_links[0].cost_per_unit
+            current_price = primary_price if primary_price else 0
 
     elif material_type == 'הכנה':
         db_material = Product.query.filter_by(name=name, is_premake=True).first()

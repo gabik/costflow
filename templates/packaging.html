@@ -23,6 +23,7 @@
                 <th>{{ _('Quantity per Package') }}</th>
                 <th>{{ _('Price per Package') }}</th>
                 <th>{{ _('Price per Unit') }}</th>
+                <th>{{ _('Current Stock') }}</th>
                 <th class="text-end">{{ _('Actions') }}</th>
             </tr>
             </thead>
@@ -33,8 +34,17 @@
                 <td>{{ "%.2f"|format(packaging.quantity_per_package) }}</td>
                 <td>{{ currency_symbol }}{{ "%.2f"|format(packaging.price_per_package) }}</td>
                 <td>{{ currency_symbol }}{{ (packaging.price_per_package / packaging.quantity_per_package) | round(2) }}</td>
+                <td>
+                    <span id="stock-{{ packaging.id }}" class="badge bg-info">{{ "%.2f"|format(packaging.current_stock) }}</span>
+                </td>
                 <td class="text-end">
                     <div class="btn-group">
+                        <button onclick="openStockModal({{ packaging.id }}, '{{ packaging.name }}', 'add')" class="btn btn-sm btn-outline-success" title="{{ _('Add Stock') }}">
+                            <i class="bi bi-plus-circle"></i>
+                        </button>
+                        <button onclick="openStockModal({{ packaging.id }}, '{{ packaging.name }}', 'set')" class="btn btn-sm btn-outline-info" title="{{ _('Set Stock') }}">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </button>
                         <a href="{{ url_for('packaging.edit_packaging', packaging_id=packaging.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('Edit') }}">
                             <i class="bi bi-pencil"></i>
                         </a>
@@ -48,11 +58,97 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="5" class="text-center py-4 text-muted">{{ _('No packaging found in the system.') }}</td>
+                <td colspan="6" class="text-center py-4 text-muted">{{ _('No packaging found in the system.') }}</td>
             </tr>
             {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
+
+<!-- Stock Update Modal -->
+<div class="modal fade" id="stockModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="stockModalTitle">{{ _('Update Stock') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Close') }}"></button>
+            </div>
+            <div class="modal-body">
+                <form id="stockForm">
+                    <input type="hidden" id="packaging_id" name="packaging_id">
+                    <input type="hidden" id="action_type" name="action_type">
+
+                    <div class="mb-3">
+                        <label for="packaging_name" class="form-label">{{ _('Packaging') }}</label>
+                        <input type="text" class="form-control" id="packaging_name" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">
+                            <span id="quantityLabel">{{ _('Quantity') }}</span>
+                        </label>
+                        <input type="number" class="form-control" id="quantity" name="quantity" step="0.01" required>
+                        <small class="text-muted" id="actionHelp"></small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
+                <button type="button" class="btn btn-primary" onclick="updateStock()">{{ _('Update Stock') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function openStockModal(packagingId, packagingName, actionType) {
+    document.getElementById('packaging_id').value = packagingId;
+    document.getElementById('packaging_name').value = packagingName;
+    document.getElementById('action_type').value = actionType;
+
+    if (actionType === 'add') {
+        document.getElementById('stockModalTitle').textContent = '{{ _("Add Stock") }}';
+        document.getElementById('quantityLabel').textContent = '{{ _("Quantity to Add") }}';
+        document.getElementById('actionHelp').textContent = '{{ _("This amount will be added to current stock") }}';
+    } else {
+        document.getElementById('stockModalTitle').textContent = '{{ _("Set Stock") }}';
+        document.getElementById('quantityLabel').textContent = '{{ _("New Stock Level") }}';
+        document.getElementById('actionHelp').textContent = '{{ _("Stock will be set to this exact amount") }}';
+    }
+
+    document.getElementById('quantity').value = '';
+
+    const modal = new bootstrap.Modal(document.getElementById('stockModal'));
+    modal.show();
+}
+
+function updateStock() {
+    const formData = new FormData(document.getElementById('stockForm'));
+
+    fetch('{{ url_for("packaging.update_packaging_stock") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const packagingId = document.getElementById('packaging_id').value;
+            document.getElementById('stock-' + packagingId).textContent = data.new_stock.toFixed(2);
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById('stockModal'));
+            modal.hide();
+
+            // Show success message (optional - could add a toast notification here)
+            alert(data.message || '{{ _("Stock updated successfully") }}');
+        } else {
+            alert(data.error || '{{ _("Error updating stock") }}');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('{{ _("Error updating stock") }}');
+    });
+}
+</script>
 {% endblock %}
