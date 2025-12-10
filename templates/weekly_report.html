@@ -208,8 +208,8 @@
                         <th>{{ category_summaries.values()|sum(attribute='quantity_sold')|int }}</th>
                         <th>{{ category_summaries.values()|sum(attribute='quantity_waste')|int }}</th>
                         <th>{{ currency_symbol }}{{ "%.2f"|format(total_revenue) }}</th>
-                        <th>{{ currency_symbol }}{{ "%.2f"|format(total_production_cost) }}</th>
-                        <th>{{ currency_symbol }}{{ "%.2f"|format(total_revenue - total_production_cost) }}</th>
+                        <th>{{ currency_symbol }}{{ "%.2f"|format(total_product_cost) }}</th>
+                        <th>{{ currency_symbol }}{{ "%.2f"|format(total_revenue - total_product_cost) }}</th>
                     </tr>
                 </tfoot>
             </table>
@@ -234,20 +234,40 @@
                         <th>{{ _('Product') }}</th>
                         <th>{{ _('Category') }}</th>
                         <th>{{ _('Unit Price') }}</th>
+                        <th>{{ _('Unit Cost') }}</th>
                         <th>{{ _('Quantity Sold') }}</th>
                         <th>{{ _('Waste Quantity') }}</th>
+                        <th>{{ _('Waste %') }}</th>
                         <th>{{ _('Revenue') }}</th>
+                        <th>{{ _('Profit/Unit') }}</th>
+                        <th>{{ _('Margin %') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for sale in sales_data %}
+                    {% set total_qty = (sale.quantity_sold or 0) + (sale.quantity_waste or 0) %}
+                    {% set waste_pct = (sale.quantity_waste / total_qty * 100) if total_qty > 0 else 0 %}
                     <tr>
                         <td class="fw-medium">{{ sale.name }}</td>
                         <td>{{ sale.category_name or _('No Category') }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(sale.selling_price_per_unit or 0) }}</td>
+                        <td>{{ currency_symbol }}{{ "%.2f"|format(sale.prime_cost_per_unit or 0) }}</td>
                         <td>{{ sale.quantity_sold|int }}</td>
-                        <td>{{ sale.quantity_waste|int }}</td>
+                        <td class="{% if sale.quantity_waste > 0 %}text-warning{% endif %}">{{ sale.quantity_waste|int }}</td>
+                        <td class="text-center">
+                            <span class="badge {% if waste_pct > 15 %}bg-danger{% elif waste_pct > 10 %}bg-warning{% else %}bg-success{% endif %}">
+                                {{ "%.1f"|format(waste_pct) }}%
+                            </span>
+                        </td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(sale.revenue) }}</td>
+                        <td class="{% if sale.profit_per_unit > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ currency_symbol }}{{ "%.2f"|format(sale.profit_per_unit or 0) }}
+                        </td>
+                        <td class="text-center">
+                            <span class="badge {% if sale.profit_margin_pct > 50 %}bg-success{% elif sale.profit_margin_pct > 30 %}bg-info{% elif sale.profit_margin_pct > 0 %}bg-warning{% else %}bg-danger{% endif %}">
+                                {{ "%.1f"|format(sale.profit_margin_pct or 0) }}%
+                            </span>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

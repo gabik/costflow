@@ -2690,3 +2690,9 @@ msgstr "יוצר - נצרך"
 
 msgid "Total Production Cost"
 msgstr "עלות ייצור כוללת"
+
+msgid "Profit/Unit"
+msgstr "רווח ליחידה"
+
+msgid "Margin %"
+msgstr "% רווח"

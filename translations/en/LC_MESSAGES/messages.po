@@ -2695,3 +2695,9 @@ msgstr "Produced - Consumed"
 
 msgid "Total Production Cost"
 msgstr "Total Production Cost"
+
+msgid "Profit/Unit"
+msgstr "Profit/Unit"
+
+msgid "Margin %"
+msgstr "Margin %"
