@@ -28,11 +28,16 @@ def validate_alternative_name_uniqueness(name, exclude_material_id=None):
 # ----------------------------
 @raw_materials_blueprint.route('/raw_materials')
 def raw_materials():
+    from ..models import Packaging
+    from .utils import calculate_packaging_stock
+
+    # Get raw materials
     materials = RawMaterial.query.filter_by(is_deleted=False).all()
 
     for material in materials:
         # Use the function that sums all supplier stocks
         material.current_stock = calculate_total_material_stock(material.id)
+        material.item_type = 'raw_material'
 
         # Skip supplier processing for unlimited materials
         if material.is_unlimited:
@@ -74,7 +79,27 @@ def raw_materials():
 
         material.primary_supplier = primary_supplier
 
-    return render_template('raw_materials.html', materials=materials)
+    # Get packaging items and add them to materials list
+    packaging_items = Packaging.query.all()
+    all_items = list(materials)  # Convert to list to combine
+
+    for pkg in packaging_items:
+        # Add packaging-specific attributes to match material structure
+        pkg.item_type = 'packaging'
+        pkg.current_stock = calculate_packaging_stock(pkg.id)
+        pkg.category = type('obj', (object,), {'name': 'Packaging'})()  # Mock category object
+        pkg.supplier_count = 0  # Packaging doesn't have suppliers
+        pkg.stock_breakdown = []
+        pkg.primary_supplier = None
+        pkg.is_unlimited = False
+        pkg.alternative_names = []  # No alternative names for packaging
+
+        # Add cost_per_unit for display
+        pkg.cost_per_unit = pkg.price_per_package / pkg.quantity_per_package if pkg.quantity_per_package > 0 else 0
+
+        all_items.append(pkg)
+
+    return render_template('raw_materials.html', materials=all_items)
 
 @raw_materials_blueprint.route('/raw_materials/add', methods=['GET', 'POST'])
 def add_raw_material():
