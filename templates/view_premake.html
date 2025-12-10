@@ -97,9 +97,11 @@
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        <th style="width: 40%;">{{ _('Component') }}</th>
+                        <th style="width: 30%;">{{ _('Component') }}</th>
                         <th>{{ _('Quantity') }}</th>
                         <th>{{ _('Unit') }}</th>
+                        <th>{{ _('Original Price') }}</th>
+                        <th>{{ _('Discounted Price') }}</th>
                         <th class="text-end">{{ _('Cost') }}</th>
                     </tr>
                 </thead>
@@ -109,11 +111,30 @@
                         <td>{{ component.name }}</td>
                         <td>{{ "%.3f"|format(component.quantity) }}</td>
                         <td>{{ component.unit }}</td>
+                        <td>
+                            {% if component.price_per_unit_original != component.price_per_unit %}
+                            <span class="text-muted text-decoration-line-through">
+                                ₪{{ "%.2f"|format(component.price_per_unit_original) }}
+                            </span>
+                            {% else %}
+                            ₪{{ "%.2f"|format(component.price_per_unit_original) }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong class="{{ 'text-success' if component.price_per_unit < component.price_per_unit_original else '' }}">
+                                ₪{{ "%.2f"|format(component.price_per_unit) }}
+                            </strong>
+                            {% if component.price_per_unit < component.price_per_unit_original %}
+                            <span class="badge bg-success ms-1">
+                                -{{ "%.1f"|format((1 - component.price_per_unit / component.price_per_unit_original) * 100) }}%
+                            </span>
+                            {% endif %}
+                        </td>
                         <td class="text-end fw-bold">₪{{ "%.2f"|format(component.cost) }}</td>
                     </tr>
                     {% endfor %}
                     <tr class="table-light">
-                        <td colspan="3" class="text-end fw-bold">{{ _('Total Cost per Batch:') }}</td>
+                        <td colspan="5" class="text-end fw-bold">{{ _('Total Cost per Batch:') }}</td>
                         <td class="text-end fw-bold">₪{{ "%.2f"|format(premake.cost_per_batch) }}</td>
                     </tr>
                 </tbody>

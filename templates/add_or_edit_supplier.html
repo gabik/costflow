@@ -35,7 +35,7 @@
                             <div class="form-text">{{ _('Unique name to identify supplier in the system') }}</div>
                         </div>
                         <div class="col-md-6">
-                            <label for="contact_person" class="form-label">{{ _('Contact Person') }}</label>
+                            <label for="contact_person" class="form-label">{{ _('Contact Person') }} <span class="text-muted">({{ _('Optional') }})</span></label>
                             <input type="text" class="form-control" id="contact_person" name="contact_person"
                                    value="{{ supplier.contact_person if supplier else '' }}">
                             <div class="form-text">{{ _('Name of contact person at supplier') }}</div>
@@ -44,15 +44,15 @@
 
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label for="phone" class="form-label">{{ _('Phone') }}</label>
+                            <label for="phone" class="form-label">{{ _('Phone') }} <span class="text-muted">({{ _('Optional') }})</span></label>
                             <input type="tel" class="form-control" id="phone" name="phone"
                                    value="{{ supplier.phone if supplier else '' }}"
                                    placeholder="050-1234567">
                             <div class="form-text">{{ _('Phone number for contact') }}</div>
                         </div>
                         <div class="col-md-6">
-                            <label for="email" class="form-label">{{ _('Email') }}</label>
-                            <input type="email" class="form-control" id="email" name="email"
+                            <label for="email" class="form-label">{{ _('Email') }} <span class="text-muted">({{ _('Optional') }})</span></label>
+                            <input type="text" class="form-control" id="email" name="email"
                                    value="{{ supplier.email if supplier else '' }}"
                                    placeholder="supplier@example.com">
                             <div class="form-text">{{ _('Email address for correspondence') }}</div>
@@ -60,7 +60,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="address" class="form-label">{{ _('Address') }}</label>
+                        <label for="address" class="form-label">{{ _('Address') }} <span class="text-muted">({{ _('Optional') }})</span></label>
                         <textarea class="form-control" id="address" name="address" rows="3"
                                   placeholder="{{ _('Street, City, Postal Code') }}">{{ supplier.address if supplier else '' }}</textarea>
                         <div class="form-text">{{ _('Physical address of supplier') }}</div>

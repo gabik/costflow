@@ -2744,3 +2744,27 @@ msgstr "עלות פסולת = Σ(כמות פסולת × עלות ליחידה)"
 msgid "In Stock Cost = Unsold Products + Premake Stock Increase"
 msgstr "עלות במלאי = מוצרים שלא נמכרו + עליית מלאי הכנות"
 
+msgid "Discount Percentage"
+msgstr "אחוז הנחה"
+
+msgid "Enter discount percentage (0-100%%). This will be applied to all material prices from this supplier."
+msgstr "הזן אחוז הנחה (0-100%%). ההנחה תחול על כל מחירי חומרי הגלם מספק זה."
+
+msgid "Optional"
+msgstr "אופציונלי"
+
+msgid "Current discount:"
+msgstr "הנחה נוכחית:"
+
+msgid "Example: ₪100 becomes ₪"
+msgstr "דוגמה: ₪100 הופך ל-₪"
+
+msgid "Discount"
+msgstr "הנחה"
+
+msgid "Original Price"
+msgstr "מחיר מקורי"
+
+msgid "Discounted Price"
+msgstr "מחיר אחרי הנחה"
+

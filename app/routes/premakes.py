@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for
 from ..models import db, Product, ProductComponent, StockLog, Category, RawMaterial, Packaging, AuditLog, ProductionLog
-from .utils import get_or_create_general_category, log_audit, calculate_premake_current_stock
+from .utils import get_or_create_general_category, log_audit, calculate_premake_current_stock, get_primary_supplier_discounted_price
 
 premakes_blueprint = Blueprint('premakes', __name__)
 
@@ -46,23 +46,47 @@ def view_premake(premake_id):
         comp_cost = 0
         comp_name = ""
         comp_unit = ""
+        comp_original_price = 0
+        comp_discounted_price = 0
 
         if comp.component_type == 'raw_material' and comp.material:
-            comp_cost = comp.quantity * comp.material.cost_per_unit
+            # Get both original and discounted prices
+            comp_original_price = comp.material.cost_per_unit
+            # Find primary supplier original price
+            for link in comp.material.supplier_links:
+                if link.is_primary:
+                    comp_original_price = link.cost_per_unit
+                    break
+            comp_discounted_price = get_primary_supplier_discounted_price(comp.material)
+            comp_cost = comp.quantity * comp_discounted_price
             comp_name = comp.material.name
             comp_unit = comp.material.unit
         elif comp.component_type == 'packaging' and comp.packaging:
+            comp_original_price = comp_discounted_price = comp.packaging.price_per_unit
             comp_cost = comp.quantity * comp.packaging.price_per_unit
             comp_name = comp.packaging.name
             comp_unit = "units"
         elif comp.component_type == 'premake' and comp.premake:
-            # Calculate nested premake cost recursively
+            # Calculate nested premake cost recursively with discounts
             nested_cost_per_unit = 0
+            nested_original_cost_per_unit = 0
             for nested_comp in comp.premake.components:
                 if nested_comp.component_type == 'raw_material' and nested_comp.material:
-                    nested_cost_per_unit += (nested_comp.quantity * nested_comp.material.cost_per_unit) / comp.premake.batch_size if comp.premake.batch_size > 0 else 0
+                    # Use discounted price for nested materials
+                    discounted_price = get_primary_supplier_discounted_price(nested_comp.material)
+                    nested_cost_per_unit += (nested_comp.quantity * discounted_price) / comp.premake.batch_size if comp.premake.batch_size > 0 else 0
+                    # Also calculate original for comparison
+                    original_price = nested_comp.material.cost_per_unit
+                    for link in nested_comp.material.supplier_links:
+                        if link.is_primary:
+                            original_price = link.cost_per_unit
+                            break
+                    nested_original_cost_per_unit += (nested_comp.quantity * original_price) / comp.premake.batch_size if comp.premake.batch_size > 0 else 0
                 elif nested_comp.component_type == 'packaging' and nested_comp.packaging:
                     nested_cost_per_unit += (nested_comp.quantity * nested_comp.packaging.price_per_unit) / comp.premake.batch_size if comp.premake.batch_size > 0 else 0
+                    nested_original_cost_per_unit += (nested_comp.quantity * nested_comp.packaging.price_per_unit) / comp.premake.batch_size if comp.premake.batch_size > 0 else 0
+            comp_discounted_price = nested_cost_per_unit
+            comp_original_price = nested_original_cost_per_unit
             comp_cost = comp.quantity * nested_cost_per_unit
             comp_name = comp.premake.name + " (הכנה מקדימה)"
             comp_unit = comp.premake.unit
@@ -72,7 +96,9 @@ def view_premake(premake_id):
             'name': comp_name,
             'quantity': comp.quantity,
             'unit': comp_unit,
-            'cost': comp_cost
+            'cost': comp_cost,
+            'price_per_unit': comp_discounted_price / comp.quantity if comp.quantity > 0 else 0,
+            'price_per_unit_original': comp_original_price / comp.quantity if comp.quantity > 0 else 0
         })
 
     premake.cost_per_unit = cost_per_batch / premake.batch_size if premake.batch_size > 0 else 0

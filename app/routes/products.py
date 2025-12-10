@@ -3,7 +3,7 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, current_app
 from ..models import db, Product, ProductComponent, RawMaterial, Packaging, Labor, Category, ProductionLog, StockLog, WeeklyProductSales
-from .utils import log_audit, calculate_prime_cost, calculate_premake_cost_per_unit, convert_to_base_unit, get_or_create_general_category, units_list, calculate_total_material_stock, calculate_premake_current_stock
+from .utils import log_audit, calculate_prime_cost, calculate_premake_cost_per_unit, convert_to_base_unit, get_or_create_general_category, units_list, calculate_total_material_stock, calculate_premake_current_stock, get_primary_supplier_discounted_price
 
 products_blueprint = Blueprint('products', __name__)
 
@@ -259,19 +259,23 @@ def product_detail(product_id):
         if not material:
             continue
 
-        # Find primary supplier price for the material
-        primary_price = material.cost_per_unit  # default fallback
+        # Find primary supplier original price for the material
+        primary_price_original = material.cost_per_unit  # default fallback
         for link in material.supplier_links:
             if link.is_primary:
-                primary_price = link.cost_per_unit
+                primary_price_original = link.cost_per_unit
                 break
+
+        # Get discounted price using helper
+        primary_price_discounted = get_primary_supplier_discounted_price(material)
 
         raw_materials.append({
             'name': material.name,
             'quantity': component.quantity,
-            'price_per_unit': primary_price,  # Use primary supplier price
-            'price_per_recipe': component.quantity * primary_price,
-            'price_per_product': (component.quantity * primary_price) / product.products_per_recipe if product.products_per_recipe > 0 else 0
+            'price_per_unit': primary_price_discounted,  # Use discounted price
+            'price_per_unit_original': primary_price_original,  # Add original price
+            'price_per_recipe': component.quantity * primary_price_discounted,
+            'price_per_product': (component.quantity * primary_price_discounted) / product.products_per_recipe if product.products_per_recipe > 0 else 0
         })
 
     # Retrieve labor costs
