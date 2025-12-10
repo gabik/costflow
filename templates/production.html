@@ -243,13 +243,13 @@ function updateProductionMode() {
     const qtyInput = document.getElementById('quantity_produced');
 
     if (modeUnits) {
-        label.innerHTML = '{{ _("Quantity Produced") }} ({{ _("number of units") }})';
+        label.innerHTML = {{ _("Quantity Produced")|tojson }} + ' (' + {{ _("number of units")|tojson }} + ')';
         if (currentRecipe) {
-            helpText.innerHTML = `{{ _("One unit") }} = 1/${currentRecipe.products_per_recipe} {{ _("batches") }}`;
+            helpText.innerHTML = {{ _("One unit")|tojson }} + ' = 1/' + currentRecipe.products_per_recipe + ' ' + {{ _("batches")|tojson }};
             helpText.style.display = 'block';
         }
     } else {
-        label.innerHTML = '{{ _("Quantity Produced") }} ({{ _("number of batches") }})';
+        label.innerHTML = {{ _("Quantity Produced")|tojson }} + ' (' + {{ _("number of batches")|tojson }} + ')';
         helpText.style.display = 'none';
     }
 
