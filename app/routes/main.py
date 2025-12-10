@@ -411,6 +411,12 @@ def get_product_recipe(product_id):
                 supplier_links = sorted(supplier_links,
                                        key=lambda x: (not x.is_primary, x.supplier.name))
 
+                # DEBUG: Query discount directly
+                from ..models import Supplier
+                for link in supplier_links:
+                    s = Supplier.query.get(link.supplier_id)
+                    print(f"DEBUG Direct query - Supplier {s.name}: discount={s.discount_percentage}%")
+
                 # First pass: Consume from available stock only
                 import math
                 for link in supplier_links:
@@ -626,6 +632,12 @@ def get_premake_recipe(premake_id):
                 ).options(joinedload(RawMaterialSupplier.supplier)).all()
                 supplier_links = sorted(supplier_links,
                                        key=lambda x: (not x.is_primary, x.supplier.name))
+
+                # DEBUG: Query discount directly
+                from ..models import Supplier
+                for link in supplier_links:
+                    s = Supplier.query.get(link.supplier_id)
+                    print(f"DEBUG Direct query - Supplier {s.name}: discount={s.discount_percentage}%")
 
                 # First pass: Consume from available stock only
                 import math

@@ -75,15 +75,29 @@ def apply_supplier_discount(cost_per_unit, supplier):
     Returns:
         Discounted price
     """
+    # DEBUG LOGGING - TEMPORARY
+    print(f"DEBUG apply_supplier_discount: cost={cost_per_unit}")
+    print(f"DEBUG supplier: {supplier}")
+    if supplier:
+        print(f"DEBUG supplier.name: {supplier.name if hasattr(supplier, 'name') else 'NO NAME'}")
+        print(f"DEBUG has discount_percentage: {hasattr(supplier, 'discount_percentage')}")
+        if hasattr(supplier, 'discount_percentage'):
+            print(f"DEBUG discount_percentage value: {supplier.discount_percentage}")
+
     if not supplier or not hasattr(supplier, 'discount_percentage'):
+        print(f"DEBUG returning original - supplier check failed")
         return cost_per_unit
 
     discount_percentage = supplier.discount_percentage or 0.0
+    print(f"DEBUG discount_percentage after or: {discount_percentage}")
 
     if discount_percentage <= 0:
+        print(f"DEBUG returning original - discount <= 0")
         return cost_per_unit
 
-    return cost_per_unit * (1 - discount_percentage / 100.0)
+    result = cost_per_unit * (1 - discount_percentage / 100.0)
+    print(f"DEBUG returning discounted: {result}")
+    return result
 
 
 def get_material_discounted_price(material_id, supplier_id):
