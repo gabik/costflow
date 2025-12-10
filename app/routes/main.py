@@ -429,6 +429,7 @@ def get_product_recipe(product_id):
                             'amount_to_consume': amount_to_consume,
                             'remaining_after': safe_float(supplier_stock - amount_to_consume),
                             'cost_per_unit': discounted_cost,
+                            'original_cost': link.cost_per_unit,  # Add original price for comparison
                             'total_cost': amount_to_consume * discounted_cost,
                             'is_deficit': False
                         })
@@ -444,6 +445,7 @@ def get_product_recipe(product_id):
                             'amount_to_consume': 0,
                             'remaining_after': 0,
                             'cost_per_unit': discounted_cost,
+                            'original_cost': link.cost_per_unit,  # Add original price for comparison
                             'total_cost': 0,
                             'is_deficit': False
                         })
@@ -477,6 +479,7 @@ def get_product_recipe(product_id):
                                 'amount_to_consume': remaining_to_consume,
                                 'remaining_after': safe_float(primary_stock - remaining_to_consume),
                                 'cost_per_unit': discounted_cost,
+                                'original_cost': primary_link.cost_per_unit,  # Add original price for comparison
                                 'total_cost': remaining_to_consume * discounted_cost,
                                 'is_deficit': True
                             })
@@ -635,6 +638,7 @@ def get_premake_recipe(premake_id):
                             'amount_to_consume': amount_to_consume,
                             'remaining_after': safe_float(supplier_stock - amount_to_consume),
                             'cost_per_unit': discounted_cost,
+                            'original_cost': link.cost_per_unit,  # Add original price for comparison
                             'total_cost': amount_to_consume * discounted_cost,
                             'is_deficit': False
                         })
@@ -649,6 +653,7 @@ def get_premake_recipe(premake_id):
                             'amount_to_consume': 0,
                             'remaining_after': 0,
                             'cost_per_unit': discounted_cost,
+                            'original_cost': link.cost_per_unit,  # Add original price for comparison
                             'total_cost': 0,
                             'is_deficit': False
                         })
@@ -679,6 +684,7 @@ def get_premake_recipe(premake_id):
                                 'amount_to_consume': remaining_to_consume,
                                 'remaining_after': safe_float(primary_stock - remaining_to_consume),
                                 'cost_per_unit': discounted_cost,
+                                'original_cost': primary_link.cost_per_unit,  # Add original price for comparison
                                 'total_cost': remaining_to_consume * discounted_cost,
                                 'is_deficit': True
                             })

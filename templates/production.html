@@ -221,12 +221,13 @@ function fetchRecipeData(productId) {
         batches = inputValue;
     }
 
-    fetch(`/api/product_recipe/${productId}?quantity=${batches}`)
+    fetch(`/api/product_recipe/${productId}?quantity=${batches}&t=${Date.now()}`)  // Add cache busting
         .then(response => {
             if (!response.ok) throw new Error('Network response was not ok');
             return response.json();
         })
         .then(data => {
+            console.log('API Response:', data);  // DEBUG: Show API response
             currentRecipe = data;
             currentRecipe.fetched_quantity = batches; // Track what quantity this data is for
             updateProductionDetails();
@@ -302,13 +303,19 @@ function updateProductionDetails() {
                 // Single supplier case - show material name without supplier
                 const consumption = consumptionRows[0];
                 const tr = document.createElement('tr');
+                // Add discount indicator if applicable
+                let costDisplay = `${consumption.cost_per_unit.toFixed(2)} ₪`;
+                if (consumption.original_cost && consumption.cost_per_unit < consumption.original_cost) {
+                    const discountPercent = Math.round((1 - consumption.cost_per_unit/consumption.original_cost) * 100);
+                    costDisplay = `<span class="text-decoration-line-through text-muted">${consumption.original_cost.toFixed(2)} ₪</span> <strong class="text-success">${consumption.cost_per_unit.toFixed(2)} ₪</strong> <span class="badge bg-success">-${discountPercent}%</span>`;
+                }
                 tr.innerHTML = `
                     <td>${comp.name}</td>
                     <td>{{ _('Raw Material') }}</td>
                     <td>${consumption.stock_available.toFixed(2)} ${comp.unit}</td>
                     <td class="fw-bold">${consumption.amount_to_consume.toFixed(2)} ${comp.unit}</td>
                     <td class="${consumption.remaining_after < 0 ? 'text-danger fw-bold' : ''}">${consumption.remaining_after.toFixed(2)} ${comp.unit}</td>
-                    <td>${consumption.cost_per_unit.toFixed(2)} ₪</td>
+                    <td>${costDisplay}</td>
                     <td>${consumption.total_cost.toFixed(2)} ₪</td>
                 `;
                 tbody.appendChild(tr);
@@ -332,13 +339,20 @@ function updateProductionDetails() {
                         nameDisplay += ' <span class="badge bg-danger ms-1">{{ _('Shortage') }}</span>';
                     }
 
+                    // Add discount indicator if applicable
+                    let costDisplay = `${consumption.cost_per_unit.toFixed(2)} ₪`;
+                    if (consumption.original_cost && consumption.cost_per_unit < consumption.original_cost) {
+                        const discountPercent = Math.round((1 - consumption.cost_per_unit/consumption.original_cost) * 100);
+                        costDisplay = `<span class="text-decoration-line-through text-muted">${consumption.original_cost.toFixed(2)} ₪</span> <strong class="text-success">${consumption.cost_per_unit.toFixed(2)} ₪</strong> <span class="badge bg-success">-${discountPercent}%</span>`;
+                    }
+
                     tr.innerHTML = `
                         <td>${nameDisplay}</td>
                         <td>${index === 0 ? '{{ _("Raw Material") }}' : ''}</td>
                         <td>${consumption.stock_available.toFixed(2)} ${comp.unit}</td>
                         <td class="fw-bold">${consumption.amount_to_consume.toFixed(2)} ${comp.unit}</td>
                         <td class="${consumption.remaining_after < 0 ? 'text-danger fw-bold' : ''}">${consumption.remaining_after.toFixed(2)} ${comp.unit}</td>
-                        <td>${consumption.cost_per_unit.toFixed(2)} ₪</td>
+                        <td>${costDisplay}</td>
                         <td>${consumption.total_cost.toFixed(2)} ₪</td>
                     `;
                     tbody.appendChild(tr);
