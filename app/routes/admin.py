@@ -406,31 +406,47 @@ def migrate_add_packaging_stock():
 
     # POST - Execute migration
     try:
-        # Add packaging_id column to stock_log
-        db.session.execute('''
-            ALTER TABLE stock_log
-            ADD COLUMN packaging_id INTEGER
-        ''')
+        # Check if packaging_id column exists in stock_log
+        result = db.session.execute(text('''
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_name='stock_log' AND column_name='packaging_id'
+        ''')).fetchone()
 
-        # Add foreign key constraint for stock_log
-        db.session.execute('''
-            ALTER TABLE stock_log
-            ADD CONSTRAINT fk_stock_log_packaging
-            FOREIGN KEY (packaging_id) REFERENCES packaging(id)
-        ''')
+        if not result:
+            # Add packaging_id column to stock_log
+            db.session.execute(text('''
+                ALTER TABLE stock_log
+                ADD COLUMN packaging_id INTEGER
+            '''))
 
-        # Add packaging_id column to stock_audit
-        db.session.execute('''
-            ALTER TABLE stock_audit
-            ADD COLUMN packaging_id INTEGER
-        ''')
+            # Add foreign key constraint for stock_log
+            db.session.execute(text('''
+                ALTER TABLE stock_log
+                ADD CONSTRAINT fk_stock_log_packaging
+                FOREIGN KEY (packaging_id) REFERENCES packaging(id)
+            '''))
 
-        # Add foreign key constraint for stock_audit
-        db.session.execute('''
-            ALTER TABLE stock_audit
-            ADD CONSTRAINT fk_stock_audit_packaging
-            FOREIGN KEY (packaging_id) REFERENCES packaging(id)
-        ''')
+        # Check if packaging_id column exists in stock_audit
+        result = db.session.execute(text('''
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_name='stock_audit' AND column_name='packaging_id'
+        ''')).fetchone()
+
+        if not result:
+            # Add packaging_id column to stock_audit
+            db.session.execute(text('''
+                ALTER TABLE stock_audit
+                ADD COLUMN packaging_id INTEGER
+            '''))
+
+            # Add foreign key constraint for stock_audit
+            db.session.execute(text('''
+                ALTER TABLE stock_audit
+                ADD CONSTRAINT fk_stock_audit_packaging
+                FOREIGN KEY (packaging_id) REFERENCES packaging(id)
+            '''))
 
         db.session.commit()
 
