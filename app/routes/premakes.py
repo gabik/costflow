@@ -97,8 +97,8 @@ def view_premake(premake_id):
             'quantity': comp.quantity,
             'unit': comp_unit,
             'cost': comp_cost,
-            'price_per_unit': comp_discounted_price / comp.quantity if comp.quantity > 0 else 0,
-            'price_per_unit_original': comp_original_price / comp.quantity if comp.quantity > 0 else 0
+            'price_per_unit': comp_discounted_price,
+            'price_per_unit_original': comp_original_price
         })
 
     premake.cost_per_unit = cost_per_batch / premake.batch_size if premake.batch_size > 0 else 0
