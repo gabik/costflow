@@ -381,13 +381,19 @@ def migrate_add_supplier_discount():
     from sqlalchemy import inspect
 
     if request.method == 'GET':
-        # Show preview
-        supplier_count = Supplier.query.count()
-
-        # Check if column already exists
+        # Check if column already exists first
         inspector = inspect(db.engine)
         columns = [col['name'] for col in inspector.get_columns('supplier')]
         already_exists = 'discount_percentage' in columns
+
+        # Get supplier count using raw SQL to avoid ORM issues when column doesn't exist
+        if not already_exists:
+            # Use raw SQL to avoid trying to select the non-existent column
+            result = db.session.execute(text('SELECT COUNT(*) FROM supplier'))
+            supplier_count = result.scalar()
+        else:
+            # Column exists, safe to use ORM
+            supplier_count = Supplier.query.count()
 
         return jsonify({
             'title': 'Add Supplier Discount Percentage',
