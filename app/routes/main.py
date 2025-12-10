@@ -135,7 +135,10 @@ def index():
             cost_per_batch = 0
             for comp in premake.components:
                 if comp.component_type == 'raw_material' and comp.material:
-                    cost_per_batch += comp.quantity * comp.material.cost_per_unit
+                    # Get supplier price
+                    from .utils import get_primary_supplier_discounted_price
+                    supplier_price = get_primary_supplier_discounted_price(comp.material)
+                    cost_per_batch += comp.quantity * supplier_price
             
             cost_per_unit = cost_per_batch / premake.batch_size if premake.batch_size > 0 else 0
             
@@ -382,6 +385,10 @@ def get_product_recipe(product_id):
 
                 # Skip consumption breakdown for unlimited materials
                 if material.is_unlimited:
+                    # Get supplier price
+                    from .utils import get_primary_supplier_discounted_price
+                    supplier_price = get_primary_supplier_discounted_price(material)
+
                     components_data.append({
                         'type': 'Raw Material',
                         'name': material.name,
@@ -389,7 +396,7 @@ def get_product_recipe(product_id):
                         'qty_per_batch': comp.quantity,
                         'unit': material.unit,
                         'current_stock': None,  # null in JSON for unlimited
-                        'cost_per_unit': material.cost_per_unit,
+                        'cost_per_unit': supplier_price,
                         'suppliers': [],
                         'consumption_breakdown': [],
                         'show_multiple_rows': False,
@@ -598,6 +605,10 @@ def get_premake_recipe(premake_id):
 
                 # Skip consumption breakdown for unlimited materials
                 if material.is_unlimited:
+                    # Get supplier price
+                    from .utils import get_primary_supplier_discounted_price
+                    supplier_price = get_primary_supplier_discounted_price(material)
+
                     components_data.append({
                         'type': 'Raw Material',
                         'name': material.name,
@@ -605,7 +616,7 @@ def get_premake_recipe(premake_id):
                         'qty_per_batch': comp.quantity,
                         'unit': material.unit,
                         'current_stock': None,
-                        'cost_per_unit': material.cost_per_unit,
+                        'cost_per_unit': supplier_price,
                         'suppliers': [],
                         'consumption_breakdown': [],
                         'show_multiple_rows': False,

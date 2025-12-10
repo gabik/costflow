@@ -171,8 +171,24 @@ def add_premake():
     premakes = Product.query.filter_by(is_premake=True).all()
     units = ['kg', 'g', 'l', 'ml', 'piece', 'unit']
 
+    # Add price information from suppliers to raw materials
+    for material in raw_materials:
+        # Get primary supplier price or first supplier price
+        price = 0
+        if material.supplier_links:
+            primary_link = next((link for link in material.supplier_links if link.is_primary), None)
+            if primary_link:
+                price = primary_link.cost_per_unit
+            else:
+                price = material.supplier_links[0].cost_per_unit
+        material.display_price = price
+
     # Convert to dicts for JSON serialization in template
-    all_raw_materials = [m.to_dict() for m in raw_materials]
+    all_raw_materials = []
+    for m in raw_materials:
+        m_dict = m.to_dict()
+        m_dict['cost_per_unit'] = m.display_price  # Add for backward compatibility
+        all_raw_materials.append(m_dict)
     all_premakes = [p.to_dict() for p in premakes]
 
     return render_template('add_or_edit_premake.html',
@@ -252,8 +268,24 @@ def edit_premake(premake_id):
     ).all()
     units = ['kg', 'g', 'l', 'ml', 'piece', 'unit']
 
+    # Add price information from suppliers to raw materials
+    for material in raw_materials:
+        # Get primary supplier price or first supplier price
+        price = 0
+        if material.supplier_links:
+            primary_link = next((link for link in material.supplier_links if link.is_primary), None)
+            if primary_link:
+                price = primary_link.cost_per_unit
+            else:
+                price = material.supplier_links[0].cost_per_unit
+        material.display_price = price
+
     # Convert to dicts for JSON serialization in template
-    all_raw_materials = [m.to_dict() for m in raw_materials]
+    all_raw_materials = []
+    for m in raw_materials:
+        m_dict = m.to_dict()
+        m_dict['cost_per_unit'] = m.display_price  # Add for backward compatibility
+        all_raw_materials.append(m_dict)
     all_premakes = [p.to_dict() for p in premakes]
 
     return render_template('add_or_edit_premake.html',

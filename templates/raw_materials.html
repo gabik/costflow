@@ -137,7 +137,20 @@
                     {% endif %}
                 </td>
                 <td>{{ material.unit }}</td>
-                <td>{{ currency_symbol }}{{ "%.2f"|format(material.cost_per_unit) }}</td>
+                <td>
+                    {% if material.stock_breakdown %}
+                        {% set primary = material.stock_breakdown|selectattr('is_primary', 'equalto', True)|first %}
+                        {% if primary %}
+                            {{ currency_symbol }}{{ "%.2f"|format(primary.cost_per_unit) }}
+                        {% elif material.stock_breakdown[0] %}
+                            {{ currency_symbol }}{{ "%.2f"|format(material.stock_breakdown[0].cost_per_unit) }}
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
                 <td>
                     {% if material.is_unlimited %}
                         <span class="badge bg-primary fs-5">∞</span>
