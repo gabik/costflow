@@ -437,6 +437,17 @@ def get_product_recipe(product_id):
 
                         # Apply supplier discount to the cost
                         discounted_cost = apply_supplier_discount(link.cost_per_unit, link.supplier)
+
+                        # DEBUG INFO
+                        debug_info = {
+                            'supplier_has_discount_attr': hasattr(link.supplier, 'discount_percentage') if link.supplier else False,
+                            'supplier_discount_value': link.supplier.discount_percentage if (link.supplier and hasattr(link.supplier, 'discount_percentage')) else None,
+                            'supplier_is_none': link.supplier is None,
+                            'original_price': link.cost_per_unit,
+                            'calculated_discounted': discounted_cost,
+                            'expected_discounted': link.cost_per_unit * (1 - link.supplier.discount_percentage / 100.0) if (link.supplier and hasattr(link.supplier, 'discount_percentage') and link.supplier.discount_percentage) else link.cost_per_unit
+                        }
+
                         consumption_breakdown.append({
                             'supplier_id': link.supplier_id,
                             'supplier_name': link.supplier.name,
@@ -447,7 +458,8 @@ def get_product_recipe(product_id):
                             'cost_per_unit': discounted_cost,
                             'original_cost': link.cost_per_unit,  # Add original price for comparison
                             'total_cost': amount_to_consume * discounted_cost,
-                            'is_deficit': False
+                            'is_deficit': False,
+                            'DEBUG': debug_info  # Add debug info to response
                         })
                     elif link.is_primary and supplier_stock == 0 and remaining_to_consume == needed_quantity:
                         # Primary has no stock and nothing consumed yet - include for display
@@ -584,30 +596,46 @@ def get_product_recipe(product_id):
 @main_blueprint.route('/api/test_discount')
 def test_discount():
     """Test endpoint to verify discount is working"""
-    print("\n\n========== TEST DISCOUNT ENDPOINT CALLED ==========")
     from ..models import Supplier, RawMaterial, RawMaterialSupplier
+
+    debug_log = []
+    debug_log.append("========== TEST DISCOUNT ENDPOINT CALLED ==========")
 
     # Get a supplier with discount
     supplier = Supplier.query.filter(Supplier.discount_percentage > 0).first()
     if supplier:
-        print(f"Found supplier: {supplier.name} with discount: {supplier.discount_percentage}%")
+        debug_log.append(f"Found supplier: {supplier.name} with discount: {supplier.discount_percentage}%")
+        debug_log.append(f"Supplier object: {supplier}")
+        debug_log.append(f"Has discount_percentage attr: {hasattr(supplier, 'discount_percentage')}")
 
         # Get a material linked to this supplier
         link = RawMaterialSupplier.query.filter_by(supplier_id=supplier.id).first()
         if link:
-            print(f"Testing apply_supplier_discount with cost={link.cost_per_unit}")
+            debug_log.append(f"Testing apply_supplier_discount with cost={link.cost_per_unit}")
+
+            # Test with the supplier object
             discounted = apply_supplier_discount(link.cost_per_unit, supplier)
-            print(f"Result: {discounted}")
+            debug_log.append(f"Result with supplier object: {discounted}")
+
+            # Test with the link.supplier
+            link_supplier = link.supplier
+            debug_log.append(f"Link supplier: {link_supplier}")
+            debug_log.append(f"Link supplier discount: {link_supplier.discount_percentage if link_supplier else 'None'}")
+            discounted_link = apply_supplier_discount(link.cost_per_unit, link_supplier)
+            debug_log.append(f"Result with link.supplier: {discounted_link}")
 
             return jsonify({
                 'supplier': supplier.name,
                 'discount_percentage': supplier.discount_percentage,
                 'original_cost': link.cost_per_unit,
-                'discounted_cost': discounted,
-                'debug': 'Check server console for debug output'
+                'discounted_cost_direct': discounted,
+                'discounted_cost_via_link': discounted_link,
+                'expected_discount': link.cost_per_unit * (1 - supplier.discount_percentage / 100.0),
+                'debug_log': debug_log
             })
 
-    return jsonify({'error': 'No supplier with discount found'})
+    debug_log.append("No supplier with discount found")
+    return jsonify({'error': 'No supplier with discount found', 'debug_log': debug_log})
 
 @main_blueprint.route('/api/premake_recipe/<int:premake_id>')
 def get_premake_recipe(premake_id):
@@ -688,6 +716,17 @@ def get_premake_recipe(premake_id):
 
                         # Apply supplier discount to the cost
                         discounted_cost = apply_supplier_discount(link.cost_per_unit, link.supplier)
+
+                        # DEBUG INFO
+                        debug_info = {
+                            'supplier_has_discount_attr': hasattr(link.supplier, 'discount_percentage') if link.supplier else False,
+                            'supplier_discount_value': link.supplier.discount_percentage if (link.supplier and hasattr(link.supplier, 'discount_percentage')) else None,
+                            'supplier_is_none': link.supplier is None,
+                            'original_price': link.cost_per_unit,
+                            'calculated_discounted': discounted_cost,
+                            'expected_discounted': link.cost_per_unit * (1 - link.supplier.discount_percentage / 100.0) if (link.supplier and hasattr(link.supplier, 'discount_percentage') and link.supplier.discount_percentage) else link.cost_per_unit
+                        }
+
                         consumption_breakdown.append({
                             'supplier_id': link.supplier_id,
                             'supplier_name': link.supplier.name,
@@ -698,7 +737,8 @@ def get_premake_recipe(premake_id):
                             'cost_per_unit': discounted_cost,
                             'original_cost': link.cost_per_unit,  # Add original price for comparison
                             'total_cost': amount_to_consume * discounted_cost,
-                            'is_deficit': False
+                            'is_deficit': False,
+                            'DEBUG': debug_info  # Add debug info to response
                         })
                     elif link.is_primary and supplier_stock == 0 and remaining_to_consume == needed_quantity:
                         # Apply supplier discount to the cost
