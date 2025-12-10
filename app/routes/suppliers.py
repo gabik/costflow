@@ -35,6 +35,7 @@ def add_supplier():
         phone = request.form.get('phone')
         email = request.form.get('email')
         address = request.form.get('address')
+        discount_percentage = float(request.form.get('discount_percentage', 0))
 
         # Check for duplicate name
         existing = Supplier.query.filter_by(name=name).first()
@@ -48,7 +49,8 @@ def add_supplier():
             contact_person=contact_person,
             phone=phone,
             email=email,
-            address=address
+            address=address,
+            discount_percentage=discount_percentage
         )
 
         db.session.add(new_supplier)
@@ -70,6 +72,7 @@ def edit_supplier(supplier_id):
         supplier.phone = request.form.get('phone')
         supplier.email = request.form.get('email')
         supplier.address = request.form.get('address')
+        supplier.discount_percentage = float(request.form.get('discount_percentage', 0))
 
         db.session.commit()
         log_audit("UPDATE", "Supplier", supplier.id, f"Updated supplier: {supplier.name}")
@@ -184,12 +187,16 @@ def supplier_materials(supplier_id):
         material = link.raw_material
 
         # Calculate current stock for this supplier-material combination
-        from .utils import calculate_supplier_stock
+        from .utils import calculate_supplier_stock, apply_supplier_discount
         stock = calculate_supplier_stock(material.id, supplier_id)
+
+        # Calculate discounted price
+        discounted_price = apply_supplier_discount(link.cost_per_unit, supplier)
 
         materials_data.append({
             'material': material,
-            'cost_per_unit': link.cost_per_unit,
+            'cost_per_unit': link.cost_per_unit,  # Original price
+            'discounted_cost_per_unit': discounted_price,  # Discounted price
             'is_primary': link.is_primary,
             'sku': link.sku,
             'current_stock': stock

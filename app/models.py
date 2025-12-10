@@ -347,6 +347,7 @@ class Supplier(db.Model):
     address = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
+    discount_percentage = db.Column(db.Float, default=0.0, nullable=False)
 
     def to_dict(self):
         return {
@@ -358,6 +359,7 @@ class Supplier(db.Model):
             'address': self.address,
             'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S') if self.created_at else None,
             'is_active': self.is_active,
+            'discount_percentage': self.discount_percentage,
             'materials_count': len(self.material_links) if hasattr(self, 'material_links') else 0
         }
 

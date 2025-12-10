@@ -22,7 +22,7 @@
                 <th>{{ _('Supplier Name') }}</th>
                 <th>{{ _('Contact Person') }}</th>
                 <th>{{ _('Phone') }}</th>
-                <th>{{ _('Email') }}</th>
+                <th>{{ _('Discount') }}</th>
                 <th class="text-center">{{ _('Active Materials') }}</th>
                 <th>{{ _('Status') }}</th>
                 <th class="text-end">{{ _('Actions') }}</th>
@@ -35,10 +35,10 @@
                 <td>{{ supplier.contact_person or '-' }}</td>
                 <td>{{ supplier.phone or '-' }}</td>
                 <td>
-                    {% if supplier.email %}
-                        <a href="mailto:{{ supplier.email }}">{{ supplier.email }}</a>
+                    {% if supplier.discount_percentage > 0 %}
+                    <span class="badge bg-success">{{ "%.1f"|format(supplier.discount_percentage) }}%</span>
                     {% else %}
-                        -
+                    <span class="text-muted">-</span>
                     {% endif %}
                 </td>
                 <td class="text-center">

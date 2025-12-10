@@ -61,8 +61,72 @@ def convert_to_base_unit(quantity, selected_unit, base_unit):
         return quantity / 1000.0
     if selected_unit == 'l' and base_unit == 'ml':
         return quantity * 1000.0
-        
+
     return quantity
+
+def apply_supplier_discount(cost_per_unit, supplier):
+    """
+    Apply supplier-specific discount to a price.
+
+    Args:
+        cost_per_unit: Pre-discount price
+        supplier: Supplier object with discount_percentage
+
+    Returns:
+        Discounted price
+    """
+    if not supplier or not hasattr(supplier, 'discount_percentage'):
+        return cost_per_unit
+
+    discount_percentage = supplier.discount_percentage or 0.0
+
+    if discount_percentage <= 0:
+        return cost_per_unit
+
+    return cost_per_unit * (1 - discount_percentage / 100.0)
+
+
+def get_material_discounted_price(material_id, supplier_id):
+    """
+    Get discounted price for a material from a specific supplier.
+
+    Args:
+        material_id: RawMaterial ID
+        supplier_id: Supplier ID
+
+    Returns:
+        Discounted price per unit
+    """
+    from ..models import RawMaterialSupplier
+
+    link = RawMaterialSupplier.query.filter_by(
+        raw_material_id=material_id,
+        supplier_id=supplier_id
+    ).first()
+
+    if not link:
+        return 0.0
+
+    return apply_supplier_discount(link.cost_per_unit, link.supplier)
+
+
+def get_primary_supplier_discounted_price(material):
+    """
+    Get discounted price from primary supplier for a material.
+
+    Args:
+        material: RawMaterial object
+
+    Returns:
+        Discounted price from primary supplier, or average if no primary
+    """
+    # Find primary supplier
+    for link in material.supplier_links:
+        if link.is_primary:
+            return apply_supplier_discount(link.cost_per_unit, link.supplier)
+
+    # Fallback to average (no discount applied to average)
+    return material.cost_per_unit
 
 def log_audit(action, target_type, target_id=None, details=None):
     try:
@@ -125,12 +189,8 @@ def calculate_premake_cost_per_unit(premake, visited=None, use_actual_costs=True
 
     for pm_comp in premake.components:
         if pm_comp.component_type == 'raw_material' and pm_comp.material:
-            # Use primary supplier price instead of average
-            primary_price = pm_comp.material.cost_per_unit  # fallback
-            for link in pm_comp.material.supplier_links:
-                if link.is_primary:
-                    primary_price = link.cost_per_unit
-                    break
+            # Use primary supplier DISCOUNTED price
+            primary_price = get_primary_supplier_discounted_price(pm_comp.material)
             premake_batch_cost += pm_comp.quantity * primary_price
             calculated_batch_size += pm_comp.quantity
         elif pm_comp.component_type == 'packaging' and pm_comp.packaging:
@@ -170,12 +230,8 @@ def calculate_prime_cost(product):
     total_cost = 0
     for component in product.components:
         if component.component_type == 'raw_material' and component.material:
-            # Use primary supplier price instead of average
-            primary_price = component.material.cost_per_unit  # fallback
-            for link in component.material.supplier_links:
-                if link.is_primary:
-                    primary_price = link.cost_per_unit
-                    break
+            # Use primary supplier DISCOUNTED price
+            primary_price = get_primary_supplier_discounted_price(component.material)
             total_cost += component.quantity * primary_price
         elif component.component_type == 'packaging' and component.packaging:
             total_cost += component.quantity * component.packaging.price_per_unit
@@ -409,15 +465,17 @@ def get_cheapest_supplier_for_material(material_id, required_quantity):
     for link in supplier_links:
         stock = calculate_supplier_stock(material_id, link.supplier_id)
         if stock > 0:
+            # Apply discount to cost
+            discounted_price = apply_supplier_discount(link.cost_per_unit, link.supplier)
             suppliers_with_stock.append({
                 'supplier_id': link.supplier_id,
                 'supplier': link.supplier,
-                'cost_per_unit': link.cost_per_unit,
+                'cost_per_unit': discounted_price,  # Use discounted price
                 'available_stock': stock,
                 'is_primary': link.is_primary
             })
 
-    # Sort by cost (cheapest first)
+    # Sort by DISCOUNTED cost (cheapest first)
     suppliers_with_stock.sort(key=lambda x: x['cost_per_unit'])
 
     # Return the cheapest supplier with enough stock
@@ -463,15 +521,17 @@ def consume_material_cheapest_first(material_id, required_qty):
     for link in supplier_links:
         stock = calculate_supplier_stock(material_id, link.supplier_id)
         if stock > 0:
+            # Apply discount to cost
+            discounted_price = apply_supplier_discount(link.cost_per_unit, link.supplier)
             suppliers_with_stock.append({
                 'supplier_id': link.supplier_id,
                 'supplier_name': link.supplier.name,
                 'material_id': material_id,
-                'cost_per_unit': link.cost_per_unit,
+                'cost_per_unit': discounted_price,  # Use discounted price
                 'available_stock': stock
             })
 
-    # Sort by cost (cheapest first)
+    # Sort by DISCOUNTED cost (cheapest first)
     suppliers_with_stock.sort(key=lambda x: x['cost_per_unit'])
 
     consumption_plan = []
@@ -567,6 +627,9 @@ def deduct_material_stock(material_id, quantity_needed):
             # Deduct what we can from this supplier
             to_deduct = min(available, remaining)
 
+            # Apply discount to cost
+            discounted_cost_per_unit = apply_supplier_discount(link.cost_per_unit, link.supplier)
+
             # Create stock log for deduction (negative add)
             stock_log = StockLog(
                 raw_material_id=material_id,
@@ -576,12 +639,12 @@ def deduct_material_stock(material_id, quantity_needed):
             )
             db.session.add(stock_log)
 
-            # Include cost information in deductions
+            # Include DISCOUNTED cost information in deductions
             deductions.append((
                 link.supplier_id,
                 to_deduct,
-                link.cost_per_unit,  # Add cost per unit
-                to_deduct * link.cost_per_unit  # Add total cost
+                discounted_cost_per_unit,  # Discounted cost per unit
+                to_deduct * discounted_cost_per_unit  # Discounted total cost
             ))
             remaining -= to_deduct
 
@@ -618,12 +681,8 @@ def calculate_100g_cost(product):
 
         # Calculate cost
         if component.component_type == 'raw_material' and component.material:
-            # Use primary supplier price
-            primary_price = component.material.cost_per_unit
-            for link in component.material.supplier_links:
-                if link.is_primary:
-                    primary_price = link.cost_per_unit
-                    break
+            # Use primary supplier DISCOUNTED price
+            primary_price = get_primary_supplier_discounted_price(component.material)
             total_cost += component.quantity * primary_price
 
         elif component.component_type == 'packaging' and component.packaging:

@@ -40,6 +40,14 @@
                             {{ _('Active') if supplier.is_active else _('Inactive') }}
                         </span>
                     </div>
+                    <div class="col-md-3">
+                        <strong>{{ _('Discount:') }}</strong>
+                        {% if supplier.discount_percentage > 0 %}
+                        <span class="badge bg-success">{{ "%.1f"|format(supplier.discount_percentage) }}%</span>
+                        {% else %}
+                        <span class="text-muted">-</span>
+                        {% endif %}
+                    </div>
                 </div>
                 {% if supplier.address %}
                 <div class="row mt-2">
@@ -65,7 +73,8 @@
                 <th>{{ _('SKU') }}</th>
                 <th>{{ _('Category') }}</th>
                 <th>{{ _('Unit') }}</th>
-                <th>{{ _('Price per Unit') }}</th>
+                <th>{{ _('Original Price') }}</th>
+                <th>{{ _('Discounted Price') }}</th>
                 <th>{{ _('Current Stock') }}</th>
                 <th class="text-center">{{ _('Primary Supplier') }}</th>
                 <th class="text-end">{{ _('Actions') }}</th>
@@ -83,7 +92,23 @@
                 </td>
                 <td>{{ item.material.unit }}</td>
                 <td>
-                    <strong>{{ currency_symbol }}{{ "%.2f"|format(item.cost_per_unit) }}</strong>
+                    {% if item.discounted_cost_per_unit < item.cost_per_unit %}
+                    <span class="text-muted text-decoration-line-through">
+                        {{ currency_symbol }}{{ "%.2f"|format(item.cost_per_unit) }}
+                    </span>
+                    {% else %}
+                    {{ currency_symbol }}{{ "%.2f"|format(item.cost_per_unit) }}
+                    {% endif %}
+                </td>
+                <td>
+                    <strong class="{{ 'text-success' if item.discounted_cost_per_unit < item.cost_per_unit else '' }}">
+                        {{ currency_symbol }}{{ "%.2f"|format(item.discounted_cost_per_unit) }}
+                    </strong>
+                    {% if item.discounted_cost_per_unit < item.cost_per_unit %}
+                    <span class="badge bg-success ms-1">
+                        -{{ "%.1f"|format((1 - item.discounted_cost_per_unit / item.cost_per_unit) * 100) }}%
+                    </span>
+                    {% endif %}
                 </td>
                 <td class="fw-bold {{ 'text-danger' if item.current_stock <= 0 else 'text-success' }}">
                     {{ "%.2f"|format(item.current_stock) }}
