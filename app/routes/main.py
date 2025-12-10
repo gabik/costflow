@@ -6,6 +6,7 @@ from datetime import datetime, date, timedelta
 from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_file, jsonify
 from sqlalchemy import func, extract, and_, text
+from sqlalchemy.orm import joinedload
 from ..models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, StockAudit, AuditLog
 from .utils import units_list, get_or_create_general_category, convert_to_base_unit, log_audit, calculate_prime_cost, calculate_premake_current_stock, calculate_premake_stock_at_date, calculate_total_material_stock, calculate_supplier_stock, apply_supplier_discount
 from .raw_materials import calculate_raw_material_current_stock
@@ -402,7 +403,12 @@ def get_product_recipe(product_id):
 
                 # Get supplier links sorted by primary first
                 from ..models import RawMaterialSupplier
-                supplier_links = sorted(material.supplier_links,
+
+                # Eager load supplier with all fields including discount_percentage
+                supplier_links = db.session.query(RawMaterialSupplier).filter_by(
+                    raw_material_id=material.id
+                ).options(joinedload(RawMaterialSupplier.supplier)).all()
+                supplier_links = sorted(supplier_links,
                                        key=lambda x: (not x.is_primary, x.supplier.name))
 
                 # First pass: Consume from available stock only
@@ -613,7 +619,12 @@ def get_premake_recipe(premake_id):
 
                 # Get supplier links sorted by primary first
                 from ..models import RawMaterialSupplier
-                supplier_links = sorted(material.supplier_links,
+
+                # Eager load supplier with all fields including discount_percentage
+                supplier_links = db.session.query(RawMaterialSupplier).filter_by(
+                    raw_material_id=material.id
+                ).options(joinedload(RawMaterialSupplier.supplier)).all()
+                supplier_links = sorted(supplier_links,
                                        key=lambda x: (not x.is_primary, x.supplier.name))
 
                 # First pass: Consume from available stock only
