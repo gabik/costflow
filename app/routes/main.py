@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_file, jsonify
 from sqlalchemy import func, extract, and_, text
 from ..models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, StockAudit, AuditLog
-from .utils import units_list, get_or_create_general_category, convert_to_base_unit, log_audit, calculate_prime_cost, calculate_premake_current_stock, calculate_premake_stock_at_date, calculate_total_material_stock, calculate_supplier_stock
+from .utils import units_list, get_or_create_general_category, convert_to_base_unit, log_audit, calculate_prime_cost, calculate_premake_current_stock, calculate_premake_stock_at_date, calculate_total_material_stock, calculate_supplier_stock, apply_supplier_discount
 from .raw_materials import calculate_raw_material_current_stock
 
 main_blueprint = Blueprint('main', __name__)
@@ -419,6 +419,8 @@ def get_product_recipe(product_id):
                             amount_to_consume = min(supplier_stock, remaining_to_consume)
                         remaining_to_consume -= amount_to_consume
 
+                        # Apply supplier discount to the cost
+                        discounted_cost = apply_supplier_discount(link.cost_per_unit, link.supplier)
                         consumption_breakdown.append({
                             'supplier_id': link.supplier_id,
                             'supplier_name': link.supplier.name,
@@ -426,12 +428,14 @@ def get_product_recipe(product_id):
                             'stock_available': safe_float(supplier_stock),
                             'amount_to_consume': amount_to_consume,
                             'remaining_after': safe_float(supplier_stock - amount_to_consume),
-                            'cost_per_unit': link.cost_per_unit,
-                            'total_cost': amount_to_consume * link.cost_per_unit,
+                            'cost_per_unit': discounted_cost,
+                            'total_cost': amount_to_consume * discounted_cost,
                             'is_deficit': False
                         })
                     elif link.is_primary and supplier_stock == 0 and remaining_to_consume == needed_quantity:
                         # Primary has no stock and nothing consumed yet - include for display
+                        # Apply supplier discount to the cost
+                        discounted_cost = apply_supplier_discount(link.cost_per_unit, link.supplier)
                         consumption_breakdown.append({
                             'supplier_id': link.supplier_id,
                             'supplier_name': link.supplier.name,
@@ -439,7 +443,7 @@ def get_product_recipe(product_id):
                             'stock_available': 0,
                             'amount_to_consume': 0,
                             'remaining_after': 0,
-                            'cost_per_unit': link.cost_per_unit,
+                            'cost_per_unit': discounted_cost,
                             'total_cost': 0,
                             'is_deficit': False
                         })
@@ -453,7 +457,7 @@ def get_product_recipe(product_id):
                             # Adjust primary to take the deficit
                             item['amount_to_consume'] += remaining_to_consume
                             item['remaining_after'] -= remaining_to_consume
-                            item['total_cost'] = item['amount_to_consume'] * item['cost_per_unit']
+                            item['total_cost'] = item['amount_to_consume'] * item['cost_per_unit']  # cost_per_unit already has discount applied
                             item['is_deficit'] = item['remaining_after'] < 0
                             primary_found = True
                             break
@@ -463,6 +467,8 @@ def get_product_recipe(product_id):
                         primary_link = next((l for l in supplier_links if l.is_primary), None)
                         if primary_link:
                             primary_stock = calculate_supplier_stock(material.id, primary_link.supplier_id)
+                            # Apply supplier discount to the cost
+                            discounted_cost = apply_supplier_discount(primary_link.cost_per_unit, primary_link.supplier)
                             consumption_breakdown.insert(0, {
                                 'supplier_id': primary_link.supplier_id,
                                 'supplier_name': primary_link.supplier.name,
@@ -470,8 +476,8 @@ def get_product_recipe(product_id):
                                 'stock_available': safe_float(primary_stock),
                                 'amount_to_consume': remaining_to_consume,
                                 'remaining_after': safe_float(primary_stock - remaining_to_consume),
-                                'cost_per_unit': primary_link.cost_per_unit,
-                                'total_cost': remaining_to_consume * primary_link.cost_per_unit,
+                                'cost_per_unit': discounted_cost,
+                                'total_cost': remaining_to_consume * discounted_cost,
                                 'is_deficit': True
                             })
 
@@ -489,6 +495,10 @@ def get_product_recipe(product_id):
                         'is_primary': link.is_primary
                     })
 
+                # Get primary supplier's discounted price for backward compatibility
+                from .utils import get_primary_supplier_discounted_price
+                primary_discounted_price = get_primary_supplier_discounted_price(material)
+
                 components_data.append({
                     'type': 'Raw Material',
                     'name': material.name,
@@ -496,7 +506,7 @@ def get_product_recipe(product_id):
                     'qty_per_batch': comp.quantity,
                     'unit': material.unit,
                     'current_stock': safe_float(stock),
-                    'cost_per_unit': material.cost_per_unit,
+                    'cost_per_unit': primary_discounted_price,
                     'suppliers': supplier_info,  # Keep for backward compatibility
                     'consumption_breakdown': consumption_breakdown,
                     'show_multiple_rows': show_multiple_rows,
@@ -509,12 +519,9 @@ def get_product_recipe(product_id):
                 stock = calculate_premake_current_stock(premake.id)
                 needed_quantity = comp.quantity * quantity_produced
 
-                # Calculate cost per unit for premake
-                cost_per_batch = 0
-                for pm_comp in premake.components:
-                    if pm_comp.component_type == 'raw_material' and pm_comp.material:
-                        cost_per_batch += pm_comp.quantity * pm_comp.material.cost_per_unit
-                cost_per_unit = cost_per_batch / premake.batch_size if premake.batch_size > 0 else 0
+                # Calculate cost per unit for premake with discounts
+                from .utils import calculate_premake_cost_per_unit
+                cost_per_unit = calculate_premake_cost_per_unit(premake)
 
                 components_data.append({
                     'type': 'Premake',
@@ -618,6 +625,8 @@ def get_premake_recipe(premake_id):
                             amount_to_consume = min(supplier_stock, remaining_to_consume)
                         remaining_to_consume -= amount_to_consume
 
+                        # Apply supplier discount to the cost
+                        discounted_cost = apply_supplier_discount(link.cost_per_unit, link.supplier)
                         consumption_breakdown.append({
                             'supplier_id': link.supplier_id,
                             'supplier_name': link.supplier.name,
@@ -625,11 +634,13 @@ def get_premake_recipe(premake_id):
                             'stock_available': safe_float(supplier_stock),
                             'amount_to_consume': amount_to_consume,
                             'remaining_after': safe_float(supplier_stock - amount_to_consume),
-                            'cost_per_unit': link.cost_per_unit,
-                            'total_cost': amount_to_consume * link.cost_per_unit,
+                            'cost_per_unit': discounted_cost,
+                            'total_cost': amount_to_consume * discounted_cost,
                             'is_deficit': False
                         })
                     elif link.is_primary and supplier_stock == 0 and remaining_to_consume == needed_quantity:
+                        # Apply supplier discount to the cost
+                        discounted_cost = apply_supplier_discount(link.cost_per_unit, link.supplier)
                         consumption_breakdown.append({
                             'supplier_id': link.supplier_id,
                             'supplier_name': link.supplier.name,
@@ -637,7 +648,7 @@ def get_premake_recipe(premake_id):
                             'stock_available': 0,
                             'amount_to_consume': 0,
                             'remaining_after': 0,
-                            'cost_per_unit': link.cost_per_unit,
+                            'cost_per_unit': discounted_cost,
                             'total_cost': 0,
                             'is_deficit': False
                         })
@@ -649,7 +660,7 @@ def get_premake_recipe(premake_id):
                         if item['is_primary']:
                             item['amount_to_consume'] += remaining_to_consume
                             item['remaining_after'] -= remaining_to_consume
-                            item['total_cost'] = item['amount_to_consume'] * item['cost_per_unit']
+                            item['total_cost'] = item['amount_to_consume'] * item['cost_per_unit']  # cost_per_unit already has discount applied
                             item['is_deficit'] = item['remaining_after'] < 0
                             primary_found = True
                             break
@@ -658,6 +669,8 @@ def get_premake_recipe(premake_id):
                         primary_link = next((l for l in supplier_links if l.is_primary), None)
                         if primary_link:
                             primary_stock = calculate_supplier_stock(material.id, primary_link.supplier_id)
+                            # Apply supplier discount to the cost
+                            discounted_cost = apply_supplier_discount(primary_link.cost_per_unit, primary_link.supplier)
                             consumption_breakdown.insert(0, {
                                 'supplier_id': primary_link.supplier_id,
                                 'supplier_name': primary_link.supplier.name,
@@ -665,13 +678,17 @@ def get_premake_recipe(premake_id):
                                 'stock_available': safe_float(primary_stock),
                                 'amount_to_consume': remaining_to_consume,
                                 'remaining_after': safe_float(primary_stock - remaining_to_consume),
-                                'cost_per_unit': primary_link.cost_per_unit,
-                                'total_cost': remaining_to_consume * primary_link.cost_per_unit,
+                                'cost_per_unit': discounted_cost,
+                                'total_cost': remaining_to_consume * discounted_cost,
                                 'is_deficit': True
                             })
 
                 # Determine if we should show multiple rows
                 show_multiple_rows = len([c for c in consumption_breakdown if c['amount_to_consume'] > 0]) > 1
+
+                # Get primary supplier's discounted price for backward compatibility
+                from .utils import get_primary_supplier_discounted_price
+                primary_discounted_price = get_primary_supplier_discounted_price(material)
 
                 components_data.append({
                     'type': 'Raw Material',
@@ -680,7 +697,7 @@ def get_premake_recipe(premake_id):
                     'qty_per_batch': comp.quantity,
                     'unit': material.unit,
                     'current_stock': safe_float(stock),
-                    'cost_per_unit': material.cost_per_unit,
+                    'cost_per_unit': primary_discounted_price,
                     'consumption_breakdown': consumption_breakdown,
                     'show_multiple_rows': show_multiple_rows,
                     'is_unlimited': False
