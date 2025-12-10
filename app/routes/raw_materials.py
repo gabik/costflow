@@ -97,24 +97,9 @@ def add_raw_material():
         # Get alternative names
         alternative_names = request.form.getlist('alternative_names[]')
 
-        # For unlimited materials, cost should be 0 (or user-specified)
-        if is_unlimited:
-            cost_per_unit = 0
-        else:
-            # Calculate average cost from suppliers for backward compatibility
-            valid_costs = []
-            for i, supplier_id in enumerate(supplier_ids):
-                if supplier_id and i < len(supplier_costs) and supplier_costs[i]:
-                    try:
-                        valid_costs.append(float(supplier_costs[i]))
-                    except ValueError:
-                        pass
-
-            cost_per_unit = sum(valid_costs) / len(valid_costs) if valid_costs else 0
-
         category = Category.query.get(category_id)
 
-        new_material = RawMaterial(name=name, category=category, unit=unit, cost_per_unit=cost_per_unit, is_unlimited=is_unlimited)
+        new_material = RawMaterial(name=name, category=category, unit=unit, is_unlimited=is_unlimited)
         db.session.add(new_material)
         db.session.flush() # Get ID for stock log
 
@@ -129,11 +114,11 @@ def add_raw_material():
                     # Check if this is the primary supplier (radio value matches index+1)
                     is_primary = (str(i+1) == primary_supplier_value) if primary_supplier_value else (i == 0)
 
-                    # Use the supplier cost or fallback to average
+                    # Use the supplier cost (required)
                     try:
-                        supplier_cost = float(supplier_costs[i]) if supplier_costs[i] else cost_per_unit
+                        supplier_cost = float(supplier_costs[i]) if supplier_costs[i] else 0
                     except (ValueError, IndexError):
-                        supplier_cost = cost_per_unit
+                        supplier_cost = 0
 
                     # Get SKU for this supplier (if provided)
                     supplier_sku = supplier_skus[i] if i < len(supplier_skus) and supplier_skus[i] else None
@@ -158,7 +143,7 @@ def add_raw_material():
                     supplier_link = RawMaterialSupplier(
                         raw_material_id=new_material.id,
                         supplier_id=1,
-                        cost_per_unit=cost_per_unit,
+                        cost_per_unit=0,  # Default price needs to be set later
                         is_primary=True
                     )
                     db.session.add(supplier_link)
@@ -237,7 +222,6 @@ def edit_raw_material(material_id):
         if is_unlimited:
             # Remove all existing supplier links if switching to unlimited
             RawMaterialSupplier.query.filter_by(raw_material_id=material.id).delete()
-            material.cost_per_unit = 0
 
             # Handle alternative names for unlimited materials before returning
             # Get existing alternative names
@@ -345,17 +329,6 @@ def edit_raw_material(material_id):
         supplier_skus = request.form.getlist('supplier_skus[]')
         primary_supplier_value = request.form.get('primary_supplier')
 
-        # Calculate average cost from suppliers for backward compatibility
-        valid_costs = []
-        for i, supplier_id in enumerate(supplier_ids):
-            if supplier_id and i < len(supplier_costs) and supplier_costs[i]:
-                try:
-                    valid_costs.append(float(supplier_costs[i]))
-                except ValueError:
-                    pass
-
-        material.cost_per_unit = sum(valid_costs) / len(valid_costs) if valid_costs else material.cost_per_unit
-
         # Add new supplier links
         supplier_count = 0
         for i, supplier_id in enumerate(supplier_ids):
@@ -364,11 +337,11 @@ def edit_raw_material(material_id):
                 # Check if this is the primary supplier (radio value matches index+1)
                 is_primary = (str(i+1) == primary_supplier_value) if primary_supplier_value else (i == 0)
 
-                # Use the supplier cost or fallback to average
+                # Use the supplier cost (required)
                 try:
-                    supplier_cost = float(supplier_costs[i]) if supplier_costs[i] else material.cost_per_unit
+                    supplier_cost = float(supplier_costs[i]) if supplier_costs[i] else 0
                 except (ValueError, IndexError):
-                    supplier_cost = material.cost_per_unit
+                    supplier_cost = 0
 
                 # Get SKU for this supplier (if provided)
                 supplier_sku = supplier_skus[i] if i < len(supplier_skus) and supplier_skus[i] else None
@@ -389,7 +362,7 @@ def edit_raw_material(material_id):
                 supplier_link = RawMaterialSupplier(
                     raw_material_id=material.id,
                     supplier_id=1,
-                    cost_per_unit=material.cost_per_unit,
+                    cost_per_unit=0,  # Default price needs to be set
                     is_primary=True
                 )
                 db.session.add(supplier_link)
@@ -528,7 +501,18 @@ def update_stock():
 
         # Calculate variance and create audit record
         variance = quantity - system_stock
-        variance_cost = variance * material.cost_per_unit
+
+        # Get supplier price for variance cost calculation
+        supplier_price = 0
+        if supplier_id:
+            supplier_link = RawMaterialSupplier.query.filter_by(
+                raw_material_id=raw_material_id,
+                supplier_id=supplier_id
+            ).first()
+            if supplier_link:
+                supplier_price = supplier_link.cost_per_unit
+
+        variance_cost = variance * supplier_price
 
         # Create the stock log entry with supplier_id
         stock_log = StockLog(

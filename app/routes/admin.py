@@ -102,8 +102,8 @@ def restore_db():
                 id=m_data['id'],
                 name=m_data['name'],
                 category_id=cat_id,
-                unit=m_data['unit'],
-                cost_per_unit=m_data['cost_per_unit']
+                unit=m_data['unit']
+                # cost_per_unit removed - now handled by supplier links
             )
             # Note: current_stock is not in constructor but in backup. 
             # Stock is derived from logs usually, but legacy backup might have it.
@@ -363,6 +363,90 @@ def migrate_add_alternative_names():
             'success': True,
             'message': 'Successfully created raw_material_alternative_name table',
             'info': 'You can now add alternative names to raw materials for better recipe import matching'
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@admin_blueprint.route('/migrate_remove_unused_columns', methods=['GET', 'POST'])
+def migrate_remove_unused_columns():
+    """
+    Migration to remove labor components and cost_per_unit column.
+    - Deletes all labor components from ProductComponent table
+    - Ensures all materials have suppliers before removing cost_per_unit
+    - Drops cost_per_unit column from raw_material table
+    """
+    from ..models import RawMaterial, RawMaterialSupplier, ProductComponent, Supplier
+
+    if request.method == 'GET':
+        # Show preview of what will be changed
+        labor_components = ProductComponent.query.filter_by(component_type='labor').count()
+
+        # Find materials without suppliers
+        materials_without_suppliers = []
+        for material in RawMaterial.query.filter_by(is_deleted=False).all():
+            if not material.supplier_links:
+                materials_without_suppliers.append({
+                    'id': material.id,
+                    'name': material.name,
+                    'unit': material.unit
+                })
+
+        return jsonify({
+            'title': 'Remove Unused Columns',
+            'description': 'Remove labor components and cost_per_unit column from database',
+            'preview_data': {
+                'labor_components_to_delete': labor_components,
+                'materials_without_suppliers': materials_without_suppliers,
+                'notes': [
+                    f'{labor_components} labor components will be deleted',
+                    f'{len(materials_without_suppliers)} materials will get default supplier',
+                    'cost_per_unit column will be dropped from raw_material table'
+                ]
+            }
+        })
+
+    # POST - Execute migration
+    try:
+        # 1. Delete all labor components
+        deleted_labor = ProductComponent.query.filter_by(component_type='labor').delete()
+
+        # 2. Ensure all materials have suppliers
+        default_supplier = Supplier.query.filter_by(id=1).first()
+        if default_supplier:
+            for material in RawMaterial.query.filter_by(is_deleted=False).all():
+                if not material.supplier_links:
+                    # Get cost_per_unit before dropping column
+                    try:
+                        cost = material.cost_per_unit if hasattr(material, 'cost_per_unit') else 0
+                    except:
+                        cost = 0
+
+                    supplier_link = RawMaterialSupplier(
+                        raw_material_id=material.id,
+                        supplier_id=1,
+                        cost_per_unit=cost,
+                        is_primary=True
+                    )
+                    db.session.add(supplier_link)
+
+        # 3. Drop cost_per_unit column
+        db.session.execute(text("""
+            ALTER TABLE raw_material
+            DROP COLUMN IF EXISTS cost_per_unit
+        """))
+
+        db.session.commit()
+        log_audit("MIGRATION", "System",
+                  details=f"Removed {deleted_labor} labor components and cost_per_unit column")
+
+        return jsonify({
+            'success': True,
+            'message': f'Successfully removed {deleted_labor} labor components and cost_per_unit column',
+            'deleted_labor': deleted_labor
         })
     except Exception as e:
         db.session.rollback()

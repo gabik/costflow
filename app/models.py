@@ -42,7 +42,6 @@ class RawMaterial(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     category = db.relationship('Category', backref=db.backref('raw_materials', lazy=True))
     unit = db.Column(db.String(50), nullable=False)
-    cost_per_unit = db.Column(db.Float, nullable=False)  # Default/average cost
     is_unlimited = db.Column(db.Boolean, default=False, nullable=False)  # Unlimited stock materials
     is_deleted = db.Column(db.Boolean, default=False, nullable=False)  # Soft delete flag
 
@@ -95,7 +94,6 @@ class RawMaterial(db.Model):
             'name': self.name,
             'category_id': self.category_id,
             'unit': self.unit,
-            'cost_per_unit': self.cost_per_unit,
             'suppliers': [link.to_dict() for link in self.supplier_links] if hasattr(self, 'supplier_links') else []
         }
 
@@ -196,7 +194,7 @@ class Product(db.Model):
 class ProductComponent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
-    component_type = db.Column(db.String(20), nullable=False)  # 'raw_material', 'labor', 'packaging', 'premake', 'product'
+    component_type = db.Column(db.String(20), nullable=False)  # 'raw_material', 'packaging', 'premake', 'product', 'loss'
     component_id = db.Column(db.Integer, nullable=False)
     quantity = db.Column(db.Float, nullable=False)
 

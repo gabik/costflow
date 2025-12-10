@@ -118,15 +118,20 @@ def get_primary_supplier_discounted_price(material):
         material: RawMaterial object
 
     Returns:
-        Discounted price from primary supplier, or average if no primary
+        Discounted price from primary supplier, or first supplier if no primary
     """
     # Find primary supplier
     for link in material.supplier_links:
         if link.is_primary:
             return apply_supplier_discount(link.cost_per_unit, link.supplier)
 
-    # Fallback to average (no discount applied to average)
-    return material.cost_per_unit
+    # Fallback to first supplier if no primary
+    if material.supplier_links:
+        first_link = material.supplier_links[0]
+        return apply_supplier_discount(first_link.cost_per_unit, first_link.supplier)
+
+    # If no suppliers at all (shouldn't happen), return 0
+    return 0
 
 def log_audit(action, target_type, target_id=None, details=None):
     try:

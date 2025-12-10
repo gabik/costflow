@@ -196,10 +196,15 @@ def add_product():
                 primary_supplier_name = link.supplier.name
                 break
 
-        # If no primary supplier, fall back to average (for backward compatibility)
-        if primary_price is None:
-            primary_price = material.cost_per_unit
-            primary_supplier_name = "ממוצע"
+        # If no primary supplier, use first supplier
+        if primary_price is None and material.supplier_links:
+            first_link = material.supplier_links[0]
+            primary_price = first_link.cost_per_unit
+            primary_supplier_name = first_link.supplier.name
+        elif primary_price is None:
+            # No suppliers at all (shouldn't happen)
+            primary_price = 0
+            primary_supplier_name = "לא הוגדר ספק"
 
         # Override the cost_per_unit with primary supplier's price
         material_dict['cost_per_unit'] = primary_price
@@ -260,11 +265,15 @@ def product_detail(product_id):
             continue
 
         # Find primary supplier original price for the material
-        primary_price_original = material.cost_per_unit  # default fallback
+        primary_price_original = 0  # default if no suppliers
         for link in material.supplier_links:
             if link.is_primary:
                 primary_price_original = link.cost_per_unit
                 break
+
+        # If no primary, use first supplier
+        if primary_price_original == 0 and material.supplier_links:
+            primary_price_original = material.supplier_links[0].cost_per_unit
 
         # Get discounted price using helper
         primary_price_discounted = get_primary_supplier_discounted_price(material)
@@ -276,21 +285,6 @@ def product_detail(product_id):
             'price_per_unit_original': primary_price_original,  # Add original price
             'price_per_recipe': component.quantity * primary_price_discounted,
             'price_per_product': (component.quantity * primary_price_discounted) / product.products_per_recipe if product.products_per_recipe > 0 else 0
-        })
-
-    # Retrieve labor costs
-    labor_costs = []
-    for component in ProductComponent.query.filter_by(product_id=product_id, component_type='labor'):
-        labor = Labor.query.get(component.component_id)
-        if not labor:
-            continue
-
-        labor_costs.append({
-            'name': labor.name,
-            'hours': component.quantity,
-            'price_per_hour': labor.total_hourly_rate,
-            'price_per_recipe': component.quantity * labor.total_hourly_rate,
-            'price_per_product': (component.quantity * labor.total_hourly_rate) / product.products_per_recipe if product.products_per_recipe > 0 else 0
         })
 
     # Retrieve packaging costs
@@ -385,7 +379,6 @@ def product_detail(product_id):
         'product_details.html',
         product=product,
         raw_materials=raw_materials,
-        labor_costs=labor_costs,
         packaging_costs=packaging_costs,
         premake_costs=premake_costs,
         preproduct_costs=preproduct_costs
@@ -557,10 +550,15 @@ def edit_product(product_id):
                 primary_supplier_name = link.supplier.name
                 break
 
-        # If no primary supplier, fall back to average (for backward compatibility)
-        if primary_price is None:
-            primary_price = material.cost_per_unit
-            primary_supplier_name = "ממוצע"
+        # If no primary supplier, use first supplier
+        if primary_price is None and material.supplier_links:
+            first_link = material.supplier_links[0]
+            primary_price = first_link.cost_per_unit
+            primary_supplier_name = first_link.supplier.name
+        elif primary_price is None:
+            # No suppliers at all (shouldn't happen)
+            primary_price = 0
+            primary_supplier_name = "לא הוגדר ספק"
 
         # Override the cost_per_unit with primary supplier's price
         material_dict['cost_per_unit'] = primary_price

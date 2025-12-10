@@ -91,9 +91,20 @@ def upload_inventory():
                             if supplier_link:
                                 current_price = supplier_link.cost_per_unit
                             else:
-                                current_price = material.cost_per_unit
+                                # No supplier link found, use first available
+                                if material.supplier_links:
+                                    current_price = material.supplier_links[0].cost_per_unit
+                                else:
+                                    current_price = 0
                         else:
-                            current_price = material.cost_per_unit
+                            # No supplier specified, use primary or first available
+                            primary_link = next((link for link in material.supplier_links if link.is_primary), None)
+                            if primary_link:
+                                current_price = primary_link.cost_per_unit
+                            elif material.supplier_links:
+                                current_price = material.supplier_links[0].cost_per_unit
+                            else:
+                                current_price = 0
 
                         if abs(current_price - price) > 0.01:
                             price_differs = True
@@ -188,8 +199,13 @@ def confirm_inventory_upload():
                 if supplier_link:
                     supplier_link.cost_per_unit = new_price
             elif update_price:
-                # Update general price
-                material.cost_per_unit = new_price
+                # Update primary supplier price if no specific supplier
+                primary_link = next((link for link in material.supplier_links if link.is_primary), None)
+                if primary_link:
+                    primary_link.cost_per_unit = new_price
+                elif material.supplier_links:
+                    # If no primary, update first supplier
+                    material.supplier_links[0].cost_per_unit = new_price
 
             # Add stock log with supplier
             log = StockLog(
