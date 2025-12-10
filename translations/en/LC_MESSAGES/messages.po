@@ -2701,3 +2701,51 @@ msgstr "Profit/Unit"
 
 msgid "Margin %"
 msgstr "Margin %%"
+
+
+# New translations for cost breakdown (2024-12-10)
+msgid "Sold Items Cost (COGS)"
+msgstr "Sold Items Cost (COGS)"
+
+msgid "In Stock Cost"
+msgstr "In Stock Cost"
+
+msgid "In-Stock Analysis"
+msgstr "In-Stock Analysis"
+
+msgid "Unsold Products (In Inventory)"
+msgstr "Unsold Products (In Inventory)"
+
+msgid "Premake Stock Increases"
+msgstr "Premake Stock Increases"
+
+msgid "Total Stock Value"
+msgstr "Total Stock Value"
+
+msgid "Total Unsold Product Value:"
+msgstr "Total Unsold Product Value:"
+
+msgid "Total Premake Stock Value Increase:"
+msgstr "Total Premake Stock Value Increase:"
+
+msgid "No unsold products in inventory"
+msgstr "No unsold products in inventory"
+
+msgid "In Stock Cost represents capital tied up in inventory: unsold products and premakes produced but not yet consumed."
+msgstr "In Stock Cost represents capital tied up in inventory: unsold products and premakes produced but not yet consumed."
+
+msgid "In Stock Cost represents capital tied up in inventory across all weeks: unsold products and premakes produced but not yet consumed."
+msgstr "In Stock Cost represents capital tied up in inventory across all weeks: unsold products and premakes produced but not yet consumed."
+
+msgid "Total Production Cost = COGS + Waste + In Stock"
+msgstr "Total Production Cost = COGS + Waste + In Stock"
+
+msgid "Sold Items Cost = Σ(quantity_sold × cost_per_unit)"
+msgstr "Sold Items Cost = Σ(quantity_sold × cost_per_unit)"
+
+msgid "Waste Cost = Σ(quantity_waste × cost_per_unit)"
+msgstr "Waste Cost = Σ(quantity_waste × cost_per_unit)"
+
+msgid "In Stock Cost = Unsold Products + Premake Stock Increase"
+msgstr "In Stock Cost = Unsold Products + Premake Stock Increase"
+

@@ -55,16 +55,6 @@
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card bg-danger text-white">
-            <div class="card-body">
-                <h6 class="card-title">{{ _('Production Cost') }}</h6>
-                <small class="text-white-50">{{ _('(Products + Premake Inventory)') }}</small>
-                <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(total_production_cost) }}</h3>
-                <small>{{ _('Weekly average:') }} {{ currency_symbol }}{{ "%.2f"|format(avg_weekly_production_cost) }}</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
         <div class="card bg-warning text-white">
             <div class="card-body">
                 <h6 class="card-title">{{ _('Labor Costs') }}</h6>
@@ -79,6 +69,45 @@
                 <h6 class="card-title">{{ _('Net Profit') }}</h6>
                 <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(net_profit) }}</h3>
                 <small>{{ "%.1f"|format((net_profit / total_revenue * 100) if total_revenue > 0 else 0) }}%</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-primary text-white" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ _('Total Production Cost = COGS + Waste + In Stock') }}">
+            <div class="card-body">
+                <h6 class="card-title">{{ _('Total Production Cost') }}</h6>
+                <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(total_inventory_usage) }}</h3>
+                <small>{{ _('Weekly average:') }} {{ currency_symbol }}{{ "%.2f"|format(avg_weekly_production_cost) }}</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cost Breakdown Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-success bg-opacity-75 text-white" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ _('Sold Items Cost = Σ(quantity_sold × cost_per_unit)') }}">
+            <div class="card-body">
+                <h6 class="card-title">{{ _('Sold Items Cost (COGS)') }}</h6>
+                <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(total_cogs) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-warning bg-opacity-75 text-white" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ _('Waste Cost = Σ(quantity_waste × cost_per_unit)') }}">
+            <div class="card-body">
+                <h6 class="card-title">{{ _('Waste Cost') }}</h6>
+                <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(total_waste_cost) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-info bg-opacity-75 text-white" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ _('In Stock Cost = Unsold Products + Premake Stock Increase') }}">
+            <div class="card-body">
+                <h6 class="card-title">{{ _('In Stock Cost') }}</h6>
+                <h3 class="mb-0">{{ currency_symbol }}{{ "%.2f"|format(total_unsold_product_cost + total_premake_stock_value) }}</h3>
+                <small class="d-block">{{ _('Products:') }} {{ currency_symbol }}{{ "%.2f"|format(total_unsold_product_cost) }}</small>
+                <small class="d-block">{{ _('Premakes:') }} {{ currency_symbol }}{{ "%.2f"|format(total_premake_stock_value) }}</small>
             </div>
         </div>
     </div>
@@ -412,6 +441,59 @@
     </div>
 </div>
 
+<!-- In-Stock Analysis -->
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0"><i class="bi bi-box me-2"></i>{{ _('In-Stock Analysis') }}</h5>
+    </div>
+    <div class="card-body">
+        {% if unsold_products %}
+        <h6 class="mb-3">{{ _('Unsold Products (In Inventory)') }}</h6>
+        <div class="table-responsive mb-4">
+            <table class="table table-hover table-sm">
+                <thead class="table-light">
+                    <tr>
+                        <th>{{ _('Product') }}</th>
+                        <th class="text-center">{{ _('Produced') }}</th>
+                        <th class="text-center">{{ _('Sold') }}</th>
+                        <th class="text-center">{{ _('Waste') }}</th>
+                        <th class="text-center">{{ _('In Stock') }}</th>
+                        <th class="text-end">{{ _('Cost per Unit') }}</th>
+                        <th class="text-end">{{ _('Total Stock Value') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in unsold_products %}
+                    <tr>
+                        <td class="fw-medium">{{ item.name }}</td>
+                        <td class="text-center">{{ item.produced|int }}</td>
+                        <td class="text-center">{{ item.sold|int }}</td>
+                        <td class="text-center">{{ item.waste|int }}</td>
+                        <td class="text-center fw-bold text-primary">{{ item.in_stock|int }}</td>
+                        <td class="text-end">{{ currency_symbol }}{{ "%.2f"|format(item.cost_per_unit) }}</td>
+                        <td class="text-end fw-bold text-info">{{ currency_symbol }}{{ "%.2f"|format(item.stock_value) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-light">
+                    <tr>
+                        <th colspan="6" class="text-end">{{ _('Total Unsold Product Value:') }}</th>
+                        <th class="text-end">{{ currency_symbol }}{{ "%.2f"|format(total_unsold_product_cost) }}</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">{{ _('No unsold products in inventory') }}</p>
+        {% endif %}
+
+        <div class="alert alert-info mt-3">
+            <i class="bi bi-info-circle me-2"></i>
+            {{ _('In Stock Cost represents capital tied up in inventory across all weeks: unsold products and premakes produced but not yet consumed.') }}
+        </div>
+    </div>
+</div>
+
 <!-- Monthly Insights -->
 <div class="card">
     <div class="card-header bg-light">
@@ -519,5 +601,15 @@
     }
 }
 </style>
+
+<script>
+// Initialize Bootstrap tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
 
 {% endblock %}

@@ -2696,3 +2696,51 @@ msgstr "רווח ליחידה"
 
 msgid "Margin %"
 msgstr "%% רווח"
+
+
+# New translations for cost breakdown (2024-12-10)
+msgid "Sold Items Cost (COGS)"
+msgstr "עלות פריטים שנמכרו"
+
+msgid "In Stock Cost"
+msgstr "עלות במלאי"
+
+msgid "In-Stock Analysis"
+msgstr "ניתוח מלאי"
+
+msgid "Unsold Products (In Inventory)"
+msgstr "מוצרים שלא נמכרו (במלאי)"
+
+msgid "Premake Stock Increases"
+msgstr "עליות מלאי הכנות"
+
+msgid "Total Stock Value"
+msgstr "ערך מלאי כולל"
+
+msgid "Total Unsold Product Value:"
+msgstr "ערך מוצרים שלא נמכרו:"
+
+msgid "Total Premake Stock Value Increase:"
+msgstr "עליית ערך מלאי הכנות:"
+
+msgid "No unsold products in inventory"
+msgstr "אין מוצרים שלא נמכרו במלאי"
+
+msgid "In Stock Cost represents capital tied up in inventory: unsold products and premakes produced but not yet consumed."
+msgstr "עלות במלאי מייצגת הון קשור במלאי: מוצרים שלא נמכרו והכנות שיוצרו אך טרם נצרכו."
+
+msgid "In Stock Cost represents capital tied up in inventory across all weeks: unsold products and premakes produced but not yet consumed."
+msgstr "עלות במלאי מייצגת הון קשור במלאי בכל השבועות: מוצרים שלא נמכרו והכנות שיוצרו אך טרם נצרכו."
+
+msgid "Total Production Cost = COGS + Waste + In Stock"
+msgstr "עלות ייצור כוללת = עלות מכירות + פסולת + במלאי"
+
+msgid "Sold Items Cost = Σ(quantity_sold × cost_per_unit)"
+msgstr "עלות פריטים שנמכרו = Σ(כמות נמכרה × עלות ליחידה)"
+
+msgid "Waste Cost = Σ(quantity_waste × cost_per_unit)"
+msgstr "עלות פסולת = Σ(כמות פסולת × עלות ליחידה)"
+
+msgid "In Stock Cost = Unsold Products + Premake Stock Increase"
+msgstr "עלות במלאי = מוצרים שלא נמכרו + עליית מלאי הכנות"
+
