@@ -134,12 +134,16 @@ def get_primary_supplier_discounted_price(material):
     Returns:
         Discounted price from primary supplier, or average if no primary
     """
+    print(f"\n>>> get_primary_supplier_discounted_price called for material: {material.name}")
     # Find primary supplier
     for link in material.supplier_links:
+        print(f"    - Checking supplier link: is_primary={link.is_primary}, supplier={link.supplier}")
         if link.is_primary:
+            print(f"    - Found primary supplier, calling apply_supplier_discount")
             return apply_supplier_discount(link.cost_per_unit, link.supplier)
 
     # Fallback to average (no discount applied to average)
+    print(f"    - No primary supplier found, returning average: {material.cost_per_unit}")
     return material.cost_per_unit
 
 def log_audit(action, target_type, target_id=None, details=None):

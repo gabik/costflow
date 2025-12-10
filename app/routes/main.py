@@ -358,6 +358,7 @@ def stock_audits():
 @main_blueprint.route('/api/product_recipe/<int:product_id>')
 def get_product_recipe(product_id):
     """Helper to convert infinity to None for JSON serialization"""
+    print(f"\n\n========== DEBUG: get_product_recipe called for product_id={product_id} ==========\n")
     def safe_float(value):
         import math
         if math.isinf(value):
@@ -379,6 +380,9 @@ def get_product_recipe(product_id):
 
                 # Use total stock across all suppliers
                 stock = calculate_total_material_stock(material.id)
+
+                # Debug material info
+                print(f"\n>>> Processing material: {material.name} (ID: {material.id})")
 
                 # Skip consumption breakdown for unlimited materials
                 if material.is_unlimited:
@@ -577,6 +581,34 @@ def get_product_recipe(product_id):
     })
 
 
+@main_blueprint.route('/api/test_discount')
+def test_discount():
+    """Test endpoint to verify discount is working"""
+    print("\n\n========== TEST DISCOUNT ENDPOINT CALLED ==========")
+    from ..models import Supplier, RawMaterial, RawMaterialSupplier
+
+    # Get a supplier with discount
+    supplier = Supplier.query.filter(Supplier.discount_percentage > 0).first()
+    if supplier:
+        print(f"Found supplier: {supplier.name} with discount: {supplier.discount_percentage}%")
+
+        # Get a material linked to this supplier
+        link = RawMaterialSupplier.query.filter_by(supplier_id=supplier.id).first()
+        if link:
+            print(f"Testing apply_supplier_discount with cost={link.cost_per_unit}")
+            discounted = apply_supplier_discount(link.cost_per_unit, supplier)
+            print(f"Result: {discounted}")
+
+            return jsonify({
+                'supplier': supplier.name,
+                'discount_percentage': supplier.discount_percentage,
+                'original_cost': link.cost_per_unit,
+                'discounted_cost': discounted,
+                'debug': 'Check server console for debug output'
+            })
+
+    return jsonify({'error': 'No supplier with discount found'})
+
 @main_blueprint.route('/api/premake_recipe/<int:premake_id>')
 def get_premake_recipe(premake_id):
     """API endpoint to get premake recipe with consumption breakdown"""
@@ -601,6 +633,9 @@ def get_premake_recipe(premake_id):
 
                 # Use total stock across all suppliers
                 stock = calculate_total_material_stock(material.id)
+
+                # Debug material info
+                print(f"\n>>> Processing material: {material.name} (ID: {material.id})")
 
                 # Skip consumption breakdown for unlimited materials
                 if material.is_unlimited:
