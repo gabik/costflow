@@ -23,6 +23,18 @@ class StockLog(db.Model):
     packaging = db.relationship('Packaging', backref='stock_logs')
     supplier = db.relationship('Supplier', backref='stock_logs')
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'raw_material_id': self.raw_material_id,
+            'product_id': self.product_id,
+            'packaging_id': self.packaging_id,
+            'supplier_id': self.supplier_id,
+            'action_type': self.action_type,
+            'quantity': self.quantity,
+            'timestamp': self.timestamp.isoformat() if self.timestamp else None
+        }
+
 class ProductionLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=True)
@@ -37,6 +49,18 @@ class ProductionLog(db.Model):
 
     # Relationships
     product = db.relationship('Product', backref='production_logs')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'product_id': self.product_id,
+            'quantity_produced': self.quantity_produced,
+            'timestamp': self.timestamp.isoformat() if self.timestamp else None,
+            'is_carryover': self.is_carryover,
+            'total_cost': self.total_cost,
+            'cost_per_unit': self.cost_per_unit,
+            'cost_details': self.cost_details
+        }
 
 class RawMaterial(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -96,6 +120,8 @@ class RawMaterial(db.Model):
             'name': self.name,
             'category_id': self.category_id,
             'unit': self.unit,
+            'is_unlimited': self.is_unlimited,
+            'is_deleted': self.is_deleted,
             'suppliers': [link.to_dict() for link in self.supplier_links] if hasattr(self, 'supplier_links') else []
         }
 
@@ -110,6 +136,14 @@ class RawMaterialAlternativeName(db.Model):
 
     # Relationship
     raw_material = db.relationship('RawMaterial', backref=db.backref('alternative_names', lazy=True, cascade='all, delete-orphan'))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'raw_material_id': self.raw_material_id,
+            'alternative_name': self.alternative_name,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
 
 
 class Labor(db.Model):
@@ -304,6 +338,13 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
     type = db.Column(db.String(20), nullable=False, default='raw_material') # 'raw_material', 'product', 'premake'
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'type': self.type
+        }
 
 class WeeklyLaborCost(db.Model):
     id = db.Column(db.Integer, primary_key=True)
