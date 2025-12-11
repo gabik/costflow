@@ -307,6 +307,61 @@ def weekly_report():
             stock_value_increase = stock_change * cost_per_unit
             total_premake_stock_value_increase += stock_value_increase
 
+    # ---------------------------------------------------
+    # Packaging Usage Analysis (Based on Sales)
+    # ---------------------------------------------------
+    packaging_usage_data = []
+    from ..models import Packaging, ProductComponent
+
+    # Calculate packaging used based on products sold
+    packaging_usage = {}
+    for sale in week_sales:
+        if sale.quantity_sold > 0:
+            product = sale.product
+            if not product:
+                continue
+
+            # Get packaging components for this product
+            packaging_components = ProductComponent.query.filter_by(
+                product_id=product.id,
+                component_type='packaging'
+            ).all()
+
+            for component in packaging_components:
+                # Calculate packaging used for sold quantity
+                recipes_sold = sale.quantity_sold / product.products_per_recipe if product.products_per_recipe > 0 else 0
+                packaging_used = component.quantity * recipes_sold
+
+                if packaging_used > 0:
+                    if component.component_id not in packaging_usage:
+                        packaging_usage[component.component_id] = 0
+                    packaging_usage[component.component_id] += packaging_used
+
+    # Create report data for each packaging item used
+    all_packaging = Packaging.query.all()
+    for packaging in all_packaging:
+        used = packaging_usage.get(packaging.id, 0)
+
+        if used > 0:
+            # Calculate cost
+            cost_per_unit = packaging.price_per_unit
+            total_cost = used * cost_per_unit
+
+            packaging_usage_data.append({
+                'name': packaging.name,
+                'quantity_per_package': packaging.quantity_per_package,
+                'units_used': used,
+                'containers_used': used / packaging.quantity_per_package if packaging.quantity_per_package > 0 else 0,
+                'cost_per_unit': cost_per_unit,
+                'total_cost': total_cost
+            })
+
+    # Sort by total cost descending
+    packaging_usage_data.sort(key=lambda x: x['total_cost'], reverse=True)
+
+    # Calculate total packaging cost
+    total_packaging_usage_cost = sum(p['total_cost'] for p in packaging_usage_data)
+
     # Get stock audits for the week
     stock_audits = StockAudit.query.filter(
         and_(
@@ -520,6 +575,9 @@ def weekly_report():
                          # Packaging inventory
                          packaging_inventory_data=packaging_inventory_data,
                          total_packaging_stock_value=total_packaging_stock_value,
+                         # Packaging usage (new)
+                         packaging_usage_data=packaging_usage_data,
+                         total_packaging_usage_cost=total_packaging_usage_cost,
                          no_data=False)
 
 # Monthly Report - Aggregating Weekly Reports

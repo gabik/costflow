@@ -178,9 +178,11 @@
                     <div class="mb-3">
                         <label for="quantity" class="form-label">
                             <span id="quantityLabel">{{ _('Quantity') }}</span>
+                            <span id="containerInfo" class="text-muted"></span>
                         </label>
-                        <input type="number" class="form-control" id="quantity" name="quantity" step="0.01" required>
+                        <input type="number" class="form-control" id="quantity" name="quantity" step="0.01" required oninput="updateTotalUnits()">
                         <small class="text-muted" id="actionHelp"></small>
+                        <div id="totalUnitsDisplay" class="mt-2 fw-bold text-primary"></div>
                     </div>
 
                     <div class="mb-3" id="auditorNameField" style="display: none;">
@@ -209,6 +211,8 @@ function openStockModalFromButton(button) {
     openStockModal(packagingId, packagingName, actionType);
 }
 
+let currentPackagingData = null;
+
 function openStockModal(packagingId, packagingName, actionType) {
     document.getElementById('packaging_id').value = packagingId;
     document.getElementById('packaging_name').value = packagingName;
@@ -216,6 +220,7 @@ function openStockModal(packagingId, packagingName, actionType) {
 
     // Find packaging info
     const packaging = packagingData.find(p => p.id == packagingId);
+    currentPackagingData = packaging;  // Store for unit calculation
 
     // Populate supplier dropdown
     const supplierSelect = document.getElementById('supplier_id');
@@ -237,23 +242,42 @@ function openStockModal(packagingId, packagingName, actionType) {
         document.getElementById('supplierField').style.display = 'none';
     }
 
+    // Show container info
+    if (packaging) {
+        const containerInfo = document.getElementById('containerInfo');
+        containerInfo.textContent = `({{ _('Containers of') }} ${packaging.quantity_per_package} {{ _('units each') }})`;
+    }
+
     if (actionType === 'add') {
         document.getElementById('stockModalTitle').textContent = '{{ _("Add Stock") }}';
-        document.getElementById('quantityLabel').textContent = '{{ _("Quantity to Add") }}';
-        document.getElementById('actionHelp').textContent = '{{ _("This amount will be added to current stock") }}';
+        document.getElementById('quantityLabel').textContent = '{{ _("Containers to Add") }}';
+        document.getElementById('actionHelp').textContent = '{{ _("Enter number of containers to add to current stock") }}';
         document.getElementById('auditorNameField').style.display = 'none';
     } else {
         document.getElementById('stockModalTitle').textContent = '{{ _("Set Stock") }}';
-        document.getElementById('quantityLabel').textContent = '{{ _("New Stock Level") }}';
-        document.getElementById('actionHelp').textContent = '{{ _("Stock will be set to this exact amount") }}';
+        document.getElementById('quantityLabel').textContent = '{{ _("New Stock Level (Containers)") }}';
+        document.getElementById('actionHelp').textContent = '{{ _("Enter total number of containers for new stock level") }}';
         document.getElementById('auditorNameField').style.display = 'block';
     }
 
     document.getElementById('quantity').value = '';
     document.getElementById('auditor_name').value = '';
+    document.getElementById('totalUnitsDisplay').textContent = '';
 
     const modal = new bootstrap.Modal(document.getElementById('stockModal'));
     modal.show();
+}
+
+function updateTotalUnits() {
+    const quantity = parseFloat(document.getElementById('quantity').value) || 0;
+    const totalUnitsDiv = document.getElementById('totalUnitsDisplay');
+
+    if (currentPackagingData && quantity > 0) {
+        const totalUnits = quantity * currentPackagingData.quantity_per_package;
+        totalUnitsDiv.textContent = `{{ _('Total Units:') }} ${totalUnits.toFixed(0)}`;
+    } else {
+        totalUnitsDiv.textContent = '';
+    }
 }
 
 function updateStock() {

@@ -87,18 +87,18 @@ def production():
                     # Calculate packaging cost and deduct stock
                     required_qty = component.quantity * quantity_produced
 
-                    # Check and deduct packaging stock
-                    from .utils import calculate_packaging_stock, deduct_packaging_stock
-                    available_stock = calculate_packaging_stock(component.component_id)
-                    if available_stock < required_qty:
-                        raise InsufficientStockError(
-                            f"אין מספיק מלאי עבור אריזה {component.packaging.name}. "
-                            f"נדרש: {required_qty:.2f}, זמין: {available_stock:.2f}"
-                        )
+                    # REMOVED: Packaging stock is now deducted during sales, not production
+                    # Previously checked and deducted packaging stock here
+                    # from .utils import calculate_packaging_stock, deduct_packaging_stock
+                    # available_stock = calculate_packaging_stock(component.component_id)
+                    # if available_stock < required_qty:
+                    #     raise InsufficientStockError(
+                    #         f"אין מספיק מלאי עבור אריזה {component.packaging.name}. "
+                    #         f"נדרש: {required_qty:.2f}, זמין: {available_stock:.2f}"
+                    #     )
+                    # deduct_packaging_stock(component.component_id, required_qty)
 
-                    # Deduct the packaging stock
-                    deduct_packaging_stock(component.component_id, required_qty)
-
+                    # Still calculate packaging cost for production logs
                     packaging_cost = component.packaging.price_per_unit * required_qty
                     total_production_cost += packaging_cost
 
@@ -232,18 +232,18 @@ def premake_production():
                     # Calculate packaging cost and deduct stock
                     required_qty = component.quantity * quantity_batches
 
-                    # Check and deduct packaging stock
-                    from .utils import calculate_packaging_stock, deduct_packaging_stock
-                    available_stock = calculate_packaging_stock(component.component_id)
-                    if available_stock < required_qty:
-                        raise InsufficientStockError(
-                            f"אין מספיק מלאי עבור אריזה {component.packaging.name}. "
-                            f"נדרש: {required_qty:.2f}, זמין: {available_stock:.2f}"
-                        )
+                    # REMOVED: Packaging stock is now deducted during sales, not production
+                    # Previously checked and deducted packaging stock here
+                    # from .utils import calculate_packaging_stock, deduct_packaging_stock
+                    # available_stock = calculate_packaging_stock(component.component_id)
+                    # if available_stock < required_qty:
+                    #     raise InsufficientStockError(
+                    #         f"אין מספיק מלאי עבור אריזה {component.packaging.name}. "
+                    #         f"נדרש: {required_qty:.2f}, זמין: {available_stock:.2f}"
+                    #     )
+                    # deduct_packaging_stock(component.component_id, required_qty)
 
-                    # Deduct the packaging stock
-                    deduct_packaging_stock(component.component_id, required_qty)
-
+                    # Still calculate packaging cost for production logs
                     packaging_cost = component.packaging.price_per_unit * required_qty
                     total_production_cost += packaging_cost
 

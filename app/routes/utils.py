@@ -894,6 +894,45 @@ def deduct_packaging_stock_from_supplier(packaging_id, supplier_id, quantity_nee
 
     return quantity_to_deduct
 
+def deduct_packaging_for_sales(product_id, quantity_sold):
+    """
+    Deduct packaging stock based on products sold.
+    Called during week closing when sales are recorded.
+    Returns list of (packaging_id, quantity_deducted) tuples.
+    """
+    from ..models import db, Product, ProductComponent
+
+    product = Product.query.get(product_id)
+    if not product:
+        return []
+
+    deductions = []
+
+    # Get all packaging components for this product
+    packaging_components = ProductComponent.query.filter_by(
+        product_id=product_id,
+        component_type='packaging'
+    ).all()
+
+    for component in packaging_components:
+        # Calculate packaging needed for sold quantity
+        # quantity_sold is in units, component.quantity is per recipe
+        recipes_sold = quantity_sold / product.products_per_recipe if product.products_per_recipe > 0 else 0
+        packaging_needed = component.quantity * recipes_sold
+
+        if packaging_needed > 0:
+            try:
+                # Use existing deduction function
+                deduct_packaging_stock(component.component_id, packaging_needed)
+                deductions.append((component.component_id, packaging_needed))
+            except Exception as e:
+                # Log warning but don't fail the sale
+                from flask_babel import gettext as _
+                log_audit("WARNING", "Packaging", component.component_id,
+                         f"Failed to deduct packaging during sale: {str(e)}")
+
+    return deductions
+
 def calculate_100g_cost(product):
     """
     Calculate cost per 100g for a product or premake.

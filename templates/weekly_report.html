@@ -487,6 +487,47 @@
 </div>
 {% endif %}
 
+<!-- Packaging Usage (Based on Sales) -->
+{% if packaging_usage_data %}
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0"><i class="bi bi-box-seam me-2"></i>{{ _('Packaging Usage (From Sales)') }}</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>{{ _('Packaging Name') }}</th>
+                        <th class="text-center">{{ _('Units Used') }}</th>
+                        <th class="text-center">{{ _('Containers Used') }}</th>
+                        <th class="text-center">{{ _('Units per Container') }}</th>
+                        <th class="text-center">{{ _('Cost per Unit') }}</th>
+                        <th class="text-center">{{ _('Total Cost') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in packaging_usage_data %}
+                    <tr>
+                        <td class="fw-medium">{{ item.name }}</td>
+                        <td class="text-center">{{ "%.0f" | format(item.units_used) }}</td>
+                        <td class="text-center">{{ "%.1f" | format(item.containers_used) }}</td>
+                        <td class="text-center text-muted">{{ item.quantity_per_package }}</td>
+                        <td class="text-center text-muted">{{ currency_symbol }}{{ "%.3f" | format(item.cost_per_unit) }}</td>
+                        <td class="text-center fw-bold">{{ currency_symbol }}{{ "%.2f" | format(item.total_cost) }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="table-light">
+                        <td colspan="5" class="text-end fw-bold">{{ _('Total Packaging Cost:') }}</td>
+                        <td class="text-center fw-bold text-primary">{{ currency_symbol }}{{ "%.2f" | format(total_packaging_usage_cost) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- Labor Breakdown -->
 {% if labor_entries %}
 <div class="card mb-4">

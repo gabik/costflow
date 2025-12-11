@@ -405,17 +405,27 @@ def update_weekly_sales(week_id):
                 sale = WeeklyProductSales.query.filter_by(weekly_cost_id=week.id, product_id=product.id).first()
                 
                 if sale:
+                    # Deduct packaging for newly sold quantity
+                    if new_sold > 0:
+                        from .utils import deduct_packaging_for_sales
+                        deduct_packaging_for_sales(product.id, new_sold)
+
                     sale.quantity_sold += new_sold
                     sale.quantity_waste += new_waste
                 else:
                     sale = WeeklyProductSales(
-                        weekly_cost_id=week.id, 
-                        product_id=product.id, 
+                        weekly_cost_id=week.id,
+                        product_id=product.id,
                         quantity_sold=new_sold,
                         quantity_waste=new_waste
                     )
                     db.session.add(sale)
-        
+
+                    # Deduct packaging for newly sold quantity
+                    if new_sold > 0:
+                        from .utils import deduct_packaging_for_sales
+                        deduct_packaging_for_sales(product.id, new_sold)
+
         db.session.commit()
         log_audit("UPDATE", "WeeklySales", week.id, f"Added sales/waste for week {week.week_start_date}")
         return redirect(url_for('main.index', week_id=week.id))

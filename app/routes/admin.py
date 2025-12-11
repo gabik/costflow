@@ -204,5 +204,109 @@ def reset_db():
         return f"Reset failed: {e}", 500
 
 
+@admin_blueprint.route('/migrate_packaging_stock_units', methods=['GET', 'POST'])
+def migrate_packaging_stock_units():
+    """
+    Migration endpoint to fix existing packaging stock data.
+    Multiplies historical stock quantities by quantity_per_package.
+    This is needed because the old system stored container counts instead of unit counts.
+
+    IMPORTANT: Remove this endpoint after successful migration to prevent accidental re-runs.
+    """
+    from ..models import StockLog, StockAudit
+
+    if request.method == 'GET':
+        # Show migration info page
+        return '''
+        <html>
+        <head>
+            <title>Migrate Packaging Stock Units</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; }
+                .warning { color: red; font-weight: bold; }
+                .info { background: #f0f0f0; padding: 10px; margin: 10px 0; }
+                button { padding: 10px 20px; font-size: 16px; }
+            </style>
+        </head>
+        <body>
+            <h1>Packaging Stock Units Migration</h1>
+            <div class="info">
+                <h2>What this migration does:</h2>
+                <ul>
+                    <li>Converts packaging stock from container counts to unit counts</li>
+                    <li>Multiplies all existing packaging StockLog quantities by quantity_per_package</li>
+                    <li>Updates StockAudit records to reflect correct unit counts</li>
+                    <li>This is a one-time migration for the container quantity feature</li>
+                </ul>
+            </div>
+            <div class="warning">
+                ⚠️ WARNING: This migration should only be run ONCE!<br>
+                Running it multiple times will corrupt the data.
+            </div>
+            <form method="POST" onsubmit="return confirm('Are you sure you want to run this migration? This action cannot be undone.');">
+                <button type="submit">Run Migration</button>
+            </form>
+        </body>
+        </html>
+        '''
+
+    # POST - Run the migration
+    try:
+        # Get all packaging stock logs
+        packaging_logs = StockLog.query.filter(StockLog.packaging_id.isnot(None)).all()
+
+        migrated_count = 0
+        for log in packaging_logs:
+            if log.packaging and log.packaging.quantity_per_package > 1:
+                # Multiply quantity by quantity_per_package
+                old_quantity = log.quantity
+                log.quantity = log.quantity * log.packaging.quantity_per_package
+                migrated_count += 1
+
+                # Log the change
+                log_audit("MIGRATION", "StockLog", log.id,
+                         f"Migrated packaging {log.packaging.name}: {old_quantity} containers -> {log.quantity} units")
+
+        # Update stock audits
+        packaging_audits = StockAudit.query.filter(StockAudit.packaging_id.isnot(None)).all()
+
+        audit_count = 0
+        for audit in packaging_audits:
+            if audit.packaging and audit.packaging.quantity_per_package > 1:
+                # Multiply quantities by quantity_per_package
+                audit.system_quantity = audit.system_quantity * audit.packaging.quantity_per_package
+                audit.physical_quantity = audit.physical_quantity * audit.packaging.quantity_per_package
+                audit.variance = audit.variance * audit.packaging.quantity_per_package
+                audit_count += 1
+
+        db.session.commit()
+
+        log_audit("MIGRATION_COMPLETE", "System", None,
+                 f"Packaging units migration completed: {migrated_count} stock logs and {audit_count} audits updated")
+
+        return f'''
+        <html>
+        <head>
+            <title>Migration Complete</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 40px; }}
+                .success {{ color: green; font-weight: bold; }}
+            </style>
+        </head>
+        <body>
+            <h1 class="success">Migration Completed Successfully!</h1>
+            <p>Migrated {migrated_count} stock log entries and {audit_count} audit entries.</p>
+            <p>Packaging stock now correctly reflects unit counts instead of container counts.</p>
+            <a href="/">Return to Dashboard</a>
+        </body>
+        </html>
+        '''
+
+    except Exception as e:
+        db.session.rollback()
+        log_audit("MIGRATION_ERROR", "System", None, f"Packaging units migration failed: {str(e)}")
+        return f"Migration failed: {e}", 500
+
+
 
 

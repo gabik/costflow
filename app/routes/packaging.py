@@ -293,15 +293,18 @@ def update_packaging_stock():
     packaging_id = request.form.get('packaging_id', type=int)
     supplier_id = request.form.get('supplier_id', type=int)
     action_type = request.form.get('action_type')  # 'add' or 'set'
-    quantity = request.form.get('quantity', type=float)
+    containers = request.form.get('quantity', type=float)  # User enters containers
     auditor_name = request.form.get('auditor_name', '')  # Optional for 'set' actions
 
-    if not packaging_id or not action_type or quantity is None:
+    if not packaging_id or not action_type or containers is None:
         return jsonify({'success': False, 'error': _('Missing required fields')}), 400
 
     packaging = Packaging.query.get(packaging_id)
     if not packaging:
         return jsonify({'success': False, 'error': _('Packaging not found')}), 404
+
+    # Convert containers to units
+    quantity = containers * packaging.quantity_per_package
 
     # If no supplier specified, try to get primary supplier
     if not supplier_id:
@@ -358,7 +361,7 @@ def update_packaging_stock():
 
         supplier_info = f" (Supplier: {supplier_id})" if supplier_id else ""
         log_audit("STOCK_AUDIT", "Packaging", packaging_id,
-                 f"Physical count: {quantity}, System: {system_stock:.2f}, Variance: {variance:.2f} (Cost: {variance_cost:.2f}){supplier_info}")
+                 f"Physical count: {containers:.1f} containers ({quantity:.0f} units), System: {system_stock:.2f}, Variance: {variance:.2f} (Cost: {variance_cost:.2f}){supplier_info}")
     else:
         # For 'add' action, just create the stock log
         stock_log = StockLog(
@@ -370,7 +373,7 @@ def update_packaging_stock():
         )
         db.session.add(stock_log)
         supplier_info = f" (Supplier: {supplier_id})" if supplier_id else ""
-        log_audit("UPDATE_STOCK", "Packaging", packaging_id, f"{action_type} {quantity}{supplier_info}")
+        log_audit("UPDATE_STOCK", "Packaging", packaging_id, f"{action_type} {containers:.1f} containers ({quantity:.0f} units){supplier_info}")
 
     db.session.commit()
 
