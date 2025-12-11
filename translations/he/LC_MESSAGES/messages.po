@@ -2732,6 +2732,33 @@ msgstr "עלות במלאי מייצגת הון קשור במלאי: מוצרי�
 msgid "In Stock Cost represents capital tied up in inventory across all weeks: unsold products and premakes produced but not yet consumed."
 msgstr "עלות במלאי מייצגת הון קשור במלאי בכל השבועות: מוצרים שלא נמכרו והכנות שיוצרו אך טרם נצרכו."
 
+msgid "Packaging inventory is tracked separately and deducted during production. Stock values represent current inventory investment."
+msgstr "מלאי אריזות נספר בנפרד ומנוכה במהלך הייצור. ערכי המלאי מייצגים השקעה במלאי נוכחי."
+
+msgid "Total Packaging Stock Value:"
+msgstr "סך שווי מלאי אריזות:"
+
+msgid "Stock Value"
+msgstr "שווי מלאי"
+
+msgid "Ending Stock"
+msgstr "מלאי סופי"
+
+msgid "Usage"
+msgstr "שימוש"
+
+msgid "Beginning Stock"
+msgstr "מלאי פתיחה"
+
+msgid "Packaging Item"
+msgstr "פריט אריזה"
+
+msgid "Packaging Inventory"
+msgstr "מלאי אריזות"
+
+msgid "Products + Premake Inventory"
+msgstr "מלאי מוצרים והכנות"
+
 msgid "Total Production Cost = COGS + Waste + In Stock"
 msgstr "עלות ייצור כוללת = עלות מכירות + פסולת + במלאי"
 
