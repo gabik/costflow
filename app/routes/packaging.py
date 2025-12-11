@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify
 from flask_babel import gettext as _
-from ..models import db, Packaging, StockLog
-from .utils import calculate_packaging_stock
+from ..models import db, Packaging, StockLog, StockAudit
+from .utils import calculate_packaging_stock, log_audit
 
 packaging_blueprint = Blueprint('packaging', __name__)
 
@@ -68,12 +68,13 @@ def delete_packaging(packaging_id):
 # ----------------------------
 @packaging_blueprint.route('/packaging/update_stock', methods=['POST'])
 def update_packaging_stock():
-    """Update packaging stock (add or set)"""
+    """Update packaging stock (add or set) and create audit records for 'set' actions"""
     from datetime import datetime
 
     packaging_id = request.form.get('packaging_id', type=int)
     action_type = request.form.get('action_type')  # 'add' or 'set'
     quantity = request.form.get('quantity', type=float)
+    auditor_name = request.form.get('auditor_name', '')  # Optional for 'set' actions
 
     if not packaging_id or not action_type or quantity is None:
         return jsonify({'success': False, 'error': _('Missing required fields')}), 400
@@ -82,14 +83,50 @@ def update_packaging_stock():
     if not packaging:
         return jsonify({'success': False, 'error': _('Packaging not found')}), 404
 
-    # Create stock log entry
-    stock_log = StockLog(
-        packaging_id=packaging_id,
-        action_type=action_type,
-        quantity=quantity,
-        timestamp=datetime.utcnow()
-    )
-    db.session.add(stock_log)
+    # If action_type is 'set', calculate current stock and create audit record
+    if action_type == 'set':
+        # Calculate current stock before update
+        system_stock = calculate_packaging_stock(packaging_id)
+
+        # Calculate variance
+        variance = quantity - system_stock
+        variance_cost = variance * packaging.price_per_unit
+
+        # Create the stock log entry
+        stock_log = StockLog(
+            packaging_id=packaging_id,
+            action_type=action_type,
+            quantity=quantity,
+            timestamp=datetime.utcnow()
+        )
+        db.session.add(stock_log)
+        db.session.flush()  # Flush to get the stock_log.id
+
+        # Create stock audit record
+        stock_audit = StockAudit(
+            packaging_id=packaging_id,
+            system_quantity=system_stock,
+            physical_quantity=quantity,
+            variance=variance,
+            variance_cost=variance_cost,
+            auditor_name=auditor_name if auditor_name else None,
+            stock_log_id=stock_log.id
+        )
+        db.session.add(stock_audit)
+
+        log_audit("STOCK_AUDIT", "Packaging", packaging_id,
+                 f"Physical count: {quantity}, System: {system_stock:.2f}, Variance: {variance:.2f} (Cost: {variance_cost:.2f})")
+    else:
+        # For 'add' action, just create the stock log
+        stock_log = StockLog(
+            packaging_id=packaging_id,
+            action_type=action_type,
+            quantity=quantity,
+            timestamp=datetime.utcnow()
+        )
+        db.session.add(stock_log)
+        log_audit("UPDATE_STOCK", "Packaging", packaging_id, f"{action_type} {quantity}")
+
     db.session.commit()
 
     # Calculate new stock

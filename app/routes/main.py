@@ -343,6 +343,20 @@ def stock_audits():
             category_analysis[cat_name]['total_variance'] += audit.variance
             category_analysis[cat_name]['total_variance_cost'] += audit.variance_cost
             category_analysis[cat_name]['materials'].add(audit.raw_material.name)
+        elif audit.packaging:
+            # Handle packaging items
+            cat_name = 'Packaging'
+            if cat_name not in category_analysis:
+                category_analysis[cat_name] = {
+                    'count': 0,
+                    'total_variance': 0,
+                    'total_variance_cost': 0,
+                    'materials': set()
+                }
+            category_analysis[cat_name]['count'] += 1
+            category_analysis[cat_name]['total_variance'] += audit.variance
+            category_analysis[cat_name]['total_variance_cost'] += audit.variance_cost
+            category_analysis[cat_name]['materials'].add(audit.packaging.name)
 
     # Convert sets to lists for template
     for cat in category_analysis.values():

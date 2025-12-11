@@ -53,14 +53,17 @@
     <div class="card-body">
         <form method="GET" action="{{ url_for('main.stock_audits') }}" class="row g-3">
             <div class="col-md-3">
-                <label for="material_id" class="form-label">{{ _('Raw Material') }}</label>
+                <label for="material_id" class="form-label">{{ _('Item') }}</label>
                 <select name="material_id" id="material_id" class="form-select">
-                    <option value="">{{ _('All Materials') }}</option>
-                    {% for material in all_materials %}
-                    <option value="{{ material.id }}" {% if selected_material_id == material.id %}selected{% endif %}>
-                        {{ material.name }}
-                    </option>
-                    {% endfor %}
+                    <option value="">{{ _('All Items') }}</option>
+                    <optgroup label="{{ _('Raw Materials') }}">
+                        {% for material in all_materials %}
+                        <option value="{{ material.id }}" {% if selected_material_id == material.id %}selected{% endif %}>
+                            {{ material.name }}
+                        </option>
+                        {% endfor %}
+                    </optgroup>
+                    <!-- Note: Packaging items not in filter yet, all packaging audits will show when "All Items" selected -->
                 </select>
             </div>
             <div class="col-md-3">
@@ -95,7 +98,7 @@
                 <thead class="table-light">
                     <tr>
                         <th>{{ _('Date') }}</th>
-                        <th>{{ _('Raw Material') }}</th>
+                        <th>{{ _('Item') }}</th>
                         <th>{{ _('Category') }}</th>
                         <th>{{ _('System Quantity') }}</th>
                         <th>{{ _('Physical Quantity') }}</th>
@@ -108,10 +111,24 @@
                     {% for audit in audits %}
                     <tr>
                         <td>{{ audit.audit_date.strftime('%d/%m/%Y %H:%M') }}</td>
-                        <td class="fw-medium">{{ audit.raw_material.name if audit.raw_material else _('Unknown') }}</td>
+                        <td class="fw-medium">
+                            {% if audit.raw_material %}
+                                {{ audit.raw_material.name }}
+                            {% elif audit.packaging %}
+                                {{ audit.packaging.name }}
+                            {% else %}
+                                {{ _('Unknown') }}
+                            {% endif %}
+                        </td>
                         <td>
                             <span class="badge bg-light text-dark border">
-                                {{ audit.raw_material.category.name if audit.raw_material and audit.raw_material.category else _('None') }}
+                                {% if audit.raw_material and audit.raw_material.category %}
+                                    {{ audit.raw_material.category.name }}
+                                {% elif audit.packaging %}
+                                    {{ _('Packaging') }}
+                                {% else %}
+                                    {{ _('None') }}
+                                {% endif %}
                             </span>
                         </td>
                         <td>{{ "%.1f"|format(audit.system_quantity) }}</td>
@@ -185,7 +202,7 @@
     <div class="col-md-6">
         <div class="card mb-4">
             <div class="card-header bg-light">
-                <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>{{ _('Materials with High Discrepancies') }}</h5>
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>{{ _('Items with High Discrepancies') }}</h5>
             </div>
             <div class="card-body">
                 {% if top_discrepancies %}
@@ -193,7 +210,7 @@
                     <table class="table table-sm">
                         <thead>
                             <tr>
-                                <th>{{ _('Raw Material') }}</th>
+                                <th>{{ _('Item') }}</th>
                                 <th>{{ _('Counts') }}</th>
                                 <th>{{ _('Total Variance') }}</th>
                                 <th>{{ _('Financial Value') }}</th>
@@ -242,7 +259,7 @@
                 {% set worst = top_discrepancies[0] %}
                 <li class="mb-2">
                     <i class="bi bi-x-octagon text-warning me-2"></i>
-                    {{ _('Material with highest discrepancies:') }} <strong>{{ worst[0] }}</strong>
+                    {{ _('Item with highest discrepancies:') }} <strong>{{ worst[0] }}</strong>
                     ({{ currency_symbol }}{{ "%.2f"|format(-worst[1].total_cost if worst[1].total_cost < 0 else worst[1].total_cost) }})
                 </li>
             {% endif %}

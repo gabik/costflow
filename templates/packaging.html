@@ -91,6 +91,12 @@
                         <input type="number" class="form-control" id="quantity" name="quantity" step="0.01" required>
                         <small class="text-muted" id="actionHelp"></small>
                     </div>
+
+                    <div class="mb-3" id="auditorNameField" style="display: none;">
+                        <label for="auditor_name" class="form-label">{{ _('Counter Name') }}</label>
+                        <input type="text" class="form-control" id="auditor_name" name="auditor_name"
+                               placeholder="{{ _('Who performed the count?') }}">
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -118,13 +124,16 @@ function openStockModal(packagingId, packagingName, actionType) {
         document.getElementById('stockModalTitle').textContent = '{{ _("Add Stock") }}';
         document.getElementById('quantityLabel').textContent = '{{ _("Quantity to Add") }}';
         document.getElementById('actionHelp').textContent = '{{ _("This amount will be added to current stock") }}';
+        document.getElementById('auditorNameField').style.display = 'none';
     } else {
         document.getElementById('stockModalTitle').textContent = '{{ _("Set Stock") }}';
         document.getElementById('quantityLabel').textContent = '{{ _("New Stock Level") }}';
         document.getElementById('actionHelp').textContent = '{{ _("Stock will be set to this exact amount") }}';
+        document.getElementById('auditorNameField').style.display = 'block';
     }
 
     document.getElementById('quantity').value = '';
+    document.getElementById('auditor_name').value = '';
 
     const modal = new bootstrap.Modal(document.getElementById('stockModal'));
     modal.show();
@@ -146,8 +155,7 @@ function updateStock() {
             const modal = bootstrap.Modal.getInstance(document.getElementById('stockModal'));
             modal.hide();
 
-            // Show success message (optional - could add a toast notification here)
-            alert(data.message || '{{ _("Stock updated successfully") }}');
+            // No alert - modal closes silently on success
         } else {
             alert(data.error || '{{ _("Error updating stock") }}');
         }
