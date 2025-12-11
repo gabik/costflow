@@ -387,9 +387,19 @@ function updateProductionDetails() {
             }
 
             const tr = document.createElement('tr');
+            let typeDisplay;
+            if (comp.type === 'Raw Material') {
+                typeDisplay = '{{ _("Raw Material") }}';
+            } else if (comp.type === 'Preproduct') {
+                typeDisplay = '{{ _("Preproduct") }}';
+            } else if (comp.type === 'Packaging') {
+                typeDisplay = '{{ _("Packaging") }}';
+            } else {
+                typeDisplay = '{{ _("Premake") }}';
+            }
             tr.innerHTML = `
                 <td>${nameDisplay}</td>
-                <td>${comp.type === 'Raw Material' ? '{{ _("Raw Material") }}' : (comp.type === 'Preproduct' ? '{{ _("Preproduct") }}' : '{{ _("Premake") }}')}</td>
+                <td>${typeDisplay}</td>
                 <td>${currentStockDisplay}</td>
                 <td class="fw-bold">${usage.toFixed(2)} ${comp.unit}</td>
                 <td class="${!isUnlimited && stockAfter < 0 ? 'text-danger fw-bold' : ''}">${stockAfterDisplay}</td>
