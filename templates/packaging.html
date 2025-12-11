@@ -39,10 +39,10 @@
                 </td>
                 <td class="text-end">
                     <div class="btn-group">
-                        <button onclick="openStockModal({{ packaging.id }}, {{ packaging.name|tojson }}, 'add')" class="btn btn-sm btn-outline-success" title="{{ _('Add Stock') }}">
+                        <button data-packaging-id="{{ packaging.id }}" data-packaging-name="{{ packaging.name }}" data-action="add" onclick="openStockModalFromButton(this)" class="btn btn-sm btn-outline-success" title="{{ _('Add Stock') }}">
                             <i class="bi bi-plus-circle"></i>
                         </button>
-                        <button onclick="openStockModal({{ packaging.id }}, {{ packaging.name|tojson }}, 'set')" class="btn btn-sm btn-outline-info" title="{{ _('Set Stock') }}">
+                        <button data-packaging-id="{{ packaging.id }}" data-packaging-name="{{ packaging.name }}" data-action="set" onclick="openStockModalFromButton(this)" class="btn btn-sm btn-outline-info" title="{{ _('Set Stock') }}">
                             <i class="bi bi-arrow-repeat"></i>
                         </button>
                         <a href="{{ url_for('packaging.edit_packaging', packaging_id=packaging.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('Edit') }}">
@@ -102,6 +102,13 @@
 </div>
 
 <script>
+function openStockModalFromButton(button) {
+    const packagingId = button.getAttribute('data-packaging-id');
+    const packagingName = button.getAttribute('data-packaging-name');
+    const actionType = button.getAttribute('data-action');
+    openStockModal(packagingId, packagingName, actionType);
+}
+
 function openStockModal(packagingId, packagingName, actionType) {
     document.getElementById('packaging_id').value = packagingId;
     document.getElementById('packaging_name').value = packagingName;
