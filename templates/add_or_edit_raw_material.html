@@ -350,7 +350,7 @@
         {% endfor %}
     {% endif %}
 
-    function addSupplierRow(supplierId = '', sku = '', cost = '', isPrimary = false, currentStock = null, isExisting = false) {
+    function addSupplierRow(supplierId = '', sku = '', cost = '', isPrimary = false, currentStock = null, isExisting = false, discountedCost = null, discountPercentage = null) {
         const template = document.getElementById('supplierRowTemplate');
         const container = document.getElementById('suppliersContainer');
         const clone = template.content.cloneNode(true);
@@ -379,19 +379,44 @@
             radio.checked = true;
         }
 
+        const row = clone.querySelector('.supplier-row');
+
+        // If this is an existing supplier with discount, add discount display
+        if (isExisting && discountedCost !== null && discountPercentage > 0 && parseFloat(discountedCost) < parseFloat(cost)) {
+            // Create discount display element
+            const discountCol = document.createElement('div');
+            discountCol.className = 'col-2';
+            discountCol.innerHTML = '<strong class="text-success">₪' + parseFloat(discountedCost).toFixed(2) + '</strong>' +
+                                   '<span class="badge bg-success ms-1">-' + discountPercentage.toFixed(1) + '%</span>';
+
+            // Insert discount column after cost column
+            const costCol = row.querySelector('.cost-col');
+            costCol.parentNode.insertBefore(discountCol, costCol.nextSibling);
+
+            // Add strikethrough to original price if there's a discount
+            const costInput = row.querySelector('.supplier-cost');
+            costInput.parentElement.classList.add('text-muted');
+            costInput.style.textDecoration = 'line-through';
+        }
+
         // If this is an existing supplier with stock info, add stock display
         if (isExisting && currentStock !== null) {
-            const row = clone.querySelector('.supplier-row');
-
             // Create stock display element
             const stockCol = document.createElement('div');
             stockCol.className = 'col-2';
             stockCol.innerHTML = '<span class="badge bg-' + (currentStock > 0 ? 'success' : 'danger') + '">' +
                                 currentStock.toFixed(2) + ' {{ material.unit if material else "" }}</span>';
 
-            // Insert stock column after cost column
+            // Insert stock column after cost column (or after discount column if present)
             const costCol = row.querySelector('.cost-col');
-            costCol.parentNode.insertBefore(stockCol, costCol.nextSibling);
+            const nextCol = costCol.nextSibling;
+            if (nextCol && nextCol.innerHTML && nextCol.innerHTML.includes('badge bg-success')) {
+                // Insert after discount column if it exists
+                nextCol.parentNode.insertBefore(stockCol, nextCol.nextSibling);
+            } else {
+                // Insert after cost column
+                costCol.parentNode.insertBefore(stockCol, costCol.nextSibling);
+            }
         }
 
         container.appendChild(clone);
@@ -622,7 +647,9 @@
                 '{{ link.cost_per_unit }}',
                 {{ 'true' if link.is_primary else 'false' }},
                 {{ link.current_stock if link.current_stock is defined else 'null' }},
-                true  // isExisting = true
+                true,  // isExisting = true
+                {{ link.discounted_cost if link.discounted_cost is defined else 'null' }},  // discountedCost
+                {{ link.discount_percentage if link.discount_percentage is defined else 'null' }}  // discountPercentage
             );
             {% endfor %}
         {% else %}

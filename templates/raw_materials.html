@@ -141,9 +141,34 @@
                     {% if material.stock_breakdown %}
                         {% set primary = material.stock_breakdown|selectattr('is_primary', 'equalto', True)|first %}
                         {% if primary %}
-                            {{ currency_symbol }}{{ "%.2f"|format(primary.cost_per_unit) }}
+                            {% if primary.discounted_cost_per_unit < primary.cost_per_unit %}
+                                <span class="text-muted text-decoration-line-through">
+                                    {{ currency_symbol }}{{ "%.2f"|format(primary.cost_per_unit) }}
+                                </span>
+                                <strong class="text-success">
+                                    {{ currency_symbol }}{{ "%.2f"|format(primary.discounted_cost_per_unit) }}
+                                </strong>
+                                <span class="badge bg-success ms-1">
+                                    -{{ "%.1f"|format(primary.discount_percentage) }}%
+                                </span>
+                            {% else %}
+                                {{ currency_symbol }}{{ "%.2f"|format(primary.cost_per_unit) }}
+                            {% endif %}
                         {% elif material.stock_breakdown[0] %}
-                            {{ currency_symbol }}{{ "%.2f"|format(material.stock_breakdown[0].cost_per_unit) }}
+                            {% set first = material.stock_breakdown[0] %}
+                            {% if first.discounted_cost_per_unit < first.cost_per_unit %}
+                                <span class="text-muted text-decoration-line-through">
+                                    {{ currency_symbol }}{{ "%.2f"|format(first.cost_per_unit) }}
+                                </span>
+                                <strong class="text-success">
+                                    {{ currency_symbol }}{{ "%.2f"|format(first.discounted_cost_per_unit) }}
+                                </strong>
+                                <span class="badge bg-success ms-1">
+                                    -{{ "%.1f"|format(first.discount_percentage) }}%
+                                </span>
+                            {% else %}
+                                {{ currency_symbol }}{{ "%.2f"|format(first.cost_per_unit) }}
+                            {% endif %}
                         {% else %}
                             <span class="text-muted">—</span>
                         {% endif %}
@@ -171,7 +196,14 @@
                                         <span>
                                             {{ item.supplier_name }}{% if item.is_primary %} ({{ _('Primary') }}){% endif %}:
                                         </span>
-                                        <span class='badge bg-{{ 'success' if item.stock > 0 else 'secondary' }} ms-2'>{{ '%.2f'|format(item.stock) }} {{ material.unit }}</span>
+                                        <div>
+                                            {% if item.discounted_cost_per_unit < item.cost_per_unit %}
+                                                <small class='text-success'>{{ currency_symbol }}{{ '%.2f'|format(item.discounted_cost_per_unit) }}</small>
+                                            {% else %}
+                                                <small>{{ currency_symbol }}{{ '%.2f'|format(item.cost_per_unit) }}</small>
+                                            {% endif %}
+                                            <span class='badge bg-{{ 'success' if item.stock > 0 else 'secondary' }} ms-2'>{{ '%.2f'|format(item.stock) }} {{ material.unit }}</span>
+                                        </div>
                                     </div>
                                 {% endfor %}
                                 {% if material.stock_breakdown|length == 0 %}

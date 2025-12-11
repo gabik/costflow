@@ -49,12 +49,18 @@ def raw_materials():
         stock_breakdown = []
         for link in supplier_links:
             stock = calculate_supplier_stock(material.id, link.supplier_id)
+            # Calculate discounted price
+            from .utils import apply_supplier_discount
+            discounted_price = apply_supplier_discount(link.cost_per_unit, link.supplier)
+
             # Include all suppliers (even with 0 stock)
             stock_breakdown.append({
                 'supplier_name': link.supplier.name,
                 'stock': stock,
                 'is_primary': link.is_primary,
-                'cost_per_unit': link.cost_per_unit
+                'cost_per_unit': link.cost_per_unit,
+                'discounted_cost_per_unit': discounted_price,
+                'discount_percentage': link.supplier.discount_percentage
             })
 
         # Sort by primary first, then by stock amount
@@ -416,9 +422,12 @@ def edit_raw_material(material_id):
         raw_material_id=material.id
     ).all()
 
-    # Add current stock for each supplier
+    # Add current stock and discount info for each supplier
+    from .utils import apply_supplier_discount
     for link in material.supplier_links:
         link.current_stock = calculate_supplier_stock(material.id, link.supplier_id)
+        link.discounted_cost = apply_supplier_discount(link.cost_per_unit, link.supplier)
+        link.discount_percentage = link.supplier.discount_percentage
 
     # Also set primary_supplier for backward compatibility
     primary_link = next((link for link in material.supplier_links if link.is_primary), None)
