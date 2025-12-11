@@ -57,7 +57,7 @@ def packaging():
             'current_stock': stock,
             'supplier_count': supplier_count,
             'stock_breakdown': stock_breakdown,
-            'primary_supplier': primary_supplier
+            'primary_supplier': primary_supplier.to_dict() if primary_supplier else None
         })
 
     return render_template('packaging.html', packaging=packaging_with_stock)
