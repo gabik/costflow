@@ -516,11 +516,11 @@ def migrate_packaging_suppliers():
         migration_count = 0
 
         for packaging in packaging_items:
-            # Create PackagingSupplier entry with current price
+            # Create PackagingSupplier entry with default price of 0
             packaging_supplier = PackagingSupplier(
                 packaging_id=packaging.id,
                 supplier_id=1,  # Default supplier
-                price_per_package=packaging.price_per_package,
+                price_per_package=0,  # Default price for migration
                 is_primary=True
             )
             db.session.add(packaging_supplier)

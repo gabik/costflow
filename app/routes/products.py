@@ -294,14 +294,13 @@ def product_detail(product_id):
         if not packaging:
             continue
 
-        price_per_unit = packaging.price_per_package / packaging.quantity_per_package if packaging.quantity_per_package > 0 else 0
         packaging_costs.append({
             'name': packaging.name,
             'quantity': component.quantity,
-            'price_per_package': packaging.price_per_package,
-            'price_per_unit': price_per_unit,
-            'price_per_recipe': component.quantity * price_per_unit,
-            'price_per_product': (component.quantity * price_per_unit) / product.products_per_recipe if product.products_per_recipe > 0 else 0
+            'price_per_package': packaging.price_per_package,  # This is now a computed property
+            'price_per_unit': packaging.price_per_unit,  # Use the property directly
+            'price_per_recipe': component.quantity * packaging.price_per_unit,
+            'price_per_product': (component.quantity * packaging.price_per_unit) / product.products_per_recipe if product.products_per_recipe > 0 else 0
         })
 
     # Retrieve premake costs

@@ -137,17 +137,26 @@ class Packaging(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     quantity_per_package = db.Column(db.Integer, nullable=False)
-    price_per_package = db.Column(db.Float, nullable=False)  # Keep temporarily for migration
 
     @property
     def price_per_unit(self):
-        # Use primary supplier price if supplier links exist
-        if hasattr(self, 'supplier_links') and self.supplier_links:
-            primary_supplier = self.get_primary_supplier_link()
-            if primary_supplier:
-                return primary_supplier.price_per_package / self.quantity_per_package if self.quantity_per_package > 0 else 0
-        # Fallback to old price_per_package field during migration
-        return self.price_per_package / self.quantity_per_package if self.quantity_per_package > 0 else 0
+        # Use primary supplier price
+        primary_link = self.get_primary_supplier_link()
+        if primary_link:
+            # Apply supplier discount if any
+            from .routes.utils import apply_supplier_discount
+            discounted_price = apply_supplier_discount(primary_link.price_per_package, primary_link.supplier)
+            return discounted_price / self.quantity_per_package if self.quantity_per_package > 0 else 0
+        return 0  # No supplier = no price
+
+    @property
+    def price_per_package(self):
+        """Computed property for backward compatibility - returns primary supplier's price"""
+        primary_link = self.get_primary_supplier_link()
+        if primary_link:
+            from .routes.utils import apply_supplier_discount
+            return apply_supplier_discount(primary_link.price_per_package, primary_link.supplier)
+        return 0
 
     def get_primary_supplier_link(self):
         """Get the primary supplier link for this packaging"""

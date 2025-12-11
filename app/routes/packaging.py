@@ -57,7 +57,11 @@ def packaging():
             'current_stock': stock,
             'supplier_count': supplier_count,
             'stock_breakdown': stock_breakdown,
-            'primary_supplier': primary_supplier.to_dict() if primary_supplier else None
+            'primary_supplier': {
+                'id': primary_supplier.id,
+                'name': primary_supplier.name,
+                'discount_percentage': primary_supplier.discount_percentage
+            } if primary_supplier else None
         })
 
     return render_template('packaging.html', packaging=packaging_with_stock)
@@ -74,12 +78,10 @@ def add_packaging():
         supplier_skus = request.form.getlist('supplier_skus[]')
         primary_supplier_value = request.form.get('primary_supplier')
 
-        # Create packaging with default price (will be overridden by supplier price)
-        default_price = float(supplier_prices[0]) if supplier_prices else 0
+        # Create packaging (price comes from suppliers)
         new_packaging = Packaging(
             name=name,
-            quantity_per_package=int(quantity_per_package),
-            price_per_package=default_price  # Keep for backward compatibility
+            quantity_per_package=int(quantity_per_package)
         )
         db.session.add(new_packaging)
         db.session.flush()  # Get ID for supplier links
@@ -119,10 +121,11 @@ def add_packaging():
         if supplier_count == 0:
             default_supplier = Supplier.query.filter_by(id=1).first()
             if default_supplier:
+                # Use a default price of 0 if no suppliers provided
                 supplier_link = PackagingSupplier(
                     packaging_id=new_packaging.id,
                     supplier_id=1,
-                    price_per_package=default_price,
+                    price_per_package=0,
                     is_primary=True
                 )
                 db.session.add(supplier_link)
@@ -224,7 +227,6 @@ def edit_packaging(packaging_id):
 
         # Add new supplier links
         supplier_count = 0
-        default_price = 0
         for i, supplier_id in enumerate(supplier_ids):
             if supplier_id:  # Skip empty selections
                 supplier_count += 1
@@ -236,9 +238,6 @@ def edit_packaging(packaging_id):
                     supplier_price = float(supplier_prices[i]) if supplier_prices[i] else 0
                 except (ValueError, IndexError):
                     supplier_price = 0
-
-                if i == 0:
-                    default_price = supplier_price
 
                 # Get SKU for this supplier (if provided)
                 supplier_sku = supplier_skus[i] if i < len(supplier_skus) and supplier_skus[i] else None
@@ -252,17 +251,15 @@ def edit_packaging(packaging_id):
                 )
                 db.session.add(supplier_link)
 
-        # Update default price for backward compatibility
-        packaging_item.price_per_package = default_price if default_price else packaging_item.price_per_package
-
         # If no suppliers provided, use default supplier (ID=1)
         if supplier_count == 0:
             default_supplier = Supplier.query.filter_by(id=1).first()
             if default_supplier:
+                # Use price of 0 for default supplier if no suppliers specified
                 supplier_link = PackagingSupplier(
                     packaging_id=packaging_id,
                     supplier_id=1,
-                    price_per_package=packaging_item.price_per_package,
+                    price_per_package=0,
                     is_primary=True
                 )
                 db.session.add(supplier_link)
