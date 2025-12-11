@@ -571,6 +571,24 @@ def get_product_recipe(product_id):
                     'is_deficit': needed_quantity > stock
                 })
 
+        elif comp.component_type == 'packaging':
+            # Handle packaging components
+            packaging = comp.packaging
+            if packaging:
+                from .utils import calculate_packaging_stock
+                stock = calculate_packaging_stock(packaging.id)
+                needed_quantity = comp.quantity * quantity_produced
+
+                components_data.append({
+                    'type': 'Packaging',
+                    'name': packaging.name,
+                    'qty_per_batch': comp.quantity,
+                    'unit': 'units',
+                    'current_stock': safe_float(stock),
+                    'cost_per_unit': packaging.price_per_unit,
+                    'is_deficit': needed_quantity > stock
+                })
+
     return jsonify({
         'product_name': product.name,
         'products_per_recipe': product.products_per_recipe,
@@ -755,14 +773,18 @@ def get_premake_recipe(premake_id):
             # Handle packaging components
             packaging = comp.packaging
             if packaging:
+                from .utils import calculate_packaging_stock
+                stock = calculate_packaging_stock(packaging.id)
+                needed_quantity = comp.quantity * quantity_produced
+
                 components_data.append({
                     'type': 'Packaging',
                     'name': packaging.name,
                     'qty_per_batch': comp.quantity,
                     'unit': 'units',
-                    'current_stock': None,  # Packaging doesn't track stock
+                    'current_stock': safe_float(stock),
                     'cost_per_unit': packaging.price_per_unit,
-                    'is_deficit': False
+                    'is_deficit': needed_quantity > stock
                 })
 
     return jsonify({

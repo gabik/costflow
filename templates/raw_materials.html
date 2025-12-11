@@ -49,17 +49,12 @@
 <div class="row mb-4">
     <div class="col-12 d-flex justify-content-between align-items-center">
         <div>
-            <h1 class="display-6 fw-bold text-primary">{{ _('Materials & Packaging Management') }}</h1>
-            <p class="text-secondary">{{ _('Track inventory, costs, and suppliers for all materials.') }}</p>
+            <h1 class="display-6 fw-bold text-primary">{{ _('Raw Materials Management') }}</h1>
+            <p class="text-secondary">{{ _('Track inventory, costs, and suppliers.') }}</p>
         </div>
-        <div>
-            <a href="{{ url_for('raw_materials.add_raw_material') }}" class="btn btn-primary me-2">
-                <i class="bi bi-plus-lg me-2"></i> {{ _('Add Raw Material') }}
-            </a>
-            <a href="{{ url_for('packaging.add_packaging') }}" class="btn btn-success">
-                <i class="bi bi-box-seam me-2"></i> {{ _('Add Packaging') }}
-            </a>
-        </div>
+        <a href="{{ url_for('raw_materials.add_raw_material') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i> {{ _('Add Raw Material') }}
+        </a>
     </div>
 </div>
 
@@ -125,17 +120,9 @@
                     {{ material.name }}
                     {% endif %}
                 </td>
+                <td><span class="badge bg-light text-dark border">{{ material.category.name }}</span></td>
                 <td>
-                    {% if material.item_type == 'packaging' %}
-                        <span class="badge bg-warning text-dark border">{{ _('Packaging') }}</span>
-                    {% else %}
-                        <span class="badge bg-light text-dark border">{{ material.category.name }}</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if material.item_type == 'packaging' %}
-                        <span class="text-muted">—</span>
-                    {% elif material.primary_supplier %}
+                    {% if material.primary_supplier %}
                         <div class="d-flex align-items-center">
                             <span class="text-primary">{{ material.primary_supplier.name }}</span>
                             {% if material.supplier_count > 1 %}
@@ -149,17 +136,9 @@
                         <span class="text-muted">—</span>
                     {% endif %}
                 </td>
+                <td>{{ material.unit }}</td>
                 <td>
-                    {% if material.item_type == 'packaging' %}
-                        {{ _('units') }}
-                    {% else %}
-                        {{ material.unit }}
-                    {% endif %}
-                </td>
-                <td>
-                    {% if material.item_type == 'packaging' %}
-                        {{ currency_symbol }}{{ "%.2f"|format(material.cost_per_unit) }}
-                    {% elif material.stock_breakdown %}
+                    {% if material.stock_breakdown %}
                         {% set primary = material.stock_breakdown|selectattr('is_primary', 'equalto', True)|first %}
                         {% if primary %}
                             {{ currency_symbol }}{{ "%.2f"|format(primary.cost_per_unit) }}
@@ -176,10 +155,6 @@
                     {% if material.is_unlimited %}
                         <span class="badge bg-primary fs-5">∞</span>
                         <small class="text-muted d-block">{{ _('Unlimited') }}</small>
-                    {% elif material.item_type == 'packaging' %}
-                        <span class="fw-bold {{ 'text-danger' if material.current_stock <= 0 else 'text-success' }}">
-                            {{ "%.0f"|format(material.current_stock) }} {{ _('units') }}
-                        </span>
                     {% else %}
                     <span class="fw-bold {{ 'text-danger' if material.current_stock <= 0 else 'text-success' }} stock-popover"
                           role="button"
@@ -213,30 +188,18 @@
                 </td>
                 <td class="text-end">
                     <div class="btn-group" role="group">
-                        {% if material.item_type == 'packaging' %}
-                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addPackagingStockModal" data-id="{{ material.id }}" data-name="{{ material.name }}" title="{{ _('Add Stock') }}">
-                                <i class="bi bi-plus-circle"></i>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#setPackagingStockModal" data-id="{{ material.id }}" data-name="{{ material.name }}" title="{{ _('Update Count') }}">
-                                <i class="bi bi-pencil-square"></i>
-                            </button>
-                            <a href="{{ url_for('packaging.edit_packaging', packaging_id=material.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('Edit Details') }}">
-                                <i class="bi bi-gear"></i>
-                            </a>
-                        {% else %}
-                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addStockModal" data-id="{{ material.id }}" data-name="{{ material.name }}" title="{{ _('Add Stock') }}">
-                                <i class="bi bi-plus-circle"></i>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#setStockModal" data-id="{{ material.id }}" data-name="{{ material.name }}" title="{{ _('Update Count') }}">
-                                <i class="bi bi-pencil-square"></i>
-                            </button>
-                            <a href="{{ url_for('raw_materials.edit_raw_material', material_id=material.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('Edit Details') }}">
-                                <i class="bi bi-gear"></i>
-                            </a>
-                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteMaterialModal" data-id="{{ material.id }}" data-name="{{ material.name }}" title="{{ _('Delete') }}">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        {% endif %}
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addStockModal" data-id="{{ material.id }}" data-name="{{ material.name }}" title="{{ _('Add Stock') }}">
+                            <i class="bi bi-plus-circle"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#setStockModal" data-id="{{ material.id }}" data-name="{{ material.name }}" title="{{ _('Update Count') }}">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <a href="{{ url_for('raw_materials.edit_raw_material', material_id=material.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('Edit Details') }}">
+                            <i class="bi bi-gear"></i>
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteMaterialModal" data-id="{{ material.id }}" data-name="{{ material.name }}" title="{{ _('Delete') }}">
+                            <i class="bi bi-trash"></i>
+                        </button>
                     </div>
                 </td>
             </tr>
@@ -340,60 +303,6 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
                     <button type="submit" class="btn btn-danger">{{ _('Delete') }}</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Add Packaging Stock Modal -->
-<div class="modal fade" id="addPackagingStockModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="POST" action="{{ url_for('packaging.update_packaging_stock') }}">
-                <input type="hidden" id="add_packaging_stock_packaging_id" name="packaging_id">
-                <input type="hidden" name="action_type" value="add">
-                <div class="modal-header">
-                    <h5 class="modal-title">{{ _('Add Packaging Stock') }}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>{{ _('Adding quantity to:') }} <strong id="addPackagingStockName"></strong></p>
-                    <div class="mb-3">
-                        <label for="add_packaging_quantity" class="form-label">{{ _('Quantity (Units)') }}</label>
-                        <input type="number" class="form-control" id="add_packaging_quantity" name="quantity" step="1" min="0" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
-                    <button type="submit" class="btn btn-primary">{{ _('Add Stock') }}</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Set Packaging Stock Modal -->
-<div class="modal fade" id="setPackagingStockModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="POST" action="{{ url_for('packaging.update_packaging_stock') }}">
-                <input type="hidden" id="set_packaging_stock_packaging_id" name="packaging_id">
-                <input type="hidden" name="action_type" value="set">
-                <div class="modal-header">
-                    <h5 class="modal-title">{{ _('Set Packaging Stock') }}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>{{ _('Set stock count for:') }} <strong id="setPackagingStockName"></strong></p>
-                    <div class="mb-3">
-                        <label for="set_packaging_quantity" class="form-label">{{ _('New Stock Level (Units)') }}</label>
-                        <input type="number" class="form-control" id="set_packaging_quantity" name="quantity" step="1" min="0" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
-                    <button type="submit" class="btn btn-primary">{{ _('Update Stock') }}</button>
                 </div>
             </form>
         </div>
@@ -521,38 +430,6 @@
             modalNameDisplay.textContent = materialName;
             form.action = '/raw_materials/delete/' + materialId;
         });
-
-        // Populate Add Packaging Stock Modal
-        var addPackagingStockModal = document.getElementById('addPackagingStockModal');
-        if (addPackagingStockModal) {
-            addPackagingStockModal.addEventListener('show.bs.modal', function (event) {
-                var button = event.relatedTarget;
-                var packagingId = button.getAttribute('data-id');
-                var packagingName = button.getAttribute('data-name');
-
-                var modalIdInput = addPackagingStockModal.querySelector('#add_packaging_stock_packaging_id');
-                var modalNameDisplay = addPackagingStockModal.querySelector('#addPackagingStockName');
-
-                modalIdInput.value = packagingId;
-                modalNameDisplay.textContent = packagingName;
-            });
-        }
-
-        // Populate Set Packaging Stock Modal
-        var setPackagingStockModal = document.getElementById('setPackagingStockModal');
-        if (setPackagingStockModal) {
-            setPackagingStockModal.addEventListener('show.bs.modal', function (event) {
-                var button = event.relatedTarget;
-                var packagingId = button.getAttribute('data-id');
-                var packagingName = button.getAttribute('data-name');
-
-                var modalIdInput = setPackagingStockModal.querySelector('#set_packaging_stock_packaging_id');
-                var modalNameDisplay = setPackagingStockModal.querySelector('#setPackagingStockName');
-
-                modalIdInput.value = packagingId;
-                modalNameDisplay.textContent = packagingName;
-            });
-        }
 
         // --- Search and Filter Logic ---
         const searchInput = document.getElementById('searchInput');
