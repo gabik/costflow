@@ -288,7 +288,7 @@
 <template id="supplierRowTemplate">
     <div class="supplier-row border rounded p-2 mb-2">
         <div class="row g-2 align-items-center">
-            <div class="col-3 supplier-col">
+            <div class="col-4 supplier-col">
                 <select class="form-select supplier-select" name="supplier_ids[]">
                     <option value="">{{ _('Select supplier...') }}</option>
                     {% for supplier in suppliers %}
@@ -296,18 +296,18 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-2 sku-col">
+            <div class="col-3 sku-col">
                 <input type="text" class="form-control supplier-sku" name="supplier_skus[]"
                        placeholder="{{ _('Optional SKU') }}">
             </div>
-            <div class="col-2 cost-col">
+            <div class="col-3 cost-col">
                 <div class="input-group">
                     <span class="input-group-text">₪</span>
                     <input type="number" class="form-control supplier-cost" name="supplier_costs[]"
                            placeholder="0.00" step="0.01">
                 </div>
             </div>
-            <div class="col-2 text-center primary-col">
+            <div class="col-1 text-center primary-col">
                 <input type="radio" class="form-check-input primary-radio"
                        name="primary_supplier" style="scale: 1.2;">
             </div>
@@ -379,43 +379,44 @@
             radio.checked = true;
         }
 
-        const row = clone.querySelector('.supplier-row');
+        const row = clone.querySelector('.supplier-row').querySelector('.row');
 
-        // If this is an existing supplier with discount, add discount display
-        if (isExisting && discountedCost !== null && discountPercentage > 0 && parseFloat(discountedCost) < parseFloat(cost)) {
-            // Create discount display element
-            const discountCol = document.createElement('div');
-            discountCol.className = 'col-2';
-            discountCol.innerHTML = '<strong class="text-success">₪' + parseFloat(discountedCost).toFixed(2) + '</strong>' +
-                                   '<span class="badge bg-success ms-1">-' + discountPercentage.toFixed(1) + '%</span>';
+        // If this is an existing supplier, we need to adjust the layout to show stock and discount
+        if (isExisting) {
+            // Adjust column sizes to match header: 3-2-2-2-2-1 = 12 columns
+            row.querySelector('.supplier-col').className = 'col-3 supplier-col';
+            row.querySelector('.sku-col').className = 'col-2 sku-col';
+            row.querySelector('.cost-col').className = 'col-2 cost-col';
+            row.querySelector('.primary-col').className = 'col-2 text-center primary-col';
+            row.querySelector('.delete-col').className = 'col-1 text-end delete-col';
 
-            // Insert discount column after cost column
+            // If there's a discount, show it within the cost column
             const costCol = row.querySelector('.cost-col');
-            costCol.parentNode.insertBefore(discountCol, costCol.nextSibling);
+            if (discountedCost !== null && discountPercentage > 0 && parseFloat(discountedCost) < parseFloat(cost)) {
+                // Modify the cost column to show discount
+                const costInput = costCol.querySelector('.supplier-cost');
+                costInput.style.textDecoration = 'line-through';
+                costInput.parentElement.classList.add('text-muted');
 
-            // Add strikethrough to original price if there's a discount
-            const costInput = row.querySelector('.supplier-cost');
-            costInput.parentElement.classList.add('text-muted');
-            costInput.style.textDecoration = 'line-through';
-        }
+                // Add discount info below the input
+                const discountDiv = document.createElement('div');
+                discountDiv.className = 'mt-1';
+                discountDiv.innerHTML = '<small><strong class="text-success">₪' + parseFloat(discountedCost).toFixed(2) + '</strong>' +
+                                       ' <span class="badge bg-success ms-1">-' + discountPercentage.toFixed(1) + '%</span></small>';
+                costCol.appendChild(discountDiv);
+            }
 
-        // If this is an existing supplier with stock info, add stock display
-        if (isExisting && currentStock !== null) {
-            // Create stock display element
-            const stockCol = document.createElement('div');
-            stockCol.className = 'col-2';
-            stockCol.innerHTML = '<span class="badge bg-' + (currentStock > 0 ? 'success' : 'danger') + '">' +
-                                currentStock.toFixed(2) + ' {{ material.unit if material else "" }}</span>';
+            // Add stock info as a separate small column
+            if (currentStock !== null) {
+                const stockCol = document.createElement('div');
+                stockCol.className = 'col-2';
+                stockCol.innerHTML = '<small class="text-muted d-block">{{ _("Stock") }}</small>' +
+                                    '<span class="badge bg-' + (currentStock > 0 ? 'success' : 'danger') + '">' +
+                                    currentStock.toFixed(2) + ' {{ material.unit if material else "" }}</span>';
 
-            // Insert stock column after cost column (or after discount column if present)
-            const costCol = row.querySelector('.cost-col');
-            const nextCol = costCol.nextSibling;
-            if (nextCol && nextCol.innerHTML && nextCol.innerHTML.includes('badge bg-success')) {
-                // Insert after discount column if it exists
-                nextCol.parentNode.insertBefore(stockCol, nextCol.nextSibling);
-            } else {
-                // Insert after cost column
-                costCol.parentNode.insertBefore(stockCol, costCol.nextSibling);
+                // Insert stock column before primary column
+                const primaryCol = row.querySelector('.primary-col');
+                row.insertBefore(stockCol, primaryCol);
             }
         }
 
