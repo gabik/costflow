@@ -415,7 +415,8 @@
                     <tr>
                         <th>{{ _('Packaging Item') }}</th>
                         <th class="text-center">{{ _('Beginning Stock') }}</th>
-                        <th class="text-center">{{ _('Usage') }}</th>
+                        <th class="text-center">{{ _('Additions') }}</th>
+                        <th class="text-center">{{ _('Usage (Sales)') }}</th>
                         <th class="text-center">{{ _('Ending Stock') }}</th>
                         <th class="text-end">{{ _('Unit Price') }}</th>
                         <th class="text-end">{{ _('Stock Value') }}</th>
@@ -426,7 +427,8 @@
                     <tr>
                         <td class="fw-medium">{{ item.name }}</td>
                         <td class="text-center">{{ "%.2f"|format(item.beginning_stock) }}</td>
-                        <td class="text-center">{{ "%.2f"|format(item.usage) }}</td>
+                        <td class="text-center text-success">{{ "%.2f"|format(item.additions or 0) }}</td>
+                        <td class="text-center text-danger">{{ "%.2f"|format(item.usage) }}</td>
                         <td class="text-center fw-bold text-primary">{{ "%.2f"|format(item.ending_stock) }}</td>
                         <td class="text-end">{{ currency_symbol }}{{ "%.2f"|format(item.price_per_unit) }}</td>
                         <td class="text-end fw-bold text-info">{{ currency_symbol }}{{ "%.2f"|format(item.stock_value) }}</td>
@@ -435,7 +437,7 @@
                 </tbody>
                 <tfoot class="table-light">
                     <tr>
-                        <th colspan="5" class="text-end">{{ _('Total Packaging Stock Value:') }}</th>
+                        <th colspan="6" class="text-end">{{ _('Total Packaging Stock Value:') }}</th>
                         <th class="text-end">{{ currency_symbol }}{{ "%.2f"|format(total_packaging_stock_value) }}</th>
                     </tr>
                 </tfoot>

@@ -224,7 +224,8 @@ def calculate_premake_cost_per_unit(premake, visited=None, use_actual_costs=True
 
 def calculate_prime_cost(product):
     """
-    Calculates the prime cost (Materials + Packaging + Premakes + Preproducts) for a single unit of a Product.
+    Calculates the prime cost (Materials + Premakes + Preproducts) for a single unit of a Product.
+    EXCLUDES packaging costs - packaging is only included when products are sold.
     Includes recursive calculation for Premakes and Preproducts.
     Works with both old Premake model and new unified Product model.
     """
@@ -239,7 +240,8 @@ def calculate_prime_cost(product):
             primary_price = get_primary_supplier_discounted_price(component.material)
             total_cost += component.quantity * primary_price
         elif component.component_type == 'packaging' and component.packaging:
-            total_cost += component.quantity * component.packaging.price_per_unit
+            # EXCLUDED FROM PRIME COST - Packaging is only a cost when sold
+            pass  # total_cost += component.quantity * component.packaging.price_per_unit
         elif component.component_type == 'premake':
             # Handle both old and new models for premakes
             premake = None
@@ -271,6 +273,29 @@ def calculate_prime_cost(product):
     if hasattr(product, 'products_per_recipe') and product.products_per_recipe > 0:
         return total_cost / product.products_per_recipe
     return 0
+
+def calculate_cogs_with_packaging(product):
+    """
+    Calculates the Cost of Goods Sold (COGS) including packaging for a single unit of a Product.
+    This is used when products are actually sold.
+    COGS = Prime Cost (Materials + Premakes) + Packaging
+    """
+    # Start with prime cost (materials + premakes, no packaging)
+    prime_cost = calculate_prime_cost(product)
+
+    # Add packaging cost
+    packaging_cost = 0
+    for component in product.components:
+        if component.component_type == 'packaging' and component.packaging:
+            packaging_cost += component.quantity * component.packaging.price_per_unit
+
+    # Calculate per unit cost
+    if hasattr(product, 'products_per_recipe') and product.products_per_recipe > 0:
+        packaging_cost_per_unit = packaging_cost / product.products_per_recipe
+    else:
+        packaging_cost_per_unit = 0
+
+    return prime_cost + packaging_cost_per_unit
 
 def calculate_premake_current_stock(premake_id):
     """

@@ -97,13 +97,19 @@ def weekly_report():
         waste_qty = sale.quantity_waste if sale else 0
         unsold_qty = produced_qty - sold_qty - waste_qty
 
-        # Calculate prime cost (materials + packaging + premakes)
-        prime_cost_per_unit = calculate_prime_cost(product)
+        # Calculate costs - use different costs for sold vs unsold
+        from .utils import calculate_cogs_with_packaging
+
+        # For sold products, include packaging (COGS)
+        cogs_per_unit = calculate_cogs_with_packaging(product)
+
+        # For unsold/waste products, use production cost (no packaging)
+        production_cost_per_unit = calculate_prime_cost(product)
 
         # Calculate costs
-        cost_sold = sold_qty * prime_cost_per_unit
-        cost_waste = waste_qty * prime_cost_per_unit
-        cost_unsold = max(0, unsold_qty) * prime_cost_per_unit  # Ensure non-negative
+        cost_sold = sold_qty * cogs_per_unit  # Includes packaging
+        cost_waste = waste_qty * production_cost_per_unit  # No packaging (not sold)
+        cost_unsold = max(0, unsold_qty) * production_cost_per_unit  # No packaging (not sold)
         revenue = sold_qty * (product.selling_price_per_unit or 0)
 
         # Update totals
@@ -114,8 +120,8 @@ def weekly_report():
 
         cat_name = product.category.name if product.category else 'ללא קטגוריה'
 
-        # Calculate profit metrics
-        profit_per_unit = (product.selling_price_per_unit or 0) - prime_cost_per_unit
+        # Calculate profit metrics (use COGS with packaging for profit calculations)
+        profit_per_unit = (product.selling_price_per_unit or 0) - cogs_per_unit
         profit_margin_pct = (profit_per_unit / (product.selling_price_per_unit or 1) * 100) if product.selling_price_per_unit else 0
 
         # Add to sales data (only if there were sales)
@@ -127,7 +133,7 @@ def weekly_report():
                 'quantity_sold': sold_qty,
                 'quantity_waste': waste_qty,
                 'revenue': revenue,
-                'prime_cost_per_unit': prime_cost_per_unit,
+                'prime_cost_per_unit': cogs_per_unit,  # Use COGS with packaging for sold items
                 'product_cost': cost_sold + cost_waste,
                 'profit_per_unit': profit_per_unit,
                 'profit_margin_pct': profit_margin_pct
@@ -517,20 +523,41 @@ def weekly_report():
         beginning_stock = calculate_packaging_stock_at_date(packaging.id, week_start)
         ending_stock = calculate_packaging_stock_at_date(packaging.id, week_end + timedelta(days=1))
 
-        # Calculate usage (beginning + additions - ending)
-        # Note: We don't track additions separately for packaging right now
-        usage = beginning_stock - ending_stock if beginning_stock > ending_stock else 0
+        # Calculate usage from actual deductions (negative StockLog entries during the week)
+        # These are created when products are sold
+        from ..models import StockLog
+        deductions = StockLog.query.filter(
+            StockLog.packaging_id == packaging.id,
+            StockLog.quantity < 0,  # Only negative entries (deductions)
+            StockLog.timestamp >= week_start,
+            StockLog.timestamp < week_end + timedelta(days=1)
+        ).all()
+
+        # Sum all deductions (they're negative, so negate to get positive usage)
+        usage = -sum(log.quantity for log in deductions) if deductions else 0
+
+        # Calculate additions (positive entries except 'set' actions)
+        additions = StockLog.query.filter(
+            StockLog.packaging_id == packaging.id,
+            StockLog.action_type == 'add',
+            StockLog.quantity > 0,
+            StockLog.timestamp >= week_start,
+            StockLog.timestamp < week_end + timedelta(days=1)
+        ).all()
+
+        total_additions = sum(log.quantity for log in additions) if additions else 0
 
         stock_value = ending_stock * packaging.price_per_unit
         total_packaging_stock_value += stock_value
 
-        if ending_stock > 0 or usage > 0:  # Only include if there's stock or usage
+        if ending_stock > 0 or usage > 0 or total_additions > 0:  # Include if there's stock, usage, or additions
             packaging_inventory_data.append({
                 'id': packaging.id,
                 'name': packaging.name,
                 'beginning_stock': beginning_stock,
                 'ending_stock': ending_stock,
-                'usage': usage,
+                'usage': usage,  # Now shows actual usage from sales
+                'additions': total_additions,  # Track additions separately
                 'price_per_unit': packaging.price_per_unit,
                 'stock_value': stock_value
             })

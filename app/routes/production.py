@@ -98,14 +98,15 @@ def production():
                     #     )
                     # deduct_packaging_stock(component.component_id, required_qty)
 
-                    # Still calculate packaging cost for production logs
+                    # Track packaging for informational purposes but DON'T add to production cost
+                    # Packaging cost is only applied when products are sold
                     packaging_cost = component.packaging.price_per_unit * required_qty
-                    total_production_cost += packaging_cost
+                    # total_production_cost += packaging_cost  # REMOVED: Packaging not included in production
 
                     cost_details['packaging'].append({
                         'name': component.packaging.name,
                         'qty': required_qty,
-                        'cost': packaging_cost
+                        'cost': packaging_cost  # For reference only, not in total
                     })
 
             # Calculate cost per unit
@@ -243,14 +244,15 @@ def premake_production():
                     #     )
                     # deduct_packaging_stock(component.component_id, required_qty)
 
-                    # Still calculate packaging cost for production logs
+                    # Track packaging for informational purposes but DON'T add to production cost
+                    # Packaging cost is only applied when products are sold
                     packaging_cost = component.packaging.price_per_unit * required_qty
-                    total_production_cost += packaging_cost
+                    # total_production_cost += packaging_cost  # REMOVED: Packaging not included in production
 
                     cost_details['packaging'].append({
                         'name': component.packaging.name,
                         'qty': required_qty,
-                        'cost': packaging_cost
+                        'cost': packaging_cost  # For reference only, not in total
                     })
 
             # Calculate cost per unit (per kg/unit, not per batch)

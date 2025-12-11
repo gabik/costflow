@@ -260,7 +260,7 @@ def index():
     # Calculate total packaging stock value
     all_packaging = Packaging.query.all()
     for pkg in all_packaging:
-        # Get total stock across all suppliers
+        # Get total stock across all suppliers (in units after container conversion)
         total_stock = calculate_total_packaging_stock(pkg.id)
         if total_stock > 0:
             # Get primary supplier price (with discount)
@@ -270,7 +270,9 @@ def index():
                     primary_link.price_per_package,
                     primary_link.supplier
                 )
-                total_packaging_stock_value += total_stock * price_per_package
+                # Calculate price per unit (not per package) since stock is in units
+                price_per_unit = price_per_package / pkg.quantity_per_package if pkg.quantity_per_package > 0 else 0
+                total_packaging_stock_value += total_stock * price_per_unit
 
     # Get stock audits for the selected week
     total_stock_variance = 0
