@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ _('Raw Materials of') }} {{ supplier.name }} - CostFlow{% endblock %}
+{% block title %}{{ _('Materials & Packaging of') }} {{ supplier.name }} - CostFlow{% endblock %}
 
 {% block content %}
 <div class="row mb-4">
@@ -10,8 +10,8 @@
                 <li class="breadcrumb-item active" aria-current="page">{{ supplier.name }}</li>
             </ol>
         </nav>
-        <h1 class="display-6 fw-bold text-primary">{{ _('Raw Materials - ') }}{{ supplier.name }}</h1>
-        <p class="text-secondary">{{ _('List of all raw materials supplied by this supplier.') }}</p>
+        <h1 class="display-6 fw-bold text-primary">{{ _('Materials & Packaging - ') }}{{ supplier.name }}</h1>
+        <p class="text-secondary">{{ _('List of all raw materials and packaging supplied by this supplier.') }}</p>
     </div>
 </div>
 
@@ -61,7 +61,9 @@
     </div>
 </div>
 
-<div class="card shadow-sm">
+<!-- Raw Materials Section -->
+{% if materials_data %}
+<div class="card shadow-sm mb-4">
     <div class="card-header bg-white">
         <h5 class="mb-0">{{ _('Supplied Raw Materials') }}</h5>
     </div>
@@ -83,14 +85,14 @@
             <tbody>
             {% for item in materials_data %}
             <tr>
-                <td class="fw-medium">{{ item.material.name }}</td>
+                <td class="fw-medium">{{ item.item.name }}</td>
                 <td>
                     <span class="text-muted">{{ item.sku if item.sku else '-' }}</span>
                 </td>
                 <td>
-                    <span class="badge bg-light text-dark border">{{ item.material.category.name }}</span>
+                    <span class="badge bg-light text-dark border">{{ item.category }}</span>
                 </td>
-                <td>{{ item.material.unit }}</td>
+                <td>{{ item.unit }}</td>
                 <td>
                     {% if item.discounted_cost_per_unit < item.cost_per_unit %}
                     <span class="text-muted text-decoration-line-through">
@@ -122,15 +124,9 @@
                 </td>
                 <td class="text-end">
                     <button class="btn btn-sm btn-outline-secondary"
-                            onclick="editMaterialPrice({{ item.material.id }}, '{{ item.material.name|replace("\\", "\\\\")|replace("'", "\\'")|replace('"', '\\"') }}', {{ item.cost_per_unit }}, {{ item.is_primary|lower }}, '{{ (item.sku if item.sku else '')|replace("\\", "\\\\")|replace("'", "\\'")|replace('"', '\\"') }}')">
+                            onclick="editMaterialPrice({{ item.item.id }}, '{{ item.item.name|replace("\\", "\\\\")|replace("'", "\\'")|replace('"', '\\"') }}', {{ item.cost_per_unit }}, {{ item.is_primary|lower }}, '{{ (item.sku if item.sku else '')|replace("\\", "\\\\")|replace("'", "\\'")|replace('"', '\\"') }}')">
                         <i class="bi bi-pencil"></i>
                     </button>
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="8" class="text-center py-4 text-muted">
-                    {{ _('No raw materials found for this supplier.') }}
                 </td>
             </tr>
             {% endfor %}
@@ -138,6 +134,87 @@
         </table>
     </div>
 </div>
+{% endif %}
+
+<!-- Packaging Section -->
+{% if packaging_data %}
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">{{ _('Supplied Packaging') }}</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+            <tr>
+                <th>{{ _('Packaging') }}</th>
+                <th>{{ _('SKU') }}</th>
+                <th>{{ _('Quantity/Package') }}</th>
+                <th>{{ _('Original Price') }}</th>
+                <th>{{ _('Discounted Price') }}</th>
+                <th>{{ _('Current Stock') }}</th>
+                <th class="text-center">{{ _('Primary Supplier') }}</th>
+                <th class="text-end">{{ _('Actions') }}</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in packaging_data %}
+            <tr>
+                <td class="fw-medium">{{ item.item.name }}</td>
+                <td>
+                    <span class="text-muted">{{ item.sku if item.sku else '-' }}</span>
+                </td>
+                <td>{{ item.quantity_per_package }}</td>
+                <td>
+                    {% if item.discounted_price_per_package < item.price_per_package %}
+                    <span class="text-muted text-decoration-line-through">
+                        {{ currency_symbol }}{{ "%.2f"|format(item.price_per_package) }}
+                    </span>
+                    {% else %}
+                    {{ currency_symbol }}{{ "%.2f"|format(item.price_per_package) }}
+                    {% endif %}
+                </td>
+                <td>
+                    <strong class="{{ 'text-success' if item.discounted_price_per_package < item.price_per_package else '' }}">
+                        {{ currency_symbol }}{{ "%.2f"|format(item.discounted_price_per_package) }}
+                    </strong>
+                    {% if item.discounted_price_per_package < item.price_per_package %}
+                    <span class="badge bg-success ms-1">
+                        -{{ "%.1f"|format((1 - item.discounted_price_per_package / item.price_per_package) * 100) }}%
+                    </span>
+                    {% endif %}
+                </td>
+                <td class="fw-bold {{ 'text-danger' if item.current_stock <= 0 else 'text-success' }}">
+                    {{ "%.2f"|format(item.current_stock) }}
+                </td>
+                <td class="text-center">
+                    {% if item.is_primary %}
+                        <span class="badge bg-primary">{{ _('Primary') }}</span>
+                    {% else %}
+                        <span class="badge bg-light text-dark">{{ _('Secondary') }}</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-outline-secondary"
+                            onclick="editPackagingPrice({{ item.item.id }}, '{{ item.item.name|replace("\\", "\\\\")|replace("'", "\\'")|replace('"', '\\"') }}', {{ item.price_per_package }}, {{ item.is_primary|lower }}, '{{ (item.sku if item.sku else '')|replace("\\", "\\\\")|replace("'", "\\'")|replace('"', '\\"') }}')">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Show message if no items -->
+{% if not materials_data and not packaging_data %}
+<div class="card shadow-sm">
+    <div class="card-body text-center py-4">
+        <p class="text-muted mb-0">{{ _('No materials or packaging found for this supplier.') }}</p>
+    </div>
+</div>
+{% endif %}
 
 <!-- Edit Price Modal -->
 <div class="modal fade" id="editPriceModal" tabindex="-1" aria-hidden="true">
@@ -150,6 +227,7 @@
             <div class="modal-body">
                 <form id="editPriceForm">
                     <input type="hidden" id="edit_material_id">
+                    <input type="hidden" id="edit_item_type" value="material">
                     <div class="mb-3">
                         <label class="form-label">{{ _('Raw Material') }}</label>
                         <input type="text" class="form-control" id="edit_material_name" readonly>
@@ -185,25 +263,50 @@ function editMaterialPrice(materialId, materialName, currentPrice, isPrimary, sk
     document.getElementById('edit_cost_per_unit').value = currentPrice;
     document.getElementById('edit_is_primary').checked = isPrimary;
     document.getElementById('edit_sku').value = sku || '';
+    document.getElementById('edit_item_type').value = 'material';
+
+    const modal = new bootstrap.Modal(document.getElementById('editPriceModal'));
+    modal.show();
+}
+
+function editPackagingPrice(packagingId, packagingName, currentPrice, isPrimary, sku) {
+    document.getElementById('edit_material_id').value = packagingId;
+    document.getElementById('edit_material_name').value = packagingName;
+    document.getElementById('edit_cost_per_unit').value = currentPrice;
+    document.getElementById('edit_is_primary').checked = isPrimary;
+    document.getElementById('edit_sku').value = sku || '';
+    document.getElementById('edit_item_type').value = 'packaging';
 
     const modal = new bootstrap.Modal(document.getElementById('editPriceModal'));
     modal.show();
 }
 
 function saveMaterialPrice() {
-    const materialId = document.getElementById('edit_material_id').value;
+    const itemId = document.getElementById('edit_material_id').value;
     const costPerUnit = document.getElementById('edit_cost_per_unit').value;
     const isPrimary = document.getElementById('edit_is_primary').checked;
     const sku = document.getElementById('edit_sku').value;
+    const itemType = document.getElementById('edit_item_type').value;
 
     const formData = new FormData();
-    formData.append('material_id', materialId);
+
+    if (itemType === 'packaging') {
+        formData.append('packaging_id', itemId);
+        formData.append('price_per_package', costPerUnit);
+    } else {
+        formData.append('material_id', itemId);
+        formData.append('cost_per_unit', costPerUnit);
+    }
+
     formData.append('supplier_id', {{ supplier.id }});
-    formData.append('cost_per_unit', costPerUnit);
     formData.append('is_primary', isPrimary ? 'true' : 'false');
     formData.append('sku', sku);
 
-    fetch('{{ url_for("suppliers.link_material_to_supplier") }}', {
+    const url = itemType === 'packaging'
+        ? '{{ url_for("suppliers.link_packaging_to_supplier") }}'
+        : '{{ url_for("suppliers.link_material_to_supplier") }}';
+
+    fetch(url, {
         method: 'POST',
         body: formData
     })

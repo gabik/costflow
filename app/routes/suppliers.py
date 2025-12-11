@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify
-from ..models import db, Supplier, RawMaterialSupplier, RawMaterial, StockLog
+from flask_babel import gettext as _
+from ..models import db, Supplier, RawMaterialSupplier, RawMaterial, PackagingSupplier, Packaging, StockLog
 from .utils import log_audit
 
 suppliers_blueprint = Blueprint('suppliers', __name__)
@@ -18,9 +19,11 @@ def suppliers():
     else:
         all_suppliers = Supplier.query.filter_by(is_active=True).all()  # Only active
 
-    # Calculate active materials count for each supplier
+    # Calculate active materials and packaging count for each supplier
     for supplier in all_suppliers:
-        supplier.active_materials_count = len(supplier.material_links)
+        material_count = len(supplier.material_links)
+        packaging_count = len(supplier.packaging_links)
+        supplier.active_materials_count = material_count + packaging_count
 
     return render_template('suppliers.html',
                          suppliers=all_suppliers,
@@ -98,11 +101,12 @@ def delete_supplier(supplier_id):
     """Delete supplier (only if no history)"""
     supplier = Supplier.query.get_or_404(supplier_id)
 
-    # Check if supplier has any material links or stock logs
+    # Check if supplier has any material links, packaging links, or stock logs
     has_materials = len(supplier.material_links) > 0
+    has_packaging = len(supplier.packaging_links) > 0
     has_stock_logs = StockLog.query.filter_by(supplier_id=supplier_id).first() is not None
 
-    if has_materials or has_stock_logs:
+    if has_materials or has_packaging or has_stock_logs:
         # Soft delete - just deactivate
         supplier.is_active = False
         db.session.commit()
@@ -176,10 +180,10 @@ def quick_add_supplier():
 
 @suppliers_blueprint.route('/suppliers/<int:supplier_id>/materials')
 def supplier_materials(supplier_id):
-    """View all materials for a specific supplier"""
+    """View all materials and packaging for a specific supplier"""
     supplier = Supplier.query.get_or_404(supplier_id)
 
-    # Get all material links for this supplier
+    # Get all raw material links for this supplier
     material_links = RawMaterialSupplier.query.filter_by(supplier_id=supplier_id).all()
 
     materials_data = []
@@ -194,17 +198,46 @@ def supplier_materials(supplier_id):
         discounted_price = apply_supplier_discount(link.cost_per_unit, supplier)
 
         materials_data.append({
-            'material': material,
+            'type': 'raw_material',
+            'item': material,
             'cost_per_unit': link.cost_per_unit,  # Original price
             'discounted_cost_per_unit': discounted_price,  # Discounted price
             'is_primary': link.is_primary,
             'sku': link.sku,
-            'current_stock': stock
+            'current_stock': stock,
+            'unit': material.unit,
+            'category': material.category.name
+        })
+
+    # Get all packaging links for this supplier
+    packaging_links = PackagingSupplier.query.filter_by(supplier_id=supplier_id).all()
+
+    packaging_data = []
+    for link in packaging_links:
+        packaging = link.packaging
+
+        # Calculate current stock for this supplier-packaging combination
+        from .utils import calculate_packaging_supplier_stock, apply_supplier_discount
+        stock = calculate_packaging_supplier_stock(packaging.id, supplier_id)
+
+        # Calculate discounted price
+        discounted_price = apply_supplier_discount(link.price_per_package, supplier)
+
+        packaging_data.append({
+            'type': 'packaging',
+            'item': packaging,
+            'price_per_package': link.price_per_package,  # Original price
+            'discounted_price_per_package': discounted_price,  # Discounted price
+            'is_primary': link.is_primary,
+            'sku': link.sku,
+            'current_stock': stock,
+            'quantity_per_package': packaging.quantity_per_package
         })
 
     return render_template('supplier_materials.html',
                          supplier=supplier,
-                         materials_data=materials_data)
+                         materials_data=materials_data,
+                         packaging_data=packaging_data)
 
 @suppliers_blueprint.route('/suppliers/link-material', methods=['POST'])
 def link_material_to_supplier():
@@ -278,6 +311,86 @@ def unlink_material_from_supplier():
             supplier = Supplier.query.get(supplier_id)
             log_audit("DELETE", "RawMaterialSupplier", None,
                      f"Unlinked {material.name} from {supplier.name}")
+
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': 'Link not found'}), 404
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@suppliers_blueprint.route('/suppliers/link-packaging', methods=['POST'])
+def link_packaging_to_supplier():
+    """Link a packaging to a supplier with specific pricing"""
+    try:
+        packaging_id = request.form.get('packaging_id')
+        supplier_id = request.form.get('supplier_id')
+        price_per_package = float(request.form.get('price_per_package'))
+        is_primary = request.form.get('is_primary') == 'true'
+        sku = request.form.get('sku', '').strip() or None
+
+        # Check if link already exists
+        existing = PackagingSupplier.query.filter_by(
+            packaging_id=packaging_id,
+            supplier_id=supplier_id
+        ).first()
+
+        if existing:
+            # Update existing link
+            existing.price_per_package = price_per_package
+            existing.is_primary = is_primary
+            existing.sku = sku
+        else:
+            # Create new link
+            new_link = PackagingSupplier(
+                packaging_id=packaging_id,
+                supplier_id=supplier_id,
+                price_per_package=price_per_package,
+                is_primary=is_primary,
+                sku=sku
+            )
+            db.session.add(new_link)
+
+        # If setting as primary, unset other primaries
+        if is_primary:
+            PackagingSupplier.query.filter(
+                PackagingSupplier.packaging_id == packaging_id,
+                PackagingSupplier.supplier_id != supplier_id
+            ).update({'is_primary': False})
+
+        db.session.commit()
+
+        packaging = Packaging.query.get(packaging_id)
+        supplier = Supplier.query.get(supplier_id)
+        sku_info = f" (SKU: {sku})" if sku else ""
+        log_audit("UPDATE", "PackagingSupplier", None,
+                 f"Linked {packaging.name} to {supplier.name} at {price_per_package}/package{sku_info}")
+
+        return jsonify({'success': True})
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@suppliers_blueprint.route('/suppliers/unlink-packaging', methods=['POST'])
+def unlink_packaging_from_supplier():
+    """Remove link between packaging and supplier"""
+    try:
+        packaging_id = request.form.get('packaging_id')
+        supplier_id = request.form.get('supplier_id')
+
+        link = PackagingSupplier.query.filter_by(
+            packaging_id=packaging_id,
+            supplier_id=supplier_id
+        ).first()
+
+        if link:
+            db.session.delete(link)
+            db.session.commit()
+
+            packaging = Packaging.query.get(packaging_id)
+            supplier = Supplier.query.get(supplier_id)
+            log_audit("DELETE", "PackagingSupplier", None,
+                     f"Unlinked {packaging.name} from {supplier.name}")
 
             return jsonify({'success': True})
         else:
