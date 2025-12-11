@@ -106,7 +106,7 @@ The application follows Flask's application factory pattern with modular bluepri
     - `products.py`: Product management and migration
     - `premakes.py`: Premake management (Products with is_premake=True)
     - `raw_materials.py`: Raw material management with multi-supplier support
-    - `suppliers.py`: Supplier management
+    - `suppliers.py`: Supplier management (updated Dec 2024 to include packaging items)
     - `production.py`: Production logging for products and premakes
     - `inventory.py`: Bulk inventory upload/import
     - `recipe_import.py`: Recipe import from Excel with validation and diff
@@ -115,7 +115,7 @@ The application follows Flask's application factory pattern with modular bluepri
     - `admin.py`: Database backup/restore, audit logs
     - `categories.py`: Category management
     - `labor.py`: Labor/employee management
-    - `packaging.py`: Packaging materials management
+    - `packaging.py`: Packaging materials management with multi-supplier support (updated Dec 2024)
     - `utils.py`: Shared utility functions and stock calculations
 
 ## Core Database Models
@@ -127,7 +127,11 @@ The application follows Flask's application factory pattern with modular bluepri
 - **RawMaterialSupplier**: Multi-supplier support with individual pricing per supplier and SKU tracking
   - `sku` field (VARCHAR(100), nullable): Optional SKU for supplier-specific product identification
   - Enables reliable material matching during inventory imports when product names vary by supplier
-- **StockLog**: Inventory tracking with supplier information
+- **PackagingSupplier**: Multi-supplier support for packaging materials (added Dec 2024)
+  - Similar structure to RawMaterialSupplier with pricing, SKU, and primary supplier designation
+  - `price_per_package` field for package-level pricing
+  - Enables supplier-specific stock tracking for packaging
+- **StockLog**: Inventory tracking with supplier information for raw materials and packaging
 - **ProductionLog**: Production events with actual cost tracking
 - **WeeklyLaborCost/WeeklyProductSales**: Weekly tracking and reporting
 - **StockAudit**: Physical count variance tracking
@@ -135,14 +139,16 @@ The application follows Flask's application factory pattern with modular bluepri
 ### Key Relationships
 - Product → ProductComponent → {RawMaterial, Product(as premake), Packaging}
 - RawMaterial → RawMaterialSupplier → Supplier (many-to-many with pricing)
-- Product/RawMaterial → StockLog (tracks inventory changes per supplier)
+- Packaging → PackagingSupplier → Supplier (many-to-many with pricing)
+- Product/RawMaterial/Packaging → StockLog (tracks inventory changes per supplier)
 - Product → ProductionLog (tracks production with actual costs)
 - WeeklyLaborCost → {WeeklyProductSales, WeeklyLaborEntry}
 
 ## Key Features & Routes
 
 Main functional areas:
-- **Dashboard** (`/`): Main interface with weekly production tracking
+- **Dashboard** (`/`): Main interface with weekly production tracking, stock values, and packaging inventory
+  - Displays total packaging stock value alongside other inventory metrics
 - **Raw Materials** (`/raw_materials`): Inventory management with stock tracking
 - **Premakes** (`/premakes`): Intermediate preparation management with nested components
 - **Products** (`/products`): Product management with recipe cost calculations
@@ -202,7 +208,7 @@ docker run -p 8080:8080 costflow
 - StockLog tracks all inventory changes with timestamps and supplier information
 - Actions: 'add' (increment) or 'set' (absolute value)
 - Current stock calculated from latest 'set' action plus subsequent 'add' actions
-- Supplier-specific stock tracking for raw materials
+- Supplier-specific stock tracking for raw materials and packaging
 - Intelligent deduction strategy: "Primary supplier first, then others" during production
 - Automatic fallback when primary supplier stock depleted
 - **Unlimited Materials**: Materials (like water) can be marked as unlimited with `is_unlimited=True`
@@ -300,7 +306,14 @@ unit: g
 
 ### Current Architecture
 - **Unified Product Model**: Single Product model with boolean flags (is_product, is_premake, is_preproduct)
-- **Multi-Supplier Support**: Primary/secondary suppliers with individual pricing
+- **Multi-Supplier Support**: Primary/secondary suppliers with individual pricing for both raw materials and packaging
+- **Packaging Supplier Implementation** (Added Dec 2024):
+  - PackagingSupplier model for many-to-many relationships with pricing
+  - Supplier-specific stock tracking via StockLog
+  - SKU support for reliable identification
+  - Primary supplier designation for intelligent deduction
+  - Discount percentage application per supplier
+  - Stock transfer options when removing suppliers
 - **Production Cost Tracking**: ProductionLog stores actual costs per batch with supplier breakdown
 - **Stock Management**: "Primary first, then others" deduction strategy
 - **Migrated Products**: Kept for historical data, marked with "(Migrated to Premake: X)"
@@ -312,6 +325,12 @@ unit: g
 - Stock calculations use 'set' (absolute) or 'add' (incremental) operations
 - Weekly dashboard uses weighted average of actual production costs
 - Migration endpoint pattern: `/migrate_[feature_name]` for remote DB updates
+- **Packaging Multi-Supplier Support** (Dec 2024):
+  - Packaging materials now support multiple suppliers with individual pricing
+  - Each supplier can have unique SKU and pricing for the same packaging item
+  - Primary supplier designation for intelligent stock deduction
+  - Supplier discounts automatically applied to packaging costs
+  - Stock tracked per supplier with automatic fallback during production
 
 ## Translation & Internationalization
 

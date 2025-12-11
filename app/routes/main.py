@@ -7,8 +7,8 @@ from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_file, jsonify
 from sqlalchemy import func, extract, and_, text
 from sqlalchemy.orm import joinedload
-from ..models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, StockAudit, AuditLog
-from .utils import units_list, get_or_create_general_category, convert_to_base_unit, log_audit, calculate_prime_cost, calculate_premake_current_stock, calculate_premake_stock_at_date, calculate_total_material_stock, calculate_supplier_stock, apply_supplier_discount
+from ..models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, StockAudit, AuditLog, PackagingSupplier
+from .utils import units_list, get_or_create_general_category, convert_to_base_unit, log_audit, calculate_prime_cost, calculate_premake_current_stock, calculate_premake_stock_at_date, calculate_total_material_stock, calculate_supplier_stock, apply_supplier_discount, calculate_total_packaging_stock
 from .raw_materials import calculate_raw_material_current_stock
 
 main_blueprint = Blueprint('main', __name__)
@@ -58,6 +58,7 @@ def index():
     total_labor = 0
     total_unsold_value = 0  # Cost value of unsold stock
     total_sales_stock_value = 0  # Sales/revenue value of unsold stock (potential revenue)
+    total_packaging_stock_value = 0  # Total value of packaging materials in stock
     
     if selected_week:
         week_start = selected_week.week_start_date
@@ -256,6 +257,21 @@ def index():
                 'gross_profit': gross_profit
             })
 
+    # Calculate total packaging stock value
+    all_packaging = Packaging.query.all()
+    for pkg in all_packaging:
+        # Get total stock across all suppliers
+        total_stock = calculate_total_packaging_stock(pkg.id)
+        if total_stock > 0:
+            # Get primary supplier price (with discount)
+            primary_link = pkg.get_primary_supplier_link()
+            if primary_link:
+                price_per_package = apply_supplier_discount(
+                    primary_link.price_per_package,
+                    primary_link.supplier
+                )
+                total_packaging_stock_value += total_stock * price_per_package
+
     # Get stock audits for the selected week
     total_stock_variance = 0
     stock_audit_count = 0
@@ -284,6 +300,7 @@ def index():
                            total_inventory_usage=total_inventory_usage,
                            total_unsold_value=total_unsold_value,
                            total_sales_stock_value=total_sales_stock_value,
+                           total_packaging_stock_value=total_packaging_stock_value,
                            net_profit=net_profit,
                            adjusted_profit=adjusted_profit,
                            total_stock_variance=total_stock_variance,
