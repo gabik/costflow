@@ -1,20 +1,310 @@
 {% extends "base.html" %}
-{% block title %}{{ _('Edit') if packaging else _('Add') }} {{ _('Packaging') }}{% endblock %}
+{% block title %}{{ _('Edit') if packaging else _('Add') }} {{ _('Packaging') }} - CostFlow{% endblock %}
+
+{% block head %}
+<style>
+    /* Ensure proper column widths for supplier rows */
+    #suppliersContainer .supplier-row .row > div {
+        flex-shrink: 0;
+    }
+    #suppliersContainer .supplier-select {
+        min-width: 120px;
+    }
+    #suppliersContainer .supplier-sku {
+        min-width: 100px;
+    }
+    #suppliersContainer .supplier-price {
+        min-width: 80px;
+    }
+    .stock-transfer-options {
+        display: none;
+        background-color: #fff3cd;
+        border: 1px solid #ffc107;
+        border-radius: 0.25rem;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<h1>{{ _('Edit') if packaging else _('Add') }} {{ _('Packaging') }}</h1>
-<form method="POST" class="p-4 bg-white border rounded shadow-sm">
-    <div class="form-group">
-        <label for="name">{{ _('Packaging Name') }}</label>
-        <input type="text" id="name" name="name" class="form-control" value="{{ packaging.name if packaging else '' }}" required>
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-6 fw-bold text-primary">{{ _('Edit Packaging') if packaging else _('Add New Packaging') }}</h1>
     </div>
-    <div class="form-group">
-        <label for="quantity_per_package">{{ _('Quantity per Package') }}</label>
-        <input type="number" id="quantity_per_package" name="quantity_per_package" class="form-control" step="0.1" value="{{ packaging.quantity_per_package if packaging else '' }}" required>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-12 col-lg-12">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <form method="POST" onsubmit="return checkRemovedSuppliers()">
+                    <!-- Name -->
+                    <div class="mb-3">
+                        <label for="name" class="form-label">{{ _('Packaging Name') }}</label>
+                        <input type="text" id="name" name="name" class="form-control" value="{{ packaging.name if packaging else '' }}" placeholder="{{ _('e.g., Box 12 units') }}" required>
+                    </div>
+
+                    <!-- Quantity per Package -->
+                    <div class="mb-3">
+                        <label for="quantity_per_package" class="form-label">{{ _('Quantity per Package') }}</label>
+                        <input type="number" id="quantity_per_package" name="quantity_per_package" class="form-control" value="{{ packaging.quantity_per_package if packaging else '' }}" step="1" min="1" placeholder="{{ _('e.g., 12') }}" required>
+                        <small class="form-text text-muted">{{ _('Number of units in each package') }}</small>
+                    </div>
+
+                    <!-- Suppliers Section -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-bold">{{ _('Suppliers & Pricing') }}</label>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addSupplierRow()">
+                                <i class="bi bi-plus-circle"></i> {{ _('Add Supplier') }}
+                            </button>
+                        </div>
+
+                        <div id="suppliersContainer">
+                            {% if packaging and packaging.supplier_links %}
+                                {% for link in packaging.supplier_links %}
+                                <div class="supplier-row mb-3">
+                                    <div class="row g-2 align-items-center">
+                                        <div class="col-1">
+                                            <input type="radio" name="primary_supplier" value="{{ loop.index }}" class="form-check-input" title="{{ _('Primary Supplier') }}" {% if link.is_primary %}checked{% endif %}>
+                                        </div>
+                                        <div class="col-4">
+                                            <select name="supplier_ids[]" class="form-select supplier-select" required>
+                                                <option value="">{{ _('Select supplier...') }}</option>
+                                                {% for supplier in suppliers %}
+                                                <option value="{{ supplier.id }}" {% if supplier.id == link.supplier_id %}selected{% endif %}>
+                                                    {{ supplier.name }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-3">
+                                            <input type="text" name="supplier_skus[]" class="form-control supplier-sku" placeholder="{{ _('SKU (optional)') }}" value="{{ link.sku if link.sku else '' }}">
+                                        </div>
+                                        <div class="col-3">
+                                            <input type="number" name="supplier_prices[]" class="form-control supplier-price" placeholder="{{ _('Price per package') }}" value="{{ link.price_per_package }}" step="0.01" min="0" required>
+                                        </div>
+                                        <div class="col-1">
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSupplierRow(this)" title="{{ _('Remove') }}">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <!-- Default single supplier row for new packaging -->
+                                <div class="supplier-row mb-3">
+                                    <div class="row g-2 align-items-center">
+                                        <div class="col-1">
+                                            <input type="radio" name="primary_supplier" value="1" class="form-check-input" title="{{ _('Primary Supplier') }}" checked>
+                                        </div>
+                                        <div class="col-4">
+                                            <select name="supplier_ids[]" class="form-select supplier-select" required>
+                                                <option value="">{{ _('Select supplier...') }}</option>
+                                                {% for supplier in suppliers %}
+                                                <option value="{{ supplier.id }}">{{ supplier.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-3">
+                                            <input type="text" name="supplier_skus[]" class="form-control supplier-sku" placeholder="{{ _('SKU (optional)') }}">
+                                        </div>
+                                        <div class="col-3">
+                                            <input type="number" name="supplier_prices[]" class="form-control supplier-price" placeholder="{{ _('Price per package') }}" step="0.01" min="0" required>
+                                        </div>
+                                        <div class="col-1">
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSupplierRow(this)" title="{{ _('Remove') }}">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <small class="form-text text-muted">
+                            <i class="bi bi-info-circle"></i> {{ _('Select primary supplier with the radio button. Primary supplier will be used first during production.') }}
+                        </small>
+                    </div>
+
+                    <!-- Stock Transfer Options (only shown when suppliers are removed) -->
+                    <div id="stockTransferOptions" class="stock-transfer-options">
+                        <h6 class="mb-3">{{ _('Stock Transfer for Removed Suppliers') }}</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="stock_handling" id="stockKeep" value="keep" checked>
+                            <label class="form-check-label" for="stockKeep">
+                                {{ _('Keep existing stock (no changes)') }}
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="stock_handling" id="stockTransfer" value="transfer">
+                            <label class="form-check-label" for="stockTransfer">
+                                {{ _('Transfer stock to another supplier') }}
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="stock_handling" id="stockWaste" value="waste">
+                            <label class="form-check-label" for="stockWaste">
+                                {{ _('Mark as waste (remove from inventory)') }}
+                            </label>
+                        </div>
+                        <div id="transferTargetSection" style="display: none;">
+                            <label for="transfer_to_supplier" class="form-label">{{ _('Transfer to:') }}</label>
+                            <select name="transfer_to_supplier" id="transfer_to_supplier" class="form-select">
+                                <!-- Will be populated dynamically -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Initial Stock (only for new packaging) -->
+                    {% if not packaging %}
+                    <div class="mb-3">
+                        <label for="initial_stock" class="form-label">{{ _('Initial Stock (optional)') }}</label>
+                        <input type="number" id="initial_stock" name="initial_stock" class="form-control" step="0.01" min="0" placeholder="{{ _('Enter initial stock quantity') }}">
+                    </div>
+                    {% endif %}
+
+                    <!-- Submit Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('packaging.packaging') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-2"></i> {{ _('Cancel') }}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-2"></i> {{ _('Save Packaging') }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    <div class="form-group">
-        <label for="price_per_package">{{ _('Price per Package') }}</label>
-        <input type="number" id="price_per_package" name="price_per_package" class="form-control" step="0.01" value="{{ packaging.price_per_package if packaging else '' }}" required>
-    </div>
-    <button type="submit" class="btn btn-primary mt-3">{{ _('Update') if packaging else _('Add') }} {{ _('Packaging') }}</button>
-</form>
+</div>
+
+<script>
+// Track original suppliers for comparison
+let originalSupplierIds = new Set();
+{% if packaging and packaging.supplier_links %}
+    {% for link in packaging.supplier_links %}
+    originalSupplierIds.add({{ link.supplier_id }});
+    {% endfor %}
+{% endif %}
+
+function addSupplierRow() {
+    const container = document.getElementById('suppliersContainer');
+    const rowCount = container.children.length + 1;
+
+    const newRow = document.createElement('div');
+    newRow.className = 'supplier-row mb-3';
+    newRow.innerHTML = `
+        <div class="row g-2 align-items-center">
+            <div class="col-1">
+                <input type="radio" name="primary_supplier" value="${rowCount}" class="form-check-input" title="{{ _('Primary Supplier') }}" ${rowCount === 1 ? 'checked' : ''}>
+            </div>
+            <div class="col-4">
+                <select name="supplier_ids[]" class="form-select supplier-select" required>
+                    <option value="">{{ _('Select supplier...') }}</option>
+                    {% for supplier in suppliers %}
+                    <option value="{{ supplier.id }}">{{ supplier.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-3">
+                <input type="text" name="supplier_skus[]" class="form-control supplier-sku" placeholder="{{ _('SKU (optional)') }}">
+            </div>
+            <div class="col-3">
+                <input type="number" name="supplier_prices[]" class="form-control supplier-price" placeholder="{{ _('Price per package') }}" step="0.01" min="0" required>
+            </div>
+            <div class="col-1">
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSupplierRow(this)" title="{{ _('Remove') }}">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    container.appendChild(newRow);
+    updateRadioValues();
+}
+
+function removeSupplierRow(button) {
+    const container = document.getElementById('suppliersContainer');
+    if (container.children.length > 1) {
+        button.closest('.supplier-row').remove();
+        updateRadioValues();
+        checkRemovedSuppliers();
+    } else {
+        alert('{{ _("At least one supplier is required") }}');
+    }
+}
+
+function updateRadioValues() {
+    const rows = document.querySelectorAll('.supplier-row');
+    rows.forEach((row, index) => {
+        const radio = row.querySelector('input[type="radio"]');
+        if (radio) {
+            radio.value = index + 1;
+            // Ensure at least one is checked
+            if (index === 0 && !document.querySelector('input[name="primary_supplier"]:checked')) {
+                radio.checked = true;
+            }
+        }
+    });
+}
+
+function checkRemovedSuppliers() {
+    const currentSupplierIds = new Set();
+    const selects = document.querySelectorAll('select[name="supplier_ids[]"]');
+
+    selects.forEach(select => {
+        if (select.value) {
+            currentSupplierIds.add(parseInt(select.value));
+        }
+    });
+
+    // Check if any original suppliers were removed
+    let hasRemovedSuppliers = false;
+    originalSupplierIds.forEach(id => {
+        if (!currentSupplierIds.has(id)) {
+            hasRemovedSuppliers = true;
+        }
+    });
+
+    // Show/hide stock transfer options
+    const stockTransferDiv = document.getElementById('stockTransferOptions');
+    if (hasRemovedSuppliers) {
+        stockTransferDiv.style.display = 'block';
+
+        // Populate transfer target dropdown with remaining suppliers
+        const transferSelect = document.getElementById('transfer_to_supplier');
+        transferSelect.innerHTML = '';
+        selects.forEach(select => {
+            if (select.value) {
+                const option = document.createElement('option');
+                option.value = select.value;
+                option.textContent = select.options[select.selectedIndex].text;
+                transferSelect.appendChild(option);
+            }
+        });
+    } else {
+        stockTransferDiv.style.display = 'none';
+    }
+
+    return true; // Allow form submission
+}
+
+// Handle stock handling radio buttons
+document.querySelectorAll('input[name="stock_handling"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const transferSection = document.getElementById('transferTargetSection');
+        transferSection.style.display = this.value === 'transfer' ? 'block' : 'none';
+    });
+});
+
+// Listen for supplier changes
+document.addEventListener('change', function(e) {
+    if (e.target.name === 'supplier_ids[]') {
+        checkRemovedSuppliers();
+    }
+});
+</script>
 {% endblock %}

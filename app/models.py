@@ -137,16 +137,73 @@ class Packaging(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     quantity_per_package = db.Column(db.Integer, nullable=False)
-    price_per_package = db.Column(db.Float, nullable=False)
+    price_per_package = db.Column(db.Float, nullable=False)  # Keep temporarily for migration
 
     @property
     def price_per_unit(self):
+        # Use primary supplier price if supplier links exist
+        if hasattr(self, 'supplier_links') and self.supplier_links:
+            primary_supplier = self.get_primary_supplier_link()
+            if primary_supplier:
+                return primary_supplier.price_per_package / self.quantity_per_package if self.quantity_per_package > 0 else 0
+        # Fallback to old price_per_package field during migration
         return self.price_per_package / self.quantity_per_package if self.quantity_per_package > 0 else 0
+
+    def get_primary_supplier_link(self):
+        """Get the primary supplier link for this packaging"""
+        for link in self.supplier_links:
+            if link.is_primary:
+                return link
+        # If no primary, return first supplier
+        return self.supplier_links[0] if self.supplier_links else None
+
+    def get_primary_supplier(self):
+        """Get the primary supplier for this packaging"""
+        link = self.get_primary_supplier_link()
+        return link.supplier if link else None
+
+    def get_cheapest_available_supplier(self, required_quantity):
+        """Get the cheapest supplier with available stock for the required quantity"""
+        from .routes.utils import calculate_packaging_supplier_stock
+
+        suppliers_with_stock = []
+        for link in self.supplier_links:
+            stock = calculate_packaging_supplier_stock(self.id, link.supplier_id)
+            if stock > 0:
+                suppliers_with_stock.append({
+                    'supplier_id': link.supplier_id,
+                    'supplier': link.supplier,
+                    'price_per_package': link.price_per_package,
+                    'price_per_unit': link.price_per_package / self.quantity_per_package if self.quantity_per_package > 0 else 0,
+                    'available_stock': stock
+                })
+
+        # Sort by price per unit (cheapest first)
+        suppliers_with_stock.sort(key=lambda x: x['price_per_unit'])
+
+        # Return the cheapest supplier with enough stock
+        for supplier_info in suppliers_with_stock:
+            if supplier_info['available_stock'] >= required_quantity:
+                return supplier_info
+
+        # If no single supplier has enough, return the cheapest available
+        return suppliers_with_stock[0] if suppliers_with_stock else None
+
+    def calculate_total_stock(self):
+        """Calculate total stock across all suppliers"""
+        from .routes.utils import calculate_packaging_supplier_stock
+
+        total = 0
+        for link in self.supplier_links:
+            total += calculate_packaging_supplier_stock(self.id, link.supplier_id)
+        return total
 
     def to_dict(self):
         return {
             'id': self.id,
-            'name': self.name
+            'name': self.name,
+            'quantity_per_package': self.quantity_per_package,
+            'suppliers': [link.to_dict() for link in self.supplier_links] if hasattr(self, 'supplier_links') else []
         }
 
 
@@ -385,6 +442,30 @@ class RawMaterialSupplier(db.Model):
             'supplier_id': self.supplier_id,
             'supplier_name': self.supplier.name if self.supplier else None,
             'cost_per_unit': self.cost_per_unit,
+            'is_primary': self.is_primary,
+            'sku': self.sku
+        }
+
+class PackagingSupplier(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    packaging_id = db.Column(db.Integer, db.ForeignKey('packaging.id'), nullable=False)
+    supplier_id = db.Column(db.Integer, db.ForeignKey('supplier.id'), nullable=False)
+    price_per_package = db.Column(db.Float, nullable=False)
+    is_primary = db.Column(db.Boolean, default=False)  # Mark primary supplier
+    sku = db.Column(db.String(100), nullable=True)  # SKU for supplier-specific product identification
+
+    packaging = db.relationship('Packaging', backref='supplier_links')
+    supplier = db.relationship('Supplier', backref='packaging_links')
+
+    __table_args__ = (db.UniqueConstraint('packaging_id', 'supplier_id'),)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'packaging_id': self.packaging_id,
+            'supplier_id': self.supplier_id,
+            'supplier_name': self.supplier.name if self.supplier else None,
+            'price_per_package': self.price_per_package,
             'is_primary': self.is_primary,
             'sku': self.sku
         }

@@ -1,6 +1,38 @@
 {% extends "base.html" %}
 {% block title %}{{ _('Manage Packaging') }} - CostFlow{% endblock %}
 
+{% block head %}
+<style>
+    .supplier-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+        margin-right: 0.25rem;
+    }
+    .supplier-primary {
+        background-color: #28a745;
+        color: white;
+    }
+    .supplier-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+    .discount-badge {
+        background-color: #28a745;
+        color: white;
+        font-size: 0.75rem;
+        padding: 0.2rem 0.4rem;
+        border-radius: 0.25rem;
+        margin-left: 0.5rem;
+    }
+    .original-price {
+        text-decoration: line-through;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row mb-4">
     <div class="col-12 d-flex justify-content-between align-items-center">
@@ -22,7 +54,7 @@
                 <th>{{ _('Name') }}</th>
                 <th>{{ _('Quantity per Package') }}</th>
                 <th>{{ _('Price per Package') }}</th>
-                <th>{{ _('Price per Unit') }}</th>
+                <th>{{ _('Suppliers') }}</th>
                 <th>{{ _('Current Stock') }}</th>
                 <th class="text-end">{{ _('Actions') }}</th>
             </tr>
@@ -32,8 +64,31 @@
             <tr>
                 <td class="fw-medium">{{ packaging.name }}</td>
                 <td>{{ "%.2f"|format(packaging.quantity_per_package) }}</td>
-                <td>{{ currency_symbol }}{{ "%.2f"|format(packaging.price_per_package) }}</td>
-                <td>{{ currency_symbol }}{{ (packaging.price_per_package / packaging.quantity_per_package) | round(2) }}</td>
+                <td>
+                    {% if packaging.primary_supplier and packaging.primary_supplier.discount_percentage > 0 %}
+                        <span class="original-price">{{ currency_symbol }}{{ "%.2f"|format(packaging.stock_breakdown[0].price_per_package if packaging.stock_breakdown else packaging.price_per_package) }}</span>
+                        {{ currency_symbol }}{{ "%.2f"|format(packaging.price_per_package) }}
+                        <span class="discount-badge">-{{ "%.0f"|format(packaging.primary_supplier.discount_percentage) }}%</span>
+                    {% else %}
+                        {{ currency_symbol }}{{ "%.2f"|format(packaging.price_per_package) }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if packaging.supplier_count > 0 %}
+                        <span class="badge bg-info">{{ packaging.supplier_count }} {{ _('supplier') if packaging.supplier_count == 1 else _('suppliers') }}</span>
+                        {% if packaging.primary_supplier %}
+                            <br><small class="text-muted">{{ packaging.primary_supplier.name }}</small>
+                        {% endif %}
+                        <!-- Expandable stock breakdown -->
+                        {% if packaging.stock_breakdown %}
+                            <button class="btn btn-sm btn-link p-0 ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#breakdown-{{ packaging.id }}" aria-expanded="false">
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                        {% endif %}
+                    {% else %}
+                        <span class="badge bg-warning">{{ _('No suppliers') }}</span>
+                    {% endif %}
+                </td>
                 <td>
                     <span id="stock-{{ packaging.id }}" class="badge bg-info">{{ "%.2f"|format(packaging.current_stock) }}</span>
                 </td>
@@ -56,6 +111,35 @@
                     </div>
                 </td>
             </tr>
+            <!-- Collapsible stock breakdown row -->
+            {% if packaging.stock_breakdown %}
+            <tr class="collapse" id="breakdown-{{ packaging.id }}">
+                <td colspan="6">
+                    <div class="ps-4">
+                        <strong>{{ _('Stock per Supplier:') }}</strong>
+                        <ul class="list-unstyled mt-2 mb-0">
+                            {% for supplier_stock in packaging.stock_breakdown %}
+                            <li>
+                                <span class="supplier-badge {{ 'supplier-primary' if supplier_stock.is_primary else 'supplier-secondary' }}">
+                                    {{ _('Primary') if supplier_stock.is_primary else _('Secondary') }}
+                                </span>
+                                {{ supplier_stock.supplier_name }}:
+                                <strong>{{ "%.2f"|format(supplier_stock.stock) }} {{ _('units') }}</strong>
+                                @
+                                {% if supplier_stock.discount_percentage > 0 %}
+                                    <span class="original-price">{{ currency_symbol }}{{ "%.2f"|format(supplier_stock.price_per_package) }}</span>
+                                    {{ currency_symbol }}{{ "%.2f"|format(supplier_stock.discounted_price_per_package) }}
+                                    <span class="discount-badge">-{{ "%.0f"|format(supplier_stock.discount_percentage) }}%</span>
+                                {% else %}
+                                    {{ currency_symbol }}{{ "%.2f"|format(supplier_stock.price_per_package) }}
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </td>
+            </tr>
+            {% endif %}
             {% else %}
             <tr>
                 <td colspan="6" class="text-center py-4 text-muted">{{ _('No packaging found in the system.') }}</td>
@@ -84,6 +168,13 @@
                         <input type="text" class="form-control" id="packaging_name" readonly>
                     </div>
 
+                    <div class="mb-3" id="supplierField">
+                        <label for="supplier_id" class="form-label">{{ _('Supplier') }}</label>
+                        <select class="form-select" id="supplier_id" name="supplier_id">
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
+
                     <div class="mb-3">
                         <label for="quantity" class="form-label">
                             <span id="quantityLabel">{{ _('Quantity') }}</span>
@@ -108,6 +199,9 @@
 </div>
 
 <script>
+// Store packaging data for supplier selection
+const packagingData = {{ packaging | tojson }};
+
 function openStockModalFromButton(button) {
     const packagingId = button.getAttribute('data-packaging-id');
     const packagingName = button.getAttribute('data-packaging-name');
@@ -119,6 +213,29 @@ function openStockModal(packagingId, packagingName, actionType) {
     document.getElementById('packaging_id').value = packagingId;
     document.getElementById('packaging_name').value = packagingName;
     document.getElementById('action_type').value = actionType;
+
+    // Find packaging info
+    const packaging = packagingData.find(p => p.id == packagingId);
+
+    // Populate supplier dropdown
+    const supplierSelect = document.getElementById('supplier_id');
+    supplierSelect.innerHTML = '';
+
+    if (packaging && packaging.stock_breakdown && packaging.stock_breakdown.length > 0) {
+        packaging.stock_breakdown.forEach((supplier, index) => {
+            const option = document.createElement('option');
+            option.value = supplier.supplier_id || '';
+            option.textContent = supplier.supplier_name + (supplier.is_primary ? ' ({{ _("Primary") }})' : '');
+            if (supplier.is_primary) {
+                option.selected = true;
+            }
+            supplierSelect.appendChild(option);
+        });
+        document.getElementById('supplierField').style.display = 'block';
+    } else {
+        // No suppliers, hide the field
+        document.getElementById('supplierField').style.display = 'none';
+    }
 
     if (actionType === 'add') {
         document.getElementById('stockModalTitle').textContent = '{{ _("Add Stock") }}';
@@ -149,13 +266,8 @@ function updateStock() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            const packagingId = document.getElementById('packaging_id').value;
-            document.getElementById('stock-' + packagingId).textContent = data.new_stock.toFixed(2);
-
-            const modal = bootstrap.Modal.getInstance(document.getElementById('stockModal'));
-            modal.hide();
-
-            // No alert - modal closes silently on success
+            // Reload page to show updated stock breakdown
+            location.reload();
         } else {
             alert(data.error || '{{ _("Error updating stock") }}');
         }

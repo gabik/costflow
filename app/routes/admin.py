@@ -464,3 +464,79 @@ def migrate_add_packaging_stock():
             'success': False,
             'error': str(e)
         }), 500
+@admin_blueprint.route('/migrate_packaging_suppliers')
+def migrate_packaging_suppliers():
+    """Add packaging_supplier table and migrate existing packaging data"""
+    from flask_babel import gettext as _
+    from ..models import Packaging, PackagingSupplier, Supplier
+    from sqlalchemy import inspect
+
+    try:
+        # Check if table already exists
+        inspector = inspect(db.engine)
+        if 'packaging_supplier' in inspector.get_table_names():
+            return jsonify({
+                'success': True,
+                'message': _('Table packaging_supplier already exists')
+            })
+
+        # Create the new table
+        with db.engine.connect() as conn:
+            # PostgreSQL-compatible syntax
+            conn.execute(text("""
+                CREATE TABLE packaging_supplier (
+                    id SERIAL PRIMARY KEY,
+                    packaging_id INTEGER NOT NULL,
+                    supplier_id INTEGER NOT NULL,
+                    price_per_package REAL NOT NULL,
+                    is_primary BOOLEAN DEFAULT FALSE,
+                    sku VARCHAR(100),
+                    FOREIGN KEY (packaging_id) REFERENCES packaging (id),
+                    FOREIGN KEY (supplier_id) REFERENCES supplier (id),
+                    UNIQUE (packaging_id, supplier_id)
+                )
+            """))
+            conn.commit()
+
+        # Migrate existing packaging data to use default supplier
+        default_supplier = Supplier.query.filter_by(id=1).first()
+        if not default_supplier:
+            # Create default supplier if it doesn't exist
+            default_supplier = Supplier(
+                id=1,
+                name=_('Default Supplier'),
+                is_active=True,
+                discount_percentage=0
+            )
+            db.session.add(default_supplier)
+            db.session.flush()
+
+        # Get all packaging items
+        packaging_items = Packaging.query.all()
+        migration_count = 0
+
+        for packaging in packaging_items:
+            # Create PackagingSupplier entry with current price
+            packaging_supplier = PackagingSupplier(
+                packaging_id=packaging.id,
+                supplier_id=1,  # Default supplier
+                price_per_package=packaging.price_per_package,
+                is_primary=True
+            )
+            db.session.add(packaging_supplier)
+            migration_count += 1
+
+        db.session.commit()
+        log_audit("MIGRATION", "PackagingSupplier", details=f"Created packaging_supplier table and migrated {migration_count} items")
+
+        return jsonify({
+            'success': True,
+            'message': _('Successfully created packaging_supplier table and migrated %(count)d packaging items').replace('%(count)d', str(migration_count))
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500

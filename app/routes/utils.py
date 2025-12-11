@@ -694,40 +694,97 @@ def calculate_packaging_stock(packaging_id):
 
 def deduct_packaging_stock(packaging_id, quantity_needed):
     """
-    Deduct packaging stock during production.
-    Returns None (no supplier tracking for packaging).
+    Deduct packaging stock during production using supplier strategy.
+    Returns list of (supplier_id, quantity_deducted) tuples.
     Raises InsufficientStockError if not enough stock.
     """
-    from ..models import db, StockLog, Packaging, InsufficientStockError
+    from ..models import db, StockLog, Packaging, PackagingSupplier, InsufficientStockError
 
-    # Check available stock
-    available = calculate_packaging_stock(packaging_id)
+    packaging = Packaging.query.get(packaging_id)
+    if not packaging:
+        from flask_babel import gettext as _
+        raise InsufficientStockError(_('Packaging not found'))
 
-    if available < quantity_needed:
-        packaging = Packaging.query.get(packaging_id)
-        packaging_name = packaging.name if packaging else f"ID {packaging_id}"
+    # Get supplier links for this packaging
+    supplier_links = PackagingSupplier.query.filter_by(packaging_id=packaging_id).all()
 
+    if not supplier_links:
+        # Backward compatibility: no suppliers defined, use old method
+        available = calculate_packaging_stock(packaging_id)
+        if available < quantity_needed:
+            from flask_babel import gettext as _
+            raise InsufficientStockError(
+                _('Insufficient packaging stock for %(name)s. Required: %(required).2f, Available: %(available).2f').replace(
+                    '%(name)s', packaging.name
+                ).replace(
+                    '%(required).2f', f"{quantity_needed:.2f}"
+                ).replace(
+                    '%(available).2f', f"{available:.2f}"
+                )
+            )
+        # Create negative stock log for consumption
+        stock_log = StockLog(
+            packaging_id=packaging_id,
+            action_type='add',
+            quantity=-quantity_needed
+        )
+        db.session.add(stock_log)
+        return None
+
+    # Strategy: Use primary supplier first, then others
+    remaining_needed = quantity_needed
+    suppliers_used = []
+
+    # Try primary supplier first
+    primary_link = None
+    for link in supplier_links:
+        if link.is_primary:
+            primary_link = link
+            break
+
+    if primary_link:
+        deducted = deduct_packaging_stock_from_supplier(
+            packaging_id,
+            primary_link.supplier_id,
+            remaining_needed
+        )
+        if deducted > 0:
+            suppliers_used.append((primary_link.supplier_id, deducted))
+            remaining_needed -= deducted
+
+    # If still need more, try other suppliers
+    if remaining_needed > 0:
+        for link in supplier_links:
+            if link.is_primary:
+                continue  # Already tried
+
+            deducted = deduct_packaging_stock_from_supplier(
+                packaging_id,
+                link.supplier_id,
+                remaining_needed
+            )
+            if deducted > 0:
+                suppliers_used.append((link.supplier_id, deducted))
+                remaining_needed -= deducted
+
+            if remaining_needed <= 0:
+                break
+
+    # Check if we have enough stock
+    if remaining_needed > 0:
+        total_available = calculate_total_packaging_stock(packaging_id)
         from flask_babel import gettext as _
         raise InsufficientStockError(
             _('Insufficient packaging stock for %(name)s. Required: %(required).2f, Available: %(available).2f').replace(
-                '%(name)s', packaging_name
+                '%(name)s', packaging.name
             ).replace(
                 '%(required).2f', f"{quantity_needed:.2f}"
             ).replace(
-                '%(available).2f', f"{available:.2f}"
+                '%(available).2f', f"{total_available:.2f}"
             )
         )
 
-    # Create stock log for deduction (negative add)
-    stock_log = StockLog(
-        packaging_id=packaging_id,
-        action_type='add',
-        quantity=-quantity_needed  # Negative for deduction
-    )
-    db.session.add(stock_log)
-
-    # Return None as there's no supplier tracking for packaging
-    return None
+    return suppliers_used
 
 def calculate_packaging_stock_at_date(packaging_id, cutoff_date):
     """
@@ -762,6 +819,80 @@ def calculate_packaging_stock_at_date(packaging_id, cutoff_date):
         stock += log.quantity
 
     return max(0, stock)  # Ensure non-negative
+
+def calculate_packaging_supplier_stock(packaging_id, supplier_id):
+    """
+    Calculate current stock for a packaging item from a specific supplier.
+    Similar to calculate_supplier_stock but for packaging.
+    """
+    from ..models import StockLog
+
+    # Find the last 'set' action if any
+    last_set = StockLog.query.filter_by(
+        packaging_id=packaging_id,
+        supplier_id=supplier_id,
+        action_type='set'
+    ).order_by(StockLog.timestamp.desc()).first()
+
+    # Start with the last set value or 0
+    stock = last_set.quantity if last_set else 0
+
+    # Add all subsequent 'add' actions (including negative for consumption)
+    add_logs = StockLog.query.filter(
+        StockLog.packaging_id == packaging_id,
+        StockLog.supplier_id == supplier_id,
+        StockLog.action_type == 'add',
+        StockLog.timestamp > (last_set.timestamp if last_set else datetime.min)
+    ).all()
+
+    for log in add_logs:
+        stock += log.quantity
+
+    return max(0, stock)  # Ensure non-negative
+
+def calculate_total_packaging_stock(packaging_id):
+    """
+    Calculate total stock for packaging across all suppliers.
+    """
+    from ..models import PackagingSupplier
+
+    # Get all supplier links for this packaging
+    links = PackagingSupplier.query.filter_by(packaging_id=packaging_id).all()
+
+    total = 0
+    for link in links:
+        total += calculate_packaging_supplier_stock(packaging_id, link.supplier_id)
+
+    # If no suppliers, use old method (backward compatibility)
+    if not links:
+        return calculate_packaging_stock(packaging_id)
+
+    return total
+
+def deduct_packaging_stock_from_supplier(packaging_id, supplier_id, quantity_needed):
+    """
+    Deduct packaging stock from a specific supplier.
+    Returns actual quantity deducted.
+    """
+    from ..models import db, StockLog
+
+    # Check available stock from this supplier
+    available = calculate_packaging_supplier_stock(packaging_id, supplier_id)
+
+    # Deduct what we can
+    quantity_to_deduct = min(available, quantity_needed)
+
+    if quantity_to_deduct > 0:
+        # Create negative stock log for consumption
+        stock_log = StockLog(
+            packaging_id=packaging_id,
+            supplier_id=supplier_id,
+            action_type='add',
+            quantity=-quantity_to_deduct
+        )
+        db.session.add(stock_log)
+
+    return quantity_to_deduct
 
 def calculate_100g_cost(product):
     """
