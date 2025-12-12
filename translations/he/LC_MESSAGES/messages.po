@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-12-12 14:17+0200\n"
+"POT-Creation-Date: 2025-12-12 14:23+0200\n"
 "PO-Revision-Date: 2024-12-14 21:06+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: he\n"
@@ -66,11 +66,11 @@ msgstr ""
 msgid "This name is used as alternative for: {}"
 msgstr ""
 
-#: app/routes/recipe_import.py:963
+#: app/routes/recipe_import.py:972
 msgid "Material not found or invalid mapping"
 msgstr ""
 
-#: app/routes/recipe_import.py:968
+#: app/routes/recipe_import.py:977
 #, fuzzy, python-brace-format
 msgid "Missing material: {}"
 msgstr "חומרים חסרים"
@@ -278,8 +278,8 @@ msgstr ""
 #: templates/categories.html:118 templates/packaging.html:196
 #: templates/premake_production.html:130 templates/production.html:137
 #: templates/raw_materials.html:261 templates/raw_materials.html:302
-#: templates/raw_materials.html:324 templates/recipe_review.html:200
-#: templates/recipe_review.html:363 templates/supplier_materials.html:252
+#: templates/raw_materials.html:324 templates/recipe_review.html:208
+#: templates/recipe_review.html:377 templates/supplier_materials.html:252
 #: templates/update_weekly_sales.html:108 templates/upload_inventory.html:116
 #: templates/weekly_costs.html:69
 msgid "Cancel"
@@ -314,7 +314,7 @@ msgstr "שם ההכנה"
 #: templates/add_or_edit_product.html:395
 #: templates/add_or_edit_raw_material.html:42 templates/monthly_report.html:371
 #: templates/monthly_report.html:418 templates/premakes.html:43
-#: templates/raw_materials.html:87 templates/recipe_review.html:157
+#: templates/raw_materials.html:87 templates/recipe_review.html:165
 #: templates/stock_audits.html:102 templates/stock_audits.html:172
 #: templates/supplier_materials.html:76 templates/weekly_report.html:212
 #: templates/weekly_report.html:267 templates/weekly_report.html:599
@@ -478,7 +478,7 @@ msgstr "מוצרים מקדימים"
 #: templates/add_or_edit_product.html:737 templates/premakes.html:45
 #: templates/product_details.html:169 templates/product_details.html:201
 #: templates/product_details.html:252 templates/raw_materials.html:89
-#: templates/recipe_review.html:163 templates/supplier_materials.html:77
+#: templates/recipe_review.html:171 templates/supplier_materials.html:77
 #: templates/view_premake.html:121
 msgid "Unit"
 msgstr "יחידה"
@@ -641,13 +641,13 @@ msgstr "ספקים ומחירים"
 #: templates/add_or_edit_supplier.html:13
 #: templates/add_or_edit_supplier.html:106 templates/packaging.html:172
 #: templates/raw_materials.html:88 templates/raw_materials.html:248
-#: templates/raw_materials.html:285 templates/recipe_review.html:173
+#: templates/raw_materials.html:285 templates/recipe_review.html:181
 msgid "Supplier"
 msgstr "ספק"
 
 #: templates/add_or_edit_raw_material.html:120
-#: templates/add_or_edit_raw_material.html:127 templates/recipe_review.html:184
-#: templates/recipe_review.html:186 templates/supplier_materials.html:75
+#: templates/add_or_edit_raw_material.html:127 templates/recipe_review.html:192
+#: templates/recipe_review.html:194 templates/supplier_materials.html:75
 #: templates/supplier_materials.html:150 templates/supplier_materials.html:236
 msgid "SKU"
 msgstr "מק\"ט"
@@ -875,7 +875,7 @@ msgstr "מזהה יעד"
 msgid "Details"
 msgstr "פרטי שבוע"
 
-#: templates/audit_log.html:43 templates/recipe_review.html:197
+#: templates/audit_log.html:43 templates/recipe_review.html:205
 msgid "Create"
 msgstr "יצירה"
 
@@ -1368,7 +1368,7 @@ msgstr "רשימת עובדים"
 
 #: templates/labor.html:52 templates/packaging.html:54
 #: templates/premakes.html:42 templates/raw_materials.html:86
-#: templates/recipe_review.html:116
+#: templates/recipe_review.html:124
 msgid "Name"
 msgstr "שם"
 
@@ -1851,7 +1851,7 @@ msgid "Component"
 msgstr "רכיב"
 
 #: templates/premake_production.html:54 templates/production.html:60
-#: templates/recipe_review.html:117
+#: templates/recipe_review.html:125
 msgid "Type"
 msgstr "סוג"
 
@@ -2329,7 +2329,7 @@ msgid ""
 "and then import again."
 msgstr "בחר חומר מהרשימה או הוסף חומרים חדשים למערכת ואז ייבא שוב."
 
-#: templates/recipe_review.html:67 templates/recipe_review.html:502
+#: templates/recipe_review.html:67 templates/recipe_review.html:516
 msgid "Select All"
 msgstr "בחר הכל"
 
@@ -2337,183 +2337,198 @@ msgstr "בחר הכל"
 msgid "0 recipes selected"
 msgstr "0 מתכונים נבחרו"
 
-#: templates/recipe_review.html:95
+#: templates/recipe_review.html:96
 msgid "Exists - Will Update"
 msgstr "קיים - יעודכן"
 
-#: templates/recipe_review.html:97 templates/upload_inventory.html:82
+#: templates/recipe_review.html:98
+msgid "Price differences only - no recipe changes"
+msgstr ""
+
+#: templates/recipe_review.html:99
+#, fuzzy
+msgid "Price Info"
+msgstr "מחיר בקובץ"
+
+#: templates/recipe_review.html:102
+#, fuzzy
+msgid "Exists - No Changes"
+msgstr "אין שינויים"
+
+#: templates/recipe_review.html:105 templates/upload_inventory.html:82
 msgid "New"
 msgstr "חדש"
 
-#: templates/recipe_review.html:100
+#: templates/recipe_review.html:108
 msgid "Missing Materials"
 msgstr "חומרים חסרים"
 
-#: templates/recipe_review.html:111
+#: templates/recipe_review.html:119
 msgid "Materials:"
 msgstr "חומרים:"
 
-#: templates/recipe_review.html:118 templates/suppliers.html:27
+#: templates/recipe_review.html:126 templates/suppliers.html:27
 #: templates/upload_inventory.html:46
 msgid "Status"
 msgstr "סטטוס"
 
-#: templates/recipe_review.html:119
+#: templates/recipe_review.html:127
 msgid "Weight (g)"
 msgstr "משקל (ג׳)"
 
-#: templates/recipe_review.html:120
+#: templates/recipe_review.html:128
 msgid "Price in Sheet"
 msgstr "מחיר בגיליון"
 
-#: templates/recipe_review.html:121 templates/upload_inventory.html:49
+#: templates/recipe_review.html:129 templates/upload_inventory.html:49
 msgid "Price in System"
 msgstr "מחיר במערכת"
 
-#: templates/recipe_review.html:122
+#: templates/recipe_review.html:130
 #, fuzzy
 msgid "Match"
 msgstr "מרץ"
 
-#: templates/recipe_review.html:150
+#: templates/recipe_review.html:158
 #, fuzzy
 msgid "Create New Material"
 msgstr "חומר גלם"
 
 # Production page translations
-#: templates/recipe_review.html:159 templates/recipe_review.html:176
+#: templates/recipe_review.html:167 templates/recipe_review.html:184
 #, fuzzy
 msgid "Select..."
 msgstr "בחר מוצר..."
 
-#: templates/recipe_review.html:177
+#: templates/recipe_review.html:185
 #, fuzzy
 msgid "New Supplier..."
 msgstr "ספק חדש"
 
-#: templates/recipe_review.html:189
+#: templates/recipe_review.html:197
 #, fuzzy
 msgid "Price"
 msgstr "מחיר ליחידה"
 
-#: templates/recipe_review.html:213
+#: templates/recipe_review.html:221
 msgid "Found via alternative name"
 msgstr "נמצא דרך שם חלופי"
 
-#: templates/recipe_review.html:214
+#: templates/recipe_review.html:222
 msgid "Found (alternative name)"
 msgstr "נמצא (שם חלופי)"
 
-#: templates/recipe_review.html:217
+#: templates/recipe_review.html:225
 msgid "Found"
 msgstr ""
 
-#: templates/recipe_review.html:227
+#: templates/recipe_review.html:235
 msgid "Select material from system..."
 msgstr "בחר חומר מהמערכת..."
 
-#: templates/recipe_review.html:268
-msgid "Different"
-msgstr "שונה"
+#: templates/recipe_review.html:281
+#, fuzzy
+msgid "Price only"
+msgstr "מחיר בקובץ"
 
-#: templates/recipe_review.html:270
+#: templates/recipe_review.html:284
 msgid "Same"
 msgstr "זהה"
 
-#: templates/recipe_review.html:283 templates/recipe_review.html:284
+#: templates/recipe_review.html:297 templates/recipe_review.html:298
 msgid "Loss"
 msgstr ""
 
-#: templates/recipe_review.html:286
+#: templates/recipe_review.html:300
 msgid "No cost"
 msgstr "ללא עלות"
 
-#: templates/recipe_review.html:298
+#: templates/recipe_review.html:312
 msgid "Weight and Cost Summary:"
 msgstr "סיכום משקל ועלות:"
 
-#: templates/recipe_review.html:300
+#: templates/recipe_review.html:314
 msgid "Gross Weight:"
 msgstr "משקל ברוטו:"
 
-#: templates/recipe_review.html:300 templates/recipe_review.html:302
-#: templates/recipe_review.html:303
+#: templates/recipe_review.html:314 templates/recipe_review.html:316
+#: templates/recipe_review.html:317
 msgid "g"
 msgstr ""
 
-#: templates/recipe_review.html:302
+#: templates/recipe_review.html:316
 #, fuzzy
 msgid "Loss:"
 msgstr "עלות:"
 
-#: templates/recipe_review.html:303
+#: templates/recipe_review.html:317
 msgid "Net Weight:"
 msgstr "משקל נטו:"
 
-#: templates/recipe_review.html:305
+#: templates/recipe_review.html:319
 #, fuzzy
 msgid "Total Cost:"
 msgstr "סך עלות"
 
-#: templates/recipe_review.html:306
+#: templates/recipe_review.html:320
 msgid "Cost per 100g:"
 msgstr "עלות ל-100 ג׳:"
 
-#: templates/recipe_review.html:317
+#: templates/recipe_review.html:331
 msgid "Changes (compared to existing recipe):"
 msgstr "שינויים (בהשוואה למתכון קיים):"
 
-#: templates/recipe_review.html:321
+#: templates/recipe_review.html:335
 msgid "Added:"
 msgstr "נוסף:"
 
-#: templates/recipe_review.html:329
+#: templates/recipe_review.html:343
 msgid "Removed:"
 msgstr "הוסר:"
 
-#: templates/recipe_review.html:337
+#: templates/recipe_review.html:351
 msgid "Quantity Changed:"
 msgstr "כמות שונתה:"
 
-#: templates/recipe_review.html:344
+#: templates/recipe_review.html:358
 msgid "No changes"
 msgstr "אין שינויים"
 
-#: templates/recipe_review.html:366
+#: templates/recipe_review.html:380
 msgid "Confirm and Import Recipes"
 msgstr "אשר וייבא מתכונים"
 
-#: templates/recipe_review.html:398
+#: templates/recipe_review.html:412
 msgid "Search material..."
 msgstr "חפש חומר..."
 
-#: templates/recipe_review.html:489
+#: templates/recipe_review.html:503
 msgid "Deselect All"
 msgstr "בטל בחירה"
 
-#: templates/recipe_review.html:533
+#: templates/recipe_review.html:547
 msgid "recipes selected"
 msgstr "מתכונים נבחרו"
 
-#: templates/recipe_review.html:546
+#: templates/recipe_review.html:560
 msgid "Select recipes to import"
 msgstr "בחר מתכונים לייבוא"
 
-#: templates/recipe_review.html:563
+#: templates/recipe_review.html:577
 #, fuzzy
 msgid "Import"
 msgstr "דו\"חות"
 
-#: templates/recipe_review.html:563
+#: templates/recipe_review.html:577
 #, fuzzy
 msgid "recipes"
 msgstr "מתכונים"
 
-#: templates/recipe_review.html:568
+#: templates/recipe_review.html:582
 msgid "unmapped materials in selected recipes"
 msgstr "חומרים ללא התאמה במתכונים נבחרים"
 
-#: templates/recipe_review.html:569
+#: templates/recipe_review.html:583
 msgid ""
 "Select a match for all missing materials in selected recipes from the "
 "dropdowns."
@@ -4175,4 +4190,7 @@ msgstr "פחת לפי קטגוריה"
 
 #~ msgid "Raw Materials - "
 #~ msgstr "חומרי גלם - "
+
+#~ msgid "Different"
+#~ msgstr "שונה"
 
