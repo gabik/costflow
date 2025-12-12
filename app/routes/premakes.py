@@ -185,7 +185,7 @@ def add_premake():
     raw_materials = RawMaterial.query.filter_by(is_deleted=False).all()
     packagings = Packaging.query.all()
     premakes = Product.query.filter_by(is_premake=True).all()
-    units = ['kg', 'g', 'l', 'ml', 'piece', 'unit']
+    units = ['kg', 'g', 'L', 'ml', 'piece', 'unit']
 
     # Add price information from suppliers to raw materials
     for material in raw_materials:
@@ -283,7 +283,7 @@ def edit_premake(premake_id):
         Product.is_premake == True,
         Product.id != premake_id
     ).all()
-    units = ['kg', 'g', 'l', 'ml', 'piece', 'unit']
+    units = ['kg', 'g', 'L', 'ml', 'piece', 'unit']
 
     # Add price information from suppliers to raw materials
     for material in raw_materials:

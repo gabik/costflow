@@ -130,10 +130,11 @@ class RecipeImportMaterialCreator {
             }
         });
 
-        // If we have materials needing attention, show supplier creation section
-        if (materialsNeedingSuppliers.length > 0) {
-            this.showSupplierPrompt(materialsNeedingSuppliers);
-        }
+        // Disabled: automatic supplier prompt on page load
+        // The user can still create suppliers via the dropdown
+        // if (materialsNeedingSuppliers.length > 0) {
+        //     this.showSupplierPrompt(materialsNeedingSuppliers);
+        // }
     }
 
     showSupplierPrompt(materials) {

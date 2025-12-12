@@ -2,7 +2,7 @@ from datetime import datetime
 from ..models import db, Category, AuditLog, StockLog, ProductionLog, Product
 
 # Predefined units for raw materials
-units_list = ["kg", "g", "ml", "l", "piece"]
+units_list = ["kg", "g", "L", "ml", "piece", "unit"]
 
 def hours_to_time_str(hours):
     """Convert decimal hours to HH:MM format string"""
