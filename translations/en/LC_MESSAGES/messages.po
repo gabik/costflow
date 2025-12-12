@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-12-16 10:53+0200\n"
+"POT-Creation-Date: 2025-12-12 08:44+0200\n"
 "PO-Revision-Date: 2024-12-14 21:06+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -16,2736 +16,4120 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.16.0\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: app/routes/fix_sequences.py:70
+#, python-brace-format
+msgid "Fixed {} sequences"
+msgstr ""
+
+#: app/routes/packaging.py:300
+#, fuzzy
+msgid "Missing required fields"
+msgstr "Missing Materials"
+
+#: app/routes/packaging.py:304 app/routes/packaging.py:397
+#: app/routes/utils.py:731
+#, fuzzy
+msgid "Packaging not found"
+msgstr "Packaging Name"
+
+#: app/routes/packaging.py:388
+#, fuzzy
+msgid "Stock updated successfully"
+msgstr "File uploaded successfully"
+
+#: app/routes/utils.py:742 app/routes/utils.py:803
+#, python-format
+msgid ""
+"Insufficient packaging stock for %(name)s. Required: %(required).2f, "
+"Available: %(available).2f"
+msgstr ""
+
+#: templates/add_or_edit_labor.html:2
+#, fuzzy
+msgid "Edit Labor"
+msgstr "Update Labor"
+
+#: templates/add_or_edit_labor.html:7
+msgid "Edit Employee / Role"
+msgstr "Edit Employee / Role"
+
+#: templates/add_or_edit_labor.html:17 templates/labor.html:22
+msgid "Employee Name / Role"
+msgstr "Employee Name / Role"
+
+#: templates/add_or_edit_labor.html:21
+#: templates/add_or_edit_raw_material.html:214
+#: templates/add_or_edit_supplier.html:47 templates/labor.html:26
+#: templates/labor.html:53 templates/suppliers.html:24
+msgid "Phone"
+msgstr "Phone"
+
+#: templates/add_or_edit_labor.html:25 templates/labor.html:30
+msgid "Total Hourly Cost (₪)"
+msgstr "Total Hourly Cost (₪)"
+
+#: templates/add_or_edit_labor.html:27 templates/labor.html:32
+msgid "Including base salary and employer costs."
+msgstr "Including base salary and employer costs."
+
+#: templates/add_or_edit_labor.html:30 templates/add_or_edit_product.html:355
+#: templates/add_or_edit_raw_material.html:158 templates/categories.html:85
+#: templates/premake_production.html:131 templates/production.html:138
+msgid "Save Changes"
+msgstr ""
+
+#: templates/add_or_edit_labor.html:31 templates/add_or_edit_product.html:357
+#: templates/add_or_edit_raw_material.html:160
+msgid "Cancel and Return"
+msgstr "Cancel and Return"
 
 #: templates/add_or_edit_packaging.html:2
-#: templates/add_or_edit_packaging.html:4 templates/add_or_edit_product.html:2
-#: templates/add_or_edit_product.html:4
 #: templates/add_or_edit_raw_material.html:2
-#: templates/add_or_edit_raw_material.html:4 templates/categories.html:19
-#: templates/packaging.html:26 templates/products.html:42
-#: templates/raw_materials.html:34
+#: templates/add_or_edit_supplier.html:2 templates/add_or_edit_supplier.html:10
+#: templates/add_or_edit_supplier.html:13 templates/labor.html:66
+#: templates/packaging.html:103 templates/premake_production.html:95
+#: templates/premakes.html:61 templates/production.html:106
+#: templates/products.html:99 templates/suppliers.html:61
 msgid "Edit"
 msgstr "Edit"
 
-#: templates/add_or_edit_packaging.html:2
-#: templates/add_or_edit_packaging.html:4
-#: templates/add_or_edit_packaging.html:18 templates/add_or_edit_product.html:2
-#: templates/add_or_edit_product.html:4
+#: templates/add_or_edit_packaging.html:2 templates/add_or_edit_premake.html:58
+#: templates/add_or_edit_premake.html:153
 #: templates/add_or_edit_raw_material.html:2
-#: templates/add_or_edit_raw_material.html:4
+#: templates/add_or_edit_supplier.html:2 templates/add_or_edit_supplier.html:10
+#: templates/add_or_edit_supplier.html:13
+#: templates/add_or_edit_supplier.html:106 templates/categories.html:119
 msgid "Add"
 msgstr "Add"
 
-#: templates/add_or_edit_packaging.html:2
-#: templates/add_or_edit_packaging.html:4
-#: templates/add_or_edit_packaging.html:18
-#: templates/add_or_edit_product.html:26 templates/base.html:27
-#: templates/index.html:32 templates/product_details.html:56
-#: templates/product_details.html:60
+#: templates/add_or_edit_packaging.html:2 templates/base.html:65
+#: templates/close_week.html:96 templates/packaging.html:167
+#: templates/premake_production.html:350 templates/product_details.html:292
+#: templates/product_details.html:301 templates/production.html:396
+#: templates/stock_audits.html:128 templates/supplier_materials.html:149
 msgid "Packaging"
 msgstr "Packaging"
 
-#: templates/add_or_edit_packaging.html:7
+#: templates/add_or_edit_packaging.html:33
+#, fuzzy
+msgid "Edit Packaging"
+msgstr "New Packaging"
+
+#: templates/add_or_edit_packaging.html:33
+#: templates/add_or_edit_product.html:445
+msgid "Add New Packaging"
+msgstr "Add New Packaging"
+
+#: templates/add_or_edit_packaging.html:44
+#: templates/add_or_edit_product.html:450 templates/weekly_report.html:503
 msgid "Packaging Name"
 msgstr "Packaging Name"
 
-#: templates/add_or_edit_packaging.html:11
-#: templates/add_or_edit_product.html:108 templates/packaging.html:12
+#: templates/add_or_edit_packaging.html:45
+msgid "e.g., Box 12 units"
+msgstr ""
+
+#: templates/add_or_edit_packaging.html:50 templates/packaging.html:55
 msgid "Quantity per Package"
 msgstr "Quantity per Package"
 
-#: templates/add_or_edit_packaging.html:15
-#: templates/add_or_edit_product.html:112 templates/packaging.html:13
-msgid "Price per Package"
+#: templates/add_or_edit_packaging.html:51
+msgid "e.g., 12"
+msgstr ""
+
+#: templates/add_or_edit_packaging.html:52
+#, fuzzy
+msgid "Number of units in each package"
+msgstr "number of units"
+
+#: templates/add_or_edit_packaging.html:58
+#, fuzzy
+msgid "Suppliers & Pricing"
+msgstr "suppliers"
+
+#: templates/add_or_edit_packaging.html:60
+#: templates/add_or_edit_raw_material.html:139
+#: templates/add_or_edit_raw_material.html:221
+msgid "Add Supplier"
+msgstr "Add Supplier"
+
+#: templates/add_or_edit_packaging.html:70
+#: templates/add_or_edit_packaging.html:101
+#: templates/add_or_edit_packaging.html:202
+#: templates/add_or_edit_raw_material.html:123
+#: templates/add_or_edit_raw_material.html:129
+#: templates/supplier_materials.html:81 templates/supplier_materials.html:155
+msgid "Primary Supplier"
+msgstr "Primary Supplier"
+
+#: templates/add_or_edit_packaging.html:74
+#: templates/add_or_edit_packaging.html:105
+#: templates/add_or_edit_packaging.html:206
+#: templates/add_or_edit_raw_material.html:293
+msgid "Select supplier..."
+msgstr "Select supplier..."
+
+#: templates/add_or_edit_packaging.html:83
+#: templates/add_or_edit_packaging.html:112
+#: templates/add_or_edit_packaging.html:213
+#, fuzzy
+msgid "SKU (optional)"
+msgstr "Phone Number (optional)"
+
+#: templates/add_or_edit_packaging.html:86
+#: templates/add_or_edit_packaging.html:115
+#: templates/add_or_edit_packaging.html:216
+#, fuzzy
+msgid "Price per package"
 msgstr "Price per Package"
 
-#: templates/add_or_edit_packaging.html:18
-msgid "Update"
-msgstr "Update"
+#: templates/add_or_edit_packaging.html:89
+#: templates/add_or_edit_packaging.html:118
+#: templates/add_or_edit_packaging.html:219
+#, fuzzy
+msgid "Remove"
+msgstr "Removed:"
 
-#: templates/add_or_edit_product.html:2 templates/add_or_edit_product.html:4
-#: templates/production.html:35
-msgid "Product"
+#: templates/add_or_edit_packaging.html:128
+msgid ""
+"Select primary supplier with the radio button. Primary supplier will be "
+"used first during production."
 msgstr ""
 
-#: templates/add_or_edit_product.html:7
-msgid "Product Name"
+#: templates/add_or_edit_packaging.html:134
+#, fuzzy
+msgid "Stock Transfer for Removed Suppliers"
+msgstr "Transfer stock to another supplier"
+
+#: templates/add_or_edit_packaging.html:138
+#, fuzzy
+msgid "Keep existing stock (no changes)"
+msgstr "Handle Existing Stock"
+
+#: templates/add_or_edit_packaging.html:144
+#: templates/add_or_edit_raw_material.html:244
+msgid "Transfer stock to another supplier"
+msgstr "Transfer stock to another supplier"
+
+#: templates/add_or_edit_packaging.html:150
+msgid "Mark as waste (remove from inventory)"
 msgstr ""
 
-#: templates/add_or_edit_product.html:11
-msgid "Products Per Recipe"
+#: templates/add_or_edit_packaging.html:154
+#, fuzzy
+msgid "Transfer to:"
+msgstr "Transfer to next week?"
+
+#: templates/add_or_edit_packaging.html:164
+msgid "Initial Stock (optional)"
 msgstr ""
 
-#: templates/add_or_edit_product.html:15
-msgid "Selling Price Per Unit"
+#: templates/add_or_edit_packaging.html:165
+msgid "Enter initial stock quantity"
 msgstr ""
 
-#: templates/add_or_edit_product.html:20 templates/base.html:23
-#: templates/index.html:14 templates/product_details.html:8
-#: templates/raw_materials.html:2 templates/raw_materials.html:4
+#: templates/add_or_edit_packaging.html:172
+#: templates/add_or_edit_premake.html:199
+#: templates/add_or_edit_product.html:412
+#: templates/add_or_edit_product.html:463
+#: templates/add_or_edit_raw_material.html:185
+#: templates/add_or_edit_raw_material.html:220
+#: templates/add_or_edit_raw_material.html:277
+#: templates/add_or_edit_supplier.html:103 templates/audit_log.html:88
+#: templates/audit_log.html:111 templates/categories.html:84
+#: templates/categories.html:118 templates/packaging.html:196
+#: templates/premake_production.html:130 templates/production.html:137
+#: templates/raw_materials.html:261 templates/raw_materials.html:302
+#: templates/raw_materials.html:324 templates/recipe_review.html:268
+#: templates/supplier_materials.html:252 templates/update_weekly_sales.html:108
+#: templates/upload_inventory.html:116 templates/weekly_costs.html:69
+msgid "Cancel"
+msgstr ""
+
+#: templates/add_or_edit_packaging.html:175
+#, fuzzy
+msgid "Save Packaging"
+msgstr "New Packaging"
+
+#: templates/add_or_edit_packaging.html:236
+msgid "At least one supplier is required"
+msgstr ""
+
+# add_or_edit_premake.html new translations
+#: templates/add_or_edit_premake.html:2 templates/add_or_edit_premake.html:6
+#: templates/view_premake.html:17
+msgid "Edit Premake"
+msgstr "Edit Premake"
+
+#: templates/add_or_edit_premake.html:2 templates/add_or_edit_premake.html:6
+#: templates/add_or_edit_product.html:130 templates/premakes.html:12
+msgid "Add Premake"
+msgstr "Add Premake"
+
+#: templates/add_or_edit_premake.html:12 templates/index.html:265
+#: templates/weekly_report.html:466
+msgid "Premake Name"
+msgstr "Premake Name"
+
+#: templates/add_or_edit_premake.html:18 templates/add_or_edit_product.html:20
+#: templates/add_or_edit_product.html:382
+#: templates/add_or_edit_raw_material.html:42 templates/monthly_report.html:371
+#: templates/monthly_report.html:418 templates/premakes.html:43
+#: templates/raw_materials.html:87 templates/stock_audits.html:102
+#: templates/stock_audits.html:172 templates/supplier_materials.html:76
+#: templates/weekly_report.html:212 templates/weekly_report.html:267
+#: templates/weekly_report.html:599 templates/weekly_report.html:775
+#: templates/weekly_report.html:810
+msgid "Category"
+msgstr ""
+
+#: templates/add_or_edit_premake.html:21
+#: templates/add_or_edit_raw_material.html:45
+msgid "Select category..."
+msgstr "Select category..."
+
+#: templates/add_or_edit_premake.html:39
+msgid "Unit of Measure (of product)"
+msgstr "Unit of Measure (of product)"
+
+#: templates/add_or_edit_premake.html:45
+msgid ""
+"Product quantity will be calculated automatically as sum of component "
+"weights."
+msgstr ""
+"Product quantity will be calculated automatically as sum of component "
+"weights."
+
+#: templates/add_or_edit_premake.html:51 templates/view_premake.html:91
+msgid "Components"
+msgstr "Components"
+
+#: templates/add_or_edit_premake.html:56 templates/base.html:48
+#: templates/categories.html:26 templates/categories.html:108
+#: templates/product_details.html:90 templates/raw_materials.html:2
+#: templates/stock_audits.html:59
 msgid "Raw Materials"
 msgstr ""
 
-#: templates/add_or_edit_product.html:21 templates/add_or_edit_product.html:46
-#: templates/add_or_edit_product.html:84
+#: templates/add_or_edit_premake.html:77 templates/add_or_edit_premake.html:120
+#: templates/add_or_edit_premake.html:230
+#: templates/add_or_edit_product.html:245
+#: templates/add_or_edit_product.html:495
+msgid "Select raw material..."
+msgstr "Select raw material..."
+
+#: templates/add_or_edit_premake.html:87 templates/add_or_edit_premake.html:130
+#: templates/add_or_edit_premake.html:182
+#: templates/add_or_edit_premake.html:246
+#: templates/add_or_edit_premake.html:326 templates/add_or_edit_product.html:90
+#: templates/add_or_edit_product.html:116
+#: templates/add_or_edit_product.html:157
+#: templates/add_or_edit_product.html:183
+#: templates/add_or_edit_product.html:228
+#: templates/add_or_edit_product.html:257
+#: templates/add_or_edit_product.html:300
+#: templates/add_or_edit_product.html:321
+#: templates/add_or_edit_product.html:517
+#: templates/add_or_edit_product.html:576
+#: templates/add_or_edit_product.html:615
+#: templates/add_or_edit_product.html:689 templates/packaging.html:180
+#: templates/product_details.html:302 templates/view_premake.html:101
+msgid "Quantity"
+msgstr ""
+
+#: templates/add_or_edit_premake.html:151 templates/add_or_edit_product.html:67
+#: templates/base.html:43 templates/base.html:47 templates/categories.html:36
+#: templates/index.html:30 templates/premakes.html:2 templates/premakes.html:8
+#: templates/product_details.html:158
+msgid "Premakes"
+msgstr "Premakes"
+
+# Premake Production page translations
+#: templates/add_or_edit_premake.html:172
+#: templates/add_or_edit_premake.html:311
+#: templates/add_or_edit_product.html:107
+#: templates/add_or_edit_product.html:601 templates/premake_production.html:23
+#, fuzzy
+msgid "Select premake..."
+msgstr "Select Premake"
+
+#: templates/add_or_edit_premake.html:198
+#: templates/add_or_edit_premake.html:216
+#: templates/add_or_edit_product.html:432 templates/supplier_materials.html:253
+msgid "Save"
+msgstr "Save"
+
+#: templates/add_or_edit_premake.html:209
+#: templates/add_or_edit_product.html:425
+#: templates/add_or_edit_raw_material.html:186
+msgid "Add Category"
+msgstr ""
+
+#: templates/add_or_edit_premake.html:215
+#: templates/add_or_edit_product.html:431
+#: templates/add_or_edit_raw_material.html:180 templates/categories.html:46
+#: templates/categories.html:79 templates/categories.html:113
+msgid "Category Name"
+msgstr ""
+
+#: templates/add_or_edit_premake.html:270
+#: templates/add_or_edit_premake.html:347
+#: templates/add_or_edit_premake.html:404
+#: templates/add_or_edit_product.html:541
+#: templates/add_or_edit_product.html:592
+#: templates/add_or_edit_product.html:638
+#: templates/add_or_edit_product.html:710
+#: templates/add_or_edit_product.html:761 templates/base.html:110
+#: templates/premake_production.html:149 templates/production.html:156
+msgid "No results found"
+msgstr "No results found"
+
+# add_or_edit_product.html new translations
+#: templates/add_or_edit_product.html:2 templates/add_or_edit_product.html:7
+#: templates/product_details.html:18
+msgid "Edit Product"
+msgstr "Edit Product"
+
+#: templates/add_or_edit_product.html:2 templates/add_or_edit_product.html:7
+#: templates/products.html:12
+msgid "Add New Product"
+msgstr ""
+
+#: templates/add_or_edit_product.html:16 templates/products.html:23
+#: templates/upload_inventory.html:44
+msgid "Product Name"
+msgstr ""
+
+#: templates/add_or_edit_product.html:17
+msgid "e.g., Uniform Bread"
+msgstr "e.g., Uniform Bread"
+
+#: templates/add_or_edit_product.html:23 templates/premakes.html:51
+#: templates/premakes.html:53 templates/weekly_report.html:284
+msgid "No Category"
+msgstr "No Category"
+
+#: templates/add_or_edit_product.html:34
+msgid "Units per Recipe (per production batch)"
+msgstr "Units per Recipe (per production batch)"
+
+#: templates/add_or_edit_product.html:38 templates/product_details.html:38
+msgid "Selling Price per Unit"
+msgstr "Selling Price per Unit"
+
+#: templates/add_or_edit_product.html:46 templates/product_details.html:13
+#: templates/product_details.html:250 templates/production.html:394
+msgid "Preproduct"
+msgstr "Preproduct"
+
+#: templates/add_or_edit_product.html:46
+msgid "Can be sold and also used as a component in other products"
+msgstr "Can be sold and also used as a component in other products"
+
+#: templates/add_or_edit_product.html:52
+msgid "Product Image"
+msgstr "Product Image"
+
+#: templates/add_or_edit_product.html:134 templates/product_details.html:241
+msgid "Preproducts"
+msgstr "Preproducts"
+
+#: templates/add_or_edit_product.html:150
+#: templates/add_or_edit_product.html:161
+#: templates/add_or_edit_product.html:176
+#: templates/add_or_edit_product.html:187
+#: templates/add_or_edit_product.html:670
+#: templates/add_or_edit_product.html:677
+#: templates/add_or_edit_product.html:719 templates/premakes.html:45
+#: templates/product_details.html:169 templates/product_details.html:201
+#: templates/product_details.html:252 templates/raw_materials.html:89
+#: templates/supplier_materials.html:77 templates/view_premake.html:102
+msgid "Unit"
+msgstr ""
+
+#: templates/add_or_edit_product.html:174
+#: templates/add_or_edit_product.html:674
+msgid "Select preproduct..."
+msgstr "Select preproduct..."
+
+#: templates/add_or_edit_product.html:197
+msgid "Add Preproduct"
+msgstr "Add Preproduct"
+
+#: templates/add_or_edit_product.html:201
+msgid "Required Raw Materials"
+msgstr "Required Raw Materials"
+
+#: templates/add_or_edit_product.html:273
+#: templates/add_or_edit_product.html:413
+#: templates/add_or_edit_raw_material.html:158 templates/raw_materials.html:56
 msgid "Add Raw Material"
 msgstr ""
 
-#: templates/add_or_edit_product.html:22
-msgid "New Raw Material"
-msgstr ""
+#: templates/add_or_edit_product.html:277
+msgid "Required Packaging"
+msgstr "Required Packaging"
 
-#: templates/add_or_edit_product.html:27 templates/add_or_edit_product.html:97
-#: templates/add_or_edit_product.html:118 templates/packaging.html:6
+#: templates/add_or_edit_product.html:312
+#: templates/add_or_edit_product.html:562
+msgid "Select packaging..."
+msgstr "Select packaging..."
+
+#: templates/add_or_edit_product.html:330
+#: templates/add_or_edit_product.html:464 templates/packaging.html:44
 #, fuzzy
 msgid "Add Packaging"
 msgstr "Add Packaging"
 
-#: templates/add_or_edit_product.html:28
-#, fuzzy
-msgid "New Packaging"
-msgstr "New Packaging"
+#: templates/add_or_edit_product.html:336
+msgid "Cost Summary (Primary Supplier Prices)"
+msgstr "Cost Summary (Primary Supplier Prices)"
 
-#: templates/add_or_edit_product.html:32 templates/product_details.html:32
-msgid "Labor Costs"
+#: templates/add_or_edit_product.html:340
+msgid "Raw Material Cost per Recipe:"
+msgstr "Raw Material Cost per Recipe:"
+
+#: templates/add_or_edit_product.html:343
+msgid "Cost per Unit:"
+msgstr "Cost per Unit:"
+
+#: templates/add_or_edit_product.html:347
+msgid ""
+"Costs are calculated based on primary supplier prices for each raw "
+"material, which will be used in actual production."
+msgstr ""
+"Costs are calculated based on primary supplier prices for each raw "
+"material, which will be used in actual production."
+
+#: templates/add_or_edit_product.html:355
+msgid "Add Product"
+msgstr "Add Product"
+
+#: templates/add_or_edit_product.html:373
+#: templates/add_or_edit_raw_material.html:25
+msgid "Add New Raw Material"
 msgstr ""
 
-#: templates/add_or_edit_product.html:33 templates/add_or_edit_product.html:131
-#: templates/add_or_edit_product.html:152 templates/labor.html:18
-msgid "Add Labor"
-msgstr ""
+#: templates/add_or_edit_product.html:378
+#: templates/add_or_edit_raw_material.html:36
+msgid "Raw Material Name"
+msgstr "Raw Material Name"
 
-#: templates/add_or_edit_product.html:34
-msgid "New Labor"
-msgstr ""
+#: templates/add_or_edit_product.html:395
+#: templates/add_or_edit_raw_material.html:60
+msgid "Unit of Measure"
+msgstr "Unit of Measure"
 
-#: templates/add_or_edit_product.html:37
-msgid "Save Product"
-msgstr ""
-
-#: templates/add_or_edit_product.html:53 templates/add_or_edit_product.html:104
-#: templates/add_or_edit_product.html:138
-#: templates/add_or_edit_product.html:202 templates/packaging.html:11
-#: templates/products.html:9 templates/raw_materials.html:9
-msgid "Name"
-msgstr ""
-
-#: templates/add_or_edit_product.html:57 templates/add_or_edit_product.html:193
-#: templates/add_or_edit_raw_material.html:7 templates/raw_materials.html:10
-msgid "Category"
-msgstr ""
-
-#: templates/add_or_edit_product.html:63
-#: templates/add_or_edit_raw_material.html:15
-msgid "New Category"
-msgstr ""
-
-#: templates/add_or_edit_product.html:66
-#: templates/add_or_edit_raw_material.html:22 templates/raw_materials.html:11
-msgid "Unit"
-msgstr ""
-
-#: templates/add_or_edit_product.html:74
-#: templates/add_or_edit_raw_material.html:30 templates/raw_materials.html:12
-msgid "Cost Per Unit"
-msgstr ""
-
-#: templates/add_or_edit_product.html:78 templates/raw_materials.html:13
-msgid "Stock"
-msgstr ""
-
-#: templates/add_or_edit_product.html:83 templates/add_or_edit_product.html:117
-#: templates/add_or_edit_product.html:151
-#: templates/add_or_edit_product.html:177
-#: templates/add_or_edit_raw_material.html:54 templates/categories.html:39
-#: templates/raw_materials.html:59 templates/raw_materials.html:81
-msgid "Cancel"
-msgstr ""
-
-#: templates/add_or_edit_product.html:142 templates/labor.html:11
-msgid "Base Hourly Rate"
-msgstr ""
-
-#: templates/add_or_edit_product.html:146 templates/labor.html:15
-msgid "Additional Hourly Rate"
-msgstr ""
-
-#: templates/add_or_edit_product.html:165
-#: templates/add_or_edit_raw_material.html:42 templates/categories.html:8
-msgid "Add New Category"
-msgstr ""
-
-#: templates/add_or_edit_product.html:172
-#: templates/add_or_edit_raw_material.html:49 templates/categories.html:34
-msgid "Category Name"
-msgstr ""
-
-#: templates/add_or_edit_product.html:178
-#: templates/add_or_edit_raw_material.html:55 templates/categories.html:11
-msgid "Add Category"
-msgstr ""
-
-#: templates/add_or_edit_product.html:195
-msgid "All"
-msgstr ""
-
-#: templates/add_or_edit_product.html:210 templates/raw_materials.html:54
-#: templates/raw_materials.html:76
-msgid "Quantity"
-msgstr ""
-
-#: templates/add_or_edit_raw_material.html:2
-#: templates/add_or_edit_raw_material.html:4 templates/product_details.html:12
-msgid "Raw Material"
-msgstr ""
-
-#: templates/add_or_edit_raw_material.html:33
-msgid "Save Raw Material"
-msgstr ""
-
-#: templates/base.html:8
-msgid "Waste Tracking System"
-msgstr ""
-
-#: templates/base.html:17
-msgid "Inventory Manager"
-msgstr ""
-
-#: templates/base.html:24 templates/products.html:2 templates/products.html:4
-msgid "Products"
-msgstr ""
-
-#: templates/base.html:25
-msgid "Labor"
-msgstr ""
-
-#: templates/base.html:26 templates/index.html:54
-msgid "Categories"
-msgstr ""
-
-#: templates/base.html:28 templates/index.html:23
-msgid "Production"
-msgstr ""
-
-#: templates/base.html:40
-msgid "2024 Waste Tracking System. All rights reserved."
-msgstr ""
-
-#: templates/categories.html:2 templates/categories.html:4
-#: templates/index.html:56
-msgid "Manage Categories"
-msgstr ""
-
-#: templates/categories.html:14
-msgid "Existing Categories"
-msgstr ""
-
-#: templates/categories.html:27
-msgid "Edit Category"
-msgstr ""
-
-#: templates/categories.html:40
-msgid "Save Changes"
-msgstr ""
-
-#: templates/index.html:2
-msgid "Dashboard"
-msgstr ""
-
-#: templates/index.html:5
-msgid "Welcome to the Waste Tracking System"
-msgstr ""
-
-#: templates/index.html:6
-msgid "Go to Raw Materials"
-msgstr ""
-
-#: templates/index.html:24
-msgid "Log Production"
-msgstr ""
-
-#: templates/index.html:33
-msgid "Manage packaging options, costs, and their integration into your products"
-msgstr ""
-
-#: templates/index.html:34 templates/packaging.html:2
-#: templates/packaging.html:4
-#, fuzzy
-msgid "Manage Packaging"
-msgstr "Manage Packaging"
-
-#: templates/index.html:45
-msgid "Labor Management"
-msgstr ""
-
-#: templates/index.html:46
-msgid "Oversee labor costs and contributions to each production activity"
-msgstr ""
-
-#: templates/index.html:47 templates/labor.html:2 templates/labor.html:4
-msgid "Manage Labor"
-msgstr ""
-
-#: templates/index.html:55
-msgid "Employee Name"
-msgstr ""
-
-#: templates/labor.html:21
-msgid "Existing Labor"
-msgstr ""
-
-#: templates/labor.html:25
-msgid "Hourly Rate"
-msgstr ""
-
-#: templates/labor.html:27 templates/packaging.html:28
-#: templates/raw_materials.html:37
-msgid "Delete"
-msgstr ""
-
-#: templates/packaging.html:14
+#: templates/add_or_edit_product.html:403
+#: templates/add_or_edit_raw_material.html:121
+#: templates/add_or_edit_raw_material.html:128
+#: templates/supplier_materials.html:240
 #, fuzzy
 msgid "Price per Unit"
 msgstr "Price per Unit"
 
-#: templates/packaging.html:15 templates/products.html:12
-#: templates/raw_materials.html:14
+#: templates/add_or_edit_product.html:407
+#: templates/add_or_edit_raw_material.html:150
+#, fuzzy
+msgid "Initial Stock"
+msgstr "In Stock"
+
+#: templates/add_or_edit_product.html:454
+msgid "Quantity per Packaging Unit"
+msgstr "Quantity per Packaging Unit"
+
+#: templates/add_or_edit_product.html:458 templates/product_details.html:303
+msgid "Price per Packaging Unit"
+msgstr "Price per Packaging Unit"
+
+#: templates/add_or_edit_product.html:499
+msgid "Average"
+msgstr "Average"
+
+#: templates/add_or_edit_raw_material.html:2
+#: templates/premake_production.html:275 templates/premake_production.html:309
+#: templates/premake_production.html:350 templates/product_details.html:99
+#: templates/production.html:314 templates/production.html:351
+#: templates/production.html:392 templates/supplier_materials.html:74
+#: templates/supplier_materials.html:232 templates/weekly_report.html:634
+msgid "Raw Material"
+msgstr ""
+
+#: templates/add_or_edit_raw_material.html:25
+#, fuzzy
+msgid "Edit Raw Material"
+msgstr "Delete Raw Material"
+
+#: templates/add_or_edit_raw_material.html:37
+#, fuzzy
+msgid "e.g., White Flour"
+msgstr "e.g., Head Baker"
+
+#: templates/add_or_edit_raw_material.html:75
+#, fuzzy
+msgid "Unlimited Material"
+msgstr "Supplied Raw Materials"
+
+#: templates/add_or_edit_raw_material.html:75
+#, fuzzy
+msgid "infinite stock, no cost"
+msgstr "In Stock Cost"
+
+#: templates/add_or_edit_raw_material.html:77
+msgid "Check for materials like water that do not require stock tracking or cost."
+msgstr ""
+
+#: templates/add_or_edit_raw_material.html:84
+#, fuzzy
+msgid "Alternative Names (optional)"
+msgstr "Phone Number (optional)"
+
+#: templates/add_or_edit_raw_material.html:86
+#, fuzzy
+msgid "Add Alternative Name"
+msgstr "Found (alternative name)"
+
+#: templates/add_or_edit_raw_material.html:98
+#: templates/add_or_edit_raw_material.html:328
+msgid "Alternative name for material (e.g., White Flour)"
+msgstr "Alternative name for material (e.g., White Flour)"
+
+#: templates/add_or_edit_raw_material.html:108
+msgid ""
+"Alternative names help with recipe imports - e.g., \"White Flour\" for "
+"\"White Flour T55 12kg\""
+msgstr ""
+
+#: templates/add_or_edit_raw_material.html:114
+#, fuzzy
+msgid "Suppliers and Prices"
+msgstr "Supplier Name"
+
+#: templates/add_or_edit_raw_material.html:119
+#: templates/add_or_edit_raw_material.html:126
+#: templates/add_or_edit_supplier.html:2 templates/add_or_edit_supplier.html:10
+#: templates/add_or_edit_supplier.html:13
+#: templates/add_or_edit_supplier.html:106 templates/packaging.html:172
+#: templates/raw_materials.html:88 templates/raw_materials.html:248
+#: templates/raw_materials.html:285
+msgid "Supplier"
+msgstr "Supplier"
+
+#: templates/add_or_edit_raw_material.html:120
+#: templates/add_or_edit_raw_material.html:127
+#: templates/supplier_materials.html:75 templates/supplier_materials.html:150
+#: templates/supplier_materials.html:236
+msgid "SKU"
+msgstr "SKU"
+
+#: templates/add_or_edit_raw_material.html:122 templates/index.html:152
+#: templates/packaging.html:58 templates/premake_production.html:55
+#: templates/production.html:61 templates/raw_materials.html:91
+#: templates/supplier_materials.html:80 templates/supplier_materials.html:154
+#: templates/update_weekly_sales.html:51 templates/view_premake.html:41
+msgid "Current Stock"
+msgstr "Current Stock"
+
+# add_or_edit_raw_material.html new translations
+#: templates/add_or_edit_raw_material.html:143
+#, fuzzy
+msgid "New Supplier"
+msgstr "Add New Supplier"
+
+#: templates/add_or_edit_raw_material.html:152
+msgid "Stock can be updated later through the inventory management screen."
+msgstr ""
+
+#: templates/add_or_edit_raw_material.html:175 templates/categories.html:108
+msgid "Add New Category"
+msgstr ""
+
+# add_or_edit_raw_material.html new translations
+#: templates/add_or_edit_raw_material.html:199 templates/suppliers.html:12
+msgid "Add New Supplier"
+msgstr "Add New Supplier"
+
+#: templates/add_or_edit_raw_material.html:204
+#: templates/add_or_edit_supplier.html:32 templates/suppliers.html:22
+msgid "Supplier Name"
+msgstr "Supplier Name"
+
+#: templates/add_or_edit_raw_material.html:209
+#: templates/add_or_edit_supplier.html:38 templates/suppliers.html:23
+msgid "Contact Person"
+msgstr "Contact Person"
+
+#: templates/add_or_edit_raw_material.html:233
+msgid "Handle Existing Stock"
+msgstr "Handle Existing Stock"
+
+#: templates/add_or_edit_raw_material.html:260
+msgid "Mark stock as waste"
+msgstr "Mark stock as waste"
+
+#: templates/add_or_edit_raw_material.html:270
+msgid "Keep stock as is"
+msgstr "Keep stock as is"
+
+#: templates/add_or_edit_raw_material.html:276
+msgid "Confirm"
+msgstr "Confirm"
+
+#: templates/add_or_edit_raw_material.html:301
+msgid "Optional SKU"
+msgstr "Optional SKU"
+
+#: templates/add_or_edit_raw_material.html:413
+msgid "Stock"
+msgstr ""
+
+#: templates/add_or_edit_raw_material.html:471
+msgid "Delete this alternative name?"
+msgstr "Delete this alternative name?"
+
+#: templates/add_or_edit_raw_material.html:539
+msgid "The following suppliers with existing stock were removed:"
+msgstr "The following suppliers with existing stock were removed:"
+
+#: templates/add_or_edit_raw_material.html:543
+msgid "What to do with the stock?"
+msgstr "What to do with the stock?"
+
+#: templates/add_or_edit_supplier.html:9 templates/base.html:66
+#: templates/packaging.html:57 templates/supplier_materials.html:9
+#: templates/suppliers.html:2
+msgid "Suppliers"
+msgstr "Suppliers"
+
+#: templates/add_or_edit_supplier.html:35
+msgid "Unique name to identify supplier in the system"
+msgstr "Unique name to identify supplier in the system"
+
+#: templates/add_or_edit_supplier.html:38
+#: templates/add_or_edit_supplier.html:47
+#: templates/add_or_edit_supplier.html:54
+#: templates/add_or_edit_supplier.html:63
+#: templates/add_or_edit_supplier.html:72
+#, fuzzy
+msgid "Optional"
+msgstr "Optional SKU"
+
+#: templates/add_or_edit_supplier.html:41
+msgid "Name of contact person at supplier"
+msgstr "Name of contact person at supplier"
+
+#: templates/add_or_edit_supplier.html:51
+msgid "Phone number for contact"
+msgstr "Phone number for contact"
+
+#: templates/add_or_edit_supplier.html:54
+#, fuzzy
+msgid "Email"
+msgstr "Email:'"
+
+#: templates/add_or_edit_supplier.html:58
+msgid "Email address for correspondence"
+msgstr "Email address for correspondence"
+
+#: templates/add_or_edit_supplier.html:63
+msgid "Address"
+msgstr "Address"
+
+#: templates/add_or_edit_supplier.html:65
+msgid "Street, City, Postal Code"
+msgstr "Street, City, Postal Code"
+
+#: templates/add_or_edit_supplier.html:66
+msgid "Physical address of supplier"
+msgstr "Physical address of supplier"
+
+#: templates/add_or_edit_supplier.html:71
+#, fuzzy
+msgid "Discount Percentage"
+msgstr "Food Cost Percentage:"
+
+#: templates/add_or_edit_supplier.html:87
+#, python-format
+msgid ""
+"Enter discount percentage (0-100%%). This will be applied to all material"
+" prices from this supplier."
+msgstr ""
+
+#: templates/add_or_edit_supplier.html:92
+#, fuzzy
+msgid "Current discount:"
+msgstr "Current Stock"
+
+#: templates/add_or_edit_supplier.html:94
+msgid "Example: ₪100 becomes ₪"
+msgstr ""
+
+#: templates/add_or_edit_supplier.html:106 templates/audit_log.html:45
+msgid "Update"
+msgstr "Update"
+
+#: templates/add_or_edit_supplier.html:118
+msgid "Supplier Information"
+msgstr "Supplier Information"
+
+#: templates/add_or_edit_supplier.html:121
+msgid ""
+"Suppliers in the system allow managing multiple sources for raw materials"
+" with different prices."
+msgstr ""
+"Suppliers in the system allow managing multiple sources for raw materials"
+" with different prices."
+
+#: templates/add_or_edit_supplier.html:124
+msgid "Each supplier can provide multiple raw materials"
+msgstr "Each supplier can provide multiple raw materials"
+
+#: templates/add_or_edit_supplier.html:125
+msgid "Each raw material can be supplied by multiple suppliers"
+msgstr "Each raw material can be supplied by multiple suppliers"
+
+#: templates/add_or_edit_supplier.html:126
+msgid ""
+"The system will automatically choose the cheapest supplier during "
+"production"
+msgstr ""
+"The system will automatically choose the cheapest supplier during "
+"production"
+
+#: templates/add_or_edit_supplier.html:127
+msgid "Inventory is managed separately for each supplier"
+msgstr "Inventory is managed separately for each supplier"
+
+#: templates/add_or_edit_supplier.html:133
+msgid "Created on:"
+msgstr "Created on:"
+
+#: templates/add_or_edit_supplier.html:133 templates/stock_audits.html:120
+#: templates/weekly_report.html:644
+msgid "Unknown"
+msgstr "Unknown"
+
+#: templates/audit_log.html:2
+msgid "Activity Log"
+msgstr "Activity Log"
+
+#: templates/audit_log.html:8
+msgid "System Activity Log"
+msgstr "System Activity Log"
+
+#: templates/audit_log.html:9
+msgid "Track changes and user actions."
+msgstr "Track changes and user actions."
+
+#: templates/audit_log.html:13
+msgid "Backup Data"
+msgstr "Backup Data"
+
+#: templates/audit_log.html:16 templates/audit_log.html:76
+msgid "Restore from Backup"
+msgstr "Restore from Backup"
+
+#: templates/audit_log.html:19
+msgid "Full System Reset"
+msgstr "Full System Reset"
+
+#: templates/audit_log.html:30
+msgid "Time"
+msgstr "Time"
+
+#: templates/audit_log.html:31
+msgid "Action"
+msgstr "Action"
+
+#: templates/audit_log.html:32
+msgid "Target Type"
+msgstr "Target Type"
+
+#: templates/audit_log.html:33
+msgid "Target ID"
+msgstr "Target ID"
+
+#: templates/audit_log.html:34
+#, fuzzy
+msgid "Details"
+msgstr "Week Details"
+
+#: templates/audit_log.html:43
+msgid "Create"
+msgstr "Create"
+
+#: templates/audit_log.html:47 templates/labor.html:70
+#: templates/packaging.html:107 templates/premake_production.html:98
+#: templates/premakes.html:65 templates/production.html:109
+#: templates/raw_materials.html:220 templates/raw_materials.html:325
+#: templates/suppliers.html:75
+msgid "Delete"
+msgstr ""
+
+#: templates/audit_log.html:49
+msgid "Reset"
+msgstr "Reset"
+
+#: templates/audit_log.html:51
+msgid "Restore"
+msgstr "Restore"
+
+#: templates/audit_log.html:62
+msgid "No records in the log."
+msgstr "No records in the log."
+
+#: templates/audit_log.html:80
+msgid "This action will overwrite all data in the system!"
+msgstr "This action will overwrite all data in the system!"
+
+#: templates/audit_log.html:81
+msgid "Upload a backup file (JSON) to restore the state."
+msgstr "Upload a backup file (JSON) to restore the state."
+
+#: templates/audit_log.html:83
+msgid "Backup File"
+msgstr "Backup File"
+
+#: templates/audit_log.html:89
+msgid "Restore Data"
+msgstr "Restore Data"
+
+#: templates/audit_log.html:102
+msgid "Warning: System Reset"
+msgstr "Warning: System Reset"
+
+#: templates/audit_log.html:106
+msgid "This action will delete all data in the system!"
+msgstr "This action will delete all data in the system!"
+
+#: templates/audit_log.html:107
+msgid ""
+"All products, raw materials, history and logs will be permanently "
+"deleted. This information cannot be recovered."
+msgstr ""
+"All products, raw materials, history and logs will be permanently "
+"deleted. This information cannot be recovered."
+
+#: templates/audit_log.html:108
+msgid "Are you sure you want to continue?"
+msgstr "Are you sure you want to continue?"
+
+#: templates/audit_log.html:112
+msgid "Yes, reset the system"
+msgstr "Yes, reset the system"
+
+#: templates/base.html:22
+msgid "Waste Tracking System"
+msgstr ""
+
+# Navigation translations (base.html)
+#: templates/base.html:29
+msgid "CostFlow"
+msgstr "CostFlow"
+
+#: templates/base.html:36 templates/update_weekly_sales.html:9
+msgid "Home"
+msgstr "Home"
+
+#: templates/base.html:39
+msgid "Production"
+msgstr ""
+
+#: templates/base.html:42 templates/base.html:46 templates/categories.html:31
+#: templates/categories.html:108 templates/index.html:29
+#: templates/monthly_report.html:372 templates/products.html:2
+#: templates/products.html:8
+msgid "Products"
+msgstr ""
+
+#: templates/base.html:51
+msgid "Reports"
+msgstr "Reports"
+
+# Weekly Report translations
+#: templates/base.html:54 templates/weekly_report.html:2
+#: templates/weekly_report.html:7
+msgid "Weekly Report"
+msgstr "Weekly Report"
+
+# Monthly Report translations
+#: templates/base.html:55 templates/monthly_report.html:2
+#: templates/monthly_report.html:7
+msgid "Monthly Report"
+msgstr "Monthly Report"
+
+#: templates/base.html:60
+msgid "Settings"
+msgstr "Settings"
+
+#: templates/base.html:63 templates/index.html:320
+#: templates/weekly_cost_details.html:9
+msgid "Weekly Labor"
+msgstr "Weekly Labor"
+
+#: templates/base.html:64
+msgid "Employees"
+msgstr "Employees"
+
+#: templates/base.html:68
+msgid "Categories"
+msgstr ""
+
+#: templates/base.html:69 templates/stock_audits.html:2
+#: templates/stock_audits.html:7
+msgid "Stock Audit"
+msgstr "Stock Audit"
+
+#: templates/base.html:70
+msgid "Upload Inventory from File"
+msgstr "Upload Inventory from File"
+
+#: templates/base.html:71 templates/recipe_upload.html:2
+msgid "Import Recipes"
+msgstr "Import Recipes"
+
+#: templates/base.html:73
+msgid "Activity Log / Reset"
+msgstr "Activity Log / Reset"
+
+#: templates/base.html:89
+msgid "All rights reserved."
+msgstr "All rights reserved."
+
+#: templates/categories.html:2 templates/categories.html:8
+msgid "Manage Categories"
+msgstr ""
+
+#: templates/categories.html:11
+msgid "Classify raw materials into groups."
+msgstr "Classify raw materials into groups."
+
+#: templates/categories.html:13
+msgid "Classify products into sales groups."
+msgstr "Classify products into sales groups."
+
+#: templates/categories.html:18
+msgid "New Category"
+msgstr ""
+
+#: templates/categories.html:47 templates/labor.html:55
+#: templates/packaging.html:59 templates/premake_production.html:82
+#: templates/premakes.html:46 templates/production.html:91
+#: templates/products.html:29 templates/raw_materials.html:92
+#: templates/supplier_materials.html:82 templates/supplier_materials.html:156
+#: templates/suppliers.html:28 templates/weekly_costs.html:25
 msgid "Actions"
 msgstr ""
+
+#: templates/categories.html:59
+msgid "Delete this category?"
+msgstr "Delete this category?"
+
+#: templates/categories.html:74
+msgid "Edit Category"
+msgstr ""
+
+#: templates/categories.html:93
+msgid "No categories found."
+msgstr "No categories found."
+
+#: templates/close_week.html:2
+msgid "Close Week - Reset Inventory"
+msgstr "Close Week - Reset Inventory"
+
+#: templates/close_week.html:8
+msgid "Leftovers found in inventory from last week"
+msgstr "Leftovers found in inventory from last week"
+
+#: templates/close_week.html:10
+msgid "For the week ending on"
+msgstr "For the week ending on"
+
+#: templates/close_week.html:10
+msgid "unsold products remain."
+msgstr "unsold products remain."
+
+#: templates/close_week.html:12
+msgid "Should we reset inventory and transfer the balance to waste (loss)?"
+msgstr "Should we reset inventory and transfer the balance to waste (loss)?"
+
+#: templates/close_week.html:22
+msgid "Product Leftovers"
+msgstr "Product Leftovers"
+
+#: templates/close_week.html:28 templates/index.html:197
+#: templates/monthly_report.html:417 templates/monthly_report.html:456
+#: templates/production.html:86 templates/production.html:128
+#: templates/update_weekly_sales.html:50 templates/weekly_report.html:158
+#: templates/weekly_report.html:266 templates/weekly_report.html:326
+#: templates/weekly_report.html:774
+msgid "Product"
+msgstr ""
+
+#: templates/close_week.html:29 templates/close_week.html:63
+msgid "Quantity Remaining"
+msgstr "Quantity Remaining"
+
+#: templates/close_week.html:30
+msgid "Loss Value (Cost)"
+msgstr "Loss Value (Cost)"
+
+#: templates/close_week.html:31 templates/close_week.html:65
+#: templates/close_week.html:99
+msgid "Transfer to next week?"
+msgstr "Transfer to next week?"
+
+#: templates/close_week.html:56
+msgid "Premake Leftovers"
+msgstr "Premake Leftovers"
+
+#: templates/close_week.html:62 templates/premake_production.html:80
+#: templates/premake_production.html:117 templates/premake_production.html:350
+#: templates/product_details.html:167 templates/production.html:398
+#: templates/view_premake.html:12 templates/weekly_report.html:366
+msgid "Premake"
+msgstr "Premake"
+
+#: templates/close_week.html:64 templates/close_week.html:98
+msgid "Value (Cost)"
+msgstr "Value (Cost)"
+
+#: templates/close_week.html:90 templates/weekly_report.html:409
+#, fuzzy
+msgid "Packaging Inventory"
+msgstr "Packaging Name"
+
+#: templates/close_week.html:97
+#, fuzzy
+msgid "Quantity in Stock"
+msgstr "Quantity in Recipe"
+
+#: templates/close_week.html:124
+msgid "Total estimated loss (unmarked for transfer):"
+msgstr "Total estimated loss (unmarked for transfer):"
+
+#: templates/close_week.html:134
+msgid "Approve and Close Week"
+msgstr "Approve and Close Week"
+
+#: templates/close_week.html:135
+msgid ""
+"Unmarked items will be transferred to waste. Marked items will remain in "
+"inventory/available."
+msgstr ""
+"Unmarked items will be transferred to waste. Marked items will remain in "
+"inventory/available."
+
+#: templates/close_week.html:142 templates/index.html:35
+#: templates/update_weekly_sales.html:10
+msgid "Update Sales"
+msgstr "Update Sales"
+
+#: templates/close_week.html:143
+msgid "Return to update sales data for the previous week (if sold)."
+msgstr "Return to update sales data for the previous week (if sold)."
+
+# Dashboard & Index page translations
+#: templates/index.html:3 templates/index.html:8
+msgid "Weekly Dashboard"
+msgstr "Weekly Dashboard"
+
+#: templates/index.html:9
+msgid "Performance, sales, and profitability overview."
+msgstr "Performance, sales, and profitability overview."
+
+#: templates/index.html:16 templates/monthly_report.html:305
+#: templates/weekly_cost_details.html:10 templates/weekly_report.html:22
+msgid "Week"
+msgstr "Week"
+
+#: templates/index.html:19 templates/monthly_report.html:355
+msgid "No weekly data"
+msgstr "No weekly data"
+
+#: templates/index.html:21 templates/weekly_costs.html:12
+msgid "New Week"
+msgstr "New Week"
+
+#: templates/index.html:26
+msgid "New Production"
+msgstr "New Production"
+
+#: templates/index.html:38
+msgid "Update Labor"
+msgstr "Update Labor"
+
+#: templates/index.html:55
+msgid "Revenue (Sales)"
+msgstr "Revenue (Sales)"
+
+#: templates/index.html:70 templates/monthly_report.html:69
+#: templates/monthly_report.html:313 templates/weekly_report.html:66
+msgid "Net Profit"
+msgstr "Net Profit"
+
+#: templates/index.html:87
+msgid "Labor Cost (Fixed)"
+msgstr "Labor Cost (Fixed)"
+
+#: templates/index.html:102 templates/index.html:120
+#: templates/monthly_report.html:310 templates/monthly_report.html:376
+#: templates/weekly_report.html:217
+msgid "Production Cost"
+msgstr "Production Cost"
+
+#: templates/index.html:117
+msgid "Stock Value (Cost)"
+msgstr "Stock Value (Cost)"
+
+#: templates/index.html:133
+msgid "Sales Stock Value"
+msgstr "Sales Stock Value"
+
+#: templates/index.html:136
+msgid "Potential Value"
+msgstr "Potential Value"
+
+#: templates/index.html:149
+#, fuzzy
+msgid "Packaging Stock Value"
+msgstr "Packaging Name"
+
+#: templates/index.html:165 templates/monthly_report.html:312
+#: templates/monthly_report.html:531
+msgid "Stock Discrepancies"
+msgstr "Stock Discrepancies"
+
+#: templates/index.html:171 templates/stock_audits.html:173
+#: templates/stock_audits.html:214 templates/weekly_report.html:600
+msgid "Counts"
+msgstr "Counts"
+
+#: templates/index.html:191
+msgid "Product Performance"
+msgstr "Product Performance"
+
+#: templates/index.html:198 templates/index.html:266
+#: templates/monthly_report.html:457 templates/weekly_report.html:327
+#: templates/weekly_report.html:367 templates/weekly_report.html:467
+msgid "Produced"
+msgstr "Produced"
+
+#: templates/index.html:199
+msgid "Remaining"
+msgstr "Remaining"
+
+#: templates/index.html:200 templates/monthly_report.html:458
+#: templates/weekly_report.html:328 templates/weekly_report.html:776
+msgid "Sold"
+msgstr "Sold"
+
+#: templates/index.html:201 templates/monthly_report.html:459
+#: templates/weekly_report.html:329 templates/weekly_report.html:777
+msgid "Waste"
+msgstr "Waste"
+
+#: templates/index.html:202 templates/premake_production.html:58
+#: templates/production.html:64 templates/weekly_report.html:269
+msgid "Unit Cost"
+msgstr "Unit Cost"
+
+#: templates/index.html:203 templates/monthly_report.html:306
+#: templates/monthly_report.html:375 templates/monthly_report.html:420
+#: templates/weekly_report.html:49 templates/weekly_report.html:216
+#: templates/weekly_report.html:273
+msgid "Revenue"
+msgstr "Revenue"
+
+#: templates/index.html:204 templates/monthly_report.html:377
+#: templates/products.html:28 templates/weekly_report.html:218
+msgid "Gross Profit"
+msgstr "Gross Profit"
+
+#: templates/index.html:246
+msgid "No data to display for this week."
+msgstr "No data to display for this week."
+
+#: templates/index.html:247
+msgid "Start by adding sales or production."
+msgstr "Start by adding sales or production."
+
+#: templates/index.html:258 templates/weekly_report.html:459
+msgid "Premakes Activity"
+msgstr "Premakes Activity"
+
+#: templates/index.html:267 templates/weekly_report.html:468
+msgid "Used (in products)"
+msgstr "Used (in products)"
+
+#: templates/index.html:268 templates/monthly_report.html:460
+#: templates/weekly_report.html:330 templates/weekly_report.html:469
+msgid "In Stock"
+msgstr "In Stock"
+
+#: templates/index.html:269 templates/weekly_report.html:470
+msgid "Cost per Unit (per kg)"
+msgstr "Cost per Unit (per kg)"
+
+#: templates/index.html:270 templates/weekly_report.html:471
+msgid "Total Production Value"
+msgstr "Total Production Value"
+
+#: templates/index.html:300
+msgid "Welcome to CostFlow"
+msgstr "Welcome to CostFlow"
+
+#: templates/index.html:301
+msgid "To get started, select an existing week or create a new week."
+msgstr "To get started, select an existing week or create a new week."
+
+#: templates/index.html:302
+msgid "Manage Weeks"
+msgstr "Manage Weeks"
+
+#: templates/index.html:309
+msgid "Common Actions"
+msgstr "Common Actions"
+
+#: templates/index.html:321
+msgid "Manage weeks, employee hours and costs"
+msgstr "Manage weeks, employee hours and costs"
+
+#: templates/index.html:337
+msgid "Inventory and Raw Materials"
+msgstr "Inventory and Raw Materials"
+
+#: templates/index.html:338
+msgid "Manage purchases, suppliers and current stock"
+msgstr "Manage purchases, suppliers and current stock"
+
+#: templates/index.html:352
+msgid "Product Production Log"
+msgstr "Product Production Log"
+
+#: templates/index.html:353
+msgid "Daily production logging for products"
+msgstr "Daily production logging for products"
+
+#: templates/index.html:367 templates/premake_production.html:2
+#: templates/premake_production.html:4
+msgid "Premake Production Log"
+msgstr "Premake Production Log"
+
+#: templates/index.html:368
+msgid "Daily production logging for premakes"
+msgstr "Daily production logging for premakes"
+
+#: templates/labor.html:2
+msgid "Manage Labor"
+msgstr ""
+
+#: templates/labor.html:7
+msgid "Employee and Cost Management"
+msgstr "Employee and Cost Management"
+
+#: templates/labor.html:8
+msgid "Track labor costs and hourly wages."
+msgstr "Track labor costs and hourly wages."
+
+#: templates/labor.html:17
+msgid "Add New Employee / Role"
+msgstr "Add New Employee / Role"
+
+#: templates/labor.html:23
+msgid "e.g., Head Baker"
+msgstr "e.g., Head Baker"
+
+#: templates/labor.html:35
+msgid "Add Employee"
+msgstr "Add Employee"
+
+#: templates/labor.html:46
+msgid "Employee List"
+msgstr "Employee List"
+
+#: templates/labor.html:52 templates/packaging.html:54
+#: templates/premakes.html:42 templates/raw_materials.html:86
+#: templates/recipe_review.html:101
+msgid "Name"
+msgstr ""
+
+#: templates/labor.html:54
+msgid "Hourly Cost"
+msgstr "Hourly Cost"
+
+#: templates/labor.html:68 templates/raw_materials.html:320
+msgid "Are you sure you want to delete"
+msgstr "Are you sure you want to delete"
+
+#: templates/labor.html:68
+msgid "This action is irreversible."
+msgstr "This action is irreversible."
+
+#: templates/labor.html:78
+msgid "No employees found in the list."
+msgstr "No employees found in the list."
+
+#: templates/monthly_report.html:9
+msgid "Performance summary for month"
+msgstr "Performance summary for month"
+
+#: templates/monthly_report.html:22
+msgid "January"
+msgstr "January"
+
+#: templates/monthly_report.html:22
+msgid "February"
+msgstr "February"
+
+#: templates/monthly_report.html:22
+msgid "March"
+msgstr "March"
+
+#: templates/monthly_report.html:22
+msgid "April"
+msgstr "April"
+
+#: templates/monthly_report.html:22
+msgid "May"
+msgstr "May"
+
+#: templates/monthly_report.html:22
+msgid "June"
+msgstr "June"
+
+#: templates/monthly_report.html:22
+msgid "July"
+msgstr "July"
+
+#: templates/monthly_report.html:22
+msgid "August"
+msgstr "August"
+
+#: templates/monthly_report.html:22
+msgid "September"
+msgstr "September"
+
+#: templates/monthly_report.html:22
+msgid "October"
+msgstr "October"
+
+#: templates/monthly_report.html:22
+msgid "November"
+msgstr "November"
+
+#: templates/monthly_report.html:22
+msgid "December"
+msgstr "December"
+
+#: templates/monthly_report.html:28
+msgid "Show Report"
+msgstr "Show Report"
+
+#: templates/monthly_report.html:34 templates/weekly_report.html:32
+msgid "Print"
+msgstr "Print"
+
+#: templates/monthly_report.html:42
+msgid "No data found for selected month"
+msgstr "No data found for selected month"
+
+#: templates/monthly_report.html:51
+msgid "Total Revenue"
+msgstr "Total Revenue"
+
+#: templates/monthly_report.html:53 templates/monthly_report.html:62
+#: templates/monthly_report.html:80 templates/monthly_report.html:129
+msgid "Weekly average:"
+msgstr "Weekly average:"
+
+#: templates/monthly_report.html:60 templates/monthly_report.html:311
+#: templates/weekly_report.html:57
+msgid "Labor Costs"
+msgstr ""
+
+#: templates/monthly_report.html:76 templates/weekly_report.html:73
+msgid "Total Production Cost = COGS + Waste + In Stock"
+msgstr "Total Production Cost = COGS + Waste + In Stock"
+
+#: templates/monthly_report.html:78 templates/weekly_report.html:75
+#: templates/weekly_report.html:140
+msgid "Total Production Cost"
+msgstr "Total Production Cost"
+
+#: templates/monthly_report.html:89 templates/weekly_report.html:86
+msgid "Sold Items Cost = Σ(quantity_sold × cost_per_unit)"
+msgstr "Sold Items Cost = Σ(quantity_sold × cost_per_unit)"
+
+# New translations for cost breakdown (2024-12-10)
+#: templates/monthly_report.html:91 templates/weekly_report.html:88
+msgid "Sold Items Cost (COGS)"
+msgstr "Sold Items Cost (COGS)"
+
+#: templates/monthly_report.html:97 templates/weekly_report.html:94
+msgid "Waste Cost = Σ(quantity_waste × cost_per_unit)"
+msgstr "Waste Cost = Σ(quantity_waste × cost_per_unit)"
+
+#: templates/monthly_report.html:99 templates/weekly_report.html:96
+#: templates/weekly_report.html:752 templates/weekly_report.html:779
+msgid "Waste Cost"
+msgstr "Waste Cost"
+
+#: templates/monthly_report.html:105 templates/weekly_report.html:102
+msgid "In Stock Cost = Unsold Products + Premake Stock Increase"
+msgstr "In Stock Cost = Unsold Products + Premake Stock Increase"
+
+#: templates/monthly_report.html:107 templates/weekly_report.html:104
+msgid "In Stock Cost"
+msgstr "In Stock Cost"
+
+#: templates/monthly_report.html:109 templates/weekly_report.html:107
+#, fuzzy
+msgid "Products:"
+msgstr "Product'"
+
+#: templates/monthly_report.html:110 templates/product_details.html:355
+#: templates/weekly_report.html:108
+msgid "Premakes:"
+msgstr "Premakes:"
+
+#: templates/monthly_report.html:122
+msgid "Monthly Food Cost Analysis (Food Cost)"
+msgstr "Monthly Food Cost Analysis (Food Cost)"
+
+#: templates/monthly_report.html:127 templates/monthly_report.html:307
+msgid "Total Food Cost"
+msgstr "Total Food Cost"
+
+#: templates/monthly_report.html:134
+msgid "Average Cost per Recipe"
+msgstr "Average Cost per Recipe"
+
+#: templates/monthly_report.html:140 templates/weekly_report.html:147
+msgid "Total Recipes Produced"
+msgstr "Total Recipes Produced"
+
+#: templates/monthly_report.html:146 templates/weekly_report.html:187
+msgid "Food Cost Percentage:"
+msgstr "Food Cost Percentage:"
+
+#: templates/monthly_report.html:150 templates/monthly_report.html:188
+#: templates/monthly_report.html:189
+msgid "Target:"
+msgstr "Target:"
+
+#: templates/monthly_report.html:162
+msgid "Weekly Food Cost Trend"
+msgstr "Weekly Food Cost Trend"
+
+#: templates/monthly_report.html:289 templates/stock_audits.html:195
+#: templates/stock_audits.html:236
+msgid "No data to display"
+msgstr "No data to display"
+
+#: templates/monthly_report.html:297
+msgid "Weekly Trends"
+msgstr "Weekly Trends"
+
+#: templates/monthly_report.html:308
+msgid "Food Cost %"
+msgstr "Food Cost %%"
+
+#: templates/monthly_report.html:309
+msgid "Recipes"
+msgstr "Recipes"
+
+#: templates/monthly_report.html:339 templates/raw_materials.html:133
+#: templates/weekly_report.html:238 templates/weekly_report.html:564
+msgid "Total"
+msgstr "Total"
+
+#: templates/monthly_report.html:363
+msgid "Category Performance"
+msgstr "Category Performance"
+
+#: templates/monthly_report.html:373 templates/monthly_report.html:419
+#: templates/weekly_report.html:214 templates/weekly_report.html:270
+msgid "Quantity Sold"
+msgstr "Quantity Sold"
+
+#: templates/monthly_report.html:374 templates/weekly_report.html:215
+#: templates/weekly_report.html:271 templates/weekly_report.html:811
+msgid "Waste Quantity"
+msgstr "Waste Quantity"
+
+#: templates/monthly_report.html:378
+msgid "Active Weeks"
+msgstr "Active Weeks"
+
+#: templates/monthly_report.html:400
+msgid "No category data"
+msgstr "No category data"
+
+#: templates/monthly_report.html:408
+msgid "Top 10 Products"
+msgstr "Top 10 Products"
+
+#: templates/monthly_report.html:421 templates/monthly_report.html:522
+#: templates/weekly_report.html:106 templates/weekly_report.html:189
+#: templates/weekly_report.html:762
+msgid "of revenue"
+msgstr "of revenue"
+
+#: templates/monthly_report.html:439
+msgid "No product data"
+msgstr "No product data"
+
+#: templates/monthly_report.html:447 templates/weekly_report.html:317
+msgid "In-Stock Analysis"
+msgstr "In-Stock Analysis"
+
+#: templates/monthly_report.html:451 templates/weekly_report.html:321
+msgid "Unsold Products (In Inventory)"
+msgstr "Unsold Products (In Inventory)"
+
+#: templates/monthly_report.html:461 templates/product_details.html:170
+#: templates/product_details.html:253 templates/view_premake.html:66
+#: templates/view_premake.html:183 templates/weekly_report.html:331
+#: templates/weekly_report.html:370 templates/weekly_report.html:507
+msgid "Cost per Unit"
+msgstr "Cost per Unit"
+
+#: templates/monthly_report.html:462 templates/weekly_report.html:332
+msgid "Total Stock Value"
+msgstr "Total Stock Value"
+
+#: templates/monthly_report.html:480 templates/weekly_report.html:350
+msgid "Total Unsold Product Value:"
+msgstr "Total Unsold Product Value:"
+
+#: templates/monthly_report.html:487 templates/weekly_report.html:357
+msgid "No unsold products in inventory"
+msgstr "No unsold products in inventory"
+
+#: templates/monthly_report.html:492
+msgid ""
+"In Stock Cost represents capital tied up in inventory across all weeks: "
+"unsold products and premakes produced but not yet consumed."
+msgstr ""
+"In Stock Cost represents capital tied up in inventory across all weeks: "
+"unsold products and premakes produced but not yet consumed."
+
+#: templates/monthly_report.html:500
+msgid "Monthly Insights"
+msgstr "Monthly Insights"
+
+#: templates/monthly_report.html:505
+msgid "Key Data"
+msgstr "Key Data"
+
+#: templates/monthly_report.html:509
+msgid "Number of active weeks:"
+msgstr "Number of active weeks:"
+
+#: templates/monthly_report.html:513
+msgid "Weekly average revenue:"
+msgstr "Weekly average revenue:"
+
+#: templates/monthly_report.html:517
+msgid "Monthly profit margin:"
+msgstr "Monthly profit margin:"
+
+#: templates/monthly_report.html:521
+msgid "Monthly food cost:"
+msgstr "Monthly food cost:"
+
+#: templates/monthly_report.html:526
+msgid "Weekly average cost per recipe:"
+msgstr "Weekly average cost per recipe:"
+
+#: templates/monthly_report.html:539
+msgid "Leading Performance"
+msgstr "Leading Performance"
+
+#: templates/monthly_report.html:546 templates/weekly_report.html:676
+msgid "Leading category:"
+msgstr "Leading category:"
+
+#: templates/monthly_report.html:555 templates/weekly_report.html:686
+msgid "Best-selling product:"
+msgstr "Best-selling product:"
+
+#: templates/monthly_report.html:565
+msgid "Best week:"
+msgstr "Best week:"
+
+#: templates/monthly_report.html:580
+msgid "Monthly waste percentage:"
+msgstr "Monthly waste percentage:"
+
+#: templates/monthly_report.html:582 templates/production.html:38
+#: templates/weekly_report.html:744
+msgid "Units"
+msgstr "Units"
+
+#: templates/monthly_report.html:582 templates/weekly_report.html:745
+msgid "of production"
+msgstr "of production"
+
+#: templates/packaging.html:2 templates/packaging.html:40
+#, fuzzy
+msgid "Manage Packaging"
+msgstr "Manage Packaging"
+
+#: templates/packaging.html:41
+msgid "Manage packaging types and prices."
+msgstr "Manage packaging types and prices."
+
+#: templates/packaging.html:56
+msgid "Price per Package"
+msgstr "Price per Package"
+
+#: templates/packaging.html:78
+#, fuzzy
+msgid "supplier"
+msgstr "Supplier"
+
+#: templates/packaging.html:78 templates/raw_materials.html:133
+msgid "suppliers"
+msgstr "suppliers"
+
+#: templates/packaging.html:89
+#, fuzzy
+msgid "No suppliers"
+msgstr "suppliers"
+
+#: templates/packaging.html:97 templates/packaging.html:252
+#: templates/raw_materials.html:211 templates/raw_materials.html:240
+msgid "Add Stock"
+msgstr ""
+
+#: templates/packaging.html:100 templates/packaging.html:257
+msgid "Set Stock"
+msgstr ""
+
+#: templates/packaging.html:106
+msgid "Are you sure you want to delete this item?"
+msgstr "Are you sure you want to delete this item?"
+
+#: templates/packaging.html:119
+#, fuzzy
+msgid "Stock per Supplier:"
+msgstr "SKU / Supplier"
+
+#: templates/packaging.html:124 templates/packaging.html:233
+#: templates/raw_materials.html:185 templates/raw_materials.html:371
+#: templates/raw_materials.html:418 templates/supplier_materials.html:120
+#: templates/supplier_materials.html:191
+msgid "Primary"
+msgstr "Primary"
+
+#: templates/packaging.html:124 templates/supplier_materials.html:122
+#: templates/supplier_materials.html:193
+msgid "Secondary"
+msgstr "Secondary"
+
+# Product Details page translations
+#: templates/packaging.html:127 templates/product_details.html:30
+#: templates/stock_audits.html:29 templates/stock_audits.html:37
+msgid "units"
+msgstr "units"
+
+#: templates/packaging.html:145
+msgid "No packaging found in the system."
+msgstr "No packaging found in the system."
+
+#: templates/packaging.html:158 templates/packaging.html:197
+#: templates/raw_materials.html:262
+msgid "Update Stock"
+msgstr "Update Stock"
+
+#: templates/packaging.html:159
+#, fuzzy
+msgid "Close"
+msgstr "Cost"
+
+#: templates/packaging.html:189 templates/raw_materials.html:297
+#, fuzzy
+msgid "Counter Name"
+msgstr "Counter"
+
+#: templates/packaging.html:191 templates/raw_materials.html:298
+msgid "Who performed the count?"
+msgstr "Who performed the count?"
+
+#: templates/packaging.html:248
+#, fuzzy
+msgid "Containers of"
+msgstr "Contact Person"
+
+# Product Details page translations
+#: templates/packaging.html:248
+#, fuzzy
+msgid "units each"
+msgstr "units"
+
+#: templates/packaging.html:253
+#, fuzzy
+msgid "Containers to Add"
+msgstr "Continue to Review"
+
+#: templates/packaging.html:254
+msgid "Enter number of containers to add to current stock"
+msgstr ""
+
+#: templates/packaging.html:258
+#, fuzzy
+msgid "New Stock Level (Containers)"
+msgstr "Stock Value (Cost)"
+
+#: templates/packaging.html:259
+msgid "Enter total number of containers for new stock level"
+msgstr ""
+
+#: templates/packaging.html:277
+#, fuzzy
+msgid "Total Units:"
+msgstr "Total Hours"
+
+#: templates/packaging.html:296 templates/packaging.html:301
+#, fuzzy
+msgid "Error updating stock"
+msgstr "Error updating price"
+
+#: templates/premake_production.html:17 templates/production.html:17
+msgid "Timestamp"
+msgstr ""
+
+# Premake Production page translations
+#: templates/premake_production.html:21
+msgid "Select Premake"
+msgstr "Select Premake"
+
+#: templates/premake_production.html:31
+msgid "Batch size (recipe):"
+msgstr "Batch size (recipe):"
+
+#: templates/premake_production.html:35
+msgid "Number of batches to produce"
+msgstr "Number of batches to produce"
+
+#: templates/premake_production.html:38 templates/premake_production.html:90
+#: templates/premake_production.html:124 templates/premake_production.html:241
+#: templates/production.html:249
+msgid "batches"
+msgstr "batches"
+
+#: templates/premake_production.html:40
+msgid "Enter the number of batches to produce. Each batch is"
+msgstr "Enter the number of batches to produce. Each batch is"
+
+#: templates/premake_production.html:45
+msgid "Total quantity to produce:"
+msgstr "Total quantity to produce:"
+
+#: templates/premake_production.html:48 templates/production.html:54
+msgid "Material and Premake Usage Breakdown"
+msgstr "Material and Premake Usage Breakdown"
+
+#: templates/premake_production.html:53 templates/product_details.html:199
+#: templates/production.html:59 templates/view_premake.html:100
+msgid "Component"
+msgstr "Component"
+
+#: templates/premake_production.html:54 templates/production.html:60
+#: templates/recipe_review.html:102
+msgid "Type"
+msgstr "Type"
+
+#: templates/premake_production.html:56 templates/production.html:62
+msgid "Usage in this production"
+msgstr "Usage in this production"
+
+#: templates/premake_production.html:57 templates/production.html:63
+msgid "Stock after production"
+msgstr "Stock after production"
+
+#: templates/premake_production.html:59 templates/production.html:65
+#: templates/view_premake.html:105
+msgid "Cost"
+msgstr "Cost"
+
+#: templates/premake_production.html:69 templates/production.html:75
+msgid "Log Production"
+msgstr ""
+
+#: templates/premake_production.html:75
+msgid "Premake Production History"
+msgstr "Premake Production History"
+
+#: templates/premake_production.html:79 templates/production.html:85
+#: templates/stock_audits.html:100 templates/weekly_report.html:633
+#, fuzzy
+msgid "Date"
+msgstr "Date"
+
+#: templates/premake_production.html:81 templates/production.html:44
+#: templates/production.html:132 templates/production.html:247
+#: templates/production.html:253
+msgid "Quantity Produced"
+msgstr ""
+
+#: templates/premake_production.html:97
+msgid "Are you sure you want to delete this premake production log?"
+msgstr "Are you sure you want to delete this premake production log?"
+
+#: templates/premake_production.html:112
+msgid "Edit Premake Production Quantity"
+msgstr "Edit Premake Production Quantity"
+
+#: templates/premake_production.html:121
+msgid "Number of batches"
+msgstr "Number of batches"
+
+#: templates/premake_production.html:126
+msgid "Enter the number of batches produced. Each batch is"
+msgstr "Enter the number of batches produced. Each batch is"
+
+#: templates/premake_production.html:192
+msgid "Edit Premake Production Quantity for"
+msgstr "Edit Premake Production Quantity for"
+
+#: templates/premake_production.html:297 templates/premake_production.html:344
+#: templates/production.html:339 templates/production.html:386
+msgid "Shortage"
+msgstr "Shortage"
+
+#: templates/premake_production.html:364 templates/production.html:416
+msgid "Total production cost"
+msgstr "Total production cost"
+
+# Premakes page translations
+#: templates/premakes.html:9
+msgid "Manage base recipes and premakes."
+msgstr "Manage base recipes and premakes."
+
+#: templates/premakes.html:24
+msgid "Search premake..."
+msgstr "Search premake..."
+
+#: templates/premakes.html:29 templates/raw_materials.html:73
+msgid "All Categories"
+msgstr "All Categories"
+
+#: templates/premakes.html:44
+msgid "Batch Quantity"
+msgstr "Batch Quantity"
+
+#: templates/premakes.html:58 templates/products.html:96
+msgid "View Details"
+msgstr "View Details"
+
+#: templates/premakes.html:64
+msgid "Are you sure you want to delete this premake?"
+msgstr "Are you sure you want to delete this premake?"
+
+#: templates/premakes.html:74
+msgid "No premakes found."
+msgstr "No premakes found."
 
 #: templates/product_details.html:2
 msgid "Product Details"
 msgstr ""
 
-#: templates/product_details.html:5
-msgid "Products Per Recipe:"
+# Missing product_details.html translations
+#: templates/product_details.html:28
+msgid "Quantity per Recipe"
+msgstr "Quantity per Recipe"
+
+#: templates/product_details.html:47 templates/products.html:26
+msgid "Production Cost per Unit"
+msgstr "Production Cost per Unit"
+
+#: templates/product_details.html:69
+msgid "Gross Profit per Unit"
+msgstr "Gross Profit per Unit"
+
+#: templates/product_details.html:82
+msgid "Product Components"
+msgstr "Product Components"
+
+#: templates/product_details.html:91 templates/product_details.html:159
+#: templates/product_details.html:242 templates/product_details.html:293
+#: templates/view_premake.html:92
+msgid "items"
+msgstr "items"
+
+#: templates/product_details.html:100 templates/product_details.html:168
+#: templates/product_details.html:251
+msgid "Quantity in Recipe"
+msgstr "Quantity in Recipe"
+
+#: templates/product_details.html:101 templates/supplier_materials.html:78
+#: templates/supplier_materials.html:152 templates/view_premake.html:103
+msgid "Original Price"
 msgstr ""
 
-#: templates/product_details.html:6
+#: templates/product_details.html:102 templates/supplier_materials.html:79
+#: templates/supplier_materials.html:153 templates/view_premake.html:104
 #, fuzzy
-msgid "Selling Price Per Unit:"
-msgstr "Selling Price Per Unit:"
+msgid "Discounted Price"
+msgstr "Same price"
 
-#: templates/product_details.html:13
-msgid "Amount in Recipe"
-msgstr ""
+#: templates/product_details.html:103 templates/product_details.html:171
+#: templates/product_details.html:254 templates/product_details.html:304
+#: templates/weekly_report.html:162
+msgid "Cost per Recipe"
+msgstr "Cost per Recipe"
 
-#: templates/product_details.html:14 templates/product_details.html:62
+#: templates/product_details.html:104 templates/product_details.html:172
+#: templates/product_details.html:255 templates/product_details.html:305
+msgid "Cost per Product"
+msgstr "Cost per Product"
+
+#: templates/product_details.html:136
+msgid "Total Raw Materials:"
+msgstr "Total Raw Materials:"
+
+#: templates/product_details.html:195
+msgid "Components of"
+msgstr "Components of"
+
+# Missing product_details.html translations
+#: templates/product_details.html:200
 #, fuzzy
-msgid "Price Per Unit"
-msgstr "Price Per Unit"
+msgid "Quantity per Unit"
+msgstr "Quantity per Recipe"
 
-#: templates/product_details.html:15 templates/product_details.html:39
-#: templates/product_details.html:63
+#: templates/product_details.html:219
+msgid "Total Premakes:"
+msgstr "Total Premakes:"
+
+#: templates/product_details.html:270
+msgid "Total Preproducts:"
+msgstr "Total Preproducts:"
+
+#: templates/product_details.html:319
+msgid "Total Packaging:"
+msgstr "Total Packaging:"
+
+#: templates/product_details.html:339 templates/view_premake.html:156
+msgid "Cost Summary"
+msgstr "Cost Summary"
+
+#: templates/product_details.html:349
+msgid "Raw Materials:"
+msgstr "Raw Materials:"
+
+#: templates/product_details.html:361
 #, fuzzy
-msgid "Price Per Recipe"
-msgstr "Price Per Recipe"
+msgid "Preproducts:"
+msgstr "Preproducts"
 
-#: templates/product_details.html:16 templates/product_details.html:40
-#: templates/product_details.html:64
+#: templates/product_details.html:367
 #, fuzzy
-msgid "Price Per Product"
-msgstr "Price Per Product"
+msgid "Packaging:"
+msgstr "Packaging"
 
-#: templates/product_details.html:37
-msgid "Hours of Labor"
-msgstr ""
+#: templates/product_details.html:372
+msgid "Total Cost per Product:"
+msgstr "Total Cost per Product:"
 
-#: templates/product_details.html:38
-#, fuzzy
-msgid "Price Per Hour"
-msgstr "Price Per Hour"
+#: templates/product_details.html:382
+msgid "Selling Price:"
+msgstr "Selling Price:"
 
-#: templates/product_details.html:61
-#, fuzzy
-msgid "Units Per Recipe"
-msgstr "Units Per Recipe"
+#: templates/product_details.html:386
+msgid "Production Cost:"
+msgstr "Production Cost:"
+
+#: templates/product_details.html:390
+msgid "Gross Profit:"
+msgstr "Gross Profit:"
+
+#: templates/product_details.html:394
+msgid "Profit Margin:"
+msgstr "Profit Margin:"
 
 #: templates/production.html:2 templates/production.html:4
 msgid "Production Logs"
 msgstr ""
 
-#: templates/production.html:9
-msgid "Timestamp"
-msgstr ""
-
-#: templates/production.html:13
+#: templates/production.html:21
 msgid "Select Product"
 msgstr ""
 
-#: templates/production.html:21 templates/production.html:36
-msgid "Quantity Produced"
-msgstr ""
-
-#: templates/production.html:30
-msgid "Recent Production Logs"
-msgstr ""
-
-#: templates/production.html:34
-#, fuzzy
-msgid "Date"
-msgstr "Date"
-
-#: templates/products.html:5
-msgid "Add New Product"
-msgstr ""
-
-#: templates/products.html:10
-msgid "Unit Price"
-msgstr ""
-
-#: templates/products.html:11
-msgid "Cost Margin"
-msgstr ""
-
-#: templates/products.html:37
-msgid "N/A"
-msgstr ""
-
-#: templates/products.html:41
-msgid "View"
-msgstr ""
-
-#: templates/raw_materials.html:5
-msgid "Add New Raw Material"
-msgstr ""
-
-#: templates/raw_materials.html:27
-msgid "Add Stock"
-msgstr ""
-
-#: templates/raw_materials.html:30
-msgid "Set Stock"
-msgstr ""
-
-#: templates/raw_materials.html:52
-msgid "Adding stock for "
-msgstr ""
-
-#: templates/raw_materials.html:74
-msgid "Setting stock for "
-msgstr "Setting stock for "
-
-# Weekly Report translations
-msgid "Weekly Report"
-msgstr "Weekly Report"
-
-msgid "Performance summary for week"
-msgstr "Performance summary for week"
-
-msgid "Select week:"
-msgstr "Select week:"
-
-msgid "Week"
-msgstr "Week"
-
-msgid "No weeks available"
-msgstr "No weeks available"
-
-msgid "Print"
-msgstr "Print"
-
-msgid "No data found for selected week"
-msgstr "No data found for selected week"
-
-msgid "Revenue"
-msgstr "Revenue"
-
-msgid "Material Costs"
-msgstr "Material Costs"
-
-msgid "Prime Costs"
-msgstr "Production Cost"
-
-msgid "(Materials + Packaging + Premakes)"
-msgstr "(Products + Premake Inventory)"
-
-msgid "(Products + Premake Inventory)"
-msgstr "(Products + Premake Inventory)"
-
-msgid "Net Profit"
-msgstr "Net Profit"
-
-msgid "Product Food Cost Analysis (Food Cost)"
-msgstr "Product Food Cost Analysis (Food Cost)"
-
-msgid "Monthly Trends"
-msgstr "Monthly Trends"
-
-msgid "Total Food Cost"
-msgstr "Total Food Cost"
-
-msgid "Average Cost per Recipe"
-msgstr "Average Cost per Recipe"
-
-msgid "Total Recipes Produced"
-msgstr "Total Recipes Produced"
-
-msgid "Production Count"
-msgstr "Production Count"
-
-msgid "Total Recipes"
-msgstr "Total Recipes"
-
-msgid "Units per Recipe"
-msgstr "Units per Recipe"
-
-msgid "Cost per Recipe"
-msgstr "Cost per Recipe"
-
-msgid "Total Cost"
-msgstr "Total Cost"
-
-msgid "Food Cost Percentage:"
-msgstr "Food Cost Percentage:"
-
-msgid "of revenue"
-msgstr "of revenue"
-
-msgid "Recommended target: 25-35%"
-msgstr "Recommended target: 25-35%%"
-
-msgid "Food cost includes raw materials, packaging, and premakes for products produced this week."
-msgstr "Food cost includes raw materials, packaging, and premakes for products produced this week."
-
-msgid "Production cost includes all products made this week (materials + packaging + premakes used) PLUS the value of premakes produced but not consumed (inventory increase). This represents the total cost of everything produced."
-msgstr "Production cost includes all products made this week (materials + packaging + premakes used) PLUS the value of premakes produced but not consumed (inventory increase). This represents the total cost of everything produced."
-
-msgid "Sales by Category"
-msgstr "Sales by Category"
-
-msgid "Number of Products"
-msgstr "Number of Products"
-
-msgid "Quantity Sold"
-msgstr "Quantity Sold"
-
-msgid "Waste Quantity"
-msgstr "Waste Quantity"
-
-msgid "Gross Profit"
-msgstr "Gross Profit"
-
-msgid "Total Revenue"
-msgstr "Total Revenue"
-
-msgid "No sales data by category"
-msgstr "No sales data by category"
-
-msgid "Product Sales Details"
-msgstr "Product Sales Details"
-
-msgid "No Category"
-msgstr "No Category"
-
-msgid "No product sales data"
-msgstr "No product sales data"
-
-msgid "Premakes Activity"
-msgstr "Premakes Activity"
-
-msgid "Premake Name"
-msgstr "Premake Name"
-
-msgid "Produced"
-msgstr "Produced"
-
-msgid "Used (in products)"
-msgstr "Used (in products)"
-
-msgid "In Stock"
-msgstr "In Stock"
-
-msgid "Cost per Unit (per kg)"
-msgstr "Cost per Unit (per kg)"
-
-msgid "Total Production Value"
-msgstr "Total Production Value"
-
-msgid "Labor Cost Details"
-msgstr "Labor Cost Details"
-
-msgid "Employee"
-msgstr "Employee"
-
-msgid "Entry Count"
-msgstr "Entry Count"
-
-msgid "Total Hours"
-msgstr "Total Hours"
-
-msgid "Stock Discrepancies Found This Week"
-msgstr "Stock Discrepancies Found This Week"
-
-msgid "Discrepancy Summary"
-msgstr "Discrepancy Summary"
-
-msgid "Number of Counts:"
-msgstr "Number of Counts:"
-
-msgid "Total Monetary Value:"
-msgstr "Total Monetary Value:"
-
-msgid "Discrepancies by Category"
-msgstr "Discrepancies by Category"
-
-msgid "Counts"
-msgstr "Counts"
-
-msgid "Monetary Value"
-msgstr "Monetary Value"
-
-msgid "Adjusted Profit (including stock discrepancies):"
-msgstr "Adjusted Profit (including stock discrepancies):"
-
-msgid "instead of"
-msgstr "instead of"
-
-msgid "Difference"
-msgstr "Difference"
-
-msgid "Counter"
-msgstr "Counter"
-
-msgid "Unknown"
-msgstr "Unknown"
-
-msgid "Showing last 5 counts out of"
-msgstr "Showing last 5 counts out of"
-
-msgid "Key Insights"
-msgstr "Key Insights"
-
-msgid "Leading category:"
-msgstr "Leading category:"
-
-msgid "with revenue of"
-msgstr "with revenue of"
-
-msgid "Best-selling product:"
-msgstr "Best-selling product:"
-
-msgid "Weekly profit margin:"
-msgstr "Weekly profit margin:"
-
-msgid "Product with highest profitability:"
-msgstr "Product with highest profitability:"
-
-msgid "with profit margin of"
-msgstr "with profit margin of"
-
-msgid "Product with lowest profitability:"
-msgstr "Product with lowest profitability:"
-
-msgid "Needs review"
-msgstr "Needs review"
-
-msgid "Product with highest profit contribution:"
-msgstr "Product with highest profit contribution:"
-
-msgid "with total profit of"
-msgstr "with total profit of"
-
-msgid "Overall waste percentage:"
-msgstr "Overall waste percentage:"
-
-msgid "Cost:"
-msgstr "Cost:"
-
-msgid "Waste Analysis"
-msgstr "Waste Analysis"
-
-msgid "Total Waste"
-msgstr "Total Waste"
-
-msgid "Units"
-msgstr "Units"
-
-msgid "of production"
-msgstr "of production"
-
-msgid "Waste Cost"
-msgstr "Waste Cost"
-
-msgid "Impact on Profit"
-msgstr "Impact on Profit"
-
-msgid "Waste by Product"
-msgstr "Waste by Product"
-
-msgid "Sold"
-msgstr "Sold"
-
-msgid "Waste"
-msgstr "Waste"
-
-msgid "Waste %"
-msgstr "Waste %%"
-
-msgid "Showing top 10 products with highest waste cost"
-msgstr "Showing top 10 products with highest waste cost"
-
-msgid "Waste by Category"
-msgstr "Waste by Category"
-
-# Monthly Report translations
-msgid "Monthly Report"
-msgstr "Monthly Report"
-
-msgid "Performance summary for month"
-msgstr "Performance summary for month"
-
-msgid "January"
-msgstr "January"
-
-msgid "February"
-msgstr "February"
-
-msgid "March"
-msgstr "March"
-
-msgid "April"
-msgstr "April"
-
-msgid "May"
-msgstr "May"
-
-msgid "June"
-msgstr "June"
-
-msgid "July"
-msgstr "July"
-
-msgid "August"
-msgstr "August"
-
-msgid "September"
-msgstr "September"
-
-msgid "October"
-msgstr "October"
-
-msgid "November"
-msgstr "November"
-
-msgid "December"
-msgstr "December"
-
-msgid "Show Report"
-msgstr "Show Report"
-
-msgid "No data found for selected month"
-msgstr "No data found for selected month"
-
-msgid "Monthly Food Cost Analysis (Food Cost)"
-msgstr "Monthly Food Cost Analysis (Food Cost)"
-
-msgid "Weekly average:"
-msgstr "Weekly average:"
-
-msgid "Target:"
-msgstr "Target:"
-
-msgid "Weekly Food Cost Trend"
-msgstr "Weekly Food Cost Trend"
-
-msgid "No data to display"
-msgstr "No data to display"
-
-msgid "Weekly Trends"
-msgstr "Weekly Trends"
-
-msgid "Food Cost %"
-msgstr "Food Cost %%"
-
-msgid "Recipes"
-msgstr "Recipes"
-
-msgid "No weekly data"
-msgstr "No weekly data"
-
-msgid "Category Performance"
-msgstr "Category Performance"
-
-msgid "Active Weeks"
-msgstr "Active Weeks"
-
-msgid "No category data"
-msgstr "No category data"
-
-msgid "Top 10 Products"
-msgstr "Top 10 Products"
-
-msgid "No product data"
-msgstr "No product data"
-
-msgid "Monthly Insights"
-msgstr "Monthly Insights"
-
-msgid "Key Data"
-msgstr "Key Data"
-
-msgid "Number of active weeks:"
-msgstr "Number of active weeks:"
-
-msgid "Weekly average revenue:"
-msgstr "Weekly average revenue:"
-
-msgid "Monthly profit margin:"
-msgstr "Monthly profit margin:"
-
-msgid "Monthly food cost:"
-msgstr "Monthly food cost:"
-
-msgid "Weekly average cost per recipe:"
-msgstr "Weekly average cost per recipe:"
-
-msgid "Leading Performance"
-msgstr "Leading Performance"
-
-msgid "Best week:"
-msgstr "Best week:"
-
-msgid "Monthly waste percentage:"
-msgstr "Monthly waste percentage:"
-
-# Dashboard & Index page translations
-msgid "Weekly Dashboard"
-msgstr "Weekly Dashboard"
-
-msgid "Performance, sales, and profitability overview."
-msgstr "Performance, sales, and profitability overview."
-
-msgid "New Week"
-msgstr "New Week"
-
-msgid "New Production"
-msgstr "New Production"
-
-msgid "Update Sales"
-msgstr "Update Sales"
-
-msgid "Update Labor"
-msgstr "Update Labor"
-
-msgid "Revenue (Sales)"
-msgstr "Revenue (Sales)"
-
-msgid "Labor Cost (Fixed)"
-msgstr "Labor Cost (Fixed)"
-
-msgid "Production Cost"
-msgstr "Production Cost"
-
-msgid "Stock Value (Cost)"
-msgstr "Stock Value (Cost)"
-
-msgid "Sales Stock Value"
-msgstr "Sales Stock Value"
-
-msgid "Potential Value"
-msgstr "Potential Value"
-
-msgid "Product Performance"
-msgstr "Product Performance"
-
-msgid "Remaining"
-msgstr "Remaining"
-
-msgid "Unit Cost"
-msgstr "Unit Cost"
-
-msgid "No data to display for this week."
-msgstr "No data to display for this week."
-
-msgid "Start by adding sales or production."
-msgstr "Start by adding sales or production."
-
-msgid "Welcome to CostFlow"
-msgstr "Welcome to CostFlow"
-
-msgid "To get started, select an existing week or create a new week."
-msgstr "To get started, select an existing week or create a new week."
-
-msgid "Manage Weeks"
-msgstr "Manage Weeks"
-
-msgid "Common Actions"
-msgstr "Common Actions"
-
-msgid "Weekly Labor"
-msgstr "Weekly Labor"
-
-msgid "Manage weeks, employee hours and costs"
-msgstr "Manage weeks, employee hours and costs"
-
-msgid "Inventory and Raw Materials"
-msgstr "Inventory and Raw Materials"
-
-msgid "Manage purchases, suppliers and current stock"
-msgstr "Manage purchases, suppliers and current stock"
-
-msgid "Product Production Log"
-msgstr "Product Production Log"
-
-msgid "Daily production logging for products"
-msgstr "Daily production logging for products"
-
-msgid "Premake Production Log"
-msgstr "Premake Production Log"
-
-msgid "Daily production logging for premakes"
-msgstr "Daily production logging for premakes"
-
-# Navigation translations (base.html)
-msgid "CostFlow"
-msgstr "CostFlow"
-
-msgid "Home"
-msgstr "Home"
-
-msgid "Premakes"
-msgstr "Premakes"
-
-msgid "Reports"
-msgstr "Reports"
-
-msgid "Settings"
-msgstr "Settings"
-
-msgid "Employees"
-msgstr "Employees"
-
-msgid "Suppliers"
-msgstr "Suppliers"
-
-msgid "Stock Audit"
-msgstr "Stock Audit"
-
-msgid "Stock Discrepancies"
-msgstr "Stock Discrepancies"
-
-msgid "Upload Inventory from File"
-msgstr "Upload Inventory from File"
-
-msgid "Import Recipes"
-msgstr "Import Recipes"
-
-msgid "Activity Log / Reset"
-msgstr "Activity Log / Reset"
-
-msgid "All rights reserved."
-msgstr "All rights reserved."
-
-msgid "No results found"
-msgstr "No results found"
-
-# Products page translations
-msgid "Manage products, recipes, and costs."
-msgstr "Manage products, recipes, and costs."
-
-msgid "Image"
-msgstr "Image"
-
-msgid "Recipe Weight"
-msgstr "Recipe Weight"
-
-msgid "Unit Weight"
-msgstr "Unit Weight"
-
-msgid "Production Cost per Unit"
-msgstr "Production Cost per Unit"
-
-msgid "Selling Price"
-msgstr "Selling Price"
-
-msgid "Preproduct - Can be sold and also used as a component"
-msgstr "Preproduct - Can be sold and also used as a component"
-
-msgid "Missing raw materials:"
-msgstr "Missing raw materials:"
-
-msgid "Stock shortage"
-msgstr "Stock shortage"
-
-msgid "Convert to premake"
-msgstr "Convert to premake"
-
-msgid "This action will convert the product to a premake, transfer inventory and delete the original product. Continue?"
-msgstr "This action will convert the product to a premake, transfer inventory and delete the original product. Continue?"
-
-msgid "No products found in system."
-msgstr "No products found in system."
-
 # Production page translations
+#: templates/production.html:23
 msgid "Select product..."
 msgstr "Select product..."
 
+#: templates/production.html:30
 msgid "Production Mode"
 msgstr "Production Mode"
 
-msgid "number of batches"
-msgstr "number of batches"
-
-msgid "number of units"
-msgstr "number of units"
-
-msgid "One unit"
-msgstr "One unit"
-
+#: templates/production.html:34 templates/production.html:87
 msgid "Batches"
 msgstr "Batches"
 
-msgid "batches"
-msgstr "batches"
+#: templates/production.html:44 templates/production.html:132
+#: templates/production.html:253
+msgid "number of batches"
+msgstr "number of batches"
 
+#: templates/production.html:51
 msgid "Total units to produce:"
 msgstr "Total units to produce:"
 
-msgid "Material and Premake Usage Breakdown"
-msgstr "Material and Premake Usage Breakdown"
+#: templates/production.html:81
+msgid "Recent Production Logs"
+msgstr ""
 
-msgid "Component"
-msgstr "Component"
-
-msgid "Type"
-msgstr "Type"
-
-msgid "Current Stock"
-msgstr "Current Stock"
-
-msgid "Usage in this production"
-msgstr "Usage in this production"
-
-msgid "Stock after production"
-msgstr "Stock after production"
-
-msgid "Shortage"
-msgstr "Shortage"
-
-msgid "Preproduct"
-msgstr "Preproduct"
-
-msgid "Total production cost"
-msgstr "Total production cost"
-
+#: templates/production.html:88
 msgid "Units Produced"
 msgstr "Units Produced"
 
+#: templates/production.html:89 templates/weekly_costs.html:23
+#: templates/weekly_report.html:163 templates/weekly_report.html:508
+#: templates/weekly_report.html:547 templates/weekly_report.html:813
+msgid "Total Cost"
+msgstr "Total Cost"
+
+#: templates/production.html:90
 msgid "Cost/Unit"
 msgstr "Cost/Unit"
 
-msgid "Edit Production Quantity"
-msgstr "Edit Production Quantity"
-
+#: templates/production.html:108
 msgid "Are you sure you want to delete this production log?"
 msgstr "Are you sure you want to delete this production log?"
 
+#: templates/production.html:123
+msgid "Edit Production Quantity"
+msgstr "Edit Production Quantity"
+
+#: templates/production.html:204
 msgid "Edit Production Quantity for"
 msgstr "Edit Production Quantity for"
 
-# Premakes page translations
-msgid "Manage base recipes and premakes."
-msgstr "Manage base recipes and premakes."
-
-msgid "Search premake..."
-msgstr "Search premake..."
-
-msgid "Batch Quantity"
-msgstr "Batch Quantity"
-
-msgid "All Categories"
-msgstr "All Categories"
-
-msgid "Add Premake"
-msgstr "Add Premake"
-
-msgid "Are you sure you want to delete this premake?"
-msgstr "Are you sure you want to delete this premake?"
-
-msgid "No premakes found."
-msgstr "No premakes found."
-
-msgid "View Details"
-msgstr "View Details"
-
-# Premake Production page translations
-msgid "Select Premake"
-msgstr "Select Premake"
-
-msgid "Batch size (recipe):"
-msgstr "Batch size (recipe):"
-
-msgid "Number of batches to produce"
-msgstr "Number of batches to produce"
-
-msgid "Enter the number of batches to produce. Each batch is"
-msgstr "Enter the number of batches to produce. Each batch is"
-
-msgid "Total quantity to produce:"
-msgstr "Total quantity to produce:"
-
-msgid "Premake Production History"
-msgstr "Premake Production History"
-
-msgid "Number of batches"
-msgstr "Number of batches"
-
-msgid "Enter the number of batches produced. Each batch is"
-msgstr "Enter the number of batches produced. Each batch is"
-
-msgid "Edit Premake Production Quantity"
-msgstr "Edit Premake Production Quantity"
-
-msgid "Edit Premake Production Quantity for"
-msgstr "Edit Premake Production Quantity for"
-
-msgid "Are you sure you want to delete this premake production log?"
-msgstr "Are you sure you want to delete this premake production log?"
-
-# add_or_edit_product.html new translations
-msgid "Edit Product"
-msgstr "Edit Product"
-
-msgid "e.g., Uniform Bread"
-msgstr "e.g., Uniform Bread"
-
-msgid "Units per Recipe (per production batch)"
-msgstr "Units per Recipe (per production batch)"
-
-msgid "Selling Price per Unit"
-msgstr "Selling Price per Unit"
-
-msgid "Can be sold and also used as a component in other products"
-msgstr "Can be sold and also used as a component in other products"
-
-msgid "Product Image"
-msgstr "Product Image"
-
-msgid "Required Raw Materials"
-msgstr "Required Raw Materials"
-
-msgid "Select raw material..."
-msgstr "Select raw material..."
-
-msgid "Average"
-msgstr "Average"
-
-msgid "Required Packaging"
-msgstr "Required Packaging"
-
-msgid "Select packaging..."
-msgstr "Select packaging..."
-
-msgid "Cost Summary (Primary Supplier Prices)"
-msgstr "Cost Summary (Primary Supplier Prices)"
-
-msgid "Raw Material Cost per Recipe:"
-msgstr "Raw Material Cost per Recipe:"
-
-msgid "Cost per Unit:"
-msgstr "Cost per Unit:"
-
-msgid "Costs are calculated based on primary supplier prices for each raw material, which will be used in actual production."
-msgstr "Costs are calculated based on primary supplier prices for each raw material, which will be used in actual production."
-
-msgid "Add Product"
-msgstr "Add Product"
-
-msgid "Cancel and Return"
-msgstr "Cancel and Return"
-
-msgid "Raw Material Name"
-msgstr "Raw Material Name"
-
-msgid "Unit of Measure"
-msgstr "Unit of Measure"
-
-msgid "Save"
-msgstr "Save"
-
-msgid "Add New Packaging"
-msgstr "Add New Packaging"
-
-msgid "Quantity per Packaging Unit"
-msgstr "Quantity per Packaging Unit"
-
-msgid "Price per Packaging Unit"
-msgstr "Price per Packaging Unit"
-
-msgid "Add New Employee"
-msgstr "Add New Employee"
-
-msgid "Phone Number (optional)"
-msgstr "Phone Number (optional)"
-
-msgid "Total Hourly Rate (employer cost)"
-msgstr "Total Hourly Rate (employer cost)"
-
-msgid "Save Employee"
-msgstr "Save Employee"
-
-msgid "Select preproduct..."
-msgstr "Select preproduct..."
-
-msgid "Add Preproduct"
-msgstr "Add Preproduct"
-
-msgid "Preproducts"
-msgstr "Preproducts"
-
-# add_or_edit_raw_material.html new translations
-msgid "Add New Supplier"
-msgstr "Add New Supplier"
-
-msgid "Supplier Name"
-msgstr "Supplier Name"
-
-msgid "Contact Person"
-msgstr "Contact Person"
-
-msgid "Phone"
-msgstr "Phone"
-
-msgid "Add Supplier"
-msgstr "Add Supplier"
-
-msgid "Handle Existing Stock"
-msgstr "Handle Existing Stock"
-
-msgid "Transfer stock to another supplier"
-msgstr "Transfer stock to another supplier"
-
-msgid "Mark stock as waste"
-msgstr "Mark stock as waste"
-
-msgid "Keep stock as is"
-msgstr "Keep stock as is"
-
-msgid "Confirm"
-msgstr "Confirm"
-
-msgid "Select supplier..."
-msgstr "Select supplier..."
-
-msgid "Optional SKU"
-msgstr "Optional SKU"
-
-msgid "Alternative name for material (e.g., White Flour)"
-msgstr "Alternative name for material (e.g., White Flour)"
-
-msgid "Delete this alternative name?"
-msgstr "Delete this alternative name?"
-
-msgid "The following suppliers with existing stock were removed:"
-msgstr "The following suppliers with existing stock were removed:"
-
-msgid "What to do with the stock?"
-msgstr "What to do with the stock?"
+#: templates/production.html:247
+msgid "number of units"
+msgstr "number of units"
+
+#: templates/production.html:249
+msgid "One unit"
+msgstr "One unit"
+
+# Products page translations
+#: templates/products.html:9
+msgid "Manage products, recipes, and costs."
+msgstr "Manage products, recipes, and costs."
+
+#: templates/products.html:22 templates/update_weekly_sales.html:49
+msgid "Image"
+msgstr "Image"
+
+#: templates/products.html:24
+msgid "Recipe Weight"
+msgstr "Recipe Weight"
+
+#: templates/products.html:25
+msgid "Unit Weight"
+msgstr "Unit Weight"
+
+#: templates/products.html:27
+msgid "Selling Price"
+msgstr "Selling Price"
+
+#: templates/products.html:48
+msgid "Preproduct - Can be sold and also used as a component"
+msgstr "Preproduct - Can be sold and also used as a component"
+
+#: templates/products.html:55
+msgid "Missing raw materials:"
+msgstr "Missing raw materials:"
+
+#: templates/products.html:56
+msgid "Stock shortage"
+msgstr "Stock shortage"
+
+#: templates/products.html:91 templates/update_weekly_sales.html:82
+msgid "N/A"
+msgstr ""
+
+#: templates/products.html:102
+msgid ""
+"This action will convert the product to a premake, transfer inventory and"
+" delete the original product. Continue?"
+msgstr ""
+"This action will convert the product to a premake, transfer inventory and"
+" delete the original product. Continue?"
+
+#: templates/products.html:103
+msgid "Convert to premake"
+msgstr "Convert to premake"
+
+#: templates/products.html:112
+msgid "No products found in system."
+msgstr "No products found in system."
 
 # raw_materials.html new translations
+#: templates/raw_materials.html:52
 msgid "Raw Materials Management"
 msgstr "Raw Materials Management"
 
+#: templates/raw_materials.html:53
 msgid "Track inventory, costs, and suppliers."
 msgstr "Track inventory, costs, and suppliers."
 
+#: templates/raw_materials.html:68
 msgid "Search raw material..."
 msgstr "Search raw material..."
 
+#: templates/raw_materials.html:90
+msgid "Cost Per Unit"
+msgstr ""
+
+#: templates/raw_materials.html:107
+#, fuzzy
+msgid "Alternative Names"
+msgstr "Found (alternative name)"
+
+#: templates/raw_materials.html:170
 msgid "Unlimited"
 msgstr "Unlimited"
 
+#: templates/raw_materials.html:179
 msgid "Stock Breakdown by Supplier"
 msgstr "Stock Breakdown by Supplier"
 
-msgid "Total"
-msgstr "Total"
+#: templates/raw_materials.html:198 templates/raw_materials.html:202
+#, fuzzy
+msgid "No suppliers defined"
+msgstr "Supplier Name"
 
-msgid "suppliers"
-msgstr "suppliers"
-
+#: templates/raw_materials.html:214 templates/raw_materials.html:303
 msgid "Update Count"
 msgstr "Update Count"
 
+#: templates/raw_materials.html:217
 msgid "Edit Details"
 msgstr "Edit Details"
 
+#: templates/raw_materials.html:244
 msgid "Adding quantity to:"
 msgstr "Adding quantity to:"
 
+#: templates/raw_materials.html:252
 msgid "Select supplier for stock addition"
 msgstr "Select supplier for stock addition"
 
+#: templates/raw_materials.html:256 templates/upload_inventory.html:47
 msgid "Quantity to Add"
 msgstr "Quantity to Add"
 
-msgid "Update Stock"
-msgstr "Update Stock"
-
+#: templates/raw_materials.html:277
 msgid "Stock Count (Manual Update)"
 msgstr "Stock Count (Manual Update)"
 
+#: templates/raw_materials.html:281
 msgid "Update current stock for:"
 msgstr "Update current stock for:"
 
+#: templates/raw_materials.html:289
 msgid "Select supplier for stock update"
 msgstr "Select supplier for stock update"
 
+#: templates/raw_materials.html:293
 msgid "Actual Current Quantity"
 msgstr "Actual Current Quantity"
 
-msgid "Who performed the count?"
-msgstr "Who performed the count?"
-
+#: templates/raw_materials.html:316
 msgid "Delete Raw Material"
 msgstr "Delete Raw Material"
 
-msgid "Are you sure you want to delete"
-msgstr "Are you sure you want to delete"
-
+#: templates/raw_materials.html:321
 msgid "This action will also delete the stock history for this item."
 msgstr "This action will also delete the stock history for this item."
 
+#: templates/raw_materials.html:372
 msgid "Stock:"
 msgstr "Stock:"
 
+#: templates/raw_materials.html:380 templates/raw_materials.html:427
 msgid "No suppliers defined for this raw material"
 msgstr "No suppliers defined for this raw material"
 
+#: templates/raw_materials.html:389 templates/raw_materials.html:436
 msgid "Error loading suppliers"
 msgstr "Error loading suppliers"
 
-
-# add_or_edit_premake.html new translations
-msgid "Edit Premake"
-msgstr "Edit Premake"
-
-msgid "Select category..."
-msgstr "Select category..."
-
-msgid "Unit of Measure (of product)"
-msgstr "Unit of Measure (of product)"
-
-msgid "Product quantity will be calculated automatically as sum of component weights."
-msgstr "Product quantity will be calculated automatically as sum of component weights."
-
-msgid "Components"
-msgstr "Components"
-
-# Product Details page translations
-msgid "units"
-msgstr "units"
-
-msgid "Gross Profit per Unit"
-msgstr "Gross Profit per Unit"
-
-msgid "Product Components"
-msgstr "Product Components"
-
-msgid "items"
-msgstr "items"
-
-msgid "Quantity in Recipe"
-msgstr "Quantity in Recipe"
-
-msgid "Components of"
-msgstr "Components of"
-
-msgid "Total Premakes:"
-msgstr "Total Premakes:"
-
-msgid "Total Preproducts:"
-msgstr "Total Preproducts:"
-
-msgid "Total Packaging:"
-msgstr "Total Packaging:"
-
-msgid "Selling Price:"
-msgstr "Selling Price:"
-
-msgid "Production Cost:"
-msgstr "Production Cost:"
-
-msgid "Gross Profit:"
-msgstr "Gross Profit:"
-
-msgid "Profit Margin:"
-msgstr "Profit Margin:"
-
-# Premake Details page translations
-msgid "Premake Details"
-msgstr "Premake Details"
-
-msgid "Recipe details and costs"
-msgstr "Recipe details and costs"
-
-msgid "Back to list"
-msgstr "Back to list"
-
-msgid "Batch Size"
-msgstr "Batch Size"
-
-msgid "Total Cost per Batch"
-msgstr "Total Cost per Batch"
-
-msgid "% of Cost"
-msgstr "% of Cost"
-
-msgid "No components for this premake."
-msgstr "No components for this premake."
-
-# Missing product_details.html translations
-msgid "Quantity per Recipe"
-msgstr "Quantity per Recipe"
-
-msgid "Cost per Product"
-msgstr "Cost per Product"
-
-msgid "Total Cost per Product:"
-msgstr "Total Cost per Product:"
-
-msgid "Premakes:"
-msgstr "Premakes:"
-
-msgid "Raw Materials:"
-msgstr "Raw Materials:"
-
-msgid "Cost Summary"
-msgstr "Cost Summary"
-
-msgid "Total Raw Materials:"
-msgstr "Total Raw Materials:"
-
-# update_weekly_sales.html translations
-msgid "Update Weekly Sales"
-msgstr "Update Weekly Sales"
-
-msgid "Enter the quantities sold this week for each product."
-msgstr "Enter the quantities sold this week for each product."
-
-msgid "Produced This Week"
-msgstr "Produced This Week"
-
-msgid "Sold So Far"
-msgstr "Sold So Far"
-
-msgid "Add Sales"
-msgstr "Add Sales"
-
-msgid "Waste So Far"
-msgstr "Waste So Far"
-
-msgid "Add Waste"
-msgstr "Add Waste"
-
-msgid "Produced:"
-msgstr "Produced:"
-
-msgid "Remaining:"
-msgstr "Remaining:"
-
-msgid "Add Update"
-msgstr "Add Update"
-
-msgid "Attention: The quantity entered exceeds the available stock produced this week."
-msgstr "Attention: The quantity entered exceeds the available stock produced this week."
-
-
-msgid "Back to List"
-msgstr "Back to List"
-
-msgid "Cost per Batch"
-msgstr "Cost per Batch"
-
-msgid "per"
-msgstr "per"
-
-msgid "Preparation Components"
-msgstr "Preparation Components"
-
-msgid "Total Cost per Batch:"
-msgstr "Total Cost per Batch:"
-
-msgid "No components defined for this preparation."
-msgstr "No components defined for this preparation."
-
-msgid "Batch Size:"
-msgstr "Batch Size:"
-
-msgid "Number of Components:"
-msgstr "Number of Components:"
-
-msgid "Total Batch Cost:"
-msgstr "Total Batch Cost:"
-
-msgid "Stock Value:"
-msgstr "Stock Value:"
-
-msgid "Edit Employee / Role"
-msgstr "Edit Employee / Role"
-
-msgid "Employee Name / Role"
-msgstr "Employee Name / Role"
-
-msgid "Total Hourly Cost (₪)"
-msgstr "Total Hourly Cost (₪)"
-
-msgid "Including base salary and employer costs."
-msgstr "Including base salary and employer costs."
-
-msgid "Manage packaging types and prices."
-msgstr "Manage packaging types and prices."
-
-msgid "Are you sure you want to delete this item?"
-msgstr "Are you sure you want to delete this item?"
-
-msgid "No packaging found in the system."
-msgstr "No packaging found in the system."
-
-msgid "Weekly Costs Management"
-msgstr "Weekly Costs Management"
-
-msgid "Track work hours and costs by week."
-msgstr "Track work hours and costs by week."
-
-msgid "Start Date"
-msgstr "Start Date"
-
-msgid "Number of Employees"
-msgstr "Number of Employees"
-
-msgid "Details and Update"
-msgstr "Details and Update"
-
-msgid "No weekly costs defined yet."
-msgstr "No weekly costs defined yet."
-
-msgid "Open New Week"
-msgstr "Open New Week"
-
-msgid "Week Start Date (Sunday)"
-msgstr "Week Start Date (Sunday)"
-
-msgid "Create and Open Details"
-msgstr "Create and Open Details"
-
-msgid "Employee and Cost Management"
-msgstr "Employee and Cost Management"
-
-msgid "Track labor costs and hourly wages."
-msgstr "Track labor costs and hourly wages."
-
-msgid "Add New Employee / Role"
-msgstr "Add New Employee / Role"
-
-msgid "e.g., Head Baker"
-msgstr "e.g., Head Baker"
-
-msgid "Add Employee"
-msgstr "Add Employee"
-
-msgid "Employee List"
-msgstr "Employee List"
-
-msgid "Hourly Cost"
-msgstr "Hourly Cost"
-
-msgid "This action is irreversible."
-msgstr "This action is irreversible."
-
-msgid "No employees found in the list."
-msgstr "No employees found in the list."
-
-msgid "Cost"
-msgstr "Cost"
-
-msgid "Category:"
-msgstr "Category:"
-
-msgid "Cost per Unit"
-msgstr "Cost per Unit"
-msgid "Manage Suppliers"
-msgstr "Manage Suppliers"
-
-msgid "Manage raw material suppliers and prices."
-msgstr "Manage raw material suppliers and prices."
-
-msgid "Active Materials"
-msgstr "Active Materials"
-
-msgid "View Materials"
-msgstr "View Materials"
-
-msgid "Reactivate"
-msgstr "Reactivate"
-
-msgid "Deactivate"
-msgstr "Deactivate"
-
-msgid "Delete supplier"
-msgstr "Delete supplier"
-
-msgid "No suppliers found in the system."
-msgstr "No suppliers found in the system."
-
-msgid "Hide Inactive Suppliers"
-msgstr "Hide Inactive Suppliers"
-
-msgid "Show Inactive Suppliers"
-msgstr "Show Inactive Suppliers"
-
-msgid "Supplier"
-msgstr "Supplier"
-
-msgid "Unique name to identify supplier in the system"
-msgstr "Unique name to identify supplier in the system"
-
-msgid "Name of contact person at supplier"
-msgstr "Name of contact person at supplier"
-
-msgid "Phone number for contact"
-msgstr "Phone number for contact"
-
-msgid "Email address for correspondence"
-msgstr "Email address for correspondence"
-
-msgid "Address"
-msgstr "Address"
-
-msgid "Street, City, Postal Code"
-msgstr "Street, City, Postal Code"
-
-msgid "Physical address of supplier"
-msgstr "Physical address of supplier"
-
-msgid "Supplier Information"
-msgstr "Supplier Information"
-
-msgid "Suppliers in the system allow managing multiple sources for raw materials with different prices."
-msgstr "Suppliers in the system allow managing multiple sources for raw materials with different prices."
-
-msgid "Each supplier can provide multiple raw materials"
-msgstr "Each supplier can provide multiple raw materials"
-
-msgid "Each raw material can be supplied by multiple suppliers"
-msgstr "Each raw material can be supplied by multiple suppliers"
-
-msgid "The system will automatically choose the cheapest supplier during production"
-msgstr "The system will automatically choose the cheapest supplier during production"
-
-msgid "Inventory is managed separately for each supplier"
-msgstr "Inventory is managed separately for each supplier"
-
-msgid "Created on:"
-msgstr "Created on:"
-
-msgid "Activity Log"
-msgstr "Activity Log"
-
-msgid "System Activity Log"
-msgstr "System Activity Log"
-
-msgid "Track changes and user actions."
-msgstr "Track changes and user actions."
-
-msgid "Backup Data"
-msgstr "Backup Data"
-
-msgid "Restore from Backup"
-msgstr "Restore from Backup"
-
-msgid "Full System Reset"
-msgstr "Full System Reset"
-
-msgid "Time"
-msgstr "Time"
-
-msgid "Action"
-msgstr "Action"
-
-msgid "Target Type"
-msgstr "Target Type"
-
-msgid "Target ID"
-msgstr "Target ID"
-
-msgid "Create"
-msgstr "Create"
-
-msgid "Reset"
-msgstr "Reset"
-
-msgid "Restore"
-msgstr "Restore"
-
-msgid "No records in the log."
-msgstr "No records in the log."
-
-msgid "This action will overwrite all data in the system!"
-msgstr "This action will overwrite all data in the system!"
-
-msgid "Upload a backup file (JSON) to restore the state."
-msgstr "Upload a backup file (JSON) to restore the state."
-
-msgid "Backup File"
-msgstr "Backup File"
-
-msgid "Restore Data"
-msgstr "Restore Data"
-
-msgid "Warning: System Reset"
-msgstr "Warning: System Reset"
-
-msgid "This action will delete all data in the system!"
-msgstr "This action will delete all data in the system!"
-
-msgid "All products, raw materials, history and logs will be permanently deleted. This information cannot be recovered."
-msgstr "All products, raw materials, history and logs will be permanently deleted. This information cannot be recovered."
-
-msgid "Are you sure you want to continue?"
-msgstr "Are you sure you want to continue?"
-
-msgid "Yes, reset the system"
-msgstr "Yes, reset the system"
-
-msgid "Classify raw materials into groups."
-msgstr "Classify raw materials into groups."
-
-msgid "Classify products into sales groups."
-msgstr "Classify products into sales groups."
-
-msgid "Delete this category?"
-msgstr "Delete this category?"
-
-msgid "No categories found."
-msgstr "No categories found."
-
-msgid "Update Inventory from File"
-msgstr "Update Inventory from File"
-
-msgid "Upload Excel file to update quantities and prices."
-msgstr "Upload Excel file to update quantities and prices."
-
-msgid "Upload Excel File"
-msgstr "Upload Excel File"
-
-msgid "File must contain columns: Product Name, Total Quantity, Average Price."
-msgstr "File must contain columns: Product Name, Total Quantity, Average Price."
-
-msgid "Optional columns: SKU, Supplier (for more accurate identification)"
-msgstr "Optional columns: SKU, Supplier (for more accurate identification)"
-
-msgid "Load File"
-msgstr "Load File"
-
-msgid "Review Data and Confirm Changes"
-msgstr "Review Data and Confirm Changes"
-
-msgid "SKU / Supplier"
-msgstr "SKU / Supplier"
-
-msgid "Price in File"
-msgstr "Price in File"
-
-msgid "Price in System"
-msgstr "Price in System"
-
-msgid "Action Required"
-msgstr "Action Required"
-
-msgid "SKU:"
-msgstr "SKU:"
-
-msgid "Identified by SKU"
-msgstr "Identified by SKU"
-
-msgid "New"
-msgstr "New"
-
-msgid "Exists"
-msgstr "Exists"
-
-msgid "Update price to"
-msgstr "Update price to"
-
-msgid "Same price"
-msgstr "Same price"
-
-msgid "Confirm and Update Inventory"
-msgstr "Confirm and Update Inventory"
-
-# Translations added from batch 3 (final 6 files)
-
-msgid "0 recipes selected'"
-msgstr "0 recipes selected'"
-
-msgid "Actions'"
-msgstr "Actions'"
-
-msgid "Active'"
-msgstr "Active'"
-
-msgid "Add Employee Hours'"
-msgstr "Add Employee Hours'"
-
-msgid "Add to List'"
-msgstr "Add to List'"
-
-msgid "Added:'"
-msgstr "Added:'"
-
-msgid "Address:'"
-msgstr "Address:'"
-
-msgid "Affected Categories'"
-msgstr "Affected Categories'"
-
-msgid "After metadata, blank row, then recipes'"
-msgstr "After metadata, blank row, then recipes'"
-
-msgid "All Materials'"
-msgstr "All Materials'"
-
-msgid "Analysis by Category'"
-msgstr "Analysis by Category'"
-
-msgid "Approve and Close Week'"
-msgstr "Approve and Close Week'"
-
-msgid "Audit History'"
-msgstr "Audit History'"
-
-msgid "Auditor'"
-msgstr "Auditor'"
-
-msgid "Average financial variance per count:'"
-msgstr "Average financial variance per count:'"
-
-msgid "Calculated Cost'"
-msgstr "Calculated Cost'"
-
-msgid "Cancel'"
-msgstr "Cancel'"
-
-msgid "Category'"
-msgstr "Category'"
-
-msgid "Category:'"
-msgstr "Category:'"
-
-msgid "Changes (compared to existing recipe):'"
-msgstr "Changes (compared to existing recipe):'"
-
-msgid "Close Week - Reset Inventory'"
-msgstr "Close Week - Reset Inventory'"
-
-msgid "Columns: name, type, price/kg, weight (g), total price'"
-msgstr "Columns: name, type, price/kg, weight (g), total price'"
-
-msgid "Confirm and Import Recipes'"
-msgstr "Confirm and Import Recipes'"
-
-msgid "Contact Person:'"
-msgstr "Contact Person:'"
-
-msgid "Continue to Review'"
-msgstr "Continue to Review'"
-
-msgid "Cost calculated automatically according to employee rate (including employer costs).'"
-msgstr "Cost calculated automatically according to employee rate (including employer costs).'"
-
-msgid "Cost per 100g:'"
-msgstr "Cost per 100g:'"
-
-msgid "Counts'"
-msgstr "Counts'"
-
-msgid "Current Stock'"
-msgstr "Current Stock'"
-
-msgid "Date'"
-msgstr "Date'"
-
-msgid "Deselect All\""
-msgstr "Deselect All\""
-
-msgid "Different'"
-msgstr "Different'"
-
-msgid "Each recipe starts with title, 2 header rows, then materials'"
-msgstr "Each recipe starts with title, 2 header rows, then materials'"
-
-msgid "Email:'"
-msgstr "Email:'"
-
-msgid "Employee / Role'"
-msgstr "Employee / Role'"
-
-msgid "Employee Name'"
-msgstr "Employee Name'"
-
-msgid "Enter hours in HH:MM format (example: 8:30)'"
-msgstr "Enter hours in HH:MM format (example: 8:30)'"
-
-msgid "Enter in HH:MM format (example: 8:30 for eight and a half hours)'"
-msgstr "Enter in HH:MM format (example: 8:30 for eight and a half hours)'"
-
-msgid "Error loading\""
-msgstr "Error loading\""
-
-msgid "Error updating price\""
-msgstr "Error updating price\""
-
-msgid "Error updating price:\""
-msgstr "Error updating price:\""
-
-msgid "Example: 8:30'"
-msgstr "Example: 8:30'"
-
-msgid "Exists - Will Update'"
-msgstr "Exists - Will Update'"
-
-msgid "File uploaded successfully'"
-msgstr "File uploaded successfully'"
-
-msgid "Filter'"
-msgstr "Filter'"
-
-msgid "Financial Value'"
-msgstr "Financial Value'"
-
-msgid "First rows must contain metadata:'"
-msgstr "First rows must contain metadata:'"
-
-msgid "For the week ending on'"
-msgstr "For the week ending on'"
-
-msgid "Found (alternative name)'"
-msgstr "Found (alternative name)'"
-
-msgid "Found via alternative name'"
-msgstr "Found via alternative name'"
-
-msgid "Found'"
-msgstr "Found'"
-
-msgid "From Date'"
-msgstr "From Date'"
-
-msgid "Gross Weight:'"
-msgstr "Gross Weight:'"
-
-msgid "Hours'"
-msgstr "Hours'"
-
-msgid "Import Recipes from Excel'"
-msgstr "Import Recipes from Excel'"
-
-msgid "Import Recipes'"
-msgstr "Import Recipes'"
-
-msgid "Import\""
-msgstr "Import\""
-
-msgid "Insights'"
-msgstr "Insights'"
-
-msgid "Leftovers found in inventory from last week'"
-msgstr "Leftovers found in inventory from last week'"
-
-msgid "List of all raw materials supplied by this supplier.'"
-msgstr "List of all raw materials supplied by this supplier.'"
-
-msgid "Load File'"
-msgstr "Load File'"
-
-msgid "Loading...\""
-msgstr "Loading...\""
-
-msgid "Loss Value (Cost)'"
-msgstr "Loss Value (Cost)'"
-
-msgid "Loss'"
-msgstr "Loss'"
-
-msgid "Loss:'"
-msgstr "Loss:'"
-
-msgid "Match'"
-msgstr "Match'"
-
-msgid "Material types: \""
-msgstr "Material types: \""
-
-msgid "Material with highest discrepancies:'"
-msgstr "Material with highest discrepancies:'"
-
-msgid "Materials with High Discrepancies'"
-msgstr "Materials with High Discrepancies'"
-
-msgid "Materials:'"
-msgstr "Materials:'"
-
-msgid "Metadata preview:'"
-msgstr "Metadata preview:'"
-
-msgid "Missing Materials'"
-msgstr "Missing Materials'"
-
-msgid "Missing materials in system!'"
-msgstr "Missing materials in system!'"
-
-msgid "Most problematic category:'"
-msgstr "Most problematic category:'"
-
-msgid "Name'"
-msgstr "Name'"
-
-msgid "Net Weight:'"
-msgstr "Net Weight:'"
-
-msgid "New'"
-msgstr "New'"
-
-msgid "No changes'"
-msgstr "No changes'"
-
-msgid "No cost'"
-msgstr "No cost'"
-
-msgid "No data to display'"
-msgstr "No data to display'"
-
-msgid "No hours have been entered for this week yet.'"
-msgstr "No hours have been entered for this week yet.'"
-
-msgid "No raw materials found for this supplier.'"
-msgstr "No raw materials found for this supplier.'"
-
-msgid "No stock audits found for the requested period'"
-msgstr "No stock audits found for the requested period'"
-
-msgid "Not detected (required!)\""
-msgstr "Not detected (required!)\""
-
-msgid "Note:'"
-msgstr "Note:'"
-
-msgid "Optional - default \""
-msgstr "Optional - default \""
-
-msgid "Phone:'"
-msgstr "Phone:'"
-
-msgid "Physical Quantity'"
-msgstr "Physical Quantity'"
-
-msgid "Premake Leftovers'"
-msgstr "Premake Leftovers'"
-
-msgid "Premake'"
-msgstr "Premake'"
-
-msgid "Price in Sheet'"
-msgstr "Price in Sheet'"
-
-msgid "Price in System'"
-msgstr "Price in System'"
-
-msgid "Price per Unit'"
-msgstr "Price per Unit'"
-
-msgid "Primary Supplier'"
-msgstr "Primary Supplier'"
-
-msgid "Primary'"
-msgstr "Primary'"
-
-msgid "Product Leftovers'"
-msgstr "Product Leftovers'"
-
-msgid "Product'"
-msgstr "Product'"
-
-msgid "Quantity Changed:'"
-msgstr "Quantity Changed:'"
-
-msgid "Quantity Remaining'"
-msgstr "Quantity Remaining'"
-
-msgid "Quantity Variance'"
-msgstr "Quantity Variance'"
-
-msgid "Raw Material'"
-msgstr "Raw Material'"
-
-msgid "Raw Materials - '"
-msgstr "Raw Materials - '"
-
-msgid "Raw Materials of'"
-msgstr "Raw Materials of'"
-
-msgid "Remove this entry?'"
-msgstr "Remove this entry?'"
-
-msgid "Removed:'"
-msgstr "Removed:'"
-
-msgid "Required - \""
-msgstr "Required - \""
-
-msgid "Required - existing category name in system'"
-msgstr "Required - existing category name in system'"
-
-msgid "Required file format:'"
-msgstr "Required file format:'"
-
-msgid "Required metadata fields are missing. Ensure the file contains type and category rows.'"
-msgstr "Required metadata fields are missing. Ensure the file contains type and category rows.'"
-
-msgid "Return to update sales data for the previous week (if sold).'"
-msgstr "Return to update sales data for the previous week (if sold).'"
-
-msgid "Review Recipes for Import'"
-msgstr "Review Recipes for Import'"
-
-msgid "Same'"
-msgstr "Same'"
-
-msgid "Save'"
-msgstr "Save'"
-
-msgid "Search material...\""
-msgstr "Search material...\""
-
-msgid "Secondary'"
-msgstr "Secondary'"
-
-msgid "Select All\""
-msgstr "Select All\""
-
-msgid "Select All'"
-msgstr "Select All'"
-
-msgid "Select Excel file:'"
-msgstr "Select Excel file:'"
-
-msgid "Select a match for all missing materials in selected recipes from the dropdowns.\""
-msgstr "Select a match for all missing materials in selected recipes from the dropdowns.\""
-
-msgid "Select a match for missing materials from the dropdown, or add the materials to the system:'"
-msgstr "Select a match for missing materials from the dropdown, or add the materials to the system:'"
-
-msgid "Select a material from the dropdown or add new materials to the system and then import again.'"
-msgstr "Select a material from the dropdown or add new materials to the system and then import again.'"
-
-msgid "Select employee...'"
-msgstr "Select employee...'"
-
-msgid "Select material from system...'"
-msgstr "Select material from system...'"
-
-msgid "Select recipes to import\""
-msgstr "Select recipes to import\""
-
-msgid "Select sheet to import:'"
-msgstr "Select sheet to import:'"
-
-msgid "Set as primary supplier for this material'"
-msgstr "Set as primary supplier for this material'"
-
-msgid "Shortages'"
-msgstr "Shortages'"
-
-msgid "Should we reset inventory and transfer the balance to waste (loss)?'"
-msgstr "Should we reset inventory and transfer the balance to waste (loss)?'"
-
-msgid "Status'"
-msgstr "Status'"
-
-msgid "Status:'"
-msgstr "Status:'"
-
-msgid "Stock Audit'"
-msgstr "Stock Audit'"
-
-msgid "Supplied Raw Materials'"
-msgstr "Supplied Raw Materials'"
-
-msgid "Suppliers'"
-msgstr "Suppliers'"
-
-msgid "Surplus'"
-msgstr "Surplus'"
-
-msgid "System Quantity'"
-msgstr "System Quantity'"
-
-msgid "To Date'"
-msgstr "To Date'"
-
-msgid "Total Cost:'"
-msgstr "Total Cost:'"
-
-msgid "Total Variance (Financial)'"
-msgstr "Total Variance (Financial)'"
-
-msgid "Total Variance'"
-msgstr "Total Variance'"
-
-msgid "Total cost for this week'"
-msgstr "Total cost for this week'"
-
-msgid "Total estimated loss (unmarked for transfer):'"
-msgstr "Total estimated loss (unmarked for transfer):'"
-
-msgid "Total losses from inventory discrepancies:'"
-msgstr "Total losses from inventory discrepancies:'"
-
-msgid "Total recipes:'"
-msgstr "Total recipes:'"
-
-msgid "Track inventory discrepancies and loss analysis'"
-msgstr "Track inventory discrepancies and loss analysis'"
-
-msgid "Transfer to next week?'"
-msgstr "Transfer to next week?'"
-
-msgid "Type'"
-msgstr "Type'"
-
-msgid "Type:'"
-msgstr "Type:'"
-
-msgid "Unit'"
-msgstr "Unit'"
-
-msgid "Unit:'"
-msgstr "Unit:'"
-
-msgid "Unmarked items will be transferred to waste. Marked items will remain in inventory/available.'"
-msgstr "Unmarked items will be transferred to waste. Marked items will remain in inventory/available.'"
-
-msgid "Update Raw Material Price'"
-msgstr "Update Raw Material Price'"
-
-msgid "Update Sales'"
-msgstr "Update Sales'"
-
-msgid "Upload Different File'"
-msgstr "Upload Different File'"
-
-msgid "Upload Recipe File'"
-msgstr "Upload Recipe File'"
-
-msgid "Upload an Excel file with recipes for premakes or products'"
-msgstr "Upload an Excel file with recipes for premakes or products'"
-
-msgid "Value (Cost)'"
-msgstr "Value (Cost)'"
-
-msgid "Variance'"
-msgstr "Variance'"
-
-msgid "Week Details'"
-msgstr "Week Details'"
-
-msgid "Week'"
-msgstr "Week'"
-
-msgid "Weekly Labor'"
-msgstr "Weekly Labor'"
-
-msgid "Weight (g)'"
-msgstr "Weight (g)'"
-
-msgid "Weight and Cost Summary:'"
-msgstr "Weight and Cost Summary:'"
-
-msgid "Work Hours (HH:MM)'"
-msgstr "Work Hours (HH:MM)'"
-
-msgid "Work Hours Details'"
-msgstr "Work Hours Details'"
-
-msgid "counts'"
-msgstr "counts'"
-
-msgid "g'"
-msgstr "g'"
-
-msgid "hour'"
-msgstr "hour'"
-
-msgid "recipes selected\""
-msgstr "recipes selected\""
-
-msgid "recipes\""
-msgstr "recipes\""
-
-msgid "units'"
-msgstr "units'"
-
-msgid "unmapped materials in selected recipes\""
-msgstr "unmapped materials in selected recipes\""
-
-msgid "unsold products remain.'"
-msgstr "unsold products remain.'"
-
-msgid "0 recipes selected"
-msgstr "0 recipes selected"
-
-msgid "Add Employee Hours"
-msgstr "Add Employee Hours"
-
-msgid "Add to List"
-msgstr "Add to List"
-
-msgid "Added:"
-msgstr "Added:"
-
-msgid "Affected Categories"
-msgstr "Affected Categories"
-
-msgid "After metadata, blank row, then recipes"
-msgstr "After metadata, blank row, then recipes"
-
-msgid "Analysis by Category"
-msgstr "Analysis by Category"
-
-msgid "Approve and Close Week"
-msgstr "Approve and Close Week"
-
-msgid "Audit History"
-msgstr "Audit History"
-
-msgid "Average financial variance per count:"
-msgstr "Average financial variance per count:"
-
-msgid "Calculated Cost"
-msgstr "Calculated Cost"
-
-msgid "Changes (compared to existing recipe):"
-msgstr "Changes (compared to existing recipe):"
-
-msgid "Close Week - Reset Inventory"
-msgstr "Close Week - Reset Inventory"
-
-msgid "Columns: name, type, price/kg, weight (g), total price"
-msgstr "Columns: name, type, price/kg, weight (g), total price"
-
-msgid "Confirm and Import Recipes"
-msgstr "Confirm and Import Recipes"
-
-msgid "Continue to Review"
-msgstr "Continue to Review"
-
-msgid "Cost calculated automatically according to employee rate (including employer costs)."
-msgstr "Cost calculated automatically according to employee rate (including employer costs)."
-
-msgid "Cost per 100g:"
-msgstr "Cost per 100g:"
-
-msgid "Deselect All"
-msgstr "Deselect All"
-
-msgid "Different"
-msgstr "Different"
-
-msgid "Each recipe starts with title, 2 header rows, then materials"
-msgstr "Each recipe starts with title, 2 header rows, then materials"
-
-msgid "Employee / Role"
-msgstr "Employee / Role"
-
-msgid "Enter hours in HH:MM format (example: 8:30)"
-msgstr "Enter hours in HH:MM format (example: 8:30)"
-
-msgid "Enter in HH:MM format (example: 8:30 for eight and a half hours)"
-msgstr "Enter in HH:MM format (example: 8:30 for eight and a half hours)"
-
-msgid "Error loading"
-msgstr "Error loading"
-
-msgid "Error updating price"
-msgstr "Error updating price"
-
-msgid "Error updating price:"
-msgstr "Error updating price:"
-
-msgid "Example: 8:30"
-msgstr "Example: 8:30"
-
-msgid "Exists - Will Update"
-msgstr "Exists - Will Update"
-
-msgid "File uploaded successfully"
-msgstr "File uploaded successfully"
-
-msgid "First rows must contain metadata:"
-msgstr "First rows must contain metadata:"
-
-msgid "For the week ending on"
-msgstr "For the week ending on"
-
-msgid "Found (alternative name)"
-msgstr "Found (alternative name)"
-
-msgid "Found via alternative name"
-msgstr "Found via alternative name"
-
-msgid "From Date"
-msgstr "From Date"
-
-msgid "Gross Weight:"
-msgstr "Gross Weight:"
-
-msgid "Import Recipes from Excel"
-msgstr "Import Recipes from Excel"
-
-msgid "Leftovers found in inventory from last week"
-msgstr "Leftovers found in inventory from last week"
-
-msgid "List of all raw materials supplied by this supplier."
-msgstr "List of all raw materials supplied by this supplier."
-
-msgid "Loss Value (Cost)"
-msgstr "Loss Value (Cost)"
-
-msgid "Material with highest discrepancies:"
-msgstr "Material with highest discrepancies:"
-
-msgid "Materials with High Discrepancies"
-msgstr "Materials with High Discrepancies"
-
-msgid "Materials:"
-msgstr "Materials:"
-
-msgid "Metadata preview:"
-msgstr "Metadata preview:"
-
-msgid "Missing Materials"
-msgstr "Missing Materials"
-
-msgid "Missing materials in system!"
-msgstr "Missing materials in system!"
-
-msgid "Most problematic category:"
-msgstr "Most problematic category:"
-
-msgid "Net Weight:"
-msgstr "Net Weight:"
-
-msgid "No changes"
-msgstr "No changes"
-
-msgid "No cost"
-msgstr "No cost"
-
-msgid "No hours have been entered for this week yet."
-msgstr "No hours have been entered for this week yet."
-
-msgid "No stock audits found for the requested period"
-msgstr "No stock audits found for the requested period"
-
-msgid "Not detected (required!)"
-msgstr "Not detected (required!)"
-
-msgid "Physical Quantity"
-msgstr "Physical Quantity"
-
-msgid "Premake Leftovers"
-msgstr "Premake Leftovers"
-
-msgid "Price in Sheet"
-msgstr "Price in Sheet"
-
-msgid "Primary"
-msgstr "Primary"
-
-msgid "Primary Supplier"
-msgstr "Primary Supplier"
-
-msgid "Product Leftovers"
-msgstr "Product Leftovers"
-
-msgid "Quantity Changed:"
-msgstr "Quantity Changed:"
-
-msgid "Quantity Remaining"
-msgstr "Quantity Remaining"
-
-msgid "Quantity Variance"
-msgstr "Quantity Variance"
-
-msgid "Remove this entry?"
-msgstr "Remove this entry?"
-
-msgid "Removed:"
-msgstr "Removed:"
-
-msgid "Required - existing category name in system"
-msgstr "Required - existing category name in system"
-
-msgid "Required file format:"
-msgstr "Required file format:"
-
-msgid "Required metadata fields are missing. Ensure the file contains type and category rows."
-msgstr "Required metadata fields are missing. Ensure the file contains type and category rows."
-
-msgid "Return to update sales data for the previous week (if sold)."
-msgstr "Return to update sales data for the previous week (if sold)."
-
+#: templates/raw_materials.html:419 templates/view_premake.html:187
+#, fuzzy
+msgid "Current Stock:"
+msgstr "Current Stock"
+
+#: templates/recipe_review.html:2 templates/recipe_review.html:7
 msgid "Review Recipes for Import"
 msgstr "Review Recipes for Import"
 
-msgid "Same"
-msgstr "Same"
+#: templates/recipe_review.html:9 templates/recipe_upload.html:93
+#, fuzzy
+msgid "Type:"
+msgstr "Type:'"
 
-msgid "Search material..."
-msgstr "Search material..."
+#: templates/recipe_review.html:10 templates/recipe_upload.html:94
+#: templates/view_premake.html:77
+msgid "Category:"
+msgstr "Category:"
 
-msgid "Secondary"
-msgstr "Secondary"
+#: templates/recipe_review.html:11 templates/recipe_upload.html:95
+#, fuzzy
+msgid "Unit:"
+msgstr "Unit:'"
 
-msgid "Select All"
-msgstr "Select All"
-
-msgid "Select Excel file:"
-msgstr "Select Excel file:"
-
-msgid "Select a match for all missing materials in selected recipes from the dropdowns."
-msgstr "Select a match for all missing materials in selected recipes from the dropdowns."
-
-msgid "Select a match for missing materials from the dropdown, or add the materials to the system:"
-msgstr "Select a match for missing materials from the dropdown, or add the materials to the system:"
-
-msgid "Select a material from the dropdown or add new materials to the system and then import again."
-msgstr "Select a material from the dropdown or add new materials to the system and then import again."
-
-msgid "Select employee..."
-msgstr "Select employee..."
-
-msgid "Select material from system..."
-msgstr "Select material from system..."
-
-msgid "Select recipes to import"
-msgstr "Select recipes to import"
-
-msgid "Select sheet to import:"
-msgstr "Select sheet to import:"
-
-msgid "Set as primary supplier for this material"
-msgstr "Set as primary supplier for this material"
-
-msgid "Shortages"
-msgstr "Shortages"
-
-msgid "Should we reset inventory and transfer the balance to waste (loss)?"
-msgstr "Should we reset inventory and transfer the balance to waste (loss)?"
-
-msgid "Supplied Raw Materials"
-msgstr "Supplied Raw Materials"
-
-msgid "Surplus"
-msgstr "Surplus"
-
-msgid "System Quantity"
-msgstr "System Quantity"
-
-msgid "To Date"
-msgstr "To Date"
-
-msgid "Total Variance"
-msgstr "Total Variance"
-
-msgid "Total Variance (Financial)"
-msgstr "Total Variance (Financial)"
-
-msgid "Total cost for this week"
-msgstr "Total cost for this week"
-
-msgid "Total estimated loss (unmarked for transfer):"
-msgstr "Total estimated loss (unmarked for transfer):"
-
-msgid "Total losses from inventory discrepancies:"
-msgstr "Total losses from inventory discrepancies:"
-
+#: templates/recipe_review.html:12
 msgid "Total recipes:"
 msgstr "Total recipes:"
 
-msgid "Track inventory discrepancies and loss analysis"
-msgstr "Track inventory discrepancies and loss analysis"
+#: templates/recipe_review.html:31
+msgid "Missing materials in system!"
+msgstr "Missing materials in system!"
 
-msgid "Transfer to next week?"
-msgstr "Transfer to next week?"
+#: templates/recipe_review.html:32
+msgid ""
+"Select a match for missing materials from the dropdown, or add the "
+"materials to the system:"
+msgstr ""
+"Select a match for missing materials from the dropdown, or add the "
+"materials to the system:"
 
-msgid "Unmarked items will be transferred to waste. Marked items will remain in inventory/available."
-msgstr "Unmarked items will be transferred to waste. Marked items will remain in inventory/available."
+#: templates/recipe_review.html:41
+msgid ""
+"Select a material from the dropdown or add new materials to the system "
+"and then import again."
+msgstr ""
+"Select a material from the dropdown or add new materials to the system "
+"and then import again."
 
-msgid "Update Raw Material Price"
-msgstr "Update Raw Material Price"
+#: templates/recipe_review.html:52 templates/recipe_review.html:392
+msgid "Select All"
+msgstr "Select All"
 
-msgid "Upload Different File"
-msgstr "Upload Different File"
+#: templates/recipe_review.html:54
+msgid "0 recipes selected"
+msgstr "0 recipes selected"
 
-msgid "Upload Recipe File"
-msgstr "Upload Recipe File"
+#: templates/recipe_review.html:80
+msgid "Exists - Will Update"
+msgstr "Exists - Will Update"
 
-msgid "Upload an Excel file with recipes for premakes or products"
-msgstr "Upload an Excel file with recipes for premakes or products"
+#: templates/recipe_review.html:82 templates/upload_inventory.html:82
+msgid "New"
+msgstr "New"
 
-msgid "Value (Cost)"
-msgstr "Value (Cost)"
+#: templates/recipe_review.html:85
+msgid "Missing Materials"
+msgstr "Missing Materials"
 
-msgid "Week Details"
-msgstr "Week Details"
+#: templates/recipe_review.html:96
+msgid "Materials:"
+msgstr "Materials:"
 
-msgid "Weight (g)"
-msgstr "Weight (g)"
-
-msgid "Weight and Cost Summary:"
-msgstr "Weight and Cost Summary:"
-
-msgid "Work Hours (HH:MM)"
-msgstr "Work Hours (HH:MM)"
-
-msgid "Work Hours Details"
-msgstr "Work Hours Details"
-
-msgid "counts"
-msgstr "counts"
-
-msgid "recipes selected"
-msgstr "recipes selected"
-
-msgid "unmapped materials in selected recipes"
-msgstr "unmapped materials in selected recipes"
-
-msgid "SKU"
-msgstr "SKU"
-
-msgid "Active"
-msgstr "Active"
-
+#: templates/recipe_review.html:103 templates/suppliers.html:27
+#: templates/upload_inventory.html:46
 msgid "Status"
 msgstr "Status"
 
-msgid "Filter"
-msgstr "Filter"
+#: templates/recipe_review.html:104
+msgid "Weight (g)"
+msgstr "Weight (g)"
 
-msgid "Variance"
-msgstr "Variance"
+#: templates/recipe_review.html:105
+msgid "Price in Sheet"
+msgstr "Price in Sheet"
 
-msgid "Financial Value"
-msgstr "Financial Value"
+#: templates/recipe_review.html:106 templates/upload_inventory.html:49
+msgid "Price in System"
+msgstr "Price in System"
 
-msgid "Auditor"
-msgstr "Auditor"
+#: templates/recipe_review.html:107
+#, fuzzy
+msgid "Match"
+msgstr "Match'"
 
-msgid "Insights"
-msgstr "Insights"
+#: templates/recipe_review.html:118
+msgid "Found via alternative name"
+msgstr "Found via alternative name"
 
-msgid "Hours"
-msgstr "Hours"
+#: templates/recipe_review.html:119
+msgid "Found (alternative name)"
+msgstr "Found (alternative name)"
 
-msgid "Material types: \"חומר גלם\", \"הכנה\", \"מוצר מקדים\", \"אבדן\""
-msgstr "Material types: \"חומר גלם\", \"הכנה\", \"מוצר מקדים\", \"אבדן\""
+#: templates/recipe_review.html:122
+#, fuzzy
+msgid "Found"
+msgstr "Found'"
 
-msgid "Optional - default \"g\""
-msgstr "Optional - default \"g\""
+#: templates/recipe_review.html:132
+msgid "Select material from system..."
+msgstr "Select material from system..."
 
+#: templates/recipe_review.html:173
+msgid "Different"
+msgstr "Different"
+
+#: templates/recipe_review.html:175
+msgid "Same"
+msgstr "Same"
+
+#: templates/recipe_review.html:188 templates/recipe_review.html:189
+#, fuzzy
+msgid "Loss"
+msgstr "Loss'"
+
+#: templates/recipe_review.html:191
+msgid "No cost"
+msgstr "No cost"
+
+#: templates/recipe_review.html:203
+msgid "Weight and Cost Summary:"
+msgstr "Weight and Cost Summary:"
+
+#: templates/recipe_review.html:205
+msgid "Gross Weight:"
+msgstr "Gross Weight:"
+
+#: templates/recipe_review.html:205 templates/recipe_review.html:207
+#: templates/recipe_review.html:208
+#, fuzzy
+msgid "g"
+msgstr "g'"
+
+#: templates/recipe_review.html:207
+#, fuzzy
+msgid "Loss:"
+msgstr "Loss:'"
+
+#: templates/recipe_review.html:208
+msgid "Net Weight:"
+msgstr "Net Weight:"
+
+#: templates/recipe_review.html:210
+#, fuzzy
+msgid "Total Cost:"
+msgstr "Total Cost:'"
+
+#: templates/recipe_review.html:211
+msgid "Cost per 100g:"
+msgstr "Cost per 100g:"
+
+#: templates/recipe_review.html:222
+msgid "Changes (compared to existing recipe):"
+msgstr "Changes (compared to existing recipe):"
+
+#: templates/recipe_review.html:226
+msgid "Added:"
+msgstr "Added:"
+
+#: templates/recipe_review.html:234
+msgid "Removed:"
+msgstr "Removed:"
+
+#: templates/recipe_review.html:242
+msgid "Quantity Changed:"
+msgstr "Quantity Changed:"
+
+#: templates/recipe_review.html:249
+msgid "No changes"
+msgstr "No changes"
+
+#: templates/recipe_review.html:271
+msgid "Confirm and Import Recipes"
+msgstr "Confirm and Import Recipes"
+
+#: templates/recipe_review.html:288
+msgid "Search material..."
+msgstr "Search material..."
+
+#: templates/recipe_review.html:379
+msgid "Deselect All"
+msgstr "Deselect All"
+
+#: templates/recipe_review.html:423
+msgid "recipes selected"
+msgstr "recipes selected"
+
+#: templates/recipe_review.html:435
+msgid "Select recipes to import"
+msgstr "Select recipes to import"
+
+#: templates/recipe_review.html:452
+#, fuzzy
+msgid "Import"
+msgstr "Import\""
+
+#: templates/recipe_review.html:452
+#, fuzzy
+msgid "recipes"
+msgstr "Recipes"
+
+#: templates/recipe_review.html:457
+msgid "unmapped materials in selected recipes"
+msgstr "unmapped materials in selected recipes"
+
+#: templates/recipe_review.html:458
+msgid ""
+"Select a match for all missing materials in selected recipes from the "
+"dropdowns."
+msgstr ""
+"Select a match for all missing materials in selected recipes from the "
+"dropdowns."
+
+#: templates/recipe_upload.html:7
+msgid "Import Recipes from Excel"
+msgstr "Import Recipes from Excel"
+
+#: templates/recipe_upload.html:8
+msgid "Upload an Excel file with recipes for premakes or products"
+msgstr "Upload an Excel file with recipes for premakes or products"
+
+#: templates/recipe_upload.html:29
+msgid "Upload Recipe File"
+msgstr "Upload Recipe File"
+
+#: templates/recipe_upload.html:34
+msgid "Required file format:"
+msgstr "Required file format:"
+
+#: templates/recipe_upload.html:36
+msgid "First rows must contain metadata:"
+msgstr "First rows must contain metadata:"
+
+#: templates/recipe_upload.html:43
 msgid "Required - \"premake\" or \"product\""
 msgstr "Required - \"premake\" or \"product\""
 
+#: templates/recipe_upload.html:44
+msgid "Required - existing category name in system"
+msgstr "Required - existing category name in system"
+
+#: templates/recipe_upload.html:45
+msgid "Optional - default \"g\""
+msgstr "Optional - default \"g\""
+
+#: templates/recipe_upload.html:46
+msgid "After metadata, blank row, then recipes"
+msgstr "After metadata, blank row, then recipes"
+
+#: templates/recipe_upload.html:47
+msgid "Each recipe starts with title, 2 header rows, then materials"
+msgstr "Each recipe starts with title, 2 header rows, then materials"
+
+#: templates/recipe_upload.html:48
+msgid "Material types: \"חומר גלם\", \"הכנה\", \"מוצר מקדים\", \"אבדן\""
+msgstr "Material types: \"חומר גלם\", \"הכנה\", \"מוצר מקדים\", \"אבדן\""
+
+#: templates/recipe_upload.html:49
+msgid "Columns: name, type, price/kg, weight (g), total price"
+msgstr "Columns: name, type, price/kg, weight (g), total price"
+
+#: templates/recipe_upload.html:55
+msgid "Select Excel file:"
+msgstr "Select Excel file:"
+
+#: templates/recipe_upload.html:64 templates/upload_inventory.html:26
+msgid "Load File"
+msgstr "Load File"
+
+#: templates/recipe_upload.html:74
+msgid "File uploaded successfully"
+msgstr "File uploaded successfully"
+
+#: templates/recipe_upload.html:80
+msgid "Select sheet to import:"
+msgstr "Select sheet to import:"
+
+#: templates/recipe_upload.html:91
+msgid "Metadata preview:"
+msgstr "Metadata preview:"
+
+#: templates/recipe_upload.html:93 templates/recipe_upload.html:94
+#: templates/recipe_upload.html:162 templates/recipe_upload.html:163
+msgid "Not detected (required!)"
+msgstr "Not detected (required!)"
+
+#: templates/recipe_upload.html:100 templates/recipe_upload.html:105
+#, fuzzy
+msgid "Note:"
+msgstr "Note:'"
+
+#: templates/recipe_upload.html:100 templates/recipe_upload.html:105
+msgid ""
+"Required metadata fields are missing. Ensure the file contains type and "
+"category rows."
+msgstr ""
+"Required metadata fields are missing. Ensure the file contains type and "
+"category rows."
+
+#: templates/recipe_upload.html:113
+msgid "Upload Different File"
+msgstr "Upload Different File"
+
+#: templates/recipe_upload.html:116
+msgid "Continue to Review"
+msgstr "Continue to Review"
+
+#: templates/recipe_upload.html:138 templates/recipe_upload.html:139
+#: templates/recipe_upload.html:140
+#, fuzzy
+msgid "Loading..."
+msgstr "Loading...\""
+
+#: templates/recipe_upload.html:175 templates/recipe_upload.html:176
+#: templates/recipe_upload.html:177
+msgid "Error loading"
+msgstr "Error loading"
+
+#: templates/stock_audits.html:9
+msgid "Track inventory discrepancies and loss analysis"
+msgstr "Track inventory discrepancies and loss analysis"
+
+#: templates/stock_audits.html:19
+msgid "Total Variance (Financial)"
+msgstr "Total Variance (Financial)"
+
+#: templates/stock_audits.html:21
+msgid "counts"
+msgstr "counts"
+
+#: templates/stock_audits.html:28
+msgid "Surplus"
+msgstr "Surplus"
+
+#: templates/stock_audits.html:36
+msgid "Shortages"
+msgstr "Shortages"
+
+#: templates/stock_audits.html:44
+msgid "Affected Categories"
+msgstr "Affected Categories"
+
+#: templates/stock_audits.html:56 templates/stock_audits.html:101
+#: templates/stock_audits.html:213
+#, fuzzy
+msgid "Item"
+msgstr "items"
+
+#: templates/stock_audits.html:58
+#, fuzzy
+msgid "All Items"
+msgstr "items"
+
+#: templates/stock_audits.html:70
+msgid "From Date"
+msgstr "From Date"
+
+#: templates/stock_audits.html:74
+msgid "To Date"
+msgstr "To Date"
+
+#: templates/stock_audits.html:79
+msgid "Filter"
+msgstr "Filter"
+
+#: templates/stock_audits.html:92
+msgid "Audit History"
+msgstr "Audit History"
+
+#: templates/stock_audits.html:103
+msgid "System Quantity"
+msgstr "System Quantity"
+
+#: templates/stock_audits.html:104
+msgid "Physical Quantity"
+msgstr "Physical Quantity"
+
+#: templates/stock_audits.html:105
+msgid "Variance"
+msgstr "Variance"
+
+#: templates/stock_audits.html:106 templates/stock_audits.html:175
+#: templates/stock_audits.html:216
+msgid "Financial Value"
+msgstr "Financial Value"
+
+#: templates/stock_audits.html:107
+msgid "Auditor"
+msgstr "Auditor"
+
+#: templates/stock_audits.html:130
+#, fuzzy
+msgid "None"
+msgstr "Phone"
+
+#: templates/stock_audits.html:154
+msgid "No stock audits found for the requested period"
+msgstr "No stock audits found for the requested period"
+
+#: templates/stock_audits.html:164
+msgid "Analysis by Category"
+msgstr "Analysis by Category"
+
+#: templates/stock_audits.html:174
+msgid "Quantity Variance"
+msgstr "Quantity Variance"
+
+#: templates/stock_audits.html:205
+#, fuzzy
+msgid "Items with High Discrepancies"
+msgstr "Materials with High Discrepancies"
+
+#: templates/stock_audits.html:215
+msgid "Total Variance"
+msgstr "Total Variance"
+
+#: templates/stock_audits.html:247
+msgid "Insights"
+msgstr "Insights"
+
+#: templates/stock_audits.html:254
+msgid "Total losses from inventory discrepancies:"
+msgstr "Total losses from inventory discrepancies:"
+
+#: templates/stock_audits.html:262
+#, fuzzy
+msgid "Item with highest discrepancies:"
+msgstr "Material with highest discrepancies:"
+
+#: templates/stock_audits.html:272
+msgid "Most problematic category:"
+msgstr "Most problematic category:"
+
+#: templates/stock_audits.html:279
+msgid "Average financial variance per count:"
+msgstr "Average financial variance per count:"
+
+#: templates/supplier_materials.html:2
+#, fuzzy
+msgid "Materials & Packaging of"
+msgstr "(Products + Premake Inventory)"
+
+#: templates/supplier_materials.html:13
+#, fuzzy
+msgid "Materials & Packaging - "
+msgstr "(Products + Premake Inventory)"
+
+#: templates/supplier_materials.html:14
+#, fuzzy
+msgid "List of all raw materials and packaging supplied by this supplier."
+msgstr "List of all raw materials supplied by this supplier."
+
+#: templates/supplier_materials.html:24
 msgid "Contact Person:"
 msgstr "Contact Person:"
 
+#: templates/supplier_materials.html:27
 msgid "Phone:"
 msgstr "Phone:"
 
+#: templates/supplier_materials.html:30
+#, fuzzy
+msgid "Email:"
+msgstr "Email:'"
+
+#: templates/supplier_materials.html:38
 msgid "Status:"
 msgstr "Status:"
 
-msgid "Raw Materials of"
-msgstr "Raw Materials of"
+#: templates/supplier_materials.html:40 templates/suppliers.html:49
+msgid "Active"
+msgstr "Active"
 
-msgid "Raw Materials - "
-msgstr "Raw Materials - "
+#: templates/supplier_materials.html:40 templates/suppliers.html:51
+#, fuzzy
+msgid "Inactive"
+msgstr "Active"
 
-msgid "Premake"
-msgstr "Premake"
+#: templates/supplier_materials.html:44
+#, fuzzy
+msgid "Discount:"
+msgstr "counts"
 
-msgid "unsold products remain."
-msgstr "unsold products remain."
+#: templates/supplier_materials.html:55
+#, fuzzy
+msgid "Address:"
+msgstr "Address:'"
 
+#: templates/supplier_materials.html:68
+msgid "Supplied Raw Materials"
+msgstr "Supplied Raw Materials"
+
+#: templates/supplier_materials.html:143
+#, fuzzy
+msgid "Supplied Packaging"
+msgstr "Required Packaging"
+
+#: templates/supplier_materials.html:151
+#, fuzzy
+msgid "Quantity/Package"
+msgstr "Quantity per Package"
+
+#: templates/supplier_materials.html:214
+#, fuzzy
+msgid "No materials or packaging found for this supplier."
+msgstr "No raw materials found for this supplier.'"
+
+#: templates/supplier_materials.html:224
+msgid "Update Raw Material Price"
+msgstr "Update Raw Material Price"
+
+#: templates/supplier_materials.html:237
+#, fuzzy
+msgid "Optional SKU for this supplier"
+msgstr "No raw materials found for this supplier.'"
+
+#: templates/supplier_materials.html:246
+msgid "Set as primary supplier for this material"
+msgstr "Set as primary supplier for this material"
+
+#: templates/supplier_materials.html:318
+msgid "Error updating price:"
+msgstr "Error updating price:"
+
+#: templates/supplier_materials.html:322
+msgid "Error updating price"
+msgstr "Error updating price"
+
+#: templates/suppliers.html:8
+msgid "Manage Suppliers"
+msgstr "Manage Suppliers"
+
+#: templates/suppliers.html:9
+msgid "Manage raw material suppliers and prices."
+msgstr "Manage raw material suppliers and prices."
+
+#: templates/suppliers.html:25
+#, fuzzy
+msgid "Discount"
+msgstr "counts"
+
+#: templates/suppliers.html:26
+msgid "Active Materials"
+msgstr "Active Materials"
+
+#: templates/suppliers.html:57
+msgid "View Materials"
+msgstr "View Materials"
+
+#: templates/suppliers.html:67
+msgid "Reactivate"
+msgstr "Reactivate"
+
+#: templates/suppliers.html:67
+msgid "Deactivate"
+msgstr "Deactivate"
+
+#: templates/suppliers.html:74
+msgid "Delete supplier"
+msgstr "Delete supplier"
+
+#: templates/suppliers.html:86
+msgid "No suppliers found in the system."
+msgstr "No suppliers found in the system."
+
+#: templates/suppliers.html:100
+msgid "Hide Inactive Suppliers"
+msgstr "Hide Inactive Suppliers"
+
+#: templates/suppliers.html:105
+msgid "Show Inactive Suppliers"
+msgstr "Show Inactive Suppliers"
+
+# update_weekly_sales.html translations
+#: templates/update_weekly_sales.html:2 templates/update_weekly_sales.html:13
+msgid "Update Weekly Sales"
+msgstr "Update Weekly Sales"
+
+#: templates/update_weekly_sales.html:14
+msgid "Enter the quantities sold this week for each product."
+msgstr "Enter the quantities sold this week for each product."
+
+#: templates/update_weekly_sales.html:21
+#, fuzzy
+msgid "Product filter toggle"
+msgstr "Product Image"
+
+#: templates/update_weekly_sales.html:25
+#, fuzzy
+msgid "In Stock Only"
+msgstr "In Stock Cost"
+
+#: templates/update_weekly_sales.html:30
+#, fuzzy
+msgid "All Products"
+msgstr "Add Product"
+
+#: templates/update_weekly_sales.html:36
+msgid ""
+"No products currently in stock. Click \"All Products\" to see all "
+"available products."
+msgstr ""
+
+#: templates/update_weekly_sales.html:52
+msgid "Produced This Week"
+msgstr "Produced This Week"
+
+#: templates/update_weekly_sales.html:53
+msgid "Sold So Far"
+msgstr "Sold So Far"
+
+#: templates/update_weekly_sales.html:54
+msgid "Add Sales"
+msgstr "Add Sales"
+
+#: templates/update_weekly_sales.html:55
+msgid "Waste So Far"
+msgstr "Waste So Far"
+
+#: templates/update_weekly_sales.html:56
+msgid "Add Waste"
+msgstr "Add Waste"
+
+#: templates/update_weekly_sales.html:79
+#, fuzzy
+msgid "Out of Stock"
+msgstr "Update Stock"
+
+#: templates/update_weekly_sales.html:86
+msgid "Produced:"
+msgstr "Produced:"
+
+#: templates/update_weekly_sales.html:87 templates/update_weekly_sales.html:138
+msgid "Remaining:"
+msgstr "Remaining:"
+
+#: templates/update_weekly_sales.html:110
+msgid "Add Update"
+msgstr "Add Update"
+
+#: templates/update_weekly_sales.html:161
+msgid ""
+"Attention: The quantity entered exceeds the available stock produced this"
+" week."
+msgstr ""
+"Attention: The quantity entered exceeds the available stock produced this"
+" week."
+
+#: templates/upload_inventory.html:2 templates/upload_inventory.html:7
+msgid "Update Inventory from File"
+msgstr "Update Inventory from File"
+
+#: templates/upload_inventory.html:8
+msgid "Upload Excel file to update quantities and prices."
+msgstr "Upload Excel file to update quantities and prices."
+
+#: templates/upload_inventory.html:17
+msgid "Upload Excel File"
+msgstr "Upload Excel File"
+
+#: templates/upload_inventory.html:18
+msgid "File must contain columns: Product Name, Total Quantity, Average Price."
+msgstr "File must contain columns: Product Name, Total Quantity, Average Price."
+
+#: templates/upload_inventory.html:19
+msgid "Optional columns: SKU, Supplier (for more accurate identification)"
+msgstr "Optional columns: SKU, Supplier (for more accurate identification)"
+
+#: templates/upload_inventory.html:36
+msgid "Review Data and Confirm Changes"
+msgstr "Review Data and Confirm Changes"
+
+#: templates/upload_inventory.html:45
+msgid "SKU / Supplier"
+msgstr "SKU / Supplier"
+
+#: templates/upload_inventory.html:48
+msgid "Price in File"
+msgstr "Price in File"
+
+#: templates/upload_inventory.html:50
+msgid "Action Required"
+msgstr "Action Required"
+
+#: templates/upload_inventory.html:71
+msgid "SKU:"
+msgstr "SKU:"
+
+#: templates/upload_inventory.html:77
+msgid "Identified by SKU"
+msgstr "Identified by SKU"
+
+#: templates/upload_inventory.html:84
+msgid "Exists"
+msgstr "Exists"
+
+#: templates/upload_inventory.html:101
+msgid "Update price to"
+msgstr "Update price to"
+
+#: templates/upload_inventory.html:105
+msgid "Same price"
+msgstr "Same price"
+
+#: templates/upload_inventory.html:118
+msgid "Confirm and Update Inventory"
+msgstr "Confirm and Update Inventory"
+
+# Premake Details page translations
+#: templates/view_premake.html:2
+msgid "Premake Details"
+msgstr "Premake Details"
+
+#: templates/view_premake.html:20
+msgid "Back to List"
+msgstr "Back to List"
+
+#: templates/view_premake.html:31
+msgid "Batch Size"
+msgstr "Batch Size"
+
+#: templates/view_premake.html:57
+msgid "Cost per Batch"
+msgstr "Cost per Batch"
+
+#: templates/view_premake.html:68
+msgid "per"
+msgstr "per"
+
+#: templates/view_premake.html:84
+msgid "Preparation Components"
+msgstr "Preparation Components"
+
+#: templates/view_premake.html:137
+msgid "Total Cost per Batch:"
+msgstr "Total Cost per Batch:"
+
+#: templates/view_premake.html:148
+msgid "No components defined for this preparation."
+msgstr "No components defined for this preparation."
+
+#: templates/view_premake.html:165
+msgid "Batch Size:"
+msgstr "Batch Size:"
+
+#: templates/view_premake.html:169
+msgid "Number of Components:"
+msgstr "Number of Components:"
+
+#: templates/view_premake.html:173
+msgid "Total Batch Cost:"
+msgstr "Total Batch Cost:"
+
+#: templates/view_premake.html:198
+msgid "Stock Value:"
+msgstr "Stock Value:"
+
+#: templates/weekly_cost_details.html:2
+msgid "Week Details"
+msgstr "Week Details"
+
+#: templates/weekly_cost_details.html:13
+msgid "Work Hours Details"
+msgstr "Work Hours Details"
+
+#: templates/weekly_cost_details.html:18
+msgid "Total cost for this week"
+msgstr "Total cost for this week"
+
+#: templates/weekly_cost_details.html:29
+msgid "Add Employee Hours"
+msgstr "Add Employee Hours"
+
+#: templates/weekly_cost_details.html:33
+msgid "Employee / Role"
+msgstr "Employee / Role"
+
+#: templates/weekly_cost_details.html:35
+msgid "Select employee..."
+msgstr "Select employee..."
+
+#: templates/weekly_cost_details.html:37
+#, fuzzy
+msgid "hour"
+msgstr "Hours"
+
+#: templates/weekly_cost_details.html:42
+msgid "Work Hours (HH:MM)"
+msgstr "Work Hours (HH:MM)"
+
+#: templates/weekly_cost_details.html:44
+msgid "Example: 8:30"
+msgstr "Example: 8:30"
+
+#: templates/weekly_cost_details.html:45
+msgid "Enter hours in HH:MM format (example: 8:30)"
+msgstr "Enter hours in HH:MM format (example: 8:30)"
+
+#: templates/weekly_cost_details.html:46
+msgid "Enter in HH:MM format (example: 8:30 for eight and a half hours)"
+msgstr "Enter in HH:MM format (example: 8:30 for eight and a half hours)"
+
+#: templates/weekly_cost_details.html:50
+msgid "Add to List"
+msgstr "Add to List"
+
+#: templates/weekly_cost_details.html:57
+msgid ""
+"Cost calculated automatically according to employee rate (including "
+"employer costs)."
+msgstr ""
+"Cost calculated automatically according to employee rate (including "
+"employer costs)."
+
+#: templates/weekly_cost_details.html:71
+msgid "Employee Name"
+msgstr ""
+
+#: templates/weekly_cost_details.html:72
+msgid "Hours"
+msgstr "Hours"
+
+#: templates/weekly_cost_details.html:73
+msgid "Calculated Cost"
+msgstr "Calculated Cost"
+
+#: templates/weekly_cost_details.html:84
+msgid "Remove this entry?"
+msgstr "Remove this entry?"
+
+#: templates/weekly_cost_details.html:94
+msgid "No hours have been entered for this week yet."
+msgstr "No hours have been entered for this week yet."
+
+#: templates/weekly_costs.html:2 templates/weekly_costs.html:7
+msgid "Weekly Costs Management"
+msgstr "Weekly Costs Management"
+
+#: templates/weekly_costs.html:8
+msgid "Track work hours and costs by week."
+msgstr "Track work hours and costs by week."
+
+#: templates/weekly_costs.html:22
+msgid "Start Date"
+msgstr "Start Date"
+
+#: templates/weekly_costs.html:24
+msgid "Number of Employees"
+msgstr "Number of Employees"
+
+#: templates/weekly_costs.html:36
+msgid "Details and Update"
+msgstr "Details and Update"
+
+#: templates/weekly_costs.html:44
+msgid "No weekly costs defined yet."
+msgstr "No weekly costs defined yet."
+
+#: templates/weekly_costs.html:59
+msgid "Open New Week"
+msgstr "Open New Week"
+
+#: templates/weekly_costs.html:64
+msgid "Week Start Date (Sunday)"
+msgstr "Week Start Date (Sunday)"
+
+#: templates/weekly_costs.html:70
+msgid "Create and Open Details"
+msgstr "Create and Open Details"
+
+#: templates/weekly_report.html:9
+msgid "Performance summary for week"
+msgstr "Performance summary for week"
+
+#: templates/weekly_report.html:18
+msgid "Select week:"
+msgstr "Select week:"
+
+#: templates/weekly_report.html:25
+msgid "No weeks available"
+msgstr "No weeks available"
+
+#: templates/weekly_report.html:40
+msgid "No data found for selected week"
+msgstr "No data found for selected week"
+
+#: templates/weekly_report.html:117
+msgid "Product Food Cost Analysis (Food Cost)"
+msgstr "Product Food Cost Analysis (Food Cost)"
+
+#: templates/weekly_report.html:119
+msgid "Monthly Trends"
+msgstr "Monthly Trends"
+
+#: templates/weekly_report.html:126
 msgid "Product Cost"
 msgstr "Product Cost"
 
+#: templates/weekly_report.html:128
 msgid "Products sold + waste"
 msgstr "Products sold + waste"
 
+#: templates/weekly_report.html:133
 msgid "Premake Stock Value Increase"
 msgstr "Premake Stock Value Increase"
 
+#: templates/weekly_report.html:135
 msgid "Produced - Consumed"
 msgstr "Produced - Consumed"
 
-msgid "Total Production Cost"
-msgstr "Total Production Cost"
+#: templates/weekly_report.html:142
+#, fuzzy
+msgid "Products + Premake Inventory"
+msgstr "(Products + Premake Inventory)"
 
+#: templates/weekly_report.html:159
+msgid "Production Count"
+msgstr "Production Count"
+
+#: templates/weekly_report.html:160
+msgid "Total Recipes"
+msgstr "Total Recipes"
+
+#: templates/weekly_report.html:161
+msgid "Units per Recipe"
+msgstr "Units per Recipe"
+
+#: templates/weekly_report.html:190
+#, fuzzy, python-format
+msgid "Recommended target: 25-35%%"
+msgstr "Recommended target: 25-35%%"
+
+#: templates/weekly_report.html:194
+msgid ""
+"Production cost includes all products made this week (materials + "
+"packaging + premakes used) PLUS the value of premakes produced but not "
+"consumed (inventory increase). This represents the total cost of "
+"everything produced."
+msgstr ""
+"Production cost includes all products made this week (materials + "
+"packaging + premakes used) PLUS the value of premakes produced but not "
+"consumed (inventory increase). This represents the total cost of "
+"everything produced."
+
+#: templates/weekly_report.html:204
+msgid "Sales by Category"
+msgstr "Sales by Category"
+
+#: templates/weekly_report.html:213
+msgid "Number of Products"
+msgstr "Number of Products"
+
+#: templates/weekly_report.html:250
+msgid "No sales data by category"
+msgstr "No sales data by category"
+
+#: templates/weekly_report.html:258
+msgid "Product Sales Details"
+msgstr "Product Sales Details"
+
+#: templates/weekly_report.html:268 templates/weekly_report.html:421
+msgid "Unit Price"
+msgstr ""
+
+#: templates/weekly_report.html:272 templates/weekly_report.html:778
+#: templates/weekly_report.html:812
+msgid "Waste %"
+msgstr "Waste %%"
+
+#: templates/weekly_report.html:274
 msgid "Profit/Unit"
 msgstr "Profit/Unit"
 
+#: templates/weekly_report.html:275
 msgid "Margin %"
 msgstr "Margin %%"
 
+#: templates/weekly_report.html:309
+msgid "No product sales data"
+msgstr "No product sales data"
 
-# New translations for cost breakdown (2024-12-10)
-msgid "Sold Items Cost (COGS)"
-msgstr "Sold Items Cost (COGS)"
-
-msgid "In Stock Cost"
-msgstr "In Stock Cost"
-
-msgid "In-Stock Analysis"
-msgstr "In-Stock Analysis"
-
-msgid "Unsold Products (In Inventory)"
-msgstr "Unsold Products (In Inventory)"
-
+#: templates/weekly_report.html:361
 msgid "Premake Stock Increases"
 msgstr "Premake Stock Increases"
 
-msgid "Total Stock Value"
-msgstr "Total Stock Value"
+#: templates/weekly_report.html:368
+msgid "Used"
+msgstr ""
 
-msgid "Total Unsold Product Value:"
-msgstr "Total Unsold Product Value:"
+#: templates/weekly_report.html:369
+#, fuzzy
+msgid "Stock Change"
+msgstr "Stock shortage"
 
+#: templates/weekly_report.html:371
+#, fuzzy
+msgid "Stock Value Increase"
+msgstr "Premake Stock Value Increase"
+
+#: templates/weekly_report.html:390
 msgid "Total Premake Stock Value Increase:"
 msgstr "Total Premake Stock Value Increase:"
 
-msgid "No unsold products in inventory"
-msgstr "No unsold products in inventory"
+#: templates/weekly_report.html:400
+msgid ""
+"In Stock Cost represents capital tied up in inventory: unsold products "
+"and premakes produced but not yet consumed."
+msgstr ""
+"In Stock Cost represents capital tied up in inventory: unsold products "
+"and premakes produced but not yet consumed."
 
-msgid "In Stock Cost represents capital tied up in inventory: unsold products and premakes produced but not yet consumed."
-msgstr "In Stock Cost represents capital tied up in inventory: unsold products and premakes produced but not yet consumed."
+#: templates/weekly_report.html:416
+#, fuzzy
+msgid "Packaging Item"
+msgstr "Packaging Name"
 
-msgid "In Stock Cost represents capital tied up in inventory across all weeks: unsold products and premakes produced but not yet consumed."
-msgstr "In Stock Cost represents capital tied up in inventory across all weeks: unsold products and premakes produced but not yet consumed."
+#: templates/weekly_report.html:417
+#, fuzzy
+msgid "Beginning Stock"
+msgstr "In Stock"
 
-msgid "Total Production Cost = COGS + Waste + In Stock"
-msgstr "Total Production Cost = COGS + Waste + In Stock"
+#: templates/weekly_report.html:418
+#, fuzzy
+msgid "Additions"
+msgstr "Actions'"
 
-msgid "Sold Items Cost = Σ(quantity_sold × cost_per_unit)"
-msgstr "Sold Items Cost = Σ(quantity_sold × cost_per_unit)"
+#: templates/weekly_report.html:419
+#, fuzzy
+msgid "Usage (Sales)"
+msgstr "Update Sales"
 
-msgid "Waste Cost = Σ(quantity_waste × cost_per_unit)"
-msgstr "Waste Cost = Σ(quantity_waste × cost_per_unit)"
+#: templates/weekly_report.html:420
+#, fuzzy
+msgid "Ending Stock"
+msgstr "In Stock"
 
-msgid "In Stock Cost = Unsold Products + Premake Stock Increase"
-msgstr "In Stock Cost = Unsold Products + Premake Stock Increase"
+#: templates/weekly_report.html:422
+#, fuzzy
+msgid "Stock Value"
+msgstr "Stock Value:"
+
+#: templates/weekly_report.html:440
+#, fuzzy
+msgid "Total Packaging Stock Value:"
+msgstr "Total Stock Value"
+
+#: templates/weekly_report.html:448
+msgid ""
+"Packaging inventory is tracked separately and deducted during production."
+" Stock values represent current inventory investment."
+msgstr ""
+
+#: templates/weekly_report.html:496
+#, fuzzy
+msgid "Packaging Usage (From Sales)"
+msgstr "Packaging Name"
+
+#: templates/weekly_report.html:504
+#, fuzzy
+msgid "Units Used"
+msgstr "Units Produced"
+
+#: templates/weekly_report.html:505
+msgid "Containers Used"
+msgstr ""
+
+#: templates/weekly_report.html:506
+#, fuzzy
+msgid "Units per Container"
+msgstr "Units per Recipe"
+
+#: templates/weekly_report.html:523
+#, fuzzy
+msgid "Total Packaging Cost:"
+msgstr "Total Packaging:"
+
+#: templates/weekly_report.html:537
+msgid "Labor Cost Details"
+msgstr "Labor Cost Details"
+
+#: templates/weekly_report.html:544
+msgid "Employee"
+msgstr "Employee"
+
+#: templates/weekly_report.html:545
+msgid "Entry Count"
+msgstr "Entry Count"
+
+#: templates/weekly_report.html:546
+msgid "Total Hours"
+msgstr "Total Hours"
+
+#: templates/weekly_report.html:580
+msgid "Stock Discrepancies Found This Week"
+msgstr "Stock Discrepancies Found This Week"
+
+#: templates/weekly_report.html:585
+msgid "Discrepancy Summary"
+msgstr "Discrepancy Summary"
+
+#: templates/weekly_report.html:587
+msgid "Number of Counts:"
+msgstr "Number of Counts:"
+
+#: templates/weekly_report.html:589
+msgid "Total Monetary Value:"
+msgstr "Total Monetary Value:"
+
+#: templates/weekly_report.html:594
+msgid "Discrepancies by Category"
+msgstr "Discrepancies by Category"
+
+#: templates/weekly_report.html:601 templates/weekly_report.html:636
+msgid "Monetary Value"
+msgstr "Monetary Value"
+
+#: templates/weekly_report.html:623
+msgid "Adjusted Profit (including stock discrepancies):"
+msgstr "Adjusted Profit (including stock discrepancies):"
+
+#: templates/weekly_report.html:625
+msgid "instead of"
+msgstr "instead of"
+
+#: templates/weekly_report.html:635
+msgid "Difference"
+msgstr "Difference"
+
+#: templates/weekly_report.html:637
+msgid "Counter"
+msgstr "Counter"
+
+#: templates/weekly_report.html:657
+msgid "Showing last 5 counts out of"
+msgstr "Showing last 5 counts out of"
+
+#: templates/weekly_report.html:667
+msgid "Key Insights"
+msgstr "Key Insights"
+
+#: templates/weekly_report.html:676 templates/weekly_report.html:686
+msgid "with revenue of"
+msgstr "with revenue of"
+
+#: templates/weekly_report.html:693
+msgid "Weekly profit margin:"
+msgstr "Weekly profit margin:"
+
+#: templates/weekly_report.html:699
+msgid "Product with highest profitability:"
+msgstr "Product with highest profitability:"
+
+#: templates/weekly_report.html:699 templates/weekly_report.html:706
+msgid "with profit margin of"
+msgstr "with profit margin of"
+
+#: templates/weekly_report.html:706
+msgid "Product with lowest profitability:"
+msgstr "Product with lowest profitability:"
+
+#: templates/weekly_report.html:708
+msgid "Needs review"
+msgstr "Needs review"
+
+#: templates/weekly_report.html:716
+msgid "Product with highest profit contribution:"
+msgstr "Product with highest profit contribution:"
+
+#: templates/weekly_report.html:716
+msgid "with total profit of"
+msgstr "with total profit of"
+
+#: templates/weekly_report.html:723
+msgid "Overall waste percentage:"
+msgstr "Overall waste percentage:"
+
+#: templates/weekly_report.html:724
+msgid "Cost:"
+msgstr "Cost:"
+
+#: templates/weekly_report.html:735
+msgid "Waste Analysis"
+msgstr "Waste Analysis"
+
+#: templates/weekly_report.html:743
+msgid "Total Waste"
+msgstr "Total Waste"
+
+#: templates/weekly_report.html:760
+msgid "Impact on Profit"
+msgstr "Impact on Profit"
+
+#: templates/weekly_report.html:769
+msgid "Waste by Product"
+msgstr "Waste by Product"
+
+#: templates/weekly_report.html:800
+msgid "Showing top 10 products with highest waste cost"
+msgstr "Showing top 10 products with highest waste cost"
+
+#: templates/weekly_report.html:805
+msgid "Waste by Category"
+msgstr "Waste by Category"
+
+#~ msgid "Products Per Recipe"
+#~ msgstr ""
+
+#~ msgid "Selling Price Per Unit"
+#~ msgstr ""
+
+#~ msgid "New Raw Material"
+#~ msgstr ""
+
+#~ msgid "Add Labor"
+#~ msgstr ""
+
+#~ msgid "New Labor"
+#~ msgstr ""
+
+#~ msgid "Save Product"
+#~ msgstr ""
+
+#~ msgid "Base Hourly Rate"
+#~ msgstr ""
+
+#~ msgid "Additional Hourly Rate"
+#~ msgstr ""
+
+#~ msgid "All"
+#~ msgstr ""
+
+#~ msgid "Save Raw Material"
+#~ msgstr ""
+
+#~ msgid "Inventory Manager"
+#~ msgstr ""
+
+#~ msgid "Labor"
+#~ msgstr ""
+
+#~ msgid "2024 Waste Tracking System. All rights reserved."
+#~ msgstr ""
+
+#~ msgid "Existing Categories"
+#~ msgstr ""
+
+#~ msgid "Dashboard"
+#~ msgstr ""
+
+#~ msgid "Welcome to the Waste Tracking System"
+#~ msgstr ""
+
+#~ msgid "Go to Raw Materials"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Manage packaging options, costs, and "
+#~ "their integration into your products"
+#~ msgstr ""
+
+#~ msgid "Labor Management"
+#~ msgstr ""
+
+#~ msgid "Oversee labor costs and contributions to each production activity"
+#~ msgstr ""
+
+#~ msgid "Existing Labor"
+#~ msgstr ""
+
+#~ msgid "Hourly Rate"
+#~ msgstr ""
+
+#~ msgid "Products Per Recipe:"
+#~ msgstr ""
+
+#~ msgid "Selling Price Per Unit:"
+#~ msgstr "Selling Price Per Unit:"
+
+#~ msgid "Amount in Recipe"
+#~ msgstr ""
+
+#~ msgid "Price Per Unit"
+#~ msgstr "Price Per Unit"
+
+#~ msgid "Price Per Recipe"
+#~ msgstr "Price Per Recipe"
+
+#~ msgid "Price Per Product"
+#~ msgstr "Price Per Product"
+
+#~ msgid "Hours of Labor"
+#~ msgstr ""
+
+#~ msgid "Price Per Hour"
+#~ msgstr "Price Per Hour"
+
+#~ msgid "Units Per Recipe"
+#~ msgstr "Units Per Recipe"
+
+#~ msgid "Cost Margin"
+#~ msgstr ""
+
+#~ msgid "View"
+#~ msgstr ""
+
+#~ msgid "Adding stock for "
+#~ msgstr ""
+
+#~ msgid "Setting stock for "
+#~ msgstr "Setting stock for "
+
+#~ msgid "Material Costs"
+#~ msgstr "Material Costs"
+
+#~ msgid "Prime Costs"
+#~ msgstr "Production Cost"
+
+#~ msgid ""
+#~ "Food cost includes raw materials, "
+#~ "packaging, and premakes for products "
+#~ "produced this week."
+#~ msgstr ""
+#~ "Food cost includes raw materials, "
+#~ "packaging, and premakes for products "
+#~ "produced this week."
+
+#~ msgid "Add New Employee"
+#~ msgstr "Add New Employee"
+
+#~ msgid "Total Hourly Rate (employer cost)"
+#~ msgstr "Total Hourly Rate (employer cost)"
+
+#~ msgid "Save Employee"
+#~ msgstr "Save Employee"
+
+#~ msgid "Recipe details and costs"
+#~ msgstr "Recipe details and costs"
+
+#~ msgid "Back to list"
+#~ msgstr "Back to list"
+
+#~ msgid "Total Cost per Batch"
+#~ msgstr "Total Cost per Batch"
+
+#~ msgid "% of Cost"
+#~ msgstr "% of Cost"
+
+#~ msgid "No components for this premake."
+#~ msgstr "No components for this premake."
+
+# Translations added from batch 3 (final 6 files)
+#~ msgid "0 recipes selected'"
+#~ msgstr "0 recipes selected'"
+
+#~ msgid "Active'"
+#~ msgstr "Active'"
+
+#~ msgid "Add Employee Hours'"
+#~ msgstr "Add Employee Hours'"
+
+#~ msgid "Add to List'"
+#~ msgstr "Add to List'"
+
+#~ msgid "Added:'"
+#~ msgstr "Added:'"
+
+#~ msgid "Affected Categories'"
+#~ msgstr "Affected Categories'"
+
+#~ msgid "After metadata, blank row, then recipes'"
+#~ msgstr "After metadata, blank row, then recipes'"
+
+#~ msgid "All Materials'"
+#~ msgstr "All Materials'"
+
+#~ msgid "Analysis by Category'"
+#~ msgstr "Analysis by Category'"
+
+#~ msgid "Approve and Close Week'"
+#~ msgstr "Approve and Close Week'"
+
+#~ msgid "Audit History'"
+#~ msgstr "Audit History'"
+
+#~ msgid "Auditor'"
+#~ msgstr "Auditor'"
+
+#~ msgid "Average financial variance per count:'"
+#~ msgstr "Average financial variance per count:'"
+
+#~ msgid "Calculated Cost'"
+#~ msgstr "Calculated Cost'"
+
+#~ msgid "Cancel'"
+#~ msgstr "Cancel'"
+
+#~ msgid "Category'"
+#~ msgstr "Category'"
+
+#~ msgid "Category:'"
+#~ msgstr "Category:'"
+
+#~ msgid "Changes (compared to existing recipe):'"
+#~ msgstr "Changes (compared to existing recipe):'"
+
+#~ msgid "Close Week - Reset Inventory'"
+#~ msgstr "Close Week - Reset Inventory'"
+
+#~ msgid "Columns: name, type, price/kg, weight (g), total price'"
+#~ msgstr "Columns: name, type, price/kg, weight (g), total price'"
+
+#~ msgid "Confirm and Import Recipes'"
+#~ msgstr "Confirm and Import Recipes'"
+
+#~ msgid "Contact Person:'"
+#~ msgstr "Contact Person:'"
+
+#~ msgid "Continue to Review'"
+#~ msgstr "Continue to Review'"
+
+#~ msgid ""
+#~ "Cost calculated automatically according to "
+#~ "employee rate (including employer costs).'"
+#~ msgstr ""
+#~ "Cost calculated automatically according to "
+#~ "employee rate (including employer costs).'"
+
+#~ msgid "Cost per 100g:'"
+#~ msgstr "Cost per 100g:'"
+
+#~ msgid "Counts'"
+#~ msgstr "Counts'"
+
+#~ msgid "Current Stock'"
+#~ msgstr "Current Stock'"
+
+#~ msgid "Date'"
+#~ msgstr "Date'"
+
+#~ msgid "Deselect All\""
+#~ msgstr "Deselect All\""
+
+#~ msgid "Different'"
+#~ msgstr "Different'"
+
+#~ msgid "Each recipe starts with title, 2 header rows, then materials'"
+#~ msgstr "Each recipe starts with title, 2 header rows, then materials'"
+
+#~ msgid "Employee / Role'"
+#~ msgstr "Employee / Role'"
+
+#~ msgid "Employee Name'"
+#~ msgstr "Employee Name'"
+
+#~ msgid "Enter hours in HH:MM format (example: 8:30)'"
+#~ msgstr "Enter hours in HH:MM format (example: 8:30)'"
+
+#~ msgid "Enter in HH:MM format (example: 8:30 for eight and a half hours)'"
+#~ msgstr "Enter in HH:MM format (example: 8:30 for eight and a half hours)'"
+
+#~ msgid "Error loading\""
+#~ msgstr "Error loading\""
+
+#~ msgid "Error updating price\""
+#~ msgstr "Error updating price\""
+
+#~ msgid "Error updating price:\""
+#~ msgstr "Error updating price:\""
+
+#~ msgid "Example: 8:30'"
+#~ msgstr "Example: 8:30'"
+
+#~ msgid "Exists - Will Update'"
+#~ msgstr "Exists - Will Update'"
+
+#~ msgid "File uploaded successfully'"
+#~ msgstr "File uploaded successfully'"
+
+#~ msgid "Filter'"
+#~ msgstr "Filter'"
+
+#~ msgid "Financial Value'"
+#~ msgstr "Financial Value'"
+
+#~ msgid "First rows must contain metadata:'"
+#~ msgstr "First rows must contain metadata:'"
+
+#~ msgid "For the week ending on'"
+#~ msgstr "For the week ending on'"
+
+#~ msgid "Found (alternative name)'"
+#~ msgstr "Found (alternative name)'"
+
+#~ msgid "Found via alternative name'"
+#~ msgstr "Found via alternative name'"
+
+#~ msgid "From Date'"
+#~ msgstr "From Date'"
+
+#~ msgid "Gross Weight:'"
+#~ msgstr "Gross Weight:'"
+
+#~ msgid "Hours'"
+#~ msgstr "Hours'"
+
+#~ msgid "Import Recipes from Excel'"
+#~ msgstr "Import Recipes from Excel'"
+
+#~ msgid "Import Recipes'"
+#~ msgstr "Import Recipes'"
+
+#~ msgid "Insights'"
+#~ msgstr "Insights'"
+
+#~ msgid "Leftovers found in inventory from last week'"
+#~ msgstr "Leftovers found in inventory from last week'"
+
+#~ msgid "List of all raw materials supplied by this supplier.'"
+#~ msgstr "List of all raw materials supplied by this supplier.'"
+
+#~ msgid "Load File'"
+#~ msgstr "Load File'"
+
+#~ msgid "Loss Value (Cost)'"
+#~ msgstr "Loss Value (Cost)'"
+
+#~ msgid "Material types: \""
+#~ msgstr "Material types: \""
+
+#~ msgid "Material with highest discrepancies:'"
+#~ msgstr "Material with highest discrepancies:'"
+
+#~ msgid "Materials with High Discrepancies'"
+#~ msgstr "Materials with High Discrepancies'"
+
+#~ msgid "Materials:'"
+#~ msgstr "Materials:'"
+
+#~ msgid "Metadata preview:'"
+#~ msgstr "Metadata preview:'"
+
+#~ msgid "Missing Materials'"
+#~ msgstr "Missing Materials'"
+
+#~ msgid "Missing materials in system!'"
+#~ msgstr "Missing materials in system!'"
+
+#~ msgid "Most problematic category:'"
+#~ msgstr "Most problematic category:'"
+
+#~ msgid "Name'"
+#~ msgstr "Name'"
+
+#~ msgid "Net Weight:'"
+#~ msgstr "Net Weight:'"
+
+#~ msgid "New'"
+#~ msgstr "New'"
+
+#~ msgid "No changes'"
+#~ msgstr "No changes'"
+
+#~ msgid "No cost'"
+#~ msgstr "No cost'"
+
+#~ msgid "No data to display'"
+#~ msgstr "No data to display'"
+
+#~ msgid "No hours have been entered for this week yet.'"
+#~ msgstr "No hours have been entered for this week yet.'"
+
+#~ msgid "No stock audits found for the requested period'"
+#~ msgstr "No stock audits found for the requested period'"
+
+#~ msgid "Not detected (required!)\""
+#~ msgstr "Not detected (required!)\""
+
+#~ msgid "Optional - default \""
+#~ msgstr "Optional - default \""
+
+#~ msgid "Phone:'"
+#~ msgstr "Phone:'"
+
+#~ msgid "Physical Quantity'"
+#~ msgstr "Physical Quantity'"
+
+#~ msgid "Premake Leftovers'"
+#~ msgstr "Premake Leftovers'"
+
+#~ msgid "Premake'"
+#~ msgstr "Premake'"
+
+#~ msgid "Price in Sheet'"
+#~ msgstr "Price in Sheet'"
+
+#~ msgid "Price in System'"
+#~ msgstr "Price in System'"
+
+#~ msgid "Price per Unit'"
+#~ msgstr "Price per Unit'"
+
+#~ msgid "Primary Supplier'"
+#~ msgstr "Primary Supplier'"
+
+#~ msgid "Primary'"
+#~ msgstr "Primary'"
+
+#~ msgid "Product Leftovers'"
+#~ msgstr "Product Leftovers'"
+
+#~ msgid "Quantity Changed:'"
+#~ msgstr "Quantity Changed:'"
+
+#~ msgid "Quantity Remaining'"
+#~ msgstr "Quantity Remaining'"
+
+#~ msgid "Quantity Variance'"
+#~ msgstr "Quantity Variance'"
+
+#~ msgid "Raw Material'"
+#~ msgstr "Raw Material'"
+
+#~ msgid "Raw Materials - '"
+#~ msgstr "Raw Materials - '"
+
+#~ msgid "Raw Materials of'"
+#~ msgstr "Raw Materials of'"
+
+#~ msgid "Remove this entry?'"
+#~ msgstr "Remove this entry?'"
+
+#~ msgid "Removed:'"
+#~ msgstr "Removed:'"
+
+#~ msgid "Required - \""
+#~ msgstr "Required - \""
+
+#~ msgid "Required - existing category name in system'"
+#~ msgstr "Required - existing category name in system'"
+
+#~ msgid "Required file format:'"
+#~ msgstr "Required file format:'"
+
+#~ msgid ""
+#~ "Required metadata fields are missing. "
+#~ "Ensure the file contains type and "
+#~ "category rows.'"
+#~ msgstr ""
+#~ "Required metadata fields are missing. "
+#~ "Ensure the file contains type and "
+#~ "category rows.'"
+
+#~ msgid "Return to update sales data for the previous week (if sold).'"
+#~ msgstr "Return to update sales data for the previous week (if sold).'"
+
+#~ msgid "Review Recipes for Import'"
+#~ msgstr "Review Recipes for Import'"
+
+#~ msgid "Same'"
+#~ msgstr "Same'"
+
+#~ msgid "Save'"
+#~ msgstr "Save'"
+
+#~ msgid "Search material...\""
+#~ msgstr "Search material...\""
+
+#~ msgid "Secondary'"
+#~ msgstr "Secondary'"
+
+#~ msgid "Select All\""
+#~ msgstr "Select All\""
+
+#~ msgid "Select All'"
+#~ msgstr "Select All'"
+
+#~ msgid "Select Excel file:'"
+#~ msgstr "Select Excel file:'"
+
+#~ msgid ""
+#~ "Select a match for all missing "
+#~ "materials in selected recipes from the"
+#~ " dropdowns.\""
+#~ msgstr ""
+#~ "Select a match for all missing "
+#~ "materials in selected recipes from the"
+#~ " dropdowns.\""
+
+#~ msgid ""
+#~ "Select a match for missing materials "
+#~ "from the dropdown, or add the "
+#~ "materials to the system:'"
+#~ msgstr ""
+#~ "Select a match for missing materials "
+#~ "from the dropdown, or add the "
+#~ "materials to the system:'"
+
+#~ msgid ""
+#~ "Select a material from the dropdown "
+#~ "or add new materials to the system"
+#~ " and then import again.'"
+#~ msgstr ""
+#~ "Select a material from the dropdown "
+#~ "or add new materials to the system"
+#~ " and then import again.'"
+
+#~ msgid "Select employee...'"
+#~ msgstr "Select employee...'"
+
+#~ msgid "Select material from system...'"
+#~ msgstr "Select material from system...'"
+
+#~ msgid "Select recipes to import\""
+#~ msgstr "Select recipes to import\""
+
+#~ msgid "Select sheet to import:'"
+#~ msgstr "Select sheet to import:'"
+
+#~ msgid "Set as primary supplier for this material'"
+#~ msgstr "Set as primary supplier for this material'"
+
+#~ msgid "Shortages'"
+#~ msgstr "Shortages'"
+
+#~ msgid "Should we reset inventory and transfer the balance to waste (loss)?'"
+#~ msgstr "Should we reset inventory and transfer the balance to waste (loss)?'"
+
+#~ msgid "Status'"
+#~ msgstr "Status'"
+
+#~ msgid "Status:'"
+#~ msgstr "Status:'"
+
+#~ msgid "Stock Audit'"
+#~ msgstr "Stock Audit'"
+
+#~ msgid "Supplied Raw Materials'"
+#~ msgstr "Supplied Raw Materials'"
+
+#~ msgid "Suppliers'"
+#~ msgstr "Suppliers'"
+
+#~ msgid "Surplus'"
+#~ msgstr "Surplus'"
+
+#~ msgid "System Quantity'"
+#~ msgstr "System Quantity'"
+
+#~ msgid "To Date'"
+#~ msgstr "To Date'"
+
+#~ msgid "Total Variance (Financial)'"
+#~ msgstr "Total Variance (Financial)'"
+
+#~ msgid "Total Variance'"
+#~ msgstr "Total Variance'"
+
+#~ msgid "Total cost for this week'"
+#~ msgstr "Total cost for this week'"
+
+#~ msgid "Total estimated loss (unmarked for transfer):'"
+#~ msgstr "Total estimated loss (unmarked for transfer):'"
+
+#~ msgid "Total losses from inventory discrepancies:'"
+#~ msgstr "Total losses from inventory discrepancies:'"
+
+#~ msgid "Total recipes:'"
+#~ msgstr "Total recipes:'"
+
+#~ msgid "Track inventory discrepancies and loss analysis'"
+#~ msgstr "Track inventory discrepancies and loss analysis'"
+
+#~ msgid "Transfer to next week?'"
+#~ msgstr "Transfer to next week?'"
+
+#~ msgid "Type'"
+#~ msgstr "Type'"
+
+#~ msgid "Unit'"
+#~ msgstr "Unit'"
+
+#~ msgid ""
+#~ "Unmarked items will be transferred to"
+#~ " waste. Marked items will remain in"
+#~ " inventory/available.'"
+#~ msgstr ""
+#~ "Unmarked items will be transferred to"
+#~ " waste. Marked items will remain in"
+#~ " inventory/available.'"
+
+#~ msgid "Update Raw Material Price'"
+#~ msgstr "Update Raw Material Price'"
+
+#~ msgid "Update Sales'"
+#~ msgstr "Update Sales'"
+
+#~ msgid "Upload Different File'"
+#~ msgstr "Upload Different File'"
+
+#~ msgid "Upload Recipe File'"
+#~ msgstr "Upload Recipe File'"
+
+#~ msgid "Upload an Excel file with recipes for premakes or products'"
+#~ msgstr "Upload an Excel file with recipes for premakes or products'"
+
+#~ msgid "Value (Cost)'"
+#~ msgstr "Value (Cost)'"
+
+#~ msgid "Variance'"
+#~ msgstr "Variance'"
+
+#~ msgid "Week Details'"
+#~ msgstr "Week Details'"
+
+#~ msgid "Week'"
+#~ msgstr "Week'"
+
+#~ msgid "Weekly Labor'"
+#~ msgstr "Weekly Labor'"
+
+#~ msgid "Weight (g)'"
+#~ msgstr "Weight (g)'"
+
+#~ msgid "Weight and Cost Summary:'"
+#~ msgstr "Weight and Cost Summary:'"
+
+#~ msgid "Work Hours (HH:MM)'"
+#~ msgstr "Work Hours (HH:MM)'"
+
+#~ msgid "Work Hours Details'"
+#~ msgstr "Work Hours Details'"
+
+#~ msgid "counts'"
+#~ msgstr "counts'"
+
+#~ msgid "hour'"
+#~ msgstr "hour'"
+
+#~ msgid "recipes selected\""
+#~ msgstr "recipes selected\""
+
+#~ msgid "recipes\""
+#~ msgstr "recipes\""
+
+#~ msgid "units'"
+#~ msgstr "units'"
+
+#~ msgid "unmapped materials in selected recipes\""
+#~ msgstr "unmapped materials in selected recipes\""
+
+#~ msgid "unsold products remain.'"
+#~ msgstr "unsold products remain.'"
+
+#~ msgid "Raw Materials of"
+#~ msgstr "Raw Materials of"
+
+#~ msgid "Raw Materials - "
+#~ msgstr "Raw Materials - "
 

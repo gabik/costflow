@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-12-16 10:53+0200\n"
+"POT-Creation-Date: 2025-12-12 08:44+0200\n"
 "PO-Revision-Date: 2024-12-14 21:06+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: he\n"
@@ -16,2810 +16,4092 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.16.0\n"
+"Generated-By: Babel 2.17.0\n"
 
-#: templates/add_or_edit_packaging.html:2
-#: templates/add_or_edit_packaging.html:4 templates/add_or_edit_product.html:2
-#: templates/add_or_edit_product.html:4
-#: templates/add_or_edit_raw_material.html:2
-#: templates/add_or_edit_raw_material.html:4 templates/categories.html:19
-#: templates/packaging.html:26 templates/products.html:42
-#: templates/raw_materials.html:34
-msgid "Edit"
-msgstr "עדכן"
+#: app/routes/fix_sequences.py:70
+#, python-brace-format
+msgid "Fixed {} sequences"
+msgstr ""
 
-#: templates/add_or_edit_packaging.html:2
-#: templates/add_or_edit_packaging.html:4
-#: templates/add_or_edit_packaging.html:18 templates/add_or_edit_product.html:2
-#: templates/add_or_edit_product.html:4
-#: templates/add_or_edit_raw_material.html:2
-#: templates/add_or_edit_raw_material.html:4
-msgid "Add"
-msgstr "הוסף"
+#: app/routes/packaging.py:300
+#, fuzzy
+msgid "Missing required fields"
+msgstr "חומרים חסרים"
 
-#: templates/add_or_edit_packaging.html:2
-#: templates/add_or_edit_packaging.html:4
-#: templates/add_or_edit_packaging.html:18
-#: templates/add_or_edit_product.html:26 templates/base.html:27
-#: templates/index.html:32 templates/product_details.html:56
-#: templates/product_details.html:60
-msgid "Packaging"
-msgstr "אריזה"
-
-#: templates/add_or_edit_packaging.html:7
-msgid "Packaging Name"
+#: app/routes/packaging.py:304 app/routes/packaging.py:397
+#: app/routes/utils.py:731
+#, fuzzy
+msgid "Packaging not found"
 msgstr "שם אריזה"
 
-#: templates/add_or_edit_packaging.html:11
-#: templates/add_or_edit_product.html:108 templates/packaging.html:12
-msgid "Quantity per Package"
-msgstr "כמות לארגז"
+#: app/routes/packaging.py:388
+#, fuzzy
+msgid "Stock updated successfully"
+msgstr "הקובץ הועלה בהצלחה"
 
-#: templates/add_or_edit_packaging.html:15
-#: templates/add_or_edit_product.html:112 templates/packaging.html:13
-msgid "Price per Package"
-msgstr "מחיר לארגז"
+#: app/routes/utils.py:742 app/routes/utils.py:803
+#, python-format
+msgid ""
+"Insufficient packaging stock for %(name)s. Required: %(required).2f, "
+"Available: %(available).2f"
+msgstr ""
 
-#: templates/add_or_edit_packaging.html:18
-msgid "Update"
-msgstr "עדכן"
+#: templates/add_or_edit_labor.html:2
+#, fuzzy
+msgid "Edit Labor"
+msgstr "עובדים קיימים"
 
-#: templates/add_or_edit_product.html:2 templates/add_or_edit_product.html:4
-#: templates/production.html:35
-msgid "Product"
-msgstr "מוצר"
+#: templates/add_or_edit_labor.html:7
+msgid "Edit Employee / Role"
+msgstr "עריכת עובד / תפקיד"
 
-#: templates/add_or_edit_product.html:7
-msgid "Product Name"
-msgstr "שם מוצר"
+#: templates/add_or_edit_labor.html:17 templates/labor.html:22
+msgid "Employee Name / Role"
+msgstr "שם עובד / תפקיד"
 
-#: templates/add_or_edit_product.html:11
-msgid "Products Per Recipe"
-msgstr "מוצרים למתכון"
+#: templates/add_or_edit_labor.html:21
+#: templates/add_or_edit_raw_material.html:214
+#: templates/add_or_edit_supplier.html:47 templates/labor.html:26
+#: templates/labor.html:53 templates/suppliers.html:24
+msgid "Phone"
+msgstr "טלפון"
 
-#: templates/add_or_edit_product.html:15
-msgid "Selling Price Per Unit"
-msgstr "מחיר מכירה ליחידה"
+#: templates/add_or_edit_labor.html:25 templates/labor.html:30
+msgid "Total Hourly Cost (₪)"
+msgstr "עלות כוללת לשעה (₪)"
 
-#: templates/add_or_edit_product.html:20 templates/base.html:23
-#: templates/index.html:14 templates/product_details.html:8
-#: templates/raw_materials.html:2 templates/raw_materials.html:4
-msgid "Raw Materials"
-msgstr "חומרי גלם"
+#: templates/add_or_edit_labor.html:27 templates/labor.html:32
+msgid "Including base salary and employer costs."
+msgstr "כולל שכר יסוד ועלויות מעביד."
 
-#: templates/add_or_edit_product.html:21 templates/add_or_edit_product.html:46
-#: templates/add_or_edit_product.html:84
-msgid "Add Raw Material"
-msgstr "הוסף חומר גלם"
-
-#: templates/add_or_edit_product.html:22
-msgid "New Raw Material"
-msgstr "חומר גלם חדש"
-
-#: templates/add_or_edit_product.html:27 templates/add_or_edit_product.html:97
-#: templates/add_or_edit_product.html:118 templates/packaging.html:6
-msgid "Add Packaging"
-msgstr "הוסף אריזה"
-
-#: templates/add_or_edit_product.html:28
-msgid "New Packaging"
-msgstr "מוצר אריזה חדש"
-
-#: templates/add_or_edit_product.html:32 templates/product_details.html:32
-msgid "Labor Costs"
-msgstr "עלות עבודה"
-
-#: templates/add_or_edit_product.html:33 templates/add_or_edit_product.html:131
-#: templates/add_or_edit_product.html:152 templates/labor.html:18
-msgid "Add Labor"
-msgstr "הוסף עובד"
-
-#: templates/add_or_edit_product.html:34
-msgid "New Labor"
-msgstr "עובד חדש"
-
-#: templates/add_or_edit_product.html:37
-msgid "Save Product"
-msgstr "שמור מוצר"
-
-#: templates/add_or_edit_product.html:53 templates/add_or_edit_product.html:104
-#: templates/add_or_edit_product.html:138
-#: templates/add_or_edit_product.html:202 templates/packaging.html:11
-#: templates/products.html:9 templates/raw_materials.html:9
-msgid "Name"
-msgstr "שם"
-
-#: templates/add_or_edit_product.html:57 templates/add_or_edit_product.html:193
-#: templates/add_or_edit_raw_material.html:7 templates/raw_materials.html:10
-msgid "Category"
-msgstr "קטגוריה"
-
-#: templates/add_or_edit_product.html:63
-#: templates/add_or_edit_raw_material.html:15
-msgid "New Category"
-msgstr "קטגוריה חדשה"
-
-#: templates/add_or_edit_product.html:66
-#: templates/add_or_edit_raw_material.html:22 templates/raw_materials.html:11
-msgid "Unit"
-msgstr "יחידה"
-
-#: templates/add_or_edit_product.html:74
-#: templates/add_or_edit_raw_material.html:30 templates/raw_materials.html:12
-msgid "Cost Per Unit"
-msgstr "מחיר ליחידה"
-
-#: templates/add_or_edit_product.html:78 templates/raw_materials.html:13
-msgid "Stock"
-msgstr "במלאי"
-
-#: templates/add_or_edit_product.html:83 templates/add_or_edit_product.html:117
-#: templates/add_or_edit_product.html:151
-#: templates/add_or_edit_product.html:177
-#: templates/add_or_edit_raw_material.html:54 templates/categories.html:39
-#: templates/raw_materials.html:59 templates/raw_materials.html:81
-msgid "Cancel"
-msgstr "בטל"
-
-#: templates/add_or_edit_product.html:142 templates/labor.html:11
-msgid "Base Hourly Rate"
-msgstr "עלות שעת בסיס"
-
-#: templates/add_or_edit_product.html:146 templates/labor.html:15
-msgid "Additional Hourly Rate"
-msgstr "עלות שעה נוספת"
-
-#: templates/add_or_edit_product.html:165
-#: templates/add_or_edit_raw_material.html:42 templates/categories.html:8
-msgid "Add New Category"
-msgstr "הוסף קטגוריה חדשה"
-
-#: templates/add_or_edit_product.html:172
-#: templates/add_or_edit_raw_material.html:49 templates/categories.html:34
-msgid "Category Name"
-msgstr "שם קטגוריה"
-
-#: templates/add_or_edit_product.html:178
-#: templates/add_or_edit_raw_material.html:55 templates/categories.html:11
-msgid "Add Category"
-msgstr "הוסף קטגוריה"
-
-#: templates/add_or_edit_product.html:195
-msgid "All"
-msgstr "כל המוצרים"
-
-#: templates/add_or_edit_product.html:210 templates/raw_materials.html:54
-#: templates/raw_materials.html:76
-msgid "Quantity"
-msgstr "כמות"
-
-#: templates/add_or_edit_raw_material.html:2
-#: templates/add_or_edit_raw_material.html:4 templates/product_details.html:12
-msgid "Raw Material"
-msgstr "חומר גלם"
-
-#: templates/add_or_edit_raw_material.html:33
-msgid "Save Raw Material"
-msgstr "שמור חומר גלם"
-
-#: templates/base.html:8
-msgid "Waste Tracking System"
-msgstr "מערכת ניהול עלויות"
-
-#: templates/base.html:17
-msgid "Inventory Manager"
-msgstr "ניהול עלויות"
-
-#: templates/base.html:24 templates/products.html:2 templates/products.html:4
-msgid "Products"
-msgstr "מוצרים"
-
-#: templates/base.html:25
-msgid "Labor"
-msgstr "עובדים"
-
-#: templates/base.html:26 templates/index.html:54
-msgid "Categories"
-msgstr "קטגוריות"
-
-#: templates/base.html:28 templates/index.html:23
-msgid "Production"
-msgstr "ייצור"
-
-#: templates/base.html:40
-msgid "2024 Waste Tracking System. All rights reserved."
-msgstr "סיתי בולאנז׳רי // מערכת ניהול עלויות"
-
-#: templates/categories.html:2 templates/categories.html:4
-#: templates/index.html:56
-msgid "Manage Categories"
-msgstr "ניהול קטגוריות"
-
-#: templates/categories.html:14
-msgid "Existing Categories"
-msgstr "קטגוריות קיימות"
-
-#: templates/categories.html:27
-msgid "Edit Category"
-msgstr "ערוך קטגוריה"
-
-#: templates/categories.html:40
+#: templates/add_or_edit_labor.html:30 templates/add_or_edit_product.html:355
+#: templates/add_or_edit_raw_material.html:158 templates/categories.html:85
+#: templates/premake_production.html:131 templates/production.html:138
 msgid "Save Changes"
 msgstr "שמור שינויים"
 
-#: templates/index.html:2
-msgid "Dashboard"
-msgstr "דשבורד"
+#: templates/add_or_edit_labor.html:31 templates/add_or_edit_product.html:357
+#: templates/add_or_edit_raw_material.html:160
+msgid "Cancel and Return"
+msgstr "ביטול וחזרה"
 
-#: templates/index.html:5
-msgid "Welcome to the Waste Tracking System"
-msgstr "מערכת ניהול עלויות"
+#: templates/add_or_edit_packaging.html:2
+#: templates/add_or_edit_raw_material.html:2
+#: templates/add_or_edit_supplier.html:2 templates/add_or_edit_supplier.html:10
+#: templates/add_or_edit_supplier.html:13 templates/labor.html:66
+#: templates/packaging.html:103 templates/premake_production.html:95
+#: templates/premakes.html:61 templates/production.html:106
+#: templates/products.html:99 templates/suppliers.html:61
+msgid "Edit"
+msgstr "עדכן"
 
-#: templates/index.html:6
-msgid "Go to Raw Materials"
+#: templates/add_or_edit_packaging.html:2 templates/add_or_edit_premake.html:58
+#: templates/add_or_edit_premake.html:153
+#: templates/add_or_edit_raw_material.html:2
+#: templates/add_or_edit_supplier.html:2 templates/add_or_edit_supplier.html:10
+#: templates/add_or_edit_supplier.html:13
+#: templates/add_or_edit_supplier.html:106 templates/categories.html:119
+msgid "Add"
+msgstr "הוסף"
+
+#: templates/add_or_edit_packaging.html:2 templates/base.html:65
+#: templates/close_week.html:96 templates/packaging.html:167
+#: templates/premake_production.html:350 templates/product_details.html:292
+#: templates/product_details.html:301 templates/production.html:396
+#: templates/stock_audits.html:128 templates/supplier_materials.html:149
+msgid "Packaging"
+msgstr "אריזה"
+
+#: templates/add_or_edit_packaging.html:33
+#, fuzzy
+msgid "Edit Packaging"
+msgstr "מוצר אריזה חדש"
+
+#: templates/add_or_edit_packaging.html:33
+#: templates/add_or_edit_product.html:445
+msgid "Add New Packaging"
+msgstr "הוספת אריזה חדשה"
+
+#: templates/add_or_edit_packaging.html:44
+#: templates/add_or_edit_product.html:450 templates/weekly_report.html:503
+msgid "Packaging Name"
+msgstr "שם אריזה"
+
+#: templates/add_or_edit_packaging.html:45
+msgid "e.g., Box 12 units"
+msgstr ""
+
+#: templates/add_or_edit_packaging.html:50 templates/packaging.html:55
+msgid "Quantity per Package"
+msgstr "כמות לארגז"
+
+#: templates/add_or_edit_packaging.html:51
+msgid "e.g., 12"
+msgstr ""
+
+#: templates/add_or_edit_packaging.html:52
+#, fuzzy
+msgid "Number of units in each package"
+msgstr "מספר יחידות"
+
+#: templates/add_or_edit_packaging.html:58
+#, fuzzy
+msgid "Suppliers & Pricing"
+msgstr "ספקים ומחירים"
+
+#: templates/add_or_edit_packaging.html:60
+#: templates/add_or_edit_raw_material.html:139
+#: templates/add_or_edit_raw_material.html:221
+msgid "Add Supplier"
+msgstr "הוסף ספק"
+
+#: templates/add_or_edit_packaging.html:70
+#: templates/add_or_edit_packaging.html:101
+#: templates/add_or_edit_packaging.html:202
+#: templates/add_or_edit_raw_material.html:123
+#: templates/add_or_edit_raw_material.html:129
+#: templates/supplier_materials.html:81 templates/supplier_materials.html:155
+msgid "Primary Supplier"
+msgstr "ספק ראשי"
+
+#: templates/add_or_edit_packaging.html:74
+#: templates/add_or_edit_packaging.html:105
+#: templates/add_or_edit_packaging.html:206
+#: templates/add_or_edit_raw_material.html:293
+msgid "Select supplier..."
+msgstr "בחר ספק..."
+
+#: templates/add_or_edit_packaging.html:83
+#: templates/add_or_edit_packaging.html:112
+#: templates/add_or_edit_packaging.html:213
+#, fuzzy
+msgid "SKU (optional)"
+msgstr "אופציונלי"
+
+#: templates/add_or_edit_packaging.html:86
+#: templates/add_or_edit_packaging.html:115
+#: templates/add_or_edit_packaging.html:216
+#, fuzzy
+msgid "Price per package"
+msgstr "מחיר לארגז"
+
+#: templates/add_or_edit_packaging.html:89
+#: templates/add_or_edit_packaging.html:118
+#: templates/add_or_edit_packaging.html:219
+#, fuzzy
+msgid "Remove"
+msgstr "הוסר:"
+
+#: templates/add_or_edit_packaging.html:128
+msgid ""
+"Select primary supplier with the radio button. Primary supplier will be "
+"used first during production."
+msgstr ""
+
+#: templates/add_or_edit_packaging.html:134
+#, fuzzy
+msgid "Stock Transfer for Removed Suppliers"
+msgstr "העברת המלאי לספק אחר"
+
+#: templates/add_or_edit_packaging.html:138
+#, fuzzy
+msgid "Keep existing stock (no changes)"
+msgstr "טיפול במלאי קיים"
+
+#: templates/add_or_edit_packaging.html:144
+#: templates/add_or_edit_raw_material.html:244
+msgid "Transfer stock to another supplier"
+msgstr "העברת המלאי לספק אחר"
+
+#: templates/add_or_edit_packaging.html:150
+msgid "Mark as waste (remove from inventory)"
+msgstr ""
+
+#: templates/add_or_edit_packaging.html:154
+#, fuzzy
+msgid "Transfer to:"
+msgstr "להעביר לשבוע הבא?"
+
+#: templates/add_or_edit_packaging.html:164
+msgid "Initial Stock (optional)"
+msgstr ""
+
+#: templates/add_or_edit_packaging.html:165
+msgid "Enter initial stock quantity"
+msgstr ""
+
+#: templates/add_or_edit_packaging.html:172
+#: templates/add_or_edit_premake.html:199
+#: templates/add_or_edit_product.html:412
+#: templates/add_or_edit_product.html:463
+#: templates/add_or_edit_raw_material.html:185
+#: templates/add_or_edit_raw_material.html:220
+#: templates/add_or_edit_raw_material.html:277
+#: templates/add_or_edit_supplier.html:103 templates/audit_log.html:88
+#: templates/audit_log.html:111 templates/categories.html:84
+#: templates/categories.html:118 templates/packaging.html:196
+#: templates/premake_production.html:130 templates/production.html:137
+#: templates/raw_materials.html:261 templates/raw_materials.html:302
+#: templates/raw_materials.html:324 templates/recipe_review.html:268
+#: templates/supplier_materials.html:252 templates/update_weekly_sales.html:108
+#: templates/upload_inventory.html:116 templates/weekly_costs.html:69
+msgid "Cancel"
+msgstr "בטל"
+
+#: templates/add_or_edit_packaging.html:175
+#, fuzzy
+msgid "Save Packaging"
+msgstr "מוצר אריזה חדש"
+
+#: templates/add_or_edit_packaging.html:236
+msgid "At least one supplier is required"
+msgstr ""
+
+# add_or_edit_premake.html new translations
+#: templates/add_or_edit_premake.html:2 templates/add_or_edit_premake.html:6
+#: templates/view_premake.html:17
+msgid "Edit Premake"
+msgstr "ערוך הכנה מקדימה"
+
+#: templates/add_or_edit_premake.html:2 templates/add_or_edit_premake.html:6
+#: templates/add_or_edit_product.html:130 templates/premakes.html:12
+msgid "Add Premake"
+msgstr "הוסף הכנה מקדימה"
+
+#: templates/add_or_edit_premake.html:12 templates/index.html:265
+#: templates/weekly_report.html:466
+msgid "Premake Name"
+msgstr "שם ההכנה"
+
+#: templates/add_or_edit_premake.html:18 templates/add_or_edit_product.html:20
+#: templates/add_or_edit_product.html:382
+#: templates/add_or_edit_raw_material.html:42 templates/monthly_report.html:371
+#: templates/monthly_report.html:418 templates/premakes.html:43
+#: templates/raw_materials.html:87 templates/stock_audits.html:102
+#: templates/stock_audits.html:172 templates/supplier_materials.html:76
+#: templates/weekly_report.html:212 templates/weekly_report.html:267
+#: templates/weekly_report.html:599 templates/weekly_report.html:775
+#: templates/weekly_report.html:810
+msgid "Category"
+msgstr "קטגוריה"
+
+#: templates/add_or_edit_premake.html:21
+#: templates/add_or_edit_raw_material.html:45
+msgid "Select category..."
+msgstr "בחר קטגוריה..."
+
+#: templates/add_or_edit_premake.html:39
+msgid "Unit of Measure (of product)"
+msgstr "יחידת מידה (של התוצר)"
+
+#: templates/add_or_edit_premake.html:45
+msgid ""
+"Product quantity will be calculated automatically as sum of component "
+"weights."
+msgstr "כמות התוצר תחושב אוטומטית כסכום משקלי המרכיבים."
+
+#: templates/add_or_edit_premake.html:51 templates/view_premake.html:91
+msgid "Components"
+msgstr "מרכיבים"
+
+#: templates/add_or_edit_premake.html:56 templates/base.html:48
+#: templates/categories.html:26 templates/categories.html:108
+#: templates/product_details.html:90 templates/raw_materials.html:2
+#: templates/stock_audits.html:59
+msgid "Raw Materials"
 msgstr "חומרי גלם"
 
-#: templates/index.html:24
-msgid "Log Production"
-msgstr "יומן ייצור"
+#: templates/add_or_edit_premake.html:77 templates/add_or_edit_premake.html:120
+#: templates/add_or_edit_premake.html:230
+#: templates/add_or_edit_product.html:245
+#: templates/add_or_edit_product.html:495
+msgid "Select raw material..."
+msgstr "בחר חומר גלם..."
 
-#: templates/index.html:33
-msgid "Manage packaging options, costs, and their integration into your products"
-msgstr "נהל חוצרי אריזה, מחירים וכמויות"
+#: templates/add_or_edit_premake.html:87 templates/add_or_edit_premake.html:130
+#: templates/add_or_edit_premake.html:182
+#: templates/add_or_edit_premake.html:246
+#: templates/add_or_edit_premake.html:326 templates/add_or_edit_product.html:90
+#: templates/add_or_edit_product.html:116
+#: templates/add_or_edit_product.html:157
+#: templates/add_or_edit_product.html:183
+#: templates/add_or_edit_product.html:228
+#: templates/add_or_edit_product.html:257
+#: templates/add_or_edit_product.html:300
+#: templates/add_or_edit_product.html:321
+#: templates/add_or_edit_product.html:517
+#: templates/add_or_edit_product.html:576
+#: templates/add_or_edit_product.html:615
+#: templates/add_or_edit_product.html:689 templates/packaging.html:180
+#: templates/product_details.html:302 templates/view_premake.html:101
+msgid "Quantity"
+msgstr "כמות"
 
-#: templates/index.html:34 templates/packaging.html:2
-#: templates/packaging.html:4
-msgid "Manage Packaging"
-msgstr "ניהול מוצרי אריזה"
+#: templates/add_or_edit_premake.html:151 templates/add_or_edit_product.html:67
+#: templates/base.html:43 templates/base.html:47 templates/categories.html:36
+#: templates/index.html:30 templates/premakes.html:2 templates/premakes.html:8
+#: templates/product_details.html:158
+msgid "Premakes"
+msgstr "הכנות מקדימות"
 
-#: templates/index.html:45
-msgid "Labor Management"
-msgstr "ניהול עובדים"
+#: templates/add_or_edit_premake.html:172
+#: templates/add_or_edit_premake.html:311
+#: templates/add_or_edit_product.html:107
+#: templates/add_or_edit_product.html:601 templates/premake_production.html:23
+msgid "Select premake..."
+msgstr "בחר הכנה..."
 
-#: templates/index.html:46
-msgid "Oversee labor costs and contributions to each production activity"
-msgstr "נהל את עובדי הייצור ושכרם"
+#: templates/add_or_edit_premake.html:198
+#: templates/add_or_edit_premake.html:216
+#: templates/add_or_edit_product.html:432 templates/supplier_materials.html:253
+msgid "Save"
+msgstr "שמור"
 
-#: templates/index.html:47 templates/labor.html:2 templates/labor.html:4
-msgid "Manage Labor"
-msgstr "ניהול עובדים"
+#: templates/add_or_edit_premake.html:209
+#: templates/add_or_edit_product.html:425
+#: templates/add_or_edit_raw_material.html:186
+msgid "Add Category"
+msgstr "הוסף קטגוריה"
 
-#: templates/index.html:55
-msgid "Employee Name"
-msgstr "שם עובד"
+#: templates/add_or_edit_premake.html:215
+#: templates/add_or_edit_product.html:431
+#: templates/add_or_edit_raw_material.html:180 templates/categories.html:46
+#: templates/categories.html:79 templates/categories.html:113
+msgid "Category Name"
+msgstr "שם קטגוריה"
 
-#: templates/labor.html:21
-msgid "Existing Labor"
-msgstr "עובדים קיימים"
+#: templates/add_or_edit_premake.html:270
+#: templates/add_or_edit_premake.html:347
+#: templates/add_or_edit_premake.html:404
+#: templates/add_or_edit_product.html:541
+#: templates/add_or_edit_product.html:592
+#: templates/add_or_edit_product.html:638
+#: templates/add_or_edit_product.html:710
+#: templates/add_or_edit_product.html:761 templates/base.html:110
+#: templates/premake_production.html:149 templates/production.html:156
+msgid "No results found"
+msgstr "לא נמצאו תוצאות"
 
-#: templates/labor.html:25
-msgid "Hourly Rate"
-msgstr "עלות שעתית"
+# add_or_edit_product.html new translations
+#: templates/add_or_edit_product.html:2 templates/add_or_edit_product.html:7
+#: templates/product_details.html:18
+msgid "Edit Product"
+msgstr "עריכת מוצר"
 
-#: templates/labor.html:27 templates/packaging.html:28
-#: templates/raw_materials.html:37
-msgid "Delete"
-msgstr "מחק"
+#: templates/add_or_edit_product.html:2 templates/add_or_edit_product.html:7
+#: templates/products.html:12
+msgid "Add New Product"
+msgstr "הוסף מוצר חדש"
 
-#: templates/packaging.html:14
+#: templates/add_or_edit_product.html:16 templates/products.html:23
+#: templates/upload_inventory.html:44
+msgid "Product Name"
+msgstr "שם מוצר"
+
+#: templates/add_or_edit_product.html:17
+msgid "e.g., Uniform Bread"
+msgstr "לדוגמה: לחם אחיד"
+
+#: templates/add_or_edit_product.html:23 templates/premakes.html:51
+#: templates/premakes.html:53 templates/weekly_report.html:284
+msgid "No Category"
+msgstr "ללא קטגוריה"
+
+#: templates/add_or_edit_product.html:34
+msgid "Units per Recipe (per production batch)"
+msgstr "כמות מוצרים למתכון (לסיבוב ייצור)"
+
+#: templates/add_or_edit_product.html:38 templates/product_details.html:38
+msgid "Selling Price per Unit"
+msgstr "מחיר מכירה ליחידה"
+
+#: templates/add_or_edit_product.html:46 templates/product_details.html:13
+#: templates/product_details.html:250 templates/production.html:394
+msgid "Preproduct"
+msgstr "מוצר מקדים"
+
+#: templates/add_or_edit_product.html:46
+msgid "Can be sold and also used as a component in other products"
+msgstr "ניתן למכירה וגם לשימוש כרכיב במוצרים אחרים"
+
+#: templates/add_or_edit_product.html:52
+msgid "Product Image"
+msgstr "תמונת מוצר"
+
+#: templates/add_or_edit_product.html:134 templates/product_details.html:241
+msgid "Preproducts"
+msgstr "מוצרים מקדימים"
+
+#: templates/add_or_edit_product.html:150
+#: templates/add_or_edit_product.html:161
+#: templates/add_or_edit_product.html:176
+#: templates/add_or_edit_product.html:187
+#: templates/add_or_edit_product.html:670
+#: templates/add_or_edit_product.html:677
+#: templates/add_or_edit_product.html:719 templates/premakes.html:45
+#: templates/product_details.html:169 templates/product_details.html:201
+#: templates/product_details.html:252 templates/raw_materials.html:89
+#: templates/supplier_materials.html:77 templates/view_premake.html:102
+msgid "Unit"
+msgstr "יחידה"
+
+#: templates/add_or_edit_product.html:174
+#: templates/add_or_edit_product.html:674
+msgid "Select preproduct..."
+msgstr "בחר מוצר מקדים..."
+
+#: templates/add_or_edit_product.html:197
+msgid "Add Preproduct"
+msgstr "הוסף מוצר מקדים"
+
+#: templates/add_or_edit_product.html:201
+msgid "Required Raw Materials"
+msgstr "חומרי גלם נדרשים"
+
+#: templates/add_or_edit_product.html:273
+#: templates/add_or_edit_product.html:413
+#: templates/add_or_edit_raw_material.html:158 templates/raw_materials.html:56
+msgid "Add Raw Material"
+msgstr "הוסף חומר גלם"
+
+#: templates/add_or_edit_product.html:277
+msgid "Required Packaging"
+msgstr "אריזות נדרשות"
+
+#: templates/add_or_edit_product.html:312
+#: templates/add_or_edit_product.html:562
+msgid "Select packaging..."
+msgstr "בחר אריזה..."
+
+#: templates/add_or_edit_product.html:330
+#: templates/add_or_edit_product.html:464 templates/packaging.html:44
+msgid "Add Packaging"
+msgstr "הוסף אריזה"
+
+#: templates/add_or_edit_product.html:336
+msgid "Cost Summary (Primary Supplier Prices)"
+msgstr "סיכום עלויות (מחירי ספק ראשי)"
+
+#: templates/add_or_edit_product.html:340
+msgid "Raw Material Cost per Recipe:"
+msgstr "עלות חומרי גלם למתכון:"
+
+#: templates/add_or_edit_product.html:343
+msgid "Cost per Unit:"
+msgstr "עלות ליחידה:"
+
+#: templates/add_or_edit_product.html:347
+msgid ""
+"Costs are calculated based on primary supplier prices for each raw "
+"material, which will be used in actual production."
+msgstr ""
+"העלויות מחושבות על בסיס מחירי הספק הראשי של כל חומר גלם, שזה המחיר שישמש "
+"בייצור בפועל."
+
+#: templates/add_or_edit_product.html:355
+msgid "Add Product"
+msgstr "הוסף מוצר"
+
+#: templates/add_or_edit_product.html:373
+#: templates/add_or_edit_raw_material.html:25
+msgid "Add New Raw Material"
+msgstr "הוסף חומר גלם חדש"
+
+#: templates/add_or_edit_product.html:378
+#: templates/add_or_edit_raw_material.html:36
+msgid "Raw Material Name"
+msgstr "שם חומר הגלם"
+
+#: templates/add_or_edit_product.html:395
+#: templates/add_or_edit_raw_material.html:60
+msgid "Unit of Measure"
+msgstr "יחידת מידה"
+
+#: templates/add_or_edit_product.html:403
+#: templates/add_or_edit_raw_material.html:121
+#: templates/add_or_edit_raw_material.html:128
+#: templates/supplier_materials.html:240
 msgid "Price per Unit"
 msgstr "מחיר ליחידה"
 
-#: templates/packaging.html:15 templates/products.html:12
-#: templates/raw_materials.html:14
+#: templates/add_or_edit_product.html:407
+#: templates/add_or_edit_raw_material.html:150
+#, fuzzy
+msgid "Initial Stock"
+msgstr "במלאי"
+
+#: templates/add_or_edit_product.html:454
+msgid "Quantity per Packaging Unit"
+msgstr "כמות ליחידת אריזה"
+
+#: templates/add_or_edit_product.html:458 templates/product_details.html:303
+msgid "Price per Packaging Unit"
+msgstr "מחיר ליחידת אריזה"
+
+#: templates/add_or_edit_product.html:499
+msgid "Average"
+msgstr "ממוצע"
+
+#: templates/add_or_edit_raw_material.html:2
+#: templates/premake_production.html:275 templates/premake_production.html:309
+#: templates/premake_production.html:350 templates/product_details.html:99
+#: templates/production.html:314 templates/production.html:351
+#: templates/production.html:392 templates/supplier_materials.html:74
+#: templates/supplier_materials.html:232 templates/weekly_report.html:634
+msgid "Raw Material"
+msgstr "חומר גלם"
+
+#: templates/add_or_edit_raw_material.html:25
+msgid "Edit Raw Material"
+msgstr "עריכת חומר גלם"
+
+#: templates/add_or_edit_raw_material.html:37
+#, fuzzy
+msgid "e.g., White Flour"
+msgstr "לדוגמה: אופה ראשי"
+
+#: templates/add_or_edit_raw_material.html:75
+msgid "Unlimited Material"
+msgstr "חומר ללא הגבלה"
+
+#: templates/add_or_edit_raw_material.html:75
+msgid "infinite stock, no cost"
+msgstr "מלאי אינסופי, ללא עלות"
+
+#: templates/add_or_edit_raw_material.html:77
+msgid "Check for materials like water that do not require stock tracking or cost."
+msgstr "סמן עבור חומרים כמו מים שאינם דורשים מעקב מלאי או עלות."
+
+#: templates/add_or_edit_raw_material.html:84
+msgid "Alternative Names (optional)"
+msgstr "שמות חלופיים (אופציונלי)"
+
+#: templates/add_or_edit_raw_material.html:86
+msgid "Add Alternative Name"
+msgstr "הוסף שם חלופי"
+
+#: templates/add_or_edit_raw_material.html:98
+#: templates/add_or_edit_raw_material.html:328
+msgid "Alternative name for material (e.g., White Flour)"
+msgstr "שם חלופי לחומר (למשל: קמח לבן)"
+
+#: templates/add_or_edit_raw_material.html:108
+msgid ""
+"Alternative names help with recipe imports - e.g., \"White Flour\" for "
+"\"White Flour T55 12kg\""
+msgstr ""
+"שמות חלופיים עוזרים בייבוא מתכונים - לדוגמה, \"קמח לבן\" עבור \"קמח לבן "
+"T55 12 ק\"ג\""
+
+#: templates/add_or_edit_raw_material.html:114
+msgid "Suppliers and Prices"
+msgstr "ספקים ומחירים"
+
+#: templates/add_or_edit_raw_material.html:119
+#: templates/add_or_edit_raw_material.html:126
+#: templates/add_or_edit_supplier.html:2 templates/add_or_edit_supplier.html:10
+#: templates/add_or_edit_supplier.html:13
+#: templates/add_or_edit_supplier.html:106 templates/packaging.html:172
+#: templates/raw_materials.html:88 templates/raw_materials.html:248
+#: templates/raw_materials.html:285
+msgid "Supplier"
+msgstr "ספק"
+
+#: templates/add_or_edit_raw_material.html:120
+#: templates/add_or_edit_raw_material.html:127
+#: templates/supplier_materials.html:75 templates/supplier_materials.html:150
+#: templates/supplier_materials.html:236
+msgid "SKU"
+msgstr "מק\"ט"
+
+#: templates/add_or_edit_raw_material.html:122 templates/index.html:152
+#: templates/packaging.html:58 templates/premake_production.html:55
+#: templates/production.html:61 templates/raw_materials.html:91
+#: templates/supplier_materials.html:80 templates/supplier_materials.html:154
+#: templates/update_weekly_sales.html:51 templates/view_premake.html:41
+msgid "Current Stock"
+msgstr "מלאי נוכחי"
+
+#: templates/add_or_edit_raw_material.html:143
+msgid "New Supplier"
+msgstr "ספק חדש"
+
+#: templates/add_or_edit_raw_material.html:152
+msgid "Stock can be updated later through the inventory management screen."
+msgstr ""
+
+#: templates/add_or_edit_raw_material.html:175 templates/categories.html:108
+msgid "Add New Category"
+msgstr "הוסף קטגוריה חדשה"
+
+# add_or_edit_raw_material.html new translations
+#: templates/add_or_edit_raw_material.html:199 templates/suppliers.html:12
+msgid "Add New Supplier"
+msgstr "הוספת ספק חדש"
+
+#: templates/add_or_edit_raw_material.html:204
+#: templates/add_or_edit_supplier.html:32 templates/suppliers.html:22
+msgid "Supplier Name"
+msgstr "שם הספק"
+
+#: templates/add_or_edit_raw_material.html:209
+#: templates/add_or_edit_supplier.html:38 templates/suppliers.html:23
+msgid "Contact Person"
+msgstr "איש קשר"
+
+#: templates/add_or_edit_raw_material.html:233
+msgid "Handle Existing Stock"
+msgstr "טיפול במלאי קיים"
+
+#: templates/add_or_edit_raw_material.html:260
+msgid "Mark stock as waste"
+msgstr "סימון המלאי כפחת"
+
+#: templates/add_or_edit_raw_material.html:270
+msgid "Keep stock as is"
+msgstr "השאר את המלאי כמו שהוא"
+
+#: templates/add_or_edit_raw_material.html:276
+msgid "Confirm"
+msgstr "אישור"
+
+#: templates/add_or_edit_raw_material.html:301
+msgid "Optional SKU"
+msgstr "מק''ט אופציונלי"
+
+#: templates/add_or_edit_raw_material.html:413
+msgid "Stock"
+msgstr "במלאי"
+
+#: templates/add_or_edit_raw_material.html:471
+msgid "Delete this alternative name?"
+msgstr "האם למחוק שם חלופי זה?"
+
+#: templates/add_or_edit_raw_material.html:539
+msgid "The following suppliers with existing stock were removed:"
+msgstr "הספקים הבאים עם מלאי קיים הוסרו:"
+
+#: templates/add_or_edit_raw_material.html:543
+msgid "What to do with the stock?"
+msgstr "מה לעשות עם המלאי?"
+
+#: templates/add_or_edit_supplier.html:9 templates/base.html:66
+#: templates/packaging.html:57 templates/supplier_materials.html:9
+#: templates/suppliers.html:2
+msgid "Suppliers"
+msgstr "ספקים"
+
+#: templates/add_or_edit_supplier.html:35
+msgid "Unique name to identify supplier in the system"
+msgstr "שם ייחודי לזיהוי הספק במערכת"
+
+#: templates/add_or_edit_supplier.html:38
+#: templates/add_or_edit_supplier.html:47
+#: templates/add_or_edit_supplier.html:54
+#: templates/add_or_edit_supplier.html:63
+#: templates/add_or_edit_supplier.html:72
+msgid "Optional"
+msgstr "אופציונלי"
+
+#: templates/add_or_edit_supplier.html:41
+msgid "Name of contact person at supplier"
+msgstr "שם איש הקשר אצל הספק"
+
+#: templates/add_or_edit_supplier.html:51
+msgid "Phone number for contact"
+msgstr "מספר טלפון ליצירת קשר"
+
+#: templates/add_or_edit_supplier.html:54
+#, fuzzy
+msgid "Email"
+msgstr "אפריל"
+
+#: templates/add_or_edit_supplier.html:58
+msgid "Email address for correspondence"
+msgstr "כתובת אימייל לתכתובת"
+
+#: templates/add_or_edit_supplier.html:63
+msgid "Address"
+msgstr "כתובת"
+
+#: templates/add_or_edit_supplier.html:65
+msgid "Street, City, Postal Code"
+msgstr "רחוב, עיר, מיקוד"
+
+#: templates/add_or_edit_supplier.html:66
+msgid "Physical address of supplier"
+msgstr "כתובת פיזית של הספק"
+
+#: templates/add_or_edit_supplier.html:71
+msgid "Discount Percentage"
+msgstr "אחוז הנחה"
+
+#: templates/add_or_edit_supplier.html:87
+#, python-format
+msgid ""
+"Enter discount percentage (0-100%%). This will be applied to all material"
+" prices from this supplier."
+msgstr "הזן אחוז הנחה (0-100%%). ההנחה תחול על כל מחירי חומרי הגלם מספק זה."
+
+#: templates/add_or_edit_supplier.html:92
+msgid "Current discount:"
+msgstr "הנחה נוכחית:"
+
+#: templates/add_or_edit_supplier.html:94
+msgid "Example: ₪100 becomes ₪"
+msgstr "דוגמה: ₪100 הופך ל-₪"
+
+#: templates/add_or_edit_supplier.html:106 templates/audit_log.html:45
+msgid "Update"
+msgstr "עדכן"
+
+#: templates/add_or_edit_supplier.html:118
+msgid "Supplier Information"
+msgstr "מידע על ספקים"
+
+#: templates/add_or_edit_supplier.html:121
+msgid ""
+"Suppliers in the system allow managing multiple sources for raw materials"
+" with different prices."
+msgstr "ספקים במערכת מאפשרים לנהל מספר מקורות לחומרי גלם עם מחירים שונים."
+
+#: templates/add_or_edit_supplier.html:124
+msgid "Each supplier can provide multiple raw materials"
+msgstr "כל ספק יכול לספק מספר חומרי גלם"
+
+#: templates/add_or_edit_supplier.html:125
+msgid "Each raw material can be supplied by multiple suppliers"
+msgstr "כל חומר גלם יכול להיות מסופק ע\"י מספר ספקים"
+
+#: templates/add_or_edit_supplier.html:126
+msgid ""
+"The system will automatically choose the cheapest supplier during "
+"production"
+msgstr "המערכת תבחר אוטומטית בספק הזול ביותר בעת ייצור"
+
+#: templates/add_or_edit_supplier.html:127
+msgid "Inventory is managed separately for each supplier"
+msgstr "מלאי מנוהל נפרדת לכל ספק"
+
+#: templates/add_or_edit_supplier.html:133
+msgid "Created on:"
+msgstr "נוצר בתאריך:"
+
+#: templates/add_or_edit_supplier.html:133 templates/stock_audits.html:120
+#: templates/weekly_report.html:644
+msgid "Unknown"
+msgstr "לא ידוע"
+
+#: templates/audit_log.html:2
+msgid "Activity Log"
+msgstr "יומן פעילות"
+
+#: templates/audit_log.html:8
+msgid "System Activity Log"
+msgstr "יומן פעילות מערכת"
+
+#: templates/audit_log.html:9
+msgid "Track changes and user actions."
+msgstr "מעקב אחר שינויים ופעולות משתמשים."
+
+#: templates/audit_log.html:13
+msgid "Backup Data"
+msgstr "גיבוי נתונים"
+
+#: templates/audit_log.html:16 templates/audit_log.html:76
+msgid "Restore from Backup"
+msgstr "שחזור מגיבוי"
+
+#: templates/audit_log.html:19
+msgid "Full System Reset"
+msgstr "איפוס מערכת מלא"
+
+#: templates/audit_log.html:30
+msgid "Time"
+msgstr "זמן"
+
+#: templates/audit_log.html:31
+msgid "Action"
+msgstr "פעולה"
+
+#: templates/audit_log.html:32
+msgid "Target Type"
+msgstr "סוג יעד"
+
+#: templates/audit_log.html:33
+msgid "Target ID"
+msgstr "מזהה יעד"
+
+#: templates/audit_log.html:34
+#, fuzzy
+msgid "Details"
+msgstr "פרטי שבוע"
+
+#: templates/audit_log.html:43
+msgid "Create"
+msgstr "יצירה"
+
+#: templates/audit_log.html:47 templates/labor.html:70
+#: templates/packaging.html:107 templates/premake_production.html:98
+#: templates/premakes.html:65 templates/production.html:109
+#: templates/raw_materials.html:220 templates/raw_materials.html:325
+#: templates/suppliers.html:75
+msgid "Delete"
+msgstr "מחק"
+
+#: templates/audit_log.html:49
+msgid "Reset"
+msgstr "איפוס"
+
+#: templates/audit_log.html:51
+msgid "Restore"
+msgstr "שחזור"
+
+#: templates/audit_log.html:62
+msgid "No records in the log."
+msgstr "אין רישומים ביומן."
+
+#: templates/audit_log.html:80
+msgid "This action will overwrite all data in the system!"
+msgstr "פעולה זו תדרוס את כל הנתונים במערכת!"
+
+#: templates/audit_log.html:81
+msgid "Upload a backup file (JSON) to restore the state."
+msgstr "העלה קובץ גיבוי (JSON) לשחזור המצב."
+
+#: templates/audit_log.html:83
+msgid "Backup File"
+msgstr "קובץ גיבוי"
+
+#: templates/audit_log.html:89
+msgid "Restore Data"
+msgstr "שחזר נתונים"
+
+#: templates/audit_log.html:102
+msgid "Warning: System Reset"
+msgstr "אזהרה: איפוס מערכת"
+
+#: templates/audit_log.html:106
+msgid "This action will delete all data in the system!"
+msgstr "פעולה זו תמחק את כל הנתונים במערכת!"
+
+#: templates/audit_log.html:107
+msgid ""
+"All products, raw materials, history and logs will be permanently "
+"deleted. This information cannot be recovered."
+msgstr ""
+"כל המוצרים, חומרי הגלם, ההיסטוריה והיומנים יימחקו לצמיתות. לא ניתן לשחזר "
+"מידע זה."
+
+#: templates/audit_log.html:108
+msgid "Are you sure you want to continue?"
+msgstr "האם אתה בטוח שברצונך להמשיך?"
+
+#: templates/audit_log.html:112
+msgid "Yes, reset the system"
+msgstr "כן, אפס את המערכת"
+
+#: templates/base.html:22
+msgid "Waste Tracking System"
+msgstr "מערכת ניהול עלויות"
+
+#: templates/base.html:29
+#, fuzzy
+msgid "CostFlow"
+msgstr "עלות"
+
+# Navigation translations (base.html)
+#: templates/base.html:36 templates/update_weekly_sales.html:9
+msgid "Home"
+msgstr "ראשי"
+
+#: templates/base.html:39
+msgid "Production"
+msgstr "ייצור"
+
+#: templates/base.html:42 templates/base.html:46 templates/categories.html:31
+#: templates/categories.html:108 templates/index.html:29
+#: templates/monthly_report.html:372 templates/products.html:2
+#: templates/products.html:8
+msgid "Products"
+msgstr "מוצרים"
+
+#: templates/base.html:51
+msgid "Reports"
+msgstr "דו\"חות"
+
+# Weekly Report - Added Dec 2024
+#: templates/base.html:54 templates/weekly_report.html:2
+#: templates/weekly_report.html:7
+msgid "Weekly Report"
+msgstr "דו\"ח שבועי"
+
+#: templates/base.html:55 templates/monthly_report.html:2
+#: templates/monthly_report.html:7
+msgid "Monthly Report"
+msgstr "דו\"ח חודשי"
+
+#: templates/base.html:60
+msgid "Settings"
+msgstr "הגדרות"
+
+#: templates/base.html:63 templates/index.html:320
+#: templates/weekly_cost_details.html:9
+msgid "Weekly Labor"
+msgstr "לייבור שבועי"
+
+#: templates/base.html:64
+msgid "Employees"
+msgstr "מצבת עובדים"
+
+#: templates/base.html:68
+msgid "Categories"
+msgstr "קטגוריות"
+
+#: templates/base.html:69 templates/stock_audits.html:2
+#: templates/stock_audits.html:7
+msgid "Stock Audit"
+msgstr "ביקורת מלאי"
+
+#: templates/base.html:70
+msgid "Upload Inventory from File"
+msgstr "טעינת מלאי מקובץ"
+
+#: templates/base.html:71 templates/recipe_upload.html:2
+msgid "Import Recipes"
+msgstr "ייבוא מתכונים"
+
+#: templates/base.html:73
+msgid "Activity Log / Reset"
+msgstr "יומן פעילות / איפוס"
+
+#: templates/base.html:89
+msgid "All rights reserved."
+msgstr "כל הזכויות שמורות."
+
+#: templates/categories.html:2 templates/categories.html:8
+msgid "Manage Categories"
+msgstr "ניהול קטגוריות"
+
+#: templates/categories.html:11
+msgid "Classify raw materials into groups."
+msgstr "סיווג חומרי גלם לקבוצות."
+
+#: templates/categories.html:13
+msgid "Classify products into sales groups."
+msgstr "סיווג מוצרים לקבוצות מכירה."
+
+#: templates/categories.html:18
+msgid "New Category"
+msgstr "קטגוריה חדשה"
+
+#: templates/categories.html:47 templates/labor.html:55
+#: templates/packaging.html:59 templates/premake_production.html:82
+#: templates/premakes.html:46 templates/production.html:91
+#: templates/products.html:29 templates/raw_materials.html:92
+#: templates/supplier_materials.html:82 templates/supplier_materials.html:156
+#: templates/suppliers.html:28 templates/weekly_costs.html:25
 msgid "Actions"
 msgstr "פעולות"
+
+#: templates/categories.html:59
+msgid "Delete this category?"
+msgstr "למחוק קטגוריה זו?"
+
+#: templates/categories.html:74
+msgid "Edit Category"
+msgstr "ערוך קטגוריה"
+
+#: templates/categories.html:93
+msgid "No categories found."
+msgstr "לא נמצאו קטגוריות."
+
+#: templates/close_week.html:2
+msgid "Close Week - Reset Inventory"
+msgstr "סגירת שבוע - אתחול מלאי"
+
+#: templates/close_week.html:8
+msgid "Leftovers found in inventory from last week"
+msgstr "נמצאו שאריות במלאי מהשבוע שעבר"
+
+#: templates/close_week.html:10
+msgid "For the week ending on"
+msgstr "לשבוע המסתיים ב"
+
+#: templates/close_week.html:10
+msgid "unsold products remain."
+msgstr "נותרו מוצרים שלא נמכרו."
+
+#: templates/close_week.html:12
+msgid "Should we reset inventory and transfer the balance to waste (loss)?"
+msgstr "האם לאפס את המלאי ולהעביר את היתרה לפסולת (הפסד)?"
+
+#: templates/close_week.html:22
+msgid "Product Leftovers"
+msgstr "שאריות מוצרים"
+
+#: templates/close_week.html:28 templates/index.html:197
+#: templates/monthly_report.html:417 templates/monthly_report.html:456
+#: templates/production.html:86 templates/production.html:128
+#: templates/update_weekly_sales.html:50 templates/weekly_report.html:158
+#: templates/weekly_report.html:266 templates/weekly_report.html:326
+#: templates/weekly_report.html:774
+msgid "Product"
+msgstr "מוצר"
+
+#: templates/close_week.html:29 templates/close_week.html:63
+msgid "Quantity Remaining"
+msgstr "כמות נותרת"
+
+#: templates/close_week.html:30
+msgid "Loss Value (Cost)"
+msgstr "ערך הפסד (עלות)"
+
+#: templates/close_week.html:31 templates/close_week.html:65
+#: templates/close_week.html:99
+msgid "Transfer to next week?"
+msgstr "להעביר לשבוע הבא?"
+
+#: templates/close_week.html:56
+msgid "Premake Leftovers"
+msgstr "שאריות הכנות"
+
+#: templates/close_week.html:62 templates/premake_production.html:80
+#: templates/premake_production.html:117 templates/premake_production.html:350
+#: templates/product_details.html:167 templates/production.html:398
+#: templates/view_premake.html:12 templates/weekly_report.html:366
+msgid "Premake"
+msgstr "הכנה מקדימה"
+
+#: templates/close_week.html:64 templates/close_week.html:98
+msgid "Value (Cost)"
+msgstr "ערך (עלות)"
+
+#: templates/close_week.html:90 templates/weekly_report.html:409
+msgid "Packaging Inventory"
+msgstr "מלאי אריזות"
+
+#: templates/close_week.html:97
+#, fuzzy
+msgid "Quantity in Stock"
+msgstr "כמות במתכון"
+
+#: templates/close_week.html:124
+msgid "Total estimated loss (unmarked for transfer):"
+msgstr "סך הפסד משוער (ללא סימון להעברה):"
+
+#: templates/close_week.html:134
+msgid "Approve and Close Week"
+msgstr "אשר וסגור שבוע"
+
+#: templates/close_week.html:135
+msgid ""
+"Unmarked items will be transferred to waste. Marked items will remain in "
+"inventory/available."
+msgstr "פריטים ללא סימון יועברו לפסולת. פריטים מסומנים יישארו במלאי/זמינים."
+
+#: templates/close_week.html:142 templates/index.html:35
+#: templates/update_weekly_sales.html:10
+msgid "Update Sales"
+msgstr "עדכון מכירות"
+
+#: templates/close_week.html:143
+msgid "Return to update sales data for the previous week (if sold)."
+msgstr "חזור לעדכון נתוני מכירות לשבוע הקודם (אם נמכר)."
+
+# Dashboard & Index page translations
+#: templates/index.html:3 templates/index.html:8
+msgid "Weekly Dashboard"
+msgstr "דשבורד שבועי"
+
+#: templates/index.html:9
+msgid "Performance, sales, and profitability overview."
+msgstr "ריכוז ביצועים, מכירות ורווחיות."
+
+#: templates/index.html:16 templates/monthly_report.html:305
+#: templates/weekly_cost_details.html:10 templates/weekly_report.html:22
+msgid "Week"
+msgstr "שבוע"
+
+#: templates/index.html:19 templates/monthly_report.html:355
+msgid "No weekly data"
+msgstr "אין נתונים שבועיים"
+
+#: templates/index.html:21 templates/weekly_costs.html:12
+msgid "New Week"
+msgstr "שבוע חדש"
+
+#: templates/index.html:26
+msgid "New Production"
+msgstr "ייצור חדש"
+
+#: templates/index.html:38
+msgid "Update Labor"
+msgstr "עדכון לייבור"
+
+#: templates/index.html:55
+msgid "Revenue (Sales)"
+msgstr "הכנסות (מכירות)"
+
+#: templates/index.html:70 templates/monthly_report.html:69
+#: templates/monthly_report.html:313 templates/weekly_report.html:66
+msgid "Net Profit"
+msgstr "רווח נטו"
+
+#: templates/index.html:87
+msgid "Labor Cost (Fixed)"
+msgstr "עלות עבודה (קבוע)"
+
+# Dashboard page translations
+#: templates/index.html:102 templates/index.html:120
+#: templates/monthly_report.html:310 templates/monthly_report.html:376
+#: templates/weekly_report.html:217
+msgid "Production Cost"
+msgstr "עלות ייצור"
+
+#: templates/index.html:117
+msgid "Stock Value (Cost)"
+msgstr "שווי מלאי (עלות)"
+
+#: templates/index.html:133
+msgid "Sales Stock Value"
+msgstr "שווי מלאי מכירה"
+
+#: templates/index.html:136
+msgid "Potential Value"
+msgstr "ערך פוטנציאלי"
+
+#: templates/index.html:149
+msgid "Packaging Stock Value"
+msgstr "שווי מלאי אריזות"
+
+#: templates/index.html:165 templates/monthly_report.html:312
+#: templates/monthly_report.html:531
+msgid "Stock Discrepancies"
+msgstr "הפרשי מלאי"
+
+#: templates/index.html:171 templates/stock_audits.html:173
+#: templates/stock_audits.html:214 templates/weekly_report.html:600
+msgid "Counts"
+msgstr "ספירות"
+
+#: templates/index.html:191
+msgid "Product Performance"
+msgstr "ביצועי מוצרים"
+
+#: templates/index.html:198 templates/index.html:266
+#: templates/monthly_report.html:457 templates/weekly_report.html:327
+#: templates/weekly_report.html:367 templates/weekly_report.html:467
+msgid "Produced"
+msgstr "יוצר"
+
+#: templates/index.html:199
+msgid "Remaining"
+msgstr "נותר"
+
+#: templates/index.html:200 templates/monthly_report.html:458
+#: templates/weekly_report.html:328 templates/weekly_report.html:776
+msgid "Sold"
+msgstr "נמכר"
+
+#: templates/index.html:201 templates/monthly_report.html:459
+#: templates/weekly_report.html:329 templates/weekly_report.html:777
+msgid "Waste"
+msgstr "פחת"
+
+#: templates/index.html:202 templates/premake_production.html:58
+#: templates/production.html:64 templates/weekly_report.html:269
+msgid "Unit Cost"
+msgstr "עלות יח'"
+
+#: templates/index.html:203 templates/monthly_report.html:306
+#: templates/monthly_report.html:375 templates/monthly_report.html:420
+#: templates/weekly_report.html:49 templates/weekly_report.html:216
+#: templates/weekly_report.html:273
+msgid "Revenue"
+msgstr "הכנסות"
+
+#: templates/index.html:204 templates/monthly_report.html:377
+#: templates/products.html:28 templates/weekly_report.html:218
+msgid "Gross Profit"
+msgstr "רווח גולמי"
+
+#: templates/index.html:246
+msgid "No data to display for this week."
+msgstr "אין נתונים להצגה לשבוע זה."
+
+#: templates/index.html:247
+msgid "Start by adding sales or production."
+msgstr "התחל ע\"י הוספת מכירות או ייצור."
+
+#: templates/index.html:258 templates/weekly_report.html:459
+msgid "Premakes Activity"
+msgstr "פעילות הכנות מקדימות"
+
+#: templates/index.html:267 templates/weekly_report.html:468
+msgid "Used (in products)"
+msgstr "שומש (במוצרים)"
+
+#: templates/index.html:268 templates/monthly_report.html:460
+#: templates/weekly_report.html:330 templates/weekly_report.html:469
+msgid "In Stock"
+msgstr "במלאי"
+
+#: templates/index.html:269 templates/weekly_report.html:470
+msgid "Cost per Unit (per kg)"
+msgstr "עלות ליחידה (לק\"ג)"
+
+#: templates/index.html:270 templates/weekly_report.html:471
+msgid "Total Production Value"
+msgstr "שווי ייצור כולל"
+
+#: templates/index.html:300
+msgid "Welcome to CostFlow"
+msgstr "ברוכים הבאים ל-CostFlow"
+
+#: templates/index.html:301
+msgid "To get started, select an existing week or create a new week."
+msgstr "כדי להתחיל, בחר שבוע קיים או צור שבוע חדש."
+
+#: templates/index.html:302
+msgid "Manage Weeks"
+msgstr "ניהול שבועות"
+
+#: templates/index.html:309
+msgid "Common Actions"
+msgstr "פעולות נפוצות"
+
+#: templates/index.html:321
+msgid "Manage weeks, employee hours and costs"
+msgstr "ניהול שבועות, שעות עובדים ועלויות"
+
+#: templates/index.html:337
+msgid "Inventory and Raw Materials"
+msgstr "מלאי וחומרי גלם"
+
+#: templates/index.html:338
+msgid "Manage purchases, suppliers and current stock"
+msgstr "ניהול רכש, ספקים ומלאי נוכחי"
+
+#: templates/index.html:352
+msgid "Product Production Log"
+msgstr "יומן ייצור מוצרים"
+
+#: templates/index.html:353
+msgid "Daily production logging for products"
+msgstr "רישום ייצור יומי של מוצרים"
+
+#: templates/index.html:367 templates/premake_production.html:2
+#: templates/premake_production.html:4
+msgid "Premake Production Log"
+msgstr "יומן ייצור הכנות"
+
+#: templates/index.html:368
+msgid "Daily production logging for premakes"
+msgstr "רישום ייצור יומי של הכנות מקדימות"
+
+#: templates/labor.html:2
+msgid "Manage Labor"
+msgstr "ניהול עובדים"
+
+#: templates/labor.html:7
+msgid "Employee and Cost Management"
+msgstr "ניהול עובדים ועלויות"
+
+#: templates/labor.html:8
+msgid "Track labor costs and hourly wages."
+msgstr "מעקב אחר עלויות כוח אדם ושכר שעתי."
+
+#: templates/labor.html:17
+msgid "Add New Employee / Role"
+msgstr "הוסף עובד / תפקיד חדש"
+
+#: templates/labor.html:23
+msgid "e.g., Head Baker"
+msgstr "לדוגמה: אופה ראשי"
+
+#: templates/labor.html:35
+msgid "Add Employee"
+msgstr "הוסף עובד"
+
+#: templates/labor.html:46
+msgid "Employee List"
+msgstr "רשימת עובדים"
+
+#: templates/labor.html:52 templates/packaging.html:54
+#: templates/premakes.html:42 templates/raw_materials.html:86
+#: templates/recipe_review.html:101
+msgid "Name"
+msgstr "שם"
+
+#: templates/labor.html:54
+msgid "Hourly Cost"
+msgstr "עלות לשעה"
+
+#: templates/labor.html:68 templates/raw_materials.html:320
+msgid "Are you sure you want to delete"
+msgstr "האם אתה בטוח שברצונך למחוק את"
+
+#: templates/labor.html:68
+msgid "This action is irreversible."
+msgstr "פעולה זו אינה הפיכה."
+
+#: templates/labor.html:78
+msgid "No employees found in the list."
+msgstr "לא נמצאו עובדים ברשימה."
+
+#: templates/monthly_report.html:9
+msgid "Performance summary for month"
+msgstr "סיכום ביצועים לחודש"
+
+#: templates/monthly_report.html:22
+msgid "January"
+msgstr "ינואר"
+
+#: templates/monthly_report.html:22
+msgid "February"
+msgstr "פברואר"
+
+#: templates/monthly_report.html:22
+msgid "March"
+msgstr "מרץ"
+
+#: templates/monthly_report.html:22
+msgid "April"
+msgstr "אפריל"
+
+#: templates/monthly_report.html:22
+msgid "May"
+msgstr "מאי"
+
+#: templates/monthly_report.html:22
+msgid "June"
+msgstr "יוני"
+
+#: templates/monthly_report.html:22
+msgid "July"
+msgstr "יולי"
+
+#: templates/monthly_report.html:22
+msgid "August"
+msgstr "אוגוסט"
+
+#: templates/monthly_report.html:22
+msgid "September"
+msgstr "ספטמבר"
+
+#: templates/monthly_report.html:22
+msgid "October"
+msgstr "אוקטובר"
+
+#: templates/monthly_report.html:22
+msgid "November"
+msgstr "נובמבר"
+
+#: templates/monthly_report.html:22
+msgid "December"
+msgstr "דצמבר"
+
+#: templates/monthly_report.html:28
+msgid "Show Report"
+msgstr "הצג דו\"ח"
+
+#: templates/monthly_report.html:34 templates/weekly_report.html:32
+msgid "Print"
+msgstr "הדפסה"
+
+#: templates/monthly_report.html:42
+msgid "No data found for selected month"
+msgstr "לא נמצאו נתונים עבור החודש הנבחר"
+
+#: templates/monthly_report.html:51
+msgid "Total Revenue"
+msgstr "סך הכנסות"
+
+#: templates/monthly_report.html:53 templates/monthly_report.html:62
+#: templates/monthly_report.html:80 templates/monthly_report.html:129
+msgid "Weekly average:"
+msgstr "ממוצע שבועי:"
+
+#: templates/monthly_report.html:60 templates/monthly_report.html:311
+#: templates/weekly_report.html:57
+msgid "Labor Costs"
+msgstr "עלות עבודה"
+
+#: templates/monthly_report.html:76 templates/weekly_report.html:73
+msgid "Total Production Cost = COGS + Waste + In Stock"
+msgstr "עלות ייצור כוללת = עלות מכירות + פסולת + במלאי"
+
+#: templates/monthly_report.html:78 templates/weekly_report.html:75
+#: templates/weekly_report.html:140
+msgid "Total Production Cost"
+msgstr "עלות ייצור כוללת"
+
+#: templates/monthly_report.html:89 templates/weekly_report.html:86
+msgid "Sold Items Cost = Σ(quantity_sold × cost_per_unit)"
+msgstr "עלות פריטים שנמכרו = Σ(כמות נמכרה × עלות ליחידה)"
+
+# New translations for cost breakdown (2024-12-10)
+#: templates/monthly_report.html:91 templates/weekly_report.html:88
+msgid "Sold Items Cost (COGS)"
+msgstr "עלות פריטים שנמכרו"
+
+#: templates/monthly_report.html:97 templates/weekly_report.html:94
+msgid "Waste Cost = Σ(quantity_waste × cost_per_unit)"
+msgstr "עלות פסולת = Σ(כמות פסולת × עלות ליחידה)"
+
+#: templates/monthly_report.html:99 templates/weekly_report.html:96
+#: templates/weekly_report.html:752 templates/weekly_report.html:779
+msgid "Waste Cost"
+msgstr "עלות פחת"
+
+#: templates/monthly_report.html:105 templates/weekly_report.html:102
+msgid "In Stock Cost = Unsold Products + Premake Stock Increase"
+msgstr "עלות במלאי = מוצרים שלא נמכרו + עליית מלאי הכנות"
+
+#: templates/monthly_report.html:107 templates/weekly_report.html:104
+msgid "In Stock Cost"
+msgstr "עלות במלאי"
+
+#: templates/monthly_report.html:109 templates/weekly_report.html:107
+#, fuzzy
+msgid "Products:"
+msgstr "מוצרים"
+
+#: templates/monthly_report.html:110 templates/product_details.html:355
+#: templates/weekly_report.html:108
+msgid "Premakes:"
+msgstr "הכנות מקדימות:"
+
+#: templates/monthly_report.html:122
+msgid "Monthly Food Cost Analysis (Food Cost)"
+msgstr "ניתוח עלות מזון (Food Cost) - חודשי"
+
+#: templates/monthly_report.html:127 templates/monthly_report.html:307
+msgid "Total Food Cost"
+msgstr "סך עלות מזון"
+
+#: templates/monthly_report.html:134
+msgid "Average Cost per Recipe"
+msgstr "עלות ממוצעת למתכון"
+
+#: templates/monthly_report.html:140 templates/weekly_report.html:147
+msgid "Total Recipes Produced"
+msgstr "סך מתכונים שיוצרו"
+
+#: templates/monthly_report.html:146 templates/weekly_report.html:187
+msgid "Food Cost Percentage:"
+msgstr "אחוז עלות מזון:"
+
+#: templates/monthly_report.html:150 templates/monthly_report.html:188
+#: templates/monthly_report.html:189
+msgid "Target:"
+msgstr "יעד:"
+
+#: templates/monthly_report.html:162
+msgid "Weekly Food Cost Trend"
+msgstr "מגמת עלות מזון שבועית"
+
+#: templates/monthly_report.html:289 templates/stock_audits.html:195
+#: templates/stock_audits.html:236
+msgid "No data to display"
+msgstr "אין נתונים להצגה"
+
+#: templates/monthly_report.html:297
+msgid "Weekly Trends"
+msgstr "מגמות שבועיות"
+
+#: templates/monthly_report.html:308
+msgid "Food Cost %"
+msgstr "Food Cost %%"
+
+#: templates/monthly_report.html:309
+msgid "Recipes"
+msgstr "מתכונים"
+
+#: templates/monthly_report.html:339 templates/raw_materials.html:133
+#: templates/weekly_report.html:238 templates/weekly_report.html:564
+msgid "Total"
+msgstr "סה\"כ"
+
+#: templates/monthly_report.html:363
+msgid "Category Performance"
+msgstr "ביצועי קטגוריות"
+
+#: templates/monthly_report.html:373 templates/monthly_report.html:419
+#: templates/weekly_report.html:214 templates/weekly_report.html:270
+msgid "Quantity Sold"
+msgstr "כמות נמכרה"
+
+#: templates/monthly_report.html:374 templates/weekly_report.html:215
+#: templates/weekly_report.html:271 templates/weekly_report.html:811
+msgid "Waste Quantity"
+msgstr "כמות פחת"
+
+#: templates/monthly_report.html:378
+msgid "Active Weeks"
+msgstr "שבועות פעילים"
+
+#: templates/monthly_report.html:400
+msgid "No category data"
+msgstr "אין נתוני קטגוריות"
+
+#: templates/monthly_report.html:408
+msgid "Top 10 Products"
+msgstr "10 המוצרים המובילים"
+
+#: templates/monthly_report.html:421 templates/monthly_report.html:522
+#: templates/weekly_report.html:106 templates/weekly_report.html:189
+#: templates/weekly_report.html:762
+msgid "of revenue"
+msgstr "מההכנסות"
+
+#: templates/monthly_report.html:439
+msgid "No product data"
+msgstr "אין נתוני מוצרים"
+
+#: templates/monthly_report.html:447 templates/weekly_report.html:317
+msgid "In-Stock Analysis"
+msgstr "ניתוח מלאי"
+
+#: templates/monthly_report.html:451 templates/weekly_report.html:321
+msgid "Unsold Products (In Inventory)"
+msgstr "מוצרים שלא נמכרו (במלאי)"
+
+#: templates/monthly_report.html:461 templates/product_details.html:170
+#: templates/product_details.html:253 templates/view_premake.html:66
+#: templates/view_premake.html:183 templates/weekly_report.html:331
+#: templates/weekly_report.html:370 templates/weekly_report.html:507
+msgid "Cost per Unit"
+msgstr "עלות ליחידה"
+
+#: templates/monthly_report.html:462 templates/weekly_report.html:332
+msgid "Total Stock Value"
+msgstr "ערך מלאי כולל"
+
+#: templates/monthly_report.html:480 templates/weekly_report.html:350
+msgid "Total Unsold Product Value:"
+msgstr "ערך מוצרים שלא נמכרו:"
+
+#: templates/monthly_report.html:487 templates/weekly_report.html:357
+msgid "No unsold products in inventory"
+msgstr "אין מוצרים שלא נמכרו במלאי"
+
+#: templates/monthly_report.html:492
+msgid ""
+"In Stock Cost represents capital tied up in inventory across all weeks: "
+"unsold products and premakes produced but not yet consumed."
+msgstr ""
+"עלות במלאי מייצגת הון קשור במלאי בכל השבועות: מוצרים שלא נמכרו והכנות "
+"שיוצרו אך טרם נצרכו."
+
+#: templates/monthly_report.html:500
+msgid "Monthly Insights"
+msgstr "תובנות חודשיות"
+
+#: templates/monthly_report.html:505
+msgid "Key Data"
+msgstr "נתונים מרכזיים"
+
+#: templates/monthly_report.html:509
+msgid "Number of active weeks:"
+msgstr "מספר שבועות פעילים:"
+
+#: templates/monthly_report.html:513
+msgid "Weekly average revenue:"
+msgstr "הכנסה שבועית ממוצעת:"
+
+#: templates/monthly_report.html:517
+msgid "Monthly profit margin:"
+msgstr "שיעור רווח חודשי:"
+
+#: templates/monthly_report.html:521
+msgid "Monthly food cost:"
+msgstr "עלות מזון חודשית:"
+
+#: templates/monthly_report.html:526
+msgid "Weekly average cost per recipe:"
+msgstr "עלות מזון ממוצעת למתכון:"
+
+#: templates/monthly_report.html:539
+msgid "Leading Performance"
+msgstr "ביצועים מובילים"
+
+#: templates/monthly_report.html:546 templates/weekly_report.html:676
+msgid "Leading category:"
+msgstr "הקטגוריה המובילה:"
+
+#: templates/monthly_report.html:555 templates/weekly_report.html:686
+msgid "Best-selling product:"
+msgstr "המוצר הנמכר ביותר:"
+
+#: templates/monthly_report.html:565
+msgid "Best week:"
+msgstr "השבוע הרווחי ביותר:"
+
+#: templates/monthly_report.html:580
+msgid "Monthly waste percentage:"
+msgstr "שיעור פחת חודשי:"
+
+#: templates/monthly_report.html:582 templates/production.html:38
+#: templates/weekly_report.html:744
+msgid "Units"
+msgstr "יחידות"
+
+#: templates/monthly_report.html:582 templates/weekly_report.html:745
+msgid "of production"
+msgstr "מהייצור"
+
+#: templates/packaging.html:2 templates/packaging.html:40
+msgid "Manage Packaging"
+msgstr "ניהול מוצרי אריזה"
+
+#: templates/packaging.html:41
+msgid "Manage packaging types and prices."
+msgstr "ניהול סוגי אריזות ומחירים."
+
+#: templates/packaging.html:56
+msgid "Price per Package"
+msgstr "מחיר לארגז"
+
+#: templates/packaging.html:78
+#, fuzzy
+msgid "supplier"
+msgstr "ספק"
+
+#: templates/packaging.html:78 templates/raw_materials.html:133
+msgid "suppliers"
+msgstr "ספקים"
+
+#: templates/packaging.html:89
+#, fuzzy
+msgid "No suppliers"
+msgstr "ספקים"
+
+#: templates/packaging.html:97 templates/packaging.html:252
+#: templates/raw_materials.html:211 templates/raw_materials.html:240
+msgid "Add Stock"
+msgstr "הוסף כמות"
+
+#: templates/packaging.html:100 templates/packaging.html:257
+msgid "Set Stock"
+msgstr "הגדר כמות"
+
+#: templates/packaging.html:106
+msgid "Are you sure you want to delete this item?"
+msgstr "האם אתה בטוח שברצונך למחוק פריט זה?"
+
+#: templates/packaging.html:119
+#, fuzzy
+msgid "Stock per Supplier:"
+msgstr "מק\"ט / ספק"
+
+#: templates/packaging.html:124 templates/packaging.html:233
+#: templates/raw_materials.html:185 templates/raw_materials.html:371
+#: templates/raw_materials.html:418 templates/supplier_materials.html:120
+#: templates/supplier_materials.html:191
+msgid "Primary"
+msgstr "ראשי"
+
+#: templates/packaging.html:124 templates/supplier_materials.html:122
+#: templates/supplier_materials.html:193
+msgid "Secondary"
+msgstr "משני"
+
+# Product Details page translations
+#: templates/packaging.html:127 templates/product_details.html:30
+#: templates/stock_audits.html:29 templates/stock_audits.html:37
+msgid "units"
+msgstr "יחידות"
+
+#: templates/packaging.html:145
+msgid "No packaging found in the system."
+msgstr "לא נמצאו אריזות במערכת."
+
+#: templates/packaging.html:158 templates/packaging.html:197
+#: templates/raw_materials.html:262
+msgid "Update Stock"
+msgstr "עדכן מלאי"
+
+#: templates/packaging.html:159
+#, fuzzy
+msgid "Close"
+msgstr "עלות"
+
+#: templates/packaging.html:189 templates/raw_materials.html:297
+msgid "Counter Name"
+msgstr "שם הסופר"
+
+#: templates/packaging.html:191 templates/raw_materials.html:298
+msgid "Who performed the count?"
+msgstr "מי ביצע את הספירה?"
+
+#: templates/packaging.html:248
+msgid "Containers of"
+msgstr "כלים של"
+
+# Product Details page translations
+#: templates/packaging.html:248
+msgid "units each"
+msgstr "יחידות כ"א"
+
+#: templates/packaging.html:253
+#, fuzzy
+msgid "Containers to Add"
+msgstr "המשך לסקירה"
+
+#: templates/packaging.html:254
+msgid "Enter number of containers to add to current stock"
+msgstr ""
+
+#: templates/packaging.html:258
+msgid "New Stock Level (Containers)"
+msgstr "רמת מלאי חדשה (כלים)"
+
+#: templates/packaging.html:259
+msgid "Enter total number of containers for new stock level"
+msgstr ""
+
+#: templates/packaging.html:277
+#, fuzzy
+msgid "Total Units:"
+msgstr "סך שעות"
+
+#: templates/packaging.html:296 templates/packaging.html:301
+#, fuzzy
+msgid "Error updating stock"
+msgstr "שגיאה בעדכון מחיר"
+
+#: templates/premake_production.html:17 templates/production.html:17
+msgid "Timestamp"
+msgstr "תאריך ושעה"
+
+# Premake Production page translations
+#: templates/premake_production.html:21
+msgid "Select Premake"
+msgstr "בחר הכנה מקדימה"
+
+#: templates/premake_production.html:31
+msgid "Batch size (recipe):"
+msgstr "גודל באצ' (מתכון):"
+
+#: templates/premake_production.html:35
+msgid "Number of batches to produce"
+msgstr "מספר באצ'ים לייצור"
+
+#: templates/premake_production.html:38 templates/premake_production.html:90
+#: templates/premake_production.html:124 templates/premake_production.html:241
+#: templates/production.html:249
+msgid "batches"
+msgstr "באצ'ים"
+
+#: templates/premake_production.html:40
+msgid "Enter the number of batches to produce. Each batch is"
+msgstr "הכנס את מספר הבאצ'ים לייצור. כל באצ' הוא"
+
+#: templates/premake_production.html:45
+msgid "Total quantity to produce:"
+msgstr "סה\"כ כמות לייצור:"
+
+#: templates/premake_production.html:48 templates/production.html:54
+msgid "Material and Premake Usage Breakdown"
+msgstr "פירוט צריכת חומרים והכנות"
+
+#: templates/premake_production.html:53 templates/product_details.html:199
+#: templates/production.html:59 templates/view_premake.html:100
+msgid "Component"
+msgstr "רכיב"
+
+#: templates/premake_production.html:54 templates/production.html:60
+#: templates/recipe_review.html:102
+msgid "Type"
+msgstr "סוג"
+
+#: templates/premake_production.html:56 templates/production.html:62
+msgid "Usage in this production"
+msgstr "צריכה בייצור זה"
+
+#: templates/premake_production.html:57 templates/production.html:63
+msgid "Stock after production"
+msgstr "מלאי לאחר ייצור"
+
+#: templates/premake_production.html:59 templates/production.html:65
+#: templates/view_premake.html:105
+msgid "Cost"
+msgstr "עלות"
+
+#: templates/premake_production.html:69 templates/production.html:75
+msgid "Log Production"
+msgstr "יומן ייצור"
+
+#: templates/premake_production.html:75
+msgid "Premake Production History"
+msgstr "היסטוריית ייצור הכנות"
+
+#: templates/premake_production.html:79 templates/production.html:85
+#: templates/stock_audits.html:100 templates/weekly_report.html:633
+msgid "Date"
+msgstr "תאריך"
+
+#: templates/premake_production.html:81 templates/production.html:44
+#: templates/production.html:132 templates/production.html:247
+#: templates/production.html:253
+msgid "Quantity Produced"
+msgstr "כמות שיוצר"
+
+#: templates/premake_production.html:97
+msgid "Are you sure you want to delete this premake production log?"
+msgstr "האם אתה בטוח שברצונך למחוק רשומת ייצור הכנה זו?"
+
+#: templates/premake_production.html:112
+msgid "Edit Premake Production Quantity"
+msgstr "עריכת כמות ייצור הכנה"
+
+#: templates/premake_production.html:121
+msgid "Number of batches"
+msgstr "מספר באצ'ים"
+
+#: templates/premake_production.html:126
+msgid "Enter the number of batches produced. Each batch is"
+msgstr "הכנס את מספר הבאצ'ים שיוצרו. כל באצ' הוא"
+
+#: templates/premake_production.html:192
+msgid "Edit Premake Production Quantity for"
+msgstr "עריכת כמות ייצור הכנה עבור"
+
+#: templates/premake_production.html:297 templates/premake_production.html:344
+#: templates/production.html:339 templates/production.html:386
+msgid "Shortage"
+msgstr "חוסר"
+
+#: templates/premake_production.html:364 templates/production.html:416
+msgid "Total production cost"
+msgstr "סה\"כ עלות ייצור"
+
+# Premakes page translations
+#: templates/premakes.html:9
+msgid "Manage base recipes and premakes."
+msgstr "ניהול מתכוני בסיס והכנות (Premakes)."
+
+#: templates/premakes.html:24
+msgid "Search premake..."
+msgstr "חפש הכנה מקדימה..."
+
+#: templates/premakes.html:29 templates/raw_materials.html:73
+msgid "All Categories"
+msgstr "כל הקטגוריות"
+
+#: templates/premakes.html:44
+msgid "Batch Quantity"
+msgstr "כמות באצ'"
+
+#: templates/premakes.html:58 templates/products.html:96
+msgid "View Details"
+msgstr "צפה בפרטים"
+
+#: templates/premakes.html:64
+msgid "Are you sure you want to delete this premake?"
+msgstr "האם אתה בטוח שברצונך למחוק הכנה מקדימה זו?"
+
+#: templates/premakes.html:74
+msgid "No premakes found."
+msgstr "לא נמצאו הכנות מקדימות."
 
 #: templates/product_details.html:2
 msgid "Product Details"
 msgstr "פרטי מוצר"
 
-#: templates/product_details.html:5
-msgid "Products Per Recipe:"
-msgstr "מוצרים למתכון"
+# Missing product_details.html translations
+#: templates/product_details.html:28
+msgid "Quantity per Recipe"
+msgstr "כמות למתכון"
 
-#: templates/product_details.html:6
-msgid "Selling Price Per Unit:"
-msgstr "מחיר מכירה ליחידה"
+#: templates/product_details.html:47 templates/products.html:26
+msgid "Production Cost per Unit"
+msgstr "עלות ייצור ליחידה"
 
-#: templates/product_details.html:13
-msgid "Amount in Recipe"
-msgstr "מוצרים למתכון"
+#: templates/product_details.html:69
+msgid "Gross Profit per Unit"
+msgstr "רווח גולמי ליחידה"
 
-#: templates/product_details.html:14 templates/product_details.html:62
-msgid "Price Per Unit"
-msgstr "מחיר ליחידה"
+#: templates/product_details.html:82
+msgid "Product Components"
+msgstr "מרכיבי המוצר"
 
-#: templates/product_details.html:15 templates/product_details.html:39
-#: templates/product_details.html:63
-msgid "Price Per Recipe"
-msgstr "מחיר למתכון"
+#: templates/product_details.html:91 templates/product_details.html:159
+#: templates/product_details.html:242 templates/product_details.html:293
+#: templates/view_premake.html:92
+msgid "items"
+msgstr "פריטים"
 
-#: templates/product_details.html:16 templates/product_details.html:40
-#: templates/product_details.html:64
-msgid "Price Per Product"
-msgstr "מחיר ליחידה"
+#: templates/product_details.html:100 templates/product_details.html:168
+#: templates/product_details.html:251
+msgid "Quantity in Recipe"
+msgstr "כמות במתכון"
 
-#: templates/product_details.html:37
-msgid "Hours of Labor"
-msgstr "שעות עבודה"
+#: templates/product_details.html:101 templates/supplier_materials.html:78
+#: templates/supplier_materials.html:152 templates/view_premake.html:103
+msgid "Original Price"
+msgstr "מחיר מקורי"
 
-#: templates/product_details.html:38
-msgid "Price Per Hour"
-msgstr "עלות שעתית"
+#: templates/product_details.html:102 templates/supplier_materials.html:79
+#: templates/supplier_materials.html:153 templates/view_premake.html:104
+msgid "Discounted Price"
+msgstr "מחיר אחרי הנחה"
 
-#: templates/product_details.html:61
-msgid "Units Per Recipe"
-msgstr "יחידות למתכון"
+#: templates/product_details.html:103 templates/product_details.html:171
+#: templates/product_details.html:254 templates/product_details.html:304
+#: templates/weekly_report.html:162
+msgid "Cost per Recipe"
+msgstr "עלות למתכון"
+
+#: templates/product_details.html:104 templates/product_details.html:172
+#: templates/product_details.html:255 templates/product_details.html:305
+msgid "Cost per Product"
+msgstr "עלות למוצר"
+
+#: templates/product_details.html:136
+msgid "Total Raw Materials:"
+msgstr "סה\"כ חומרי גלם:"
+
+#: templates/product_details.html:195
+msgid "Components of"
+msgstr "מרכיבי"
+
+# Missing product_details.html translations
+#: templates/product_details.html:200
+#, fuzzy
+msgid "Quantity per Unit"
+msgstr "כמות למתכון"
+
+#: templates/product_details.html:219
+msgid "Total Premakes:"
+msgstr "סה\"כ הכנות מקדימות:"
+
+#: templates/product_details.html:270
+msgid "Total Preproducts:"
+msgstr "סה\"כ מוצרים מקדימים:"
+
+#: templates/product_details.html:319
+msgid "Total Packaging:"
+msgstr "סה\"כ אריזות:"
+
+#: templates/product_details.html:339 templates/view_premake.html:156
+msgid "Cost Summary"
+msgstr "סיכום עלויות"
+
+#: templates/product_details.html:349
+msgid "Raw Materials:"
+msgstr "חומרי גלם:"
+
+#: templates/product_details.html:361
+#, fuzzy
+msgid "Preproducts:"
+msgstr "מוצרים מקדימים"
+
+#: templates/product_details.html:367
+#, fuzzy
+msgid "Packaging:"
+msgstr "אריזה"
+
+#: templates/product_details.html:372
+msgid "Total Cost per Product:"
+msgstr "סה\"כ עלות למוצר:"
+
+#: templates/product_details.html:382
+msgid "Selling Price:"
+msgstr "מחיר מכירה:"
+
+#: templates/product_details.html:386
+msgid "Production Cost:"
+msgstr "עלות ייצור:"
+
+#: templates/product_details.html:390
+msgid "Gross Profit:"
+msgstr "רווח גולמי:"
+
+#: templates/product_details.html:394
+msgid "Profit Margin:"
+msgstr "אחוז רווח:"
 
 #: templates/production.html:2 templates/production.html:4
 msgid "Production Logs"
 msgstr "יומן ייצור"
 
-#: templates/production.html:9
-msgid "Timestamp"
-msgstr "תאריך ושעה"
-
-#: templates/production.html:13
+#: templates/production.html:21
 msgid "Select Product"
 msgstr "בחר מוצר"
 
-#: templates/production.html:21 templates/production.html:36
-msgid "Quantity Produced"
-msgstr "כמות שיוצר"
+# Production page translations
+#: templates/production.html:23
+msgid "Select product..."
+msgstr "בחר מוצר..."
 
 #: templates/production.html:30
+msgid "Production Mode"
+msgstr "מצב ייצור"
+
+#: templates/production.html:34 templates/production.html:87
+msgid "Batches"
+msgstr "באצ'ים"
+
+#: templates/production.html:44 templates/production.html:132
+#: templates/production.html:253
+msgid "number of batches"
+msgstr "מספר באצ'ים"
+
+#: templates/production.html:51
+msgid "Total units to produce:"
+msgstr "סה\"כ יחידות לייצור:"
+
+#: templates/production.html:81
 msgid "Recent Production Logs"
 msgstr "רשומות ייצור אחרונות"
 
-#: templates/production.html:34
-msgid "Date"
-msgstr "תאריך"
+#: templates/production.html:88
+msgid "Units Produced"
+msgstr "יחידות שיוצרו"
 
-#: templates/products.html:5
-msgid "Add New Product"
-msgstr "הוסף מוצר חדש"
+#: templates/production.html:89 templates/weekly_costs.html:23
+#: templates/weekly_report.html:163 templates/weekly_report.html:508
+#: templates/weekly_report.html:547 templates/weekly_report.html:813
+msgid "Total Cost"
+msgstr "סך עלות"
 
-#: templates/products.html:10
-msgid "Unit Price"
-msgstr "מחיר ליחידה"
+#: templates/production.html:90
+msgid "Cost/Unit"
+msgstr "עלות/יחידה"
 
-#: templates/products.html:11
-msgid "Cost Margin"
-msgstr "שולי רווח"
+#: templates/production.html:108
+msgid "Are you sure you want to delete this production log?"
+msgstr "האם אתה בטוח שברצונך למחוק רשומת ייצור זו?"
 
-#: templates/products.html:37
+#: templates/production.html:123
+msgid "Edit Production Quantity"
+msgstr "עריכת כמות ייצור"
+
+#: templates/production.html:204
+msgid "Edit Production Quantity for"
+msgstr "עריכת כמות ייצור עבור"
+
+#: templates/production.html:247
+msgid "number of units"
+msgstr "מספר יחידות"
+
+#: templates/production.html:249
+msgid "One unit"
+msgstr "יחידה אחת"
+
+# Products page translations
+#: templates/products.html:9
+msgid "Manage products, recipes, and costs."
+msgstr "ניהול מוצרים, מתכונים ועלויות."
+
+#: templates/products.html:22 templates/update_weekly_sales.html:49
+msgid "Image"
+msgstr "תמונה"
+
+#: templates/products.html:24
+msgid "Recipe Weight"
+msgstr "משקל מתכון"
+
+#: templates/products.html:25
+msgid "Unit Weight"
+msgstr "משקל יחידה"
+
+#: templates/products.html:27
+msgid "Selling Price"
+msgstr "מחיר מכירה"
+
+#: templates/products.html:48
+msgid "Preproduct - Can be sold and also used as a component"
+msgstr "מוצר מקדים - ניתן למכירה וגם לשימוש כרכיב"
+
+#: templates/products.html:55
+msgid "Missing raw materials:"
+msgstr "חסרים חומרי גלם:"
+
+#: templates/products.html:56
+msgid "Stock shortage"
+msgstr "חוסר במלאי"
+
+#: templates/products.html:91 templates/update_weekly_sales.html:82
 msgid "N/A"
 msgstr "שגיאה"
 
-#: templates/products.html:41
-msgid "View"
-msgstr "הצג"
+#: templates/products.html:102
+msgid ""
+"This action will convert the product to a premake, transfer inventory and"
+" delete the original product. Continue?"
+msgstr ""
+"פעולה זו תהפוך את המוצר להכנה מקדימה, תעביר את המלאי ותמחק את המוצר "
+"המקורי. האם להמשיך?"
 
-#: templates/raw_materials.html:5
-msgid "Add New Raw Material"
-msgstr "הוסף חומר גלם חדש"
+#: templates/products.html:103
+msgid "Convert to premake"
+msgstr "הפוך להכנה מקדימה"
 
-#: templates/raw_materials.html:27
-msgid "Add Stock"
-msgstr "הוסף כמות"
+#: templates/products.html:112
+msgid "No products found in system."
+msgstr "לא נמצאו מוצרים במערכת."
 
-#: templates/raw_materials.html:30
-msgid "Set Stock"
-msgstr "הגדר כמות"
-
+# raw_materials.html new translations
 #: templates/raw_materials.html:52
-msgid "Adding stock for "
-msgstr "הוסף כמות ל"
+msgid "Raw Materials Management"
+msgstr "ניהול חומרי גלם"
 
-#: templates/raw_materials.html:74
-msgid "Setting stock for "
-msgstr "הגדר כמות נוכחית ל"
+#: templates/raw_materials.html:53
+msgid "Track inventory, costs, and suppliers."
+msgstr "מעקב אחר מלאי, עלויות וספקים."
+
+#: templates/raw_materials.html:68
+msgid "Search raw material..."
+msgstr "חפש חומר גלם..."
+
+#: templates/raw_materials.html:90
+msgid "Cost Per Unit"
+msgstr "מחיר ליחידה"
+
+#: templates/raw_materials.html:107
+#, fuzzy
+msgid "Alternative Names"
+msgstr "הוסף שם חלופי"
+
+#: templates/raw_materials.html:170
+msgid "Unlimited"
+msgstr "בלתי מוגבל"
+
+#: templates/raw_materials.html:179
+msgid "Stock Breakdown by Supplier"
+msgstr "פירוט מלאי לפי ספק"
+
+#: templates/raw_materials.html:198 templates/raw_materials.html:202
+#, fuzzy
+msgid "No suppliers defined"
+msgstr "שם הספק"
+
+#: templates/raw_materials.html:214 templates/raw_materials.html:303
+msgid "Update Count"
+msgstr "עדכן ספירה"
+
+#: templates/raw_materials.html:217
+msgid "Edit Details"
+msgstr "ערוך פרטים"
+
+#: templates/raw_materials.html:244
+msgid "Adding quantity to:"
+msgstr "הוספת כמות ל:"
+
+#: templates/raw_materials.html:252
+msgid "Select supplier for stock addition"
+msgstr "בחר ספק להוספת המלאי"
+
+#: templates/raw_materials.html:256 templates/upload_inventory.html:47
+msgid "Quantity to Add"
+msgstr "כמות להוספה"
+
+#: templates/raw_materials.html:277
+msgid "Stock Count (Manual Update)"
+msgstr "ספירת מלאי (עדכון ידני)"
+
+#: templates/raw_materials.html:281
+msgid "Update current stock for:"
+msgstr "עדכון מלאי נוכחי עבור:"
+
+#: templates/raw_materials.html:289
+msgid "Select supplier for stock update"
+msgstr "בחר ספק לעדכון המלאי"
+
+#: templates/raw_materials.html:293
+msgid "Actual Current Quantity"
+msgstr "כמות נוכחית בפועל"
+
+#: templates/raw_materials.html:316
+msgid "Delete Raw Material"
+msgstr "מחיקת חומר גלם"
+
+#: templates/raw_materials.html:321
+msgid "This action will also delete the stock history for this item."
+msgstr "פעולה זו תמחק גם את היסטוריית המלאי של פריט זה."
+
+#: templates/raw_materials.html:372
+msgid "Stock:"
+msgstr "מלאי:"
+
+#: templates/raw_materials.html:380 templates/raw_materials.html:427
+msgid "No suppliers defined for this raw material"
+msgstr "לא הוגדרו ספקים לחומר גלם זה"
+
+#: templates/raw_materials.html:389 templates/raw_materials.html:436
+msgid "Error loading suppliers"
+msgstr "שגיאה בטעינת ספקים"
+
+#: templates/raw_materials.html:419 templates/view_premake.html:187
+msgid "Current Stock:"
+msgstr "מלאי נוכחי:"
+
+#: templates/recipe_review.html:2 templates/recipe_review.html:7
+msgid "Review Recipes for Import"
+msgstr "סקירת מתכונים לייבוא"
+
+#: templates/recipe_review.html:9 templates/recipe_upload.html:93
+#, fuzzy
+msgid "Type:"
+msgstr "סוג"
+
+#: templates/recipe_review.html:10 templates/recipe_upload.html:94
+#: templates/view_premake.html:77
+msgid "Category:"
+msgstr "קטגוריה:"
+
+#: templates/recipe_review.html:11 templates/recipe_upload.html:95
+#, fuzzy
+msgid "Unit:"
+msgstr "יחידה"
+
+#: templates/recipe_review.html:12
+msgid "Total recipes:"
+msgstr "סך מתכונים:"
+
+#: templates/recipe_review.html:31
+msgid "Missing materials in system!"
+msgstr "חומרים חסרים במערכת!"
+
+#: templates/recipe_review.html:32
+msgid ""
+"Select a match for missing materials from the dropdown, or add the "
+"materials to the system:"
+msgstr "בחר התאמה לחומרים חסרים מהרשימה, או הוסף את החומרים למערכת:"
+
+#: templates/recipe_review.html:41
+msgid ""
+"Select a material from the dropdown or add new materials to the system "
+"and then import again."
+msgstr "בחר חומר מהרשימה או הוסף חומרים חדשים למערכת ואז ייבא שוב."
+
+#: templates/recipe_review.html:52 templates/recipe_review.html:392
+msgid "Select All"
+msgstr "בחר הכל"
+
+#: templates/recipe_review.html:54
+msgid "0 recipes selected"
+msgstr "0 מתכונים נבחרו"
+
+#: templates/recipe_review.html:80
+msgid "Exists - Will Update"
+msgstr "קיים - יעודכן"
+
+#: templates/recipe_review.html:82 templates/upload_inventory.html:82
+msgid "New"
+msgstr "חדש"
+
+#: templates/recipe_review.html:85
+msgid "Missing Materials"
+msgstr "חומרים חסרים"
+
+#: templates/recipe_review.html:96
+msgid "Materials:"
+msgstr "חומרים:"
+
+#: templates/recipe_review.html:103 templates/suppliers.html:27
+#: templates/upload_inventory.html:46
+msgid "Status"
+msgstr "סטטוס"
+
+#: templates/recipe_review.html:104
+msgid "Weight (g)"
+msgstr "משקל (ג׳)"
+
+#: templates/recipe_review.html:105
+msgid "Price in Sheet"
+msgstr "מחיר בגיליון"
+
+#: templates/recipe_review.html:106 templates/upload_inventory.html:49
+msgid "Price in System"
+msgstr "מחיר במערכת"
+
+#: templates/recipe_review.html:107
+#, fuzzy
+msgid "Match"
+msgstr "מרץ"
+
+#: templates/recipe_review.html:118
+msgid "Found via alternative name"
+msgstr "נמצא דרך שם חלופי"
+
+#: templates/recipe_review.html:119
+msgid "Found (alternative name)"
+msgstr "נמצא (שם חלופי)"
+
+#: templates/recipe_review.html:122
+msgid "Found"
+msgstr ""
+
+#: templates/recipe_review.html:132
+msgid "Select material from system..."
+msgstr "בחר חומר מהמערכת..."
+
+#: templates/recipe_review.html:173
+msgid "Different"
+msgstr "שונה"
+
+#: templates/recipe_review.html:175
+msgid "Same"
+msgstr "זהה"
+
+#: templates/recipe_review.html:188 templates/recipe_review.html:189
+msgid "Loss"
+msgstr ""
+
+#: templates/recipe_review.html:191
+msgid "No cost"
+msgstr "ללא עלות"
+
+#: templates/recipe_review.html:203
+msgid "Weight and Cost Summary:"
+msgstr "סיכום משקל ועלות:"
+
+#: templates/recipe_review.html:205
+msgid "Gross Weight:"
+msgstr "משקל ברוטו:"
+
+#: templates/recipe_review.html:205 templates/recipe_review.html:207
+#: templates/recipe_review.html:208
+msgid "g"
+msgstr ""
+
+#: templates/recipe_review.html:207
+#, fuzzy
+msgid "Loss:"
+msgstr "עלות:"
+
+#: templates/recipe_review.html:208
+msgid "Net Weight:"
+msgstr "משקל נטו:"
+
+#: templates/recipe_review.html:210
+#, fuzzy
+msgid "Total Cost:"
+msgstr "סך עלות"
+
+#: templates/recipe_review.html:211
+msgid "Cost per 100g:"
+msgstr "עלות ל-100 ג׳:"
+
+#: templates/recipe_review.html:222
+msgid "Changes (compared to existing recipe):"
+msgstr "שינויים (בהשוואה למתכון קיים):"
+
+#: templates/recipe_review.html:226
+msgid "Added:"
+msgstr "נוסף:"
+
+#: templates/recipe_review.html:234
+msgid "Removed:"
+msgstr "הוסר:"
+
+#: templates/recipe_review.html:242
+msgid "Quantity Changed:"
+msgstr "כמות שונתה:"
+
+#: templates/recipe_review.html:249
+msgid "No changes"
+msgstr "אין שינויים"
+
+#: templates/recipe_review.html:271
+msgid "Confirm and Import Recipes"
+msgstr "אשר וייבא מתכונים"
+
+#: templates/recipe_review.html:288
+msgid "Search material..."
+msgstr "חפש חומר..."
+
+#: templates/recipe_review.html:379
+msgid "Deselect All"
+msgstr "בטל בחירה"
+
+#: templates/recipe_review.html:423
+msgid "recipes selected"
+msgstr "מתכונים נבחרו"
+
+#: templates/recipe_review.html:435
+msgid "Select recipes to import"
+msgstr "בחר מתכונים לייבוא"
+
+#: templates/recipe_review.html:452
+#, fuzzy
+msgid "Import"
+msgstr "דו\"חות"
+
+#: templates/recipe_review.html:452
+#, fuzzy
+msgid "recipes"
+msgstr "מתכונים"
+
+#: templates/recipe_review.html:457
+msgid "unmapped materials in selected recipes"
+msgstr "חומרים ללא התאמה במתכונים נבחרים"
+
+#: templates/recipe_review.html:458
+msgid ""
+"Select a match for all missing materials in selected recipes from the "
+"dropdowns."
+msgstr "בחר התאמה לכל החומרים החסרים במתכונים הנבחרים מהרשימות."
+
+#: templates/recipe_upload.html:7
+msgid "Import Recipes from Excel"
+msgstr "ייבוא מתכונים מאקסל"
+
+#: templates/recipe_upload.html:8
+msgid "Upload an Excel file with recipes for premakes or products"
+msgstr "העלה קובץ אקסל עם מתכונים להכנות או מוצרים"
+
+#: templates/recipe_upload.html:29
+msgid "Upload Recipe File"
+msgstr "העלה קובץ מתכונים"
+
+#: templates/recipe_upload.html:34
+msgid "Required file format:"
+msgstr "פורמט קובץ נדרש:"
+
+#: templates/recipe_upload.html:36
+msgid "First rows must contain metadata:"
+msgstr "השורות הראשונות חייבות להכיל מטא-דאטה:"
+
+#: templates/recipe_upload.html:43
+msgid "Required - \"premake\" or \"product\""
+msgstr "נדרש - \"premake\" או \"product\""
+
+#: templates/recipe_upload.html:44
+msgid "Required - existing category name in system"
+msgstr "נדרש - שם קטגוריה קיימת במערכת"
+
+#: templates/recipe_upload.html:45
+msgid "Optional - default \"g\""
+msgstr "אופציונלי - ברירת מחדל \"g\""
+
+#: templates/recipe_upload.html:46
+msgid "After metadata, blank row, then recipes"
+msgstr "אחרי המטא-דאטה, שורה ריקה ואז מתכונים"
+
+#: templates/recipe_upload.html:47
+msgid "Each recipe starts with title, 2 header rows, then materials"
+msgstr "כל מתכון מתחיל עם כותרת, 2 שורות כותרת ואז חומרים"
+
+#: templates/recipe_upload.html:48
+msgid "Material types: \"חומר גלם\", \"הכנה\", \"מוצר מקדים\", \"אבדן\""
+msgstr "סוגי חומרים: \"חומר גלם\", \"הכנה\", \"מוצר מקדים\", \"אבדן\""
+
+#: templates/recipe_upload.html:49
+msgid "Columns: name, type, price/kg, weight (g), total price"
+msgstr "עמודות: שם, סוג, מחיר/ק״ג, משקל (ג׳), מחיר כולל"
+
+#: templates/recipe_upload.html:55
+msgid "Select Excel file:"
+msgstr "בחר קובץ אקסל:"
+
+#: templates/recipe_upload.html:64 templates/upload_inventory.html:26
+msgid "Load File"
+msgstr "טען קובץ"
+
+#: templates/recipe_upload.html:74
+msgid "File uploaded successfully"
+msgstr "הקובץ הועלה בהצלחה"
+
+#: templates/recipe_upload.html:80
+msgid "Select sheet to import:"
+msgstr "בחר גיליון לייבוא:"
+
+#: templates/recipe_upload.html:91
+msgid "Metadata preview:"
+msgstr "תצוגה מקדימה של מטא-דאטה:"
+
+#: templates/recipe_upload.html:93 templates/recipe_upload.html:94
+#: templates/recipe_upload.html:162 templates/recipe_upload.html:163
+msgid "Not detected (required!)"
+msgstr "לא זוהה (נדרש!)"
+
+#: templates/recipe_upload.html:100 templates/recipe_upload.html:105
+#, fuzzy
+msgid "Note:"
+msgstr "עלות:"
+
+#: templates/recipe_upload.html:100 templates/recipe_upload.html:105
+msgid ""
+"Required metadata fields are missing. Ensure the file contains type and "
+"category rows."
+msgstr "שדות מטא-דאטה נדרשים חסרים. ודא שהקובץ מכיל שורות type ו-category."
+
+#: templates/recipe_upload.html:113
+msgid "Upload Different File"
+msgstr "העלה קובץ אחר"
+
+#: templates/recipe_upload.html:116
+msgid "Continue to Review"
+msgstr "המשך לסקירה"
+
+#: templates/recipe_upload.html:138 templates/recipe_upload.html:139
+#: templates/recipe_upload.html:140
+#, fuzzy
+msgid "Loading..."
+msgstr "שגיאה בטעינה"
+
+#: templates/recipe_upload.html:175 templates/recipe_upload.html:176
+#: templates/recipe_upload.html:177
+msgid "Error loading"
+msgstr "שגיאה בטעינה"
+
+#: templates/stock_audits.html:9
+msgid "Track inventory discrepancies and loss analysis"
+msgstr "מעקב אחר אי-התאמות במלאי וניתוח הפסדים"
+
+#: templates/stock_audits.html:19
+msgid "Total Variance (Financial)"
+msgstr "סך הפרשים (כספי)"
+
+#: templates/stock_audits.html:21
+msgid "counts"
+msgstr "ספירות"
+
+#: templates/stock_audits.html:28
+msgid "Surplus"
+msgstr "עודף"
+
+#: templates/stock_audits.html:36
+msgid "Shortages"
+msgstr "חסרים"
+
+#: templates/stock_audits.html:44
+msgid "Affected Categories"
+msgstr "קטגוריות מושפעות"
+
+#: templates/stock_audits.html:56 templates/stock_audits.html:101
+#: templates/stock_audits.html:213
+msgid "Item"
+msgstr "פריט"
+
+#: templates/stock_audits.html:58
+msgid "All Items"
+msgstr "כל הפריטים"
+
+#: templates/stock_audits.html:70
+msgid "From Date"
+msgstr "מתאריך"
+
+#: templates/stock_audits.html:74
+msgid "To Date"
+msgstr "עד תאריך"
+
+#: templates/stock_audits.html:79
+msgid "Filter"
+msgstr "סנן"
+
+#: templates/stock_audits.html:92
+msgid "Audit History"
+msgstr "היסטוריית ביקורת"
+
+#: templates/stock_audits.html:103
+msgid "System Quantity"
+msgstr "כמות במערכת"
+
+#: templates/stock_audits.html:104
+msgid "Physical Quantity"
+msgstr "כמות פיזית"
+
+#: templates/stock_audits.html:105
+msgid "Variance"
+msgstr "הפרש"
+
+#: templates/stock_audits.html:106 templates/stock_audits.html:175
+#: templates/stock_audits.html:216
+msgid "Financial Value"
+msgstr "ערך כספי"
+
+#: templates/stock_audits.html:107
+msgid "Auditor"
+msgstr "מבקר"
+
+#: templates/stock_audits.html:130
+#, fuzzy
+msgid "None"
+msgstr "טלפון"
+
+#: templates/stock_audits.html:154
+msgid "No stock audits found for the requested period"
+msgstr "לא נמצאו ביקורות מלאי לתקופה המבוקשת"
+
+#: templates/stock_audits.html:164
+msgid "Analysis by Category"
+msgstr "ניתוח לפי קטגוריה"
+
+#: templates/stock_audits.html:174
+msgid "Quantity Variance"
+msgstr "הפרש כמות"
+
+#: templates/stock_audits.html:205
+msgid "Items with High Discrepancies"
+msgstr "פריטים עם הפרשים גדולים"
+
+#: templates/stock_audits.html:215
+msgid "Total Variance"
+msgstr "סך הפרשים"
+
+#: templates/stock_audits.html:247
+msgid "Insights"
+msgstr "תובנות"
+
+#: templates/stock_audits.html:254
+msgid "Total losses from inventory discrepancies:"
+msgstr "סך הפסדים מאי-התאמות במלאי:"
+
+#: templates/stock_audits.html:262
+#, fuzzy
+msgid "Item with highest discrepancies:"
+msgstr "חומר עם אי-התאמות הגבוהות ביותר:"
+
+#: templates/stock_audits.html:272
+msgid "Most problematic category:"
+msgstr "קטגוריה הבעייתית ביותר:"
+
+#: templates/stock_audits.html:279
+msgid "Average financial variance per count:"
+msgstr "הפרש כספי ממוצע לספירה:"
+
+#: templates/supplier_materials.html:2
+msgid "Materials & Packaging of"
+msgstr "חומרי גלם ואריזות של"
+
+#: templates/supplier_materials.html:13
+msgid "Materials & Packaging - "
+msgstr "חומרי גלם ואריזות - "
+
+#: templates/supplier_materials.html:14
+msgid "List of all raw materials and packaging supplied by this supplier."
+msgstr "רשימת כל חומרי הגלם והאריזות המסופקים על ידי ספק זה."
+
+#: templates/supplier_materials.html:24
+msgid "Contact Person:"
+msgstr "איש קשר:"
+
+#: templates/supplier_materials.html:27
+msgid "Phone:"
+msgstr "טלפון:"
+
+#: templates/supplier_materials.html:30
+#, fuzzy
+msgid "Email:"
+msgstr "נותר:"
+
+#: templates/supplier_materials.html:38
+msgid "Status:"
+msgstr "סטטוס:"
+
+#: templates/supplier_materials.html:40 templates/suppliers.html:49
+msgid "Active"
+msgstr "פעיל"
+
+#: templates/supplier_materials.html:40 templates/suppliers.html:51
+#, fuzzy
+msgid "Inactive"
+msgstr "פעיל"
+
+#: templates/supplier_materials.html:44
+#, fuzzy
+msgid "Discount:"
+msgstr "הנחה"
+
+#: templates/supplier_materials.html:55
+#, fuzzy
+msgid "Address:"
+msgstr "כתובת"
+
+#: templates/supplier_materials.html:68
+msgid "Supplied Raw Materials"
+msgstr "חומרי גלם מסופקים"
+
+#: templates/supplier_materials.html:143
+msgid "Supplied Packaging"
+msgstr "אריזות מסופקות"
+
+#: templates/supplier_materials.html:151
+msgid "Quantity/Package"
+msgstr "כמות/אריזה"
+
+#: templates/supplier_materials.html:214
+#, fuzzy
+msgid "No materials or packaging found for this supplier."
+msgstr "לא נמצאו אריזות במערכת."
+
+#: templates/supplier_materials.html:224
+msgid "Update Raw Material Price"
+msgstr "עדכון מחיר חומר גלם"
+
+#: templates/supplier_materials.html:237
+#, fuzzy
+msgid "Optional SKU for this supplier"
+msgstr "עלות כוללת לשבוע זה"
+
+#: templates/supplier_materials.html:246
+msgid "Set as primary supplier for this material"
+msgstr "הגדר כספק ראשי לחומר זה"
+
+#: templates/supplier_materials.html:318
+msgid "Error updating price:"
+msgstr "שגיאה בעדכון מחיר:"
+
+#: templates/supplier_materials.html:322
+msgid "Error updating price"
+msgstr "שגיאה בעדכון מחיר"
+
+#: templates/suppliers.html:8
+msgid "Manage Suppliers"
+msgstr "ניהול ספקים"
+
+#: templates/suppliers.html:9
+msgid "Manage raw material suppliers and prices."
+msgstr "ניהול ספקי חומרי גלם ומחירים."
+
+#: templates/suppliers.html:25
+msgid "Discount"
+msgstr "הנחה"
+
+#: templates/suppliers.html:26
+msgid "Active Materials"
+msgstr "חומרים פעילים"
+
+#: templates/suppliers.html:57
+msgid "View Materials"
+msgstr "צפה בחומרים"
+
+#: templates/suppliers.html:67
+msgid "Reactivate"
+msgstr "השבת"
+
+#: templates/suppliers.html:67
+msgid "Deactivate"
+msgstr "הפוך ללא פעיל"
+
+#: templates/suppliers.html:74
+msgid "Delete supplier"
+msgstr "למחוק את הספק"
+
+#: templates/suppliers.html:86
+msgid "No suppliers found in the system."
+msgstr "לא נמצאו ספקים במערכת."
+
+#: templates/suppliers.html:100
+msgid "Hide Inactive Suppliers"
+msgstr "הסתר ספקים לא פעילים"
+
+#: templates/suppliers.html:105
+msgid "Show Inactive Suppliers"
+msgstr "הצג ספקים לא פעילים"
+
+# update_weekly_sales.html translations
+#: templates/update_weekly_sales.html:2 templates/update_weekly_sales.html:13
+msgid "Update Weekly Sales"
+msgstr "עדכון מכירות שבועי"
+
+#: templates/update_weekly_sales.html:14
+msgid "Enter the quantities sold this week for each product."
+msgstr "הזן את הכמויות שנמכרו השבוע עבור כל מוצר."
+
+#: templates/update_weekly_sales.html:21
+#, fuzzy
+msgid "Product filter toggle"
+msgstr "תמונת מוצר"
+
+#: templates/update_weekly_sales.html:25
+#, fuzzy
+msgid "In Stock Only"
+msgstr "עלות במלאי"
+
+#: templates/update_weekly_sales.html:30
+#, fuzzy
+msgid "All Products"
+msgstr "מוצרים"
+
+#: templates/update_weekly_sales.html:36
+msgid ""
+"No products currently in stock. Click \"All Products\" to see all "
+"available products."
+msgstr ""
+
+#: templates/update_weekly_sales.html:52
+msgid "Produced This Week"
+msgstr "יוצר השבוע"
+
+#: templates/update_weekly_sales.html:53
+msgid "Sold So Far"
+msgstr "נמכר עד כה"
+
+#: templates/update_weekly_sales.html:54
+msgid "Add Sales"
+msgstr "הוסף מכירה"
+
+#: templates/update_weekly_sales.html:55
+msgid "Waste So Far"
+msgstr "פחת עד כה"
+
+#: templates/update_weekly_sales.html:56
+msgid "Add Waste"
+msgstr "הוסף פחת"
+
+#: templates/update_weekly_sales.html:79
+#, fuzzy
+msgid "Out of Stock"
+msgstr "עדכן מלאי"
+
+#: templates/update_weekly_sales.html:86
+msgid "Produced:"
+msgstr "יוצר:"
+
+#: templates/update_weekly_sales.html:87 templates/update_weekly_sales.html:138
+msgid "Remaining:"
+msgstr "נותר:"
+
+#: templates/update_weekly_sales.html:110
+msgid "Add Update"
+msgstr "הוסף עדכון"
+
+#: templates/update_weekly_sales.html:161
+msgid ""
+"Attention: The quantity entered exceeds the available stock produced this"
+" week."
+msgstr "שים לב: הכמות שהוזנה עולה על המלאי הזמין שיוצר השבוע."
+
+#: templates/upload_inventory.html:2 templates/upload_inventory.html:7
+msgid "Update Inventory from File"
+msgstr "עדכון מלאי מקובץ"
+
+#: templates/upload_inventory.html:8
+msgid "Upload Excel file to update quantities and prices."
+msgstr "העלאת קובץ אקסל לעדכון כמויות ומחירים."
+
+#: templates/upload_inventory.html:17
+msgid "Upload Excel File"
+msgstr "העלה קובץ אקסל"
+
+#: templates/upload_inventory.html:18
+msgid "File must contain columns: Product Name, Total Quantity, Average Price."
+msgstr "הקובץ חייב להכיל את העמודות: שם מוצר, סה\"כ כמות, מחיר ממוצע."
+
+#: templates/upload_inventory.html:19
+msgid "Optional columns: SKU, Supplier (for more accurate identification)"
+msgstr "עמודות אופציונליות: מק\"ט, ספק (לזיהוי מדויק יותר)"
+
+#: templates/upload_inventory.html:36
+msgid "Review Data and Confirm Changes"
+msgstr "סקירת נתונים ואישור שינויים"
+
+#: templates/upload_inventory.html:45
+msgid "SKU / Supplier"
+msgstr "מק\"ט / ספק"
+
+#: templates/upload_inventory.html:48
+msgid "Price in File"
+msgstr "מחיר בקובץ"
+
+#: templates/upload_inventory.html:50
+msgid "Action Required"
+msgstr "פעולה נדרשת"
+
+#: templates/upload_inventory.html:71
+msgid "SKU:"
+msgstr "מק\"ט:"
+
+#: templates/upload_inventory.html:77
+msgid "Identified by SKU"
+msgstr "זוהה לפי מק''ט"
+
+#: templates/upload_inventory.html:84
+msgid "Exists"
+msgstr "קיים"
+
+#: templates/upload_inventory.html:101
+msgid "Update price to"
+msgstr "עדכן מחיר ל-"
+
+#: templates/upload_inventory.html:105
+msgid "Same price"
+msgstr "מחיר זהה"
+
+#: templates/upload_inventory.html:118
+msgid "Confirm and Update Inventory"
+msgstr "אשר ועדכן מלאי"
+
+# Premake Details page translations
+#: templates/view_premake.html:2
+msgid "Premake Details"
+msgstr "פרטי הכנה מקדימה"
+
+#: templates/view_premake.html:20
+msgid "Back to List"
+msgstr "חזרה לרשימה"
+
+#: templates/view_premake.html:31
+msgid "Batch Size"
+msgstr "גודל באצ'"
+
+#: templates/view_premake.html:57
+msgid "Cost per Batch"
+msgstr "עלות לאצ'"
+
+#: templates/view_premake.html:68
+msgid "per"
+msgstr "ל-"
+
+#: templates/view_premake.html:84
+msgid "Preparation Components"
+msgstr "מרכיבי ההכנה"
+
+#: templates/view_premake.html:137
+msgid "Total Cost per Batch:"
+msgstr "סה\"כ עלות לאצ':"
+
+#: templates/view_premake.html:148
+msgid "No components defined for this preparation."
+msgstr "אין מרכיבים מוגדרים להכנה זו."
+
+#: templates/view_premake.html:165
+msgid "Batch Size:"
+msgstr "גודל אצ':"
+
+#: templates/view_premake.html:169
+msgid "Number of Components:"
+msgstr "מספר מרכיבים:"
+
+#: templates/view_premake.html:173
+msgid "Total Batch Cost:"
+msgstr "עלות כוללת לאצ':"
+
+#: templates/view_premake.html:198
+msgid "Stock Value:"
+msgstr "שווי מלאי:"
+
+#: templates/weekly_cost_details.html:2
+msgid "Week Details"
+msgstr "פרטי שבוע"
+
+#: templates/weekly_cost_details.html:13
+msgid "Work Hours Details"
+msgstr "פירוט שעות עבודה"
+
+#: templates/weekly_cost_details.html:18
+msgid "Total cost for this week"
+msgstr "עלות כוללת לשבוע זה"
+
+#: templates/weekly_cost_details.html:29
+msgid "Add Employee Hours"
+msgstr "הוסף שעות עובד"
+
+#: templates/weekly_cost_details.html:33
+msgid "Employee / Role"
+msgstr "עובד / תפקיד"
+
+#: templates/weekly_cost_details.html:35
+msgid "Select employee..."
+msgstr "בחר עובד..."
+
+#: templates/weekly_cost_details.html:37
+#, fuzzy
+msgid "hour"
+msgstr "שעות"
+
+#: templates/weekly_cost_details.html:42
+msgid "Work Hours (HH:MM)"
+msgstr "שעות עבודה (HH:MM)"
+
+#: templates/weekly_cost_details.html:44
+msgid "Example: 8:30"
+msgstr "דוגמה: 8:30"
+
+#: templates/weekly_cost_details.html:45
+msgid "Enter hours in HH:MM format (example: 8:30)"
+msgstr "הזן שעות בפורמט HH:MM (דוגמה: 8:30)"
+
+#: templates/weekly_cost_details.html:46
+msgid "Enter in HH:MM format (example: 8:30 for eight and a half hours)"
+msgstr "הזן בפורמט HH:MM (דוגמה: 8:30 לשמונה שעות וחצי)"
+
+#: templates/weekly_cost_details.html:50
+msgid "Add to List"
+msgstr "הוסף לרשימה"
+
+#: templates/weekly_cost_details.html:57
+msgid ""
+"Cost calculated automatically according to employee rate (including "
+"employer costs)."
+msgstr "עלות מחושבת אוטומטית לפי תעריף עובד (כולל עלויות מעסיק)."
+
+#: templates/weekly_cost_details.html:71
+msgid "Employee Name"
+msgstr "שם עובד"
+
+#: templates/weekly_cost_details.html:72
+msgid "Hours"
+msgstr "שעות"
+
+#: templates/weekly_cost_details.html:73
+msgid "Calculated Cost"
+msgstr "עלות מחושבת"
+
+#: templates/weekly_cost_details.html:84
+msgid "Remove this entry?"
+msgstr "להסיר רשומה זו?"
+
+#: templates/weekly_cost_details.html:94
+msgid "No hours have been entered for this week yet."
+msgstr "לא הוזנו שעות לשבוע זה עדיין."
+
+#: templates/weekly_costs.html:2 templates/weekly_costs.html:7
+msgid "Weekly Costs Management"
+msgstr "ניהול עלויות שבועיות"
+
+#: templates/weekly_costs.html:8
+msgid "Track work hours and costs by week."
+msgstr "מעקב אחר שעות עבודה ועלויות לפי שבוע."
+
+#: templates/weekly_costs.html:22
+msgid "Start Date"
+msgstr "תאריך התחלה"
+
+#: templates/weekly_costs.html:24
+msgid "Number of Employees"
+msgstr "מספר עובדים"
+
+#: templates/weekly_costs.html:36
+msgid "Details and Update"
+msgstr "פרטים ועדכון"
+
+#: templates/weekly_costs.html:44
+msgid "No weekly costs defined yet."
+msgstr "לא הוגדרו עלויות שבועיות עדיין."
+
+#: templates/weekly_costs.html:59
+msgid "Open New Week"
+msgstr "פתיחת שבוע חדש"
+
+#: templates/weekly_costs.html:64
+msgid "Week Start Date (Sunday)"
+msgstr "תאריך התחלת שבוע (יום ראשון)"
+
+#: templates/weekly_costs.html:70
+msgid "Create and Open Details"
+msgstr "צור ופתח לפרטים"
+
+#: templates/weekly_report.html:9
+msgid "Performance summary for week"
+msgstr "סיכום ביצועים לשבוע"
+
+#: templates/weekly_report.html:18
+msgid "Select week:"
+msgstr "בחר שבוע:"
+
+#: templates/weekly_report.html:25
+msgid "No weeks available"
+msgstr "אין שבועות זמינים"
+
+#: templates/weekly_report.html:40
+msgid "No data found for selected week"
+msgstr "לא נמצאו נתונים עבור השבוע הנבחר"
+
+#: templates/weekly_report.html:117
+msgid "Product Food Cost Analysis (Food Cost)"
+msgstr "ניתוח עלות מזון מוצרים (Food Cost)"
+
+#: templates/weekly_report.html:119
+msgid "Monthly Trends"
+msgstr "מגמות חודשיות"
+
+#: templates/weekly_report.html:126
+msgid "Product Cost"
+msgstr "עלות מוצרים"
+
+#: templates/weekly_report.html:128
+msgid "Products sold + waste"
+msgstr "מוצרים שנמכרו + פסולת"
+
+#: templates/weekly_report.html:133
+msgid "Premake Stock Value Increase"
+msgstr "עליית ערך מלאי הכנות"
+
+#: templates/weekly_report.html:135
+msgid "Produced - Consumed"
+msgstr "יוצר - נצרך"
+
+#: templates/weekly_report.html:142
+msgid "Products + Premake Inventory"
+msgstr "מלאי מוצרים והכנות"
+
+#: templates/weekly_report.html:159
+msgid "Production Count"
+msgstr "פעמי ייצור"
+
+#: templates/weekly_report.html:160
+msgid "Total Recipes"
+msgstr "סך מתכונים"
+
+#: templates/weekly_report.html:161
+msgid "Units per Recipe"
+msgstr "יח' למתכון"
+
+#: templates/weekly_report.html:190
+#, python-format
+msgid "Recommended target: 25-35%%"
+msgstr "יעד מומלץ: 25-35%%"
+
+#: templates/weekly_report.html:194
+msgid ""
+"Production cost includes all products made this week (materials + "
+"packaging + premakes used) PLUS the value of premakes produced but not "
+"consumed (inventory increase). This represents the total cost of "
+"everything produced."
+msgstr ""
+"עלות הייצור כוללת את כל המוצרים שיוצרו השבוע (חומרי גלם + אריזה + הכנות "
+"שנוצלו) בתוספת ערך ההכנות שיוצרו אך לא נצרכו (עלייה במלאי). זה מייצג את "
+"העלות הכוללת של כל מה שיוצר."
+
+#: templates/weekly_report.html:204
+msgid "Sales by Category"
+msgstr "מכירות לפי קטגוריה"
+
+#: templates/weekly_report.html:213
+msgid "Number of Products"
+msgstr "מספר מוצרים"
+
+#: templates/weekly_report.html:250
+msgid "No sales data by category"
+msgstr "אין נתוני מכירות לפי קטגוריה"
+
+#: templates/weekly_report.html:258
+msgid "Product Sales Details"
+msgstr "פירוט מכירות מוצרים"
+
+#: templates/weekly_report.html:268 templates/weekly_report.html:421
+msgid "Unit Price"
+msgstr "מחיר ליחידה"
+
+#: templates/weekly_report.html:272 templates/weekly_report.html:778
+#: templates/weekly_report.html:812
+msgid "Waste %"
+msgstr "%% פחת"
+
+#: templates/weekly_report.html:274
+msgid "Profit/Unit"
+msgstr "רווח ליחידה"
+
+#: templates/weekly_report.html:275
+msgid "Margin %"
+msgstr "%% רווח"
+
+#: templates/weekly_report.html:309
+msgid "No product sales data"
+msgstr "אין נתוני מכירות למוצרים"
+
+#: templates/weekly_report.html:361
+msgid "Premake Stock Increases"
+msgstr "עליות מלאי הכנות"
+
+#: templates/weekly_report.html:368
+#, fuzzy
+msgid "Used"
+msgstr "שימוש"
+
+#: templates/weekly_report.html:369
+#, fuzzy
+msgid "Stock Change"
+msgstr "חוסר במלאי"
+
+#: templates/weekly_report.html:371
+msgid "Stock Value Increase"
+msgstr "גידול בשווי מלאי"
+
+#: templates/weekly_report.html:390
+msgid "Total Premake Stock Value Increase:"
+msgstr "עליית ערך מלאי הכנות:"
+
+#: templates/weekly_report.html:400
+msgid ""
+"In Stock Cost represents capital tied up in inventory: unsold products "
+"and premakes produced but not yet consumed."
+msgstr ""
+"עלות במלאי מייצגת הון קשור במלאי: מוצרים שלא נמכרו והכנות שיוצרו אך טרם "
+"נצרכו."
+
+#: templates/weekly_report.html:416
+msgid "Packaging Item"
+msgstr "פריט אריזה"
+
+#: templates/weekly_report.html:417
+msgid "Beginning Stock"
+msgstr "מלאי פתיחה"
+
+#: templates/weekly_report.html:418
+msgid "Additions"
+msgstr "הוספות"
+
+#: templates/weekly_report.html:419
+msgid "Usage (Sales)"
+msgstr "שימוש (מכירות)"
+
+#: templates/weekly_report.html:420
+msgid "Ending Stock"
+msgstr "מלאי סופי"
+
+#: templates/weekly_report.html:422
+msgid "Stock Value"
+msgstr "שווי מלאי"
+
+#: templates/weekly_report.html:440
+msgid "Total Packaging Stock Value:"
+msgstr "סך שווי מלאי אריזות:"
+
+#: templates/weekly_report.html:448
+msgid ""
+"Packaging inventory is tracked separately and deducted during production."
+" Stock values represent current inventory investment."
+msgstr ""
+"מלאי אריזות נספר בנפרד ומנוכה במהלך הייצור. ערכי המלאי מייצגים השקעה "
+"במלאי נוכחי."
+
+#: templates/weekly_report.html:496
+msgid "Packaging Usage (From Sales)"
+msgstr "שימוש באריזות (ממכירות)"
+
+#: templates/weekly_report.html:504
+msgid "Units Used"
+msgstr "יחידות בשימוש"
+
+#: templates/weekly_report.html:505
+msgid "Containers Used"
+msgstr "כלים בשימוש"
+
+#: templates/weekly_report.html:506
+msgid "Units per Container"
+msgstr "יחידות לכלי"
+
+#: templates/weekly_report.html:523
+msgid "Total Packaging Cost:"
+msgstr "סך עלות אריזות:"כ אריזות:"
+
+#: templates/weekly_report.html:537
+msgid "Labor Cost Details"
+msgstr "פירוט עלויות לייבור"
+
+#: templates/weekly_report.html:544
+msgid "Employee"
+msgstr "עובד"
+
+#: templates/weekly_report.html:545
+msgid "Entry Count"
+msgstr "פעמי רישום"
+
+#: templates/weekly_report.html:546
+msgid "Total Hours"
+msgstr "סך שעות"
+
+#: templates/weekly_report.html:580
+msgid "Stock Discrepancies Found This Week"
+msgstr "הפרשי מלאי שנמצאו השבוע"
+
+#: templates/weekly_report.html:585
+msgid "Discrepancy Summary"
+msgstr "סיכום הפרשים"
+
+#: templates/weekly_report.html:587
+msgid "Number of Counts:"
+msgstr "מספר ספירות:"
+
+#: templates/weekly_report.html:589
+msgid "Total Monetary Value:"
+msgstr "סך ערך כספי:"
+
+#: templates/weekly_report.html:594
+msgid "Discrepancies by Category"
+msgstr "הפרשים לפי קטגוריה"
+
+#: templates/weekly_report.html:601 templates/weekly_report.html:636
+msgid "Monetary Value"
+msgstr "ערך כספי"
+
+#: templates/weekly_report.html:623
+msgid "Adjusted Profit (including stock discrepancies):"
+msgstr "רווח מתואם (כולל הפרשי מלאי):"
+
+#: templates/weekly_report.html:625
+msgid "instead of"
+msgstr "במקום"
+
+#: templates/weekly_report.html:635
+msgid "Difference"
+msgstr "הפרש"
+
+#: templates/weekly_report.html:637
+msgid "Counter"
+msgstr "סופר"
+
+#: templates/weekly_report.html:657
+msgid "Showing last 5 counts out of"
+msgstr "מוצגות 5 הספירות האחרונות מתוך"
+
+#: templates/weekly_report.html:667
+msgid "Key Insights"
+msgstr "תובנות מרכזיות"
+
+#: templates/weekly_report.html:676 templates/weekly_report.html:686
+msgid "with revenue of"
+msgstr "עם הכנסות של"
+
+#: templates/weekly_report.html:693
+msgid "Weekly profit margin:"
+msgstr "שיעור הרווח השבועי:"
+
+#: templates/weekly_report.html:699
+msgid "Product with highest profitability:"
+msgstr "המוצר עם הרווחיות הגבוהה ביותר:"
+
+#: templates/weekly_report.html:699 templates/weekly_report.html:706
+msgid "with profit margin of"
+msgstr "עם שיעור רווח של"
+
+#: templates/weekly_report.html:706
+msgid "Product with lowest profitability:"
+msgstr "המוצר עם הרווחיות הנמוכה ביותר:"
+
+#: templates/weekly_report.html:708
+msgid "Needs review"
+msgstr "זקוק לבחינה מחדש"
+
+#: templates/weekly_report.html:716
+msgid "Product with highest profit contribution:"
+msgstr "המוצר עם התרומה הגבוהה ביותר לרווח:"
+
+#: templates/weekly_report.html:716
+msgid "with total profit of"
+msgstr "עם רווח כולל של"
+
+#: templates/weekly_report.html:723
+msgid "Overall waste percentage:"
+msgstr "שיעור הפחת הכולל:"
+
+#: templates/weekly_report.html:724
+msgid "Cost:"
+msgstr "עלות:"
+
+#: templates/weekly_report.html:735
+msgid "Waste Analysis"
+msgstr "ניתוח פחת"
+
+#: templates/weekly_report.html:743
+msgid "Total Waste"
+msgstr "סה\"כ פחת"
+
+#: templates/weekly_report.html:760
+msgid "Impact on Profit"
+msgstr "השפעה על רווח"
+
+#: templates/weekly_report.html:769
+msgid "Waste by Product"
+msgstr "פחת לפי מוצר"
+
+#: templates/weekly_report.html:800
+msgid "Showing top 10 products with highest waste cost"
+msgstr "מוצגים 10 המוצרים עם עלות הפחת הגבוהה ביותר"
+
+#: templates/weekly_report.html:805
+msgid "Waste by Category"
+msgstr "פחת לפי קטגוריה"
 
 #~ msgid "Manage Raw Materials"
 #~ msgstr "נהל חומרי גלם"
 
-# Weekly Report - Added Dec 2024
-msgid "Weekly Report"
-msgstr "דו\"ח שבועי"
+#~ msgid "Products Per Recipe"
+#~ msgstr "מוצרים למתכון"
 
-msgid "Performance summary for week"
-msgstr "סיכום ביצועים לשבוע"
+#~ msgid "Selling Price Per Unit"
+#~ msgstr "מחיר מכירה ליחידה"
 
-msgid "Select week:"
-msgstr "בחר שבוע:"
+#~ msgid "New Raw Material"
+#~ msgstr "חומר גלם חדש"
 
-msgid "Week"
-msgstr "שבוע"
+#~ msgid "Add Labor"
+#~ msgstr "הוסף עובד"
 
-msgid "No weeks available"
-msgstr "אין שבועות זמינים"
+#~ msgid "New Labor"
+#~ msgstr "עובד חדש"
 
-msgid "Print"
-msgstr "הדפסה"
+#~ msgid "Save Product"
+#~ msgstr "שמור מוצר"
 
-msgid "No data found for selected week"
-msgstr "לא נמצאו נתונים עבור השבוע הנבחר"
+#~ msgid "Base Hourly Rate"
+#~ msgstr "עלות שעת בסיס"
 
-msgid "Revenue"
-msgstr "הכנסות"
+#~ msgid "Additional Hourly Rate"
+#~ msgstr "עלות שעה נוספת"
 
-msgid "Material Costs"
-msgstr "עלות חומרים"
+#~ msgid "All"
+#~ msgstr "כל המוצרים"
 
-msgid "Prime Costs"
-msgstr "עלות ייצור"
+#~ msgid "Save Raw Material"
+#~ msgstr "שמור חומר גלם"
 
-msgid "(Materials + Packaging + Premakes)"
-msgstr "(מוצרים + מלאי הכנות)"
+#~ msgid "Inventory Manager"
+#~ msgstr "ניהול עלויות"
 
-msgid "(Products + Premake Inventory)"
-msgstr "(מוצרים + מלאי הכנות)"
+#~ msgid "Labor"
+#~ msgstr "עובדים"
 
-msgid "Net Profit"
-msgstr "רווח נטו"
+#~ msgid "2024 Waste Tracking System. All rights reserved."
+#~ msgstr "סיתי בולאנז׳רי // מערכת ניהול עלויות"
 
-msgid "Product Food Cost Analysis (Food Cost)"
-msgstr "ניתוח עלות מזון מוצרים (Food Cost)"
+#~ msgid "Existing Categories"
+#~ msgstr "קטגוריות קיימות"
 
-msgid "Monthly Trends"
-msgstr "מגמות חודשיות"
+#~ msgid "Dashboard"
+#~ msgstr "דשבורד"
 
-msgid "Total Food Cost"
-msgstr "סך עלות מזון"
+#~ msgid "Welcome to the Waste Tracking System"
+#~ msgstr "מערכת ניהול עלויות"
 
-msgid "Average Cost per Recipe"
-msgstr "עלות ממוצעת למתכון"
+#~ msgid "Go to Raw Materials"
+#~ msgstr "חומרי גלם"
 
-msgid "Total Recipes Produced"
-msgstr "סך מתכונים שיוצרו"
+#~ msgid ""
+#~ "Manage packaging options, costs, and "
+#~ "their integration into your products"
+#~ msgstr "נהל חוצרי אריזה, מחירים וכמויות"
 
-msgid "Production Count"
-msgstr "פעמי ייצור"
+#~ msgid "Labor Management"
+#~ msgstr "ניהול עובדים"
 
-msgid "Total Recipes"
-msgstr "סך מתכונים"
+#~ msgid "Oversee labor costs and contributions to each production activity"
+#~ msgstr "נהל את עובדי הייצור ושכרם"
 
-msgid "Units per Recipe"
-msgstr "יח' למתכון"
+#~ msgid "Hourly Rate"
+#~ msgstr "עלות שעתית"
 
-msgid "Cost per Recipe"
-msgstr "עלות למתכון"
+#~ msgid "Products Per Recipe:"
+#~ msgstr "מוצרים למתכון"
 
-msgid "Total Cost"
-msgstr "סך עלות"
+#~ msgid "Selling Price Per Unit:"
+#~ msgstr "מחיר מכירה ליחידה"
 
-msgid "Food Cost Percentage:"
-msgstr "אחוז עלות מזון:"
+#~ msgid "Amount in Recipe"
+#~ msgstr "מוצרים למתכון"
 
-msgid "of revenue"
-msgstr "מההכנסות"
+#~ msgid "Price Per Unit"
+#~ msgstr "מחיר ליחידה"
 
-msgid "Recommended target: 25-35%%"
-msgstr "יעד מומלץ: 25-35%%"
+#~ msgid "Price Per Recipe"
+#~ msgstr "מחיר למתכון"
 
-msgid "Food cost includes raw materials, packaging, and premakes for products produced this week."
-msgstr "עלות המזון כוללת חומרי גלם, אריזות והכנות מקדימות (פרימייקים) עבור מוצרים שיוצרו השבוע."
+#~ msgid "Price Per Product"
+#~ msgstr "מחיר ליחידה"
 
-msgid "Production cost includes all products made this week (materials + packaging + premakes used) PLUS the value of premakes produced but not consumed (inventory increase). This represents the total cost of everything produced."
-msgstr "עלות הייצור כוללת את כל המוצרים שיוצרו השבוע (חומרי גלם + אריזה + הכנות שנוצלו) בתוספת ערך ההכנות שיוצרו אך לא נצרכו (עלייה במלאי). זה מייצג את העלות הכוללת של כל מה שיוצר."
+#~ msgid "Hours of Labor"
+#~ msgstr "שעות עבודה"
 
-msgid "Sales by Category"
-msgstr "מכירות לפי קטגוריה"
+#~ msgid "Price Per Hour"
+#~ msgstr "עלות שעתית"
 
-msgid "Number of Products"
-msgstr "מספר מוצרים"
+#~ msgid "Units Per Recipe"
+#~ msgstr "יחידות למתכון"
 
-msgid "Quantity Sold"
-msgstr "כמות נמכרה"
+#~ msgid "Cost Margin"
+#~ msgstr "שולי רווח"
 
-msgid "Waste Quantity"
-msgstr "כמות פחת"
+#~ msgid "View"
+#~ msgstr "הצג"
 
-msgid "Gross Profit"
-msgstr "רווח גולמי"
+#~ msgid "Adding stock for "
+#~ msgstr "הוסף כמות ל"
 
-msgid "Total Revenue"
-msgstr "סך הכנסות"
+#~ msgid "Setting stock for "
+#~ msgstr "הגדר כמות נוכחית ל"
 
-msgid "No sales data by category"
-msgstr "אין נתוני מכירות לפי קטגוריה"
+#~ msgid "Material Costs"
+#~ msgstr "עלות חומרים"
 
-msgid "Product Sales Details"
-msgstr "פירוט מכירות מוצרים"
+#~ msgid "Prime Costs"
+#~ msgstr "עלות ייצור"
 
-msgid "No Category"
-msgstr "ללא קטגוריה"
+#~ msgid "(Products + Premake Inventory)"
+#~ msgstr "(מוצרים + מלאי הכנות)"
 
-msgid "No product sales data"
-msgstr "אין נתוני מכירות למוצרים"
+#~ msgid ""
+#~ "Food cost includes raw materials, "
+#~ "packaging, and premakes for products "
+#~ "produced this week."
+#~ msgstr ""
+#~ "עלות המזון כוללת חומרי גלם, אריזות "
+#~ "והכנות מקדימות (פרימייקים) עבור מוצרים "
+#~ "שיוצרו השבוע."
 
-msgid "Premakes Activity"
-msgstr "פעילות הכנות מקדימות"
+#~ msgid "Add New Employee"
+#~ msgstr "הוסף עובד חדש"
 
-msgid "Premake Name"
-msgstr "שם ההכנה"
+#~ msgid "Phone Number (optional)"
+#~ msgstr "מספר טלפון (אופציונלי)"
 
-msgid "Produced"
-msgstr "יוצר"
+#~ msgid "Total Hourly Rate (employer cost)"
+#~ msgstr "תעריף שעתי כולל (עלות מעביד)"
 
-msgid "Used (in products)"
-msgstr "שומש (במוצרים)"
+#~ msgid "Save Employee"
+#~ msgstr "שמור עובד"
 
-msgid "In Stock"
-msgstr "במלאי"
+#~ msgid "Recipe details and costs"
+#~ msgstr "פרטי מתכון ועלויות"
 
-msgid "Cost per Unit (per kg)"
-msgstr "עלות ליחידה (לק\"ג)"
+#~ msgid "Back to list"
+#~ msgstr "חזרה לרשימה"
 
-msgid "Total Production Value"
-msgstr "שווי ייצור כולל"
+#~ msgid "Total Cost per Batch"
+#~ msgstr "עלות כוללת לבאצ'"
 
-msgid "Labor Cost Details"
-msgstr "פירוט עלויות לייבור"
+#~ msgid "% of Cost"
+#~ msgstr "% מהעלות"
 
-msgid "Employee"
-msgstr "עובד"
-
-msgid "Entry Count"
-msgstr "פעמי רישום"
-
-msgid "Total Hours"
-msgstr "סך שעות"
-
-msgid "Stock Discrepancies Found This Week"
-msgstr "הפרשי מלאי שנמצאו השבוע"
-
-msgid "Discrepancy Summary"
-msgstr "סיכום הפרשים"
-
-msgid "Number of Counts:"
-msgstr "מספר ספירות:"
-
-msgid "Total Monetary Value:"
-msgstr "סך ערך כספי:"
-
-msgid "Discrepancies by Category"
-msgstr "הפרשים לפי קטגוריה"
-
-msgid "Counts"
-msgstr "ספירות"
-
-msgid "Monetary Value"
-msgstr "ערך כספי"
-
-msgid "Adjusted Profit (including stock discrepancies):"
-msgstr "רווח מתואם (כולל הפרשי מלאי):"
-
-msgid "instead of"
-msgstr "במקום"
-
-msgid "Difference"
-msgstr "הפרש"
-
-msgid "Counter"
-msgstr "סופר"
-
-msgid "Unknown"
-msgstr "לא ידוע"
-
-msgid "Showing last 5 counts out of"
-msgstr "מוצגות 5 הספירות האחרונות מתוך"
-
-msgid "Key Insights"
-msgstr "תובנות מרכזיות"
-
-msgid "Leading category:"
-msgstr "הקטגוריה המובילה:"
-
-msgid "with revenue of"
-msgstr "עם הכנסות של"
-
-msgid "Best-selling product:"
-msgstr "המוצר הנמכר ביותר:"
-
-msgid "Weekly profit margin:"
-msgstr "שיעור הרווח השבועי:"
-
-msgid "Product with highest profitability:"
-msgstr "המוצר עם הרווחיות הגבוהה ביותר:"
-
-msgid "with profit margin of"
-msgstr "עם שיעור רווח של"
-
-msgid "Product with lowest profitability:"
-msgstr "המוצר עם הרווחיות הנמוכה ביותר:"
-
-msgid "Needs review"
-msgstr "זקוק לבחינה מחדש"
-
-msgid "Product with highest profit contribution:"
-msgstr "המוצר עם התרומה הגבוהה ביותר לרווח:"
-
-msgid "with total profit of"
-msgstr "עם רווח כולל של"
-
-msgid "Overall waste percentage:"
-msgstr "שיעור הפחת הכולל:"
-
-msgid "Cost:"
-msgstr "עלות:"
-
-msgid "Waste Analysis"
-msgstr "ניתוח פחת"
-
-msgid "Total Waste"
-msgstr "סה\"כ פחת"
-
-msgid "Units"
-msgstr "יחידות"
-
-msgid "of production"
-msgstr "מהייצור"
-
-msgid "Waste Cost"
-msgstr "עלות פחת"
-
-msgid "Impact on Profit"
-msgstr "השפעה על רווח"
-
-msgid "Waste by Product"
-msgstr "פחת לפי מוצר"
-
-msgid "Sold"
-msgstr "נמכר"
-
-msgid "Waste"
-msgstr "פחת"
-
-msgid "Waste %"
-msgstr "%% פחת"
-
-msgid "Showing top 10 products with highest waste cost"
-msgstr "מוצגים 10 המוצרים עם עלות הפחת הגבוהה ביותר"
-
-msgid "Waste by Category"
-msgstr "פחת לפי קטגוריה"
-
-msgid "Monthly Report"
-msgstr "דו\"ח חודשי"
-
-msgid "Performance summary for month"
-msgstr "סיכום ביצועים לחודש"
-
-msgid "January"
-msgstr "ינואר"
-
-msgid "February"
-msgstr "פברואר"
-
-msgid "March"
-msgstr "מרץ"
-
-msgid "April"
-msgstr "אפריל"
-
-msgid "May"
-msgstr "מאי"
-
-msgid "June"
-msgstr "יוני"
-
-msgid "July"
-msgstr "יולי"
-
-msgid "August"
-msgstr "אוגוסט"
-
-msgid "September"
-msgstr "ספטמבר"
-
-msgid "October"
-msgstr "אוקטובר"
-
-msgid "November"
-msgstr "נובמבר"
-
-msgid "December"
-msgstr "דצמבר"
-
-msgid "Show Report"
-msgstr "הצג דו\"ח"
-
-msgid "No data found for selected month"
-msgstr "לא נמצאו נתונים עבור החודש הנבחר"
-
-msgid "Monthly Food Cost Analysis (Food Cost)"
-msgstr "ניתוח עלות מזון (Food Cost) - חודשי"
-
-msgid "Weekly average:"
-msgstr "ממוצע שבועי:"
-
-msgid "Target:"
-msgstr "יעד:"
-
-msgid "Weekly Food Cost Trend"
-msgstr "מגמת עלות מזון שבועית"
-
-msgid "No data to display"
-msgstr "אין נתונים להצגה"
-
-msgid "Weekly Trends"
-msgstr "מגמות שבועיות"
-
-msgid "Food Cost %"
-msgstr "Food Cost %%"
-
-msgid "Recipes"
-msgstr "מתכונים"
-
-msgid "No weekly data"
-msgstr "אין נתונים שבועיים"
-
-msgid "Category Performance"
-msgstr "ביצועי קטגוריות"
-
-msgid "Active Weeks"
-msgstr "שבועות פעילים"
-
-msgid "No category data"
-msgstr "אין נתוני קטגוריות"
-
-msgid "Top 10 Products"
-msgstr "10 המוצרים המובילים"
-
-msgid "No product data"
-msgstr "אין נתוני מוצרים"
-
-msgid "Monthly Insights"
-msgstr "תובנות חודשיות"
-
-msgid "Key Data"
-msgstr "נתונים מרכזיים"
-
-msgid "Number of active weeks:"
-msgstr "מספר שבועות פעילים:"
-
-msgid "Weekly average revenue:"
-msgstr "הכנסה שבועית ממוצעת:"
-
-msgid "Monthly profit margin:"
-msgstr "שיעור רווח חודשי:"
-
-msgid "Monthly food cost:"
-msgstr "עלות מזון חודשית:"
-
-msgid "Weekly average cost per recipe:"
-msgstr "עלות מזון ממוצעת למתכון:"
-
-msgid "Leading Performance"
-msgstr "ביצועים מובילים"
-
-msgid "Best week:"
-msgstr "השבוע הרווחי ביותר:"
-
-msgid "Monthly waste percentage:"
-msgstr "שיעור פחת חודשי:"
-
-# Dashboard & Index page translations
-msgid "Weekly Dashboard"
-msgstr "דשבורד שבועי"
-
-msgid "Performance, sales, and profitability overview."
-msgstr "ריכוז ביצועים, מכירות ורווחיות."
-
-msgid "New Week"
-msgstr "שבוע חדש"
-
-msgid "New Production"
-msgstr "ייצור חדש"
-
-msgid "Update Sales"
-msgstr "עדכון מכירות"
-
-msgid "Update Labor"
-msgstr "עדכון לייבור"
-
-msgid "Revenue (Sales)"
-msgstr "הכנסות (מכירות)"
-
-msgid "Labor Cost (Fixed)"
-msgstr "עלות עבודה (קבוע)"
-
-msgid "Stock Value (Cost)"
-msgstr "שווי מלאי (עלות)"
-
-msgid "Sales Stock Value"
-msgstr "שווי מלאי מכירה"
-
-msgid "Potential Value"
-msgstr "ערך פוטנציאלי"
-
-msgid "Product Performance"
-msgstr "ביצועי מוצרים"
-
-msgid "Remaining"
-msgstr "נותר"
-
-msgid "Unit Cost"
-msgstr "עלות יח'"
-
-msgid "No data to display for this week."
-msgstr "אין נתונים להצגה לשבוע זה."
-
-msgid "Start by adding sales or production."
-msgstr "התחל ע\"י הוספת מכירות או ייצור."
-
-msgid "Welcome to CostFlow"
-msgstr "ברוכים הבאים ל-CostFlow"
-
-msgid "To get started, select an existing week or create a new week."
-msgstr "כדי להתחיל, בחר שבוע קיים או צור שבוע חדש."
-
-msgid "Manage Weeks"
-msgstr "ניהול שבועות"
-
-msgid "Common Actions"
-msgstr "פעולות נפוצות"
-
-msgid "Weekly Labor"
-msgstr "לייבור שבועי"
-
-msgid "Manage weeks, employee hours and costs"
-msgstr "ניהול שבועות, שעות עובדים ועלויות"
-
-msgid "Inventory and Raw Materials"
-msgstr "מלאי וחומרי גלם"
-
-msgid "Manage purchases, suppliers and current stock"
-msgstr "ניהול רכש, ספקים ומלאי נוכחי"
-
-msgid "Product Production Log"
-msgstr "יומן ייצור מוצרים"
-
-msgid "Daily production logging for products"
-msgstr "רישום ייצור יומי של מוצרים"
-
-msgid "Premake Production Log"
-msgstr "יומן ייצור הכנות"
-
-msgid "Daily production logging for premakes"
-msgstr "רישום ייצור יומי של הכנות מקדימות"
-
-# Navigation translations (base.html)
-msgid "Home"
-msgstr "ראשי"
-
-msgid "Premakes"
-msgstr "הכנות מקדימות"
-
-msgid "Reports"
-msgstr "דו\"חות"
-
-msgid "Settings"
-msgstr "הגדרות"
-
-msgid "Employees"
-msgstr "מצבת עובדים"
-
-msgid "Suppliers"
-msgstr "ספקים"
-
-msgid "Stock Audit"
-msgstr "ביקורת מלאי"
-
-msgid "Upload Inventory from File"
-msgstr "טעינת מלאי מקובץ"
-
-msgid "Import Recipes"
-msgstr "ייבוא מתכונים"
-
-msgid "Activity Log / Reset"
-msgstr "יומן פעילות / איפוס"
-
-msgid "All rights reserved."
-msgstr "כל הזכויות שמורות."
-
-msgid "No results found"
-msgstr "לא נמצאו תוצאות"
-
-# Products page translations
-msgid "Manage products, recipes, and costs."
-msgstr "ניהול מוצרים, מתכונים ועלויות."
-
-msgid "Image"
-msgstr "תמונה"
-
-msgid "Recipe Weight"
-msgstr "משקל מתכון"
-
-msgid "Unit Weight"
-msgstr "משקל יחידה"
-
-msgid "Production Cost per Unit"
-msgstr "עלות ייצור ליחידה"
-
-msgid "Selling Price"
-msgstr "מחיר מכירה"
-
-msgid "Preproduct - Can be sold and also used as a component"
-msgstr "מוצר מקדים - ניתן למכירה וגם לשימוש כרכיב"
-
-msgid "Missing raw materials:"
-msgstr "חסרים חומרי גלם:"
-
-msgid "Stock shortage"
-msgstr "חוסר במלאי"
-
-msgid "Convert to premake"
-msgstr "הפוך להכנה מקדימה"
-
-msgid "This action will convert the product to a premake, transfer inventory and delete the original product. Continue?"
-msgstr "פעולה זו תהפוך את המוצר להכנה מקדימה, תעביר את המלאי ותמחק את המוצר המקורי. האם להמשיך?"
-
-msgid "No products found in system."
-msgstr "לא נמצאו מוצרים במערכת."
-
-# Production page translations
-msgid "Select product..."
-msgstr "בחר מוצר..."
-
-msgid "Production Mode"
-msgstr "מצב ייצור"
-
-msgid "number of batches"
-msgstr "מספר באצ'ים"
-
-msgid "number of units"
-msgstr "מספר יחידות"
-
-msgid "One unit"
-msgstr "יחידה אחת"
-
-msgid "Batches"
-msgstr "באצ'ים"
-
-msgid "batches"
-msgstr "באצ'ים"
-
-msgid "Total units to produce:"
-msgstr "סה\"כ יחידות לייצור:"
-
-msgid "Material and Premake Usage Breakdown"
-msgstr "פירוט צריכת חומרים והכנות"
-
-msgid "Component"
-msgstr "רכיב"
-
-msgid "Type"
-msgstr "סוג"
-
-msgid "Current Stock"
-msgstr "מלאי נוכחי"
-
-msgid "Usage in this production"
-msgstr "צריכה בייצור זה"
-
-msgid "Stock after production"
-msgstr "מלאי לאחר ייצור"
-
-msgid "Shortage"
-msgstr "חוסר"
-
-msgid "Preproduct"
-msgstr "מוצר מקדים"
-
-msgid "Total production cost"
-msgstr "סה\"כ עלות ייצור"
-
-msgid "Units Produced"
-msgstr "יחידות שיוצרו"
-
-msgid "Cost/Unit"
-msgstr "עלות/יחידה"
-
-msgid "Edit Production Quantity"
-msgstr "עריכת כמות ייצור"
-
-msgid "Are you sure you want to delete this production log?"
-msgstr "האם אתה בטוח שברצונך למחוק רשומת ייצור זו?"
-
-msgid "Edit Production Quantity for"
-msgstr "עריכת כמות ייצור עבור"
-
-# Premakes page translations
-msgid "Manage base recipes and premakes."
-msgstr "ניהול מתכוני בסיס והכנות (Premakes)."
-
-msgid "Search premake..."
-msgstr "חפש הכנה מקדימה..."
-
-msgid "Batch Quantity"
-msgstr "כמות באצ'"
-
-msgid "All Categories"
-msgstr "כל הקטגוריות"
-
-msgid "Add Premake"
-msgstr "הוסף הכנה מקדימה"
-
-msgid "Are you sure you want to delete this premake?"
-msgstr "האם אתה בטוח שברצונך למחוק הכנה מקדימה זו?"
-
-msgid "No premakes found."
-msgstr "לא נמצאו הכנות מקדימות."
-
-msgid "View Details"
-msgstr "צפה בפרטים"
-
-# Dashboard page translations
-msgid "Production Cost"
-msgstr "עלות ייצור"
-
-msgid "Stock Discrepancies"
-msgstr "הפרשי מלאי"
-
-# Premake Production page translations
-msgid "Select Premake"
-msgstr "בחר הכנה מקדימה"
-
-msgid "Select premake..."
-msgstr "בחר הכנה..."
-
-msgid "Batch size (recipe):"
-msgstr "גודל באצ' (מתכון):"
-
-msgid "Number of batches to produce"
-msgstr "מספר באצ'ים לייצור"
-
-msgid "Enter the number of batches to produce. Each batch is"
-msgstr "הכנס את מספר הבאצ'ים לייצור. כל באצ' הוא"
-
-msgid "Total quantity to produce:"
-msgstr "סה\"כ כמות לייצור:"
-
-msgid "Premake Production History"
-msgstr "היסטוריית ייצור הכנות"
-
-msgid "Number of batches"
-msgstr "מספר באצ'ים"
-
-msgid "Enter the number of batches produced. Each batch is"
-msgstr "הכנס את מספר הבאצ'ים שיוצרו. כל באצ' הוא"
-
-msgid "Edit Premake Production Quantity"
-msgstr "עריכת כמות ייצור הכנה"
-
-msgid "Edit Premake Production Quantity for"
-msgstr "עריכת כמות ייצור הכנה עבור"
-
-msgid "Are you sure you want to delete this premake production log?"
-msgstr "האם אתה בטוח שברצונך למחוק רשומת ייצור הכנה זו?"
-
-# add_or_edit_product.html new translations
-msgid "Edit Product"
-msgstr "עריכת מוצר"
-
-msgid "e.g., Uniform Bread"
-msgstr "לדוגמה: לחם אחיד"
-
-msgid "Units per Recipe (per production batch)"
-msgstr "כמות מוצרים למתכון (לסיבוב ייצור)"
-
-msgid "Selling Price per Unit"
-msgstr "מחיר מכירה ליחידה"
-
-msgid "Can be sold and also used as a component in other products"
-msgstr "ניתן למכירה וגם לשימוש כרכיב במוצרים אחרים"
-
-msgid "Product Image"
-msgstr "תמונת מוצר"
-
-msgid "Required Raw Materials"
-msgstr "חומרי גלם נדרשים"
-
-msgid "Select raw material..."
-msgstr "בחר חומר גלם..."
-
-msgid "Average"
-msgstr "ממוצע"
-
-msgid "Required Packaging"
-msgstr "אריזות נדרשות"
-
-msgid "Select packaging..."
-msgstr "בחר אריזה..."
-
-msgid "Cost Summary (Primary Supplier Prices)"
-msgstr "סיכום עלויות (מחירי ספק ראשי)"
-
-msgid "Raw Material Cost per Recipe:"
-msgstr "עלות חומרי גלם למתכון:"
-
-msgid "Cost per Unit:"
-msgstr "עלות ליחידה:"
-
-msgid "Costs are calculated based on primary supplier prices for each raw material, which will be used in actual production."
-msgstr "העלויות מחושבות על בסיס מחירי הספק הראשי של כל חומר גלם, שזה המחיר שישמש בייצור בפועל."
-
-msgid "Add Product"
-msgstr "הוסף מוצר"
-
-msgid "Cancel and Return"
-msgstr "ביטול וחזרה"
-
-msgid "Raw Material Name"
-msgstr "שם חומר הגלם"
-
-msgid "Unit of Measure"
-msgstr "יחידת מידה"
-
-msgid "Save"
-msgstr "שמור"
-
-msgid "Add New Packaging"
-msgstr "הוספת אריזה חדשה"
-
-msgid "Quantity per Packaging Unit"
-msgstr "כמות ליחידת אריזה"
-
-msgid "Price per Packaging Unit"
-msgstr "מחיר ליחידת אריזה"
-
-msgid "Add New Employee"
-msgstr "הוסף עובד חדש"
-
-msgid "Phone Number (optional)"
-msgstr "מספר טלפון (אופציונלי)"
-
-msgid "Total Hourly Rate (employer cost)"
-msgstr "תעריף שעתי כולל (עלות מעביד)"
-
-msgid "Save Employee"
-msgstr "שמור עובד"
-
-msgid "Select preproduct..."
-msgstr "בחר מוצר מקדים..."
-
-msgid "Add Preproduct"
-msgstr "הוסף מוצר מקדים"
-
-msgid "Preproducts"
-msgstr "מוצרים מקדימים"
-
-# add_or_edit_raw_material.html new translations
-msgid "Add New Supplier"
-msgstr "הוספת ספק חדש"
-
-msgid "Supplier Name"
-msgstr "שם הספק"
-
-msgid "Contact Person"
-msgstr "איש קשר"
-
-msgid "Phone"
-msgstr "טלפון"
-
-msgid "Add Supplier"
-msgstr "הוסף ספק"
-
-msgid "Handle Existing Stock"
-msgstr "טיפול במלאי קיים"
-
-msgid "Transfer stock to another supplier"
-msgstr "העברת המלאי לספק אחר"
-
-msgid "Mark stock as waste"
-msgstr "סימון המלאי כפחת"
-
-msgid "Keep stock as is"
-msgstr "השאר את המלאי כמו שהוא"
-
-msgid "Confirm"
-msgstr "אישור"
-
-msgid "Select supplier..."
-msgstr "בחר ספק..."
-
-msgid "Optional SKU"
-msgstr "מק''ט אופציונלי"
-
-msgid "Alternative name for material (e.g., White Flour)"
-msgstr "שם חלופי לחומר (למשל: קמח לבן)"
-
-msgid "Delete this alternative name?"
-msgstr "האם למחוק שם חלופי זה?"
-
-msgid "The following suppliers with existing stock were removed:"
-msgstr "הספקים הבאים עם מלאי קיים הוסרו:"
-
-msgid "What to do with the stock?"
-msgstr "מה לעשות עם המלאי?"
-
-# raw_materials.html new translations
-msgid "Raw Materials Management"
-msgstr "ניהול חומרי גלם"
-
-msgid "Track inventory, costs, and suppliers."
-msgstr "מעקב אחר מלאי, עלויות וספקים."
-
-msgid "Search raw material..."
-msgstr "חפש חומר גלם..."
-
-msgid "Unlimited"
-msgstr "בלתי מוגבל"
-
-msgid "Stock Breakdown by Supplier"
-msgstr "פירוט מלאי לפי ספק"
-
-msgid "Total"
-msgstr "סה\"כ"
-
-msgid "suppliers"
-msgstr "ספקים"
-
-msgid "Update Count"
-msgstr "עדכן ספירה"
-
-msgid "Edit Details"
-msgstr "ערוך פרטים"
-
-msgid "Adding quantity to:"
-msgstr "הוספת כמות ל:"
-
-msgid "Select supplier for stock addition"
-msgstr "בחר ספק להוספת המלאי"
-
-msgid "Quantity to Add"
-msgstr "כמות להוספה"
-
-msgid "Update Stock"
-msgstr "עדכן מלאי"
-
-msgid "Stock Count (Manual Update)"
-msgstr "ספירת מלאי (עדכון ידני)"
-
-msgid "Update current stock for:"
-msgstr "עדכון מלאי נוכחי עבור:"
-
-msgid "Select supplier for stock update"
-msgstr "בחר ספק לעדכון המלאי"
-
-msgid "Actual Current Quantity"
-msgstr "כמות נוכחית בפועל"
-
-msgid "Who performed the count?"
-msgstr "מי ביצע את הספירה?"
-
-msgid "Delete Raw Material"
-msgstr "מחיקת חומר גלם"
-
-msgid "Are you sure you want to delete"
-msgstr "האם אתה בטוח שברצונך למחוק את"
-
-msgid "This action will also delete the stock history for this item."
-msgstr "פעולה זו תמחק גם את היסטוריית המלאי של פריט זה."
-
-msgid "Stock:"
-msgstr "מלאי:"
-
-msgid "No suppliers defined for this raw material"
-msgstr "לא הוגדרו ספקים לחומר גלם זה"
-
-msgid "Error loading suppliers"
-msgstr "שגיאה בטעינת ספקים"
-
-msgid "Current Stock:"
-msgstr "מלאי נוכחי:"
-
-
-# add_or_edit_premake.html new translations
-msgid "Edit Premake"
-msgstr "ערוך הכנה מקדימה"
-
-msgid "Select category..."
-msgstr "בחר קטגוריה..."
-
-msgid "Unit of Measure (of product)"
-msgstr "יחידת מידה (של התוצר)"
-
-msgid "Product quantity will be calculated automatically as sum of component weights."
-msgstr "כמות התוצר תחושב אוטומטית כסכום משקלי המרכיבים."
-
-msgid "Components"
-msgstr "מרכיבים"
-
-# Product Details page translations
-msgid "units"
-msgstr "יחידות"
-
-msgid "Gross Profit per Unit"
-msgstr "רווח גולמי ליחידה"
-
-msgid "Product Components"
-msgstr "מרכיבי המוצר"
-
-msgid "items"
-msgstr "פריטים"
-
-msgid "Quantity in Recipe"
-msgstr "כמות במתכון"
-
-msgid "Components of"
-msgstr "מרכיבי"
-
-msgid "Total Premakes:"
-msgstr "סה\"כ הכנות מקדימות:"
-
-msgid "Total Preproducts:"
-msgstr "סה\"כ מוצרים מקדימים:"
-
-msgid "Total Packaging:"
-msgstr "סה\"כ אריזות:"
-
-msgid "Selling Price:"
-msgstr "מחיר מכירה:"
-
-msgid "Production Cost:"
-msgstr "עלות ייצור:"
-
-msgid "Gross Profit:"
-msgstr "רווח גולמי:"
-
-msgid "Profit Margin:"
-msgstr "אחוז רווח:"
-
-# Premake Details page translations
-msgid "Premake Details"
-msgstr "פרטי הכנה מקדימה"
-
-msgid "Recipe details and costs"
-msgstr "פרטי מתכון ועלויות"
-
-msgid "Back to list"
-msgstr "חזרה לרשימה"
-
-msgid "Batch Size"
-msgstr "גודל באצ'"
-
-msgid "Total Cost per Batch"
-msgstr "עלות כוללת לבאצ'"
-
-msgid "% of Cost"
-msgstr "% מהעלות"
-
-msgid "No components for this premake."
-msgstr "אין מרכיבים להכנה זו."
-
-# Missing product_details.html translations
-msgid "Quantity per Recipe"
-msgstr "כמות למתכון"
-
-msgid "Cost per Product"
-msgstr "עלות למוצר"
-
-msgid "Total Cost per Product:"
-msgstr "סה\"כ עלות למוצר:"
-
-msgid "Premakes:"
-msgstr "הכנות מקדימות:"
-
-msgid "Raw Materials:"
-msgstr "חומרי גלם:"
-
-msgid "Cost Summary"
-msgstr "סיכום עלויות"
-
-msgid "Total Raw Materials:"
-msgstr "סה\"כ חומרי גלם:"
-
-# update_weekly_sales.html translations
-msgid "Update Weekly Sales"
-msgstr "עדכון מכירות שבועי"
-
-msgid "Enter the quantities sold this week for each product."
-msgstr "הזן את הכמויות שנמכרו השבוע עבור כל מוצר."
-
-msgid "Produced This Week"
-msgstr "יוצר השבוע"
-
-msgid "Sold So Far"
-msgstr "נמכר עד כה"
-
-msgid "Add Sales"
-msgstr "הוסף מכירה"
-
-msgid "Waste So Far"
-msgstr "פחת עד כה"
-
-msgid "Add Waste"
-msgstr "הוסף פחת"
-
-msgid "Produced:"
-msgstr "יוצר:"
-
-msgid "Remaining:"
-msgstr "נותר:"
-
-msgid "Add Update"
-msgstr "הוסף עדכון"
-
-msgid "Attention: The quantity entered exceeds the available stock produced this week."
-msgstr "שים לב: הכמות שהוזנה עולה על המלאי הזמין שיוצר השבוע."
-
-
-msgid "Back to List"
-msgstr "חזרה לרשימה"
-
-msgid "Cost per Batch"
-msgstr "עלות לאצ'"
-
-msgid "per"
-msgstr "ל-"
-
-msgid "Preparation Components"
-msgstr "מרכיבי ההכנה"
-
-msgid "Total Cost per Batch:"
-msgstr "סה\"כ עלות לאצ':"
-
-msgid "No components defined for this preparation."
-msgstr "אין מרכיבים מוגדרים להכנה זו."
-
-msgid "Batch Size:"
-msgstr "גודל אצ':"
-
-msgid "Number of Components:"
-msgstr "מספר מרכיבים:"
-
-msgid "Total Batch Cost:"
-msgstr "עלות כוללת לאצ':"
-
-msgid "Stock Value:"
-msgstr "שווי מלאי:"
-
-msgid "Edit Employee / Role"
-msgstr "עריכת עובד / תפקיד"
-
-msgid "Employee Name / Role"
-msgstr "שם עובד / תפקיד"
-
-msgid "Total Hourly Cost (₪)"
-msgstr "עלות כוללת לשעה (₪)"
-
-msgid "Including base salary and employer costs."
-msgstr "כולל שכר יסוד ועלויות מעביד."
-
-msgid "Manage packaging types and prices."
-msgstr "ניהול סוגי אריזות ומחירים."
-
-msgid "Are you sure you want to delete this item?"
-msgstr "האם אתה בטוח שברצונך למחוק פריט זה?"
-
-msgid "No packaging found in the system."
-msgstr "לא נמצאו אריזות במערכת."
-
-msgid "Weekly Costs Management"
-msgstr "ניהול עלויות שבועיות"
-
-msgid "Track work hours and costs by week."
-msgstr "מעקב אחר שעות עבודה ועלויות לפי שבוע."
-
-msgid "Start Date"
-msgstr "תאריך התחלה"
-
-msgid "Number of Employees"
-msgstr "מספר עובדים"
-
-msgid "Details and Update"
-msgstr "פרטים ועדכון"
-
-msgid "No weekly costs defined yet."
-msgstr "לא הוגדרו עלויות שבועיות עדיין."
-
-msgid "Open New Week"
-msgstr "פתיחת שבוע חדש"
-
-msgid "Week Start Date (Sunday)"
-msgstr "תאריך התחלת שבוע (יום ראשון)"
-
-msgid "Create and Open Details"
-msgstr "צור ופתח לפרטים"
-
-msgid "Employee and Cost Management"
-msgstr "ניהול עובדים ועלויות"
-
-msgid "Track labor costs and hourly wages."
-msgstr "מעקב אחר עלויות כוח אדם ושכר שעתי."
-
-msgid "Add New Employee / Role"
-msgstr "הוסף עובד / תפקיד חדש"
-
-msgid "e.g., Head Baker"
-msgstr "לדוגמה: אופה ראשי"
-
-msgid "Add Employee"
-msgstr "הוסף עובד"
-
-msgid "Employee List"
-msgstr "רשימת עובדים"
-
-msgid "Hourly Cost"
-msgstr "עלות לשעה"
-
-msgid "This action is irreversible."
-msgstr "פעולה זו אינה הפיכה."
-
-msgid "No employees found in the list."
-msgstr "לא נמצאו עובדים ברשימה."
-
-msgid "Cost"
-msgstr "עלות"
-
-msgid "Category:"
-msgstr "קטגוריה:"
-
-msgid "Cost per Unit"
-msgstr "עלות ליחידה"
-msgid "Manage Suppliers"
-msgstr "ניהול ספקים"
-
-msgid "Manage raw material suppliers and prices."
-msgstr "ניהול ספקי חומרי גלם ומחירים."
-
-msgid "Active Materials"
-msgstr "חומרים פעילים"
-
-msgid "View Materials"
-msgstr "צפה בחומרים"
-
-msgid "Reactivate"
-msgstr "השבת"
-
-msgid "Deactivate"
-msgstr "הפוך ללא פעיל"
-
-msgid "Delete supplier"
-msgstr "למחוק את הספק"
-
-msgid "No suppliers found in the system."
-msgstr "לא נמצאו ספקים במערכת."
-
-msgid "Hide Inactive Suppliers"
-msgstr "הסתר ספקים לא פעילים"
-
-msgid "Show Inactive Suppliers"
-msgstr "הצג ספקים לא פעילים"
-
-msgid "Supplier"
-msgstr "ספק"
-
-msgid "Unique name to identify supplier in the system"
-msgstr "שם ייחודי לזיהוי הספק במערכת"
-
-msgid "Name of contact person at supplier"
-msgstr "שם איש הקשר אצל הספק"
-
-msgid "Phone number for contact"
-msgstr "מספר טלפון ליצירת קשר"
-
-msgid "Email address for correspondence"
-msgstr "כתובת אימייל לתכתובת"
-
-msgid "Address"
-msgstr "כתובת"
-
-msgid "Street, City, Postal Code"
-msgstr "רחוב, עיר, מיקוד"
-
-msgid "Physical address of supplier"
-msgstr "כתובת פיזית של הספק"
-
-msgid "Supplier Information"
-msgstr "מידע על ספקים"
-
-msgid "Suppliers in the system allow managing multiple sources for raw materials with different prices."
-msgstr "ספקים במערכת מאפשרים לנהל מספר מקורות לחומרי גלם עם מחירים שונים."
-
-msgid "Each supplier can provide multiple raw materials"
-msgstr "כל ספק יכול לספק מספר חומרי גלם"
-
-msgid "Each raw material can be supplied by multiple suppliers"
-msgstr "כל חומר גלם יכול להיות מסופק ע\"י מספר ספקים"
-
-msgid "The system will automatically choose the cheapest supplier during production"
-msgstr "המערכת תבחר אוטומטית בספק הזול ביותר בעת ייצור"
-
-msgid "Inventory is managed separately for each supplier"
-msgstr "מלאי מנוהל נפרדת לכל ספק"
-
-msgid "Created on:"
-msgstr "נוצר בתאריך:"
-
-msgid "Activity Log"
-msgstr "יומן פעילות"
-
-msgid "System Activity Log"
-msgstr "יומן פעילות מערכת"
-
-msgid "Track changes and user actions."
-msgstr "מעקב אחר שינויים ופעולות משתמשים."
-
-msgid "Backup Data"
-msgstr "גיבוי נתונים"
-
-msgid "Restore from Backup"
-msgstr "שחזור מגיבוי"
-
-msgid "Full System Reset"
-msgstr "איפוס מערכת מלא"
-
-msgid "Time"
-msgstr "זמן"
-
-msgid "Action"
-msgstr "פעולה"
-
-msgid "Target Type"
-msgstr "סוג יעד"
-
-msgid "Target ID"
-msgstr "מזהה יעד"
-
-msgid "Create"
-msgstr "יצירה"
-
-msgid "Reset"
-msgstr "איפוס"
-
-msgid "Restore"
-msgstr "שחזור"
-
-msgid "No records in the log."
-msgstr "אין רישומים ביומן."
-
-msgid "This action will overwrite all data in the system!"
-msgstr "פעולה זו תדרוס את כל הנתונים במערכת!"
-
-msgid "Upload a backup file (JSON) to restore the state."
-msgstr "העלה קובץ גיבוי (JSON) לשחזור המצב."
-
-msgid "Backup File"
-msgstr "קובץ גיבוי"
-
-msgid "Restore Data"
-msgstr "שחזר נתונים"
-
-msgid "Warning: System Reset"
-msgstr "אזהרה: איפוס מערכת"
-
-msgid "This action will delete all data in the system!"
-msgstr "פעולה זו תמחק את כל הנתונים במערכת!"
-
-msgid "All products, raw materials, history and logs will be permanently deleted. This information cannot be recovered."
-msgstr "כל המוצרים, חומרי הגלם, ההיסטוריה והיומנים יימחקו לצמיתות. לא ניתן לשחזר מידע זה."
-
-msgid "Are you sure you want to continue?"
-msgstr "האם אתה בטוח שברצונך להמשיך?"
-
-msgid "Yes, reset the system"
-msgstr "כן, אפס את המערכת"
-
-msgid "Classify raw materials into groups."
-msgstr "סיווג חומרי גלם לקבוצות."
-
-msgid "Classify products into sales groups."
-msgstr "סיווג מוצרים לקבוצות מכירה."
-
-msgid "Delete this category?"
-msgstr "למחוק קטגוריה זו?"
-
-msgid "No categories found."
-msgstr "לא נמצאו קטגוריות."
-
-msgid "Update Inventory from File"
-msgstr "עדכון מלאי מקובץ"
-
-msgid "Upload Excel file to update quantities and prices."
-msgstr "העלאת קובץ אקסל לעדכון כמויות ומחירים."
-
-msgid "Upload Excel File"
-msgstr "העלה קובץ אקסל"
-
-msgid "File must contain columns: Product Name, Total Quantity, Average Price."
-msgstr "הקובץ חייב להכיל את העמודות: שם מוצר, סה\"כ כמות, מחיר ממוצע."
-
-msgid "Optional columns: SKU, Supplier (for more accurate identification)"
-msgstr "עמודות אופציונליות: מק\"ט, ספק (לזיהוי מדויק יותר)"
-
-msgid "Load File"
-msgstr "טען קובץ"
-
-msgid "Review Data and Confirm Changes"
-msgstr "סקירת נתונים ואישור שינויים"
-
-msgid "SKU / Supplier"
-msgstr "מק\"ט / ספק"
-
-msgid "Price in File"
-msgstr "מחיר בקובץ"
-
-msgid "Price in System"
-msgstr "מחיר במערכת"
-
-msgid "Action Required"
-msgstr "פעולה נדרשת"
-
-msgid "SKU:"
-msgstr "מק\"ט:"
-
-msgid "Identified by SKU"
-msgstr "זוהה לפי מק''ט"
-
-msgid "New"
-msgstr "חדש"
-
-msgid "Exists"
-msgstr "קיים"
-
-msgid "Update price to"
-msgstr "עדכן מחיר ל-"
-
-msgid "Same price"
-msgstr "מחיר זהה"
-
-msgid "Confirm and Update Inventory"
-msgstr "אשר ועדכן מלאי"
+#~ msgid "No components for this premake."
+#~ msgstr "אין מרכיבים להכנה זו."
 
 # Translations added from batch 3 (final 6 files)
+#~ msgid "0 recipes selected'"
+#~ msgstr ""
 
-msgid "0 recipes selected'"
-msgstr ""
+#~ msgid "Actions'"
+#~ msgstr ""
 
-msgid "Actions'"
-msgstr ""
+#~ msgid "Active'"
+#~ msgstr ""
 
-msgid "Active'"
-msgstr ""
+#~ msgid "Add Employee Hours'"
+#~ msgstr ""
 
-msgid "Add Employee Hours'"
-msgstr ""
+#~ msgid "Add to List'"
+#~ msgstr ""
 
-msgid "Add to List'"
-msgstr ""
+#~ msgid "Added:'"
+#~ msgstr ""
 
-msgid "Added:'"
-msgstr ""
+#~ msgid "Address:'"
+#~ msgstr ""
 
-msgid "Address:'"
-msgstr ""
+#~ msgid "Affected Categories'"
+#~ msgstr ""
 
-msgid "Affected Categories'"
-msgstr ""
+#~ msgid "After metadata, blank row, then recipes'"
+#~ msgstr ""
 
-msgid "After metadata, blank row, then recipes'"
-msgstr ""
+#~ msgid "All Materials'"
+#~ msgstr ""
 
-msgid "All Materials'"
-msgstr ""
+#~ msgid "Analysis by Category'"
+#~ msgstr ""
 
-msgid "Analysis by Category'"
-msgstr ""
+#~ msgid "Approve and Close Week'"
+#~ msgstr ""
 
-msgid "Approve and Close Week'"
-msgstr ""
+#~ msgid "Audit History'"
+#~ msgstr ""
 
-msgid "Audit History'"
-msgstr ""
+#~ msgid "Auditor'"
+#~ msgstr ""
 
-msgid "Auditor'"
-msgstr ""
+#~ msgid "Average financial variance per count:'"
+#~ msgstr ""
 
-msgid "Average financial variance per count:'"
-msgstr ""
+#~ msgid "Calculated Cost'"
+#~ msgstr ""
 
-msgid "Calculated Cost'"
-msgstr ""
+#~ msgid "Cancel'"
+#~ msgstr ""
 
-msgid "Cancel'"
-msgstr ""
+#~ msgid "Category'"
+#~ msgstr ""
 
-msgid "Category'"
-msgstr ""
+#~ msgid "Category:'"
+#~ msgstr ""
 
-msgid "Category:'"
-msgstr ""
+#~ msgid "Changes (compared to existing recipe):'"
+#~ msgstr ""
 
-msgid "Changes (compared to existing recipe):'"
-msgstr ""
+#~ msgid "Close Week - Reset Inventory'"
+#~ msgstr ""
 
-msgid "Close Week - Reset Inventory'"
-msgstr ""
+#~ msgid "Columns: name, type, price/kg, weight (g), total price'"
+#~ msgstr ""
 
-msgid "Columns: name, type, price/kg, weight (g), total price'"
-msgstr ""
+#~ msgid "Confirm and Import Recipes'"
+#~ msgstr ""
 
-msgid "Confirm and Import Recipes'"
-msgstr ""
+#~ msgid "Contact Person:'"
+#~ msgstr ""
 
-msgid "Contact Person:'"
-msgstr ""
+#~ msgid "Continue to Review'"
+#~ msgstr ""
 
-msgid "Continue to Review'"
-msgstr ""
+#~ msgid ""
+#~ "Cost calculated automatically according to "
+#~ "employee rate (including employer costs).'"
+#~ msgstr ""
 
-msgid "Cost calculated automatically according to employee rate (including employer costs).'"
-msgstr ""
+#~ msgid "Cost per 100g:'"
+#~ msgstr ""
 
-msgid "Cost per 100g:'"
-msgstr ""
+#~ msgid "Counts'"
+#~ msgstr ""
 
-msgid "Counts'"
-msgstr ""
+#~ msgid "Current Stock'"
+#~ msgstr ""
 
-msgid "Current Stock'"
-msgstr ""
+#~ msgid "Date'"
+#~ msgstr ""
 
-msgid "Date'"
-msgstr ""
+#~ msgid "Deselect All\""
+#~ msgstr ""
 
-msgid "Deselect All\""
-msgstr ""
+#~ msgid "Different'"
+#~ msgstr ""
 
-msgid "Different'"
-msgstr ""
+#~ msgid "Each recipe starts with title, 2 header rows, then materials'"
+#~ msgstr ""
 
-msgid "Each recipe starts with title, 2 header rows, then materials'"
-msgstr ""
+#~ msgid "Email:'"
+#~ msgstr ""
 
-msgid "Email:'"
-msgstr ""
+#~ msgid "Employee / Role'"
+#~ msgstr ""
 
-msgid "Employee / Role'"
-msgstr ""
+#~ msgid "Employee Name'"
+#~ msgstr ""
 
-msgid "Employee Name'"
-msgstr ""
+#~ msgid "Enter hours in HH:MM format (example: 8:30)'"
+#~ msgstr ""
 
-msgid "Enter hours in HH:MM format (example: 8:30)'"
-msgstr ""
+#~ msgid "Enter in HH:MM format (example: 8:30 for eight and a half hours)'"
+#~ msgstr ""
 
-msgid "Enter in HH:MM format (example: 8:30 for eight and a half hours)'"
-msgstr ""
+#~ msgid "Error loading\""
+#~ msgstr ""
 
-msgid "Error loading\""
-msgstr ""
+#~ msgid "Error updating price\""
+#~ msgstr ""
 
-msgid "Error updating price\""
-msgstr ""
+#~ msgid "Error updating price:\""
+#~ msgstr ""
 
-msgid "Error updating price:\""
-msgstr ""
+#~ msgid "Example: 8:30'"
+#~ msgstr ""
 
-msgid "Example: 8:30'"
-msgstr ""
+#~ msgid "Exists - Will Update'"
+#~ msgstr ""
 
-msgid "Exists - Will Update'"
-msgstr ""
+#~ msgid "File uploaded successfully'"
+#~ msgstr ""
 
-msgid "File uploaded successfully'"
-msgstr ""
+#~ msgid "Filter'"
+#~ msgstr ""
 
-msgid "Filter'"
-msgstr ""
+#~ msgid "Financial Value'"
+#~ msgstr ""
 
-msgid "Financial Value'"
-msgstr ""
+#~ msgid "First rows must contain metadata:'"
+#~ msgstr ""
 
-msgid "First rows must contain metadata:'"
-msgstr ""
+#~ msgid "For the week ending on'"
+#~ msgstr ""
 
-msgid "For the week ending on'"
-msgstr ""
+#~ msgid "Found (alternative name)'"
+#~ msgstr ""
 
-msgid "Found (alternative name)'"
-msgstr ""
+#~ msgid "Found via alternative name'"
+#~ msgstr ""
 
-msgid "Found via alternative name'"
-msgstr ""
+#~ msgid "Found'"
+#~ msgstr ""
 
-msgid "Found'"
-msgstr ""
+#~ msgid "From Date'"
+#~ msgstr ""
 
-msgid "From Date'"
-msgstr ""
+#~ msgid "Gross Weight:'"
+#~ msgstr ""
 
-msgid "Gross Weight:'"
-msgstr ""
+#~ msgid "Hours'"
+#~ msgstr ""
 
-msgid "Hours'"
-msgstr ""
+#~ msgid "Import Recipes from Excel'"
+#~ msgstr ""
 
-msgid "Import Recipes from Excel'"
-msgstr ""
+#~ msgid "Import Recipes'"
+#~ msgstr ""
 
-msgid "Import Recipes'"
-msgstr ""
+#~ msgid "Import\""
+#~ msgstr ""
 
-msgid "Import\""
-msgstr ""
+#~ msgid "Insights'"
+#~ msgstr ""
 
-msgid "Insights'"
-msgstr ""
+#~ msgid "Leftovers found in inventory from last week'"
+#~ msgstr ""
 
-msgid "Leftovers found in inventory from last week'"
-msgstr ""
+#~ msgid "List of all raw materials supplied by this supplier.'"
+#~ msgstr ""
 
-msgid "List of all raw materials supplied by this supplier.'"
-msgstr ""
+#~ msgid "Load File'"
+#~ msgstr ""
 
-msgid "Load File'"
-msgstr ""
+#~ msgid "Loading...\""
+#~ msgstr ""
 
-msgid "Loading...\""
-msgstr ""
+#~ msgid "Loss Value (Cost)'"
+#~ msgstr ""
 
-msgid "Loss Value (Cost)'"
-msgstr ""
+#~ msgid "Loss'"
+#~ msgstr ""
 
-msgid "Loss'"
-msgstr ""
+#~ msgid "Loss:'"
+#~ msgstr ""
 
-msgid "Loss:'"
-msgstr ""
+#~ msgid "Match'"
+#~ msgstr ""
 
-msgid "Match'"
-msgstr ""
+#~ msgid "Material types: \""
+#~ msgstr ""
 
-msgid "Material types: \""
-msgstr ""
+#~ msgid "Material with highest discrepancies:'"
+#~ msgstr ""
 
-msgid "Material with highest discrepancies:'"
-msgstr ""
+#~ msgid "Materials with High Discrepancies'"
+#~ msgstr ""
 
-msgid "Materials with High Discrepancies'"
-msgstr ""
+#~ msgid "Materials:'"
+#~ msgstr ""
 
-msgid "Materials:'"
-msgstr ""
+#~ msgid "Metadata preview:'"
+#~ msgstr ""
 
-msgid "Metadata preview:'"
-msgstr ""
+#~ msgid "Missing Materials'"
+#~ msgstr ""
 
-msgid "Missing Materials'"
-msgstr ""
+#~ msgid "Missing materials in system!'"
+#~ msgstr ""
 
-msgid "Missing materials in system!'"
-msgstr ""
+#~ msgid "Most problematic category:'"
+#~ msgstr ""
 
-msgid "Most problematic category:'"
-msgstr ""
+#~ msgid "Name'"
+#~ msgstr ""
 
-msgid "Name'"
-msgstr ""
+#~ msgid "Net Weight:'"
+#~ msgstr ""
 
-msgid "Net Weight:'"
-msgstr ""
+#~ msgid "New'"
+#~ msgstr ""
 
-msgid "New'"
-msgstr ""
+#~ msgid "No changes'"
+#~ msgstr ""
 
-msgid "No changes'"
-msgstr ""
+#~ msgid "No cost'"
+#~ msgstr ""
 
-msgid "No cost'"
-msgstr ""
+#~ msgid "No data to display'"
+#~ msgstr ""
 
-msgid "No data to display'"
-msgstr ""
+#~ msgid "No hours have been entered for this week yet.'"
+#~ msgstr ""
 
-msgid "No hours have been entered for this week yet.'"
-msgstr ""
+#~ msgid "No raw materials found for this supplier.'"
+#~ msgstr ""
 
-msgid "No raw materials found for this supplier.'"
-msgstr ""
+#~ msgid "No stock audits found for the requested period'"
+#~ msgstr ""
 
-msgid "No stock audits found for the requested period'"
-msgstr ""
+#~ msgid "Not detected (required!)\""
+#~ msgstr ""
 
-msgid "Not detected (required!)\""
-msgstr ""
+#~ msgid "Note:'"
+#~ msgstr ""
 
-msgid "Note:'"
-msgstr ""
+#~ msgid "Optional - default \""
+#~ msgstr ""
 
-msgid "Optional - default \""
-msgstr ""
+#~ msgid "Phone:'"
+#~ msgstr ""
 
-msgid "Phone:'"
-msgstr ""
+#~ msgid "Physical Quantity'"
+#~ msgstr ""
 
-msgid "Physical Quantity'"
-msgstr ""
+#~ msgid "Premake Leftovers'"
+#~ msgstr ""
 
-msgid "Premake Leftovers'"
-msgstr ""
+#~ msgid "Premake'"
+#~ msgstr ""
 
-msgid "Premake'"
-msgstr ""
+#~ msgid "Price in Sheet'"
+#~ msgstr ""
 
-msgid "Price in Sheet'"
-msgstr ""
+#~ msgid "Price in System'"
+#~ msgstr ""
 
-msgid "Price in System'"
-msgstr ""
+#~ msgid "Price per Unit'"
+#~ msgstr ""
 
-msgid "Price per Unit'"
-msgstr ""
+#~ msgid "Primary Supplier'"
+#~ msgstr ""
 
-msgid "Primary Supplier'"
-msgstr ""
+#~ msgid "Primary'"
+#~ msgstr ""
 
-msgid "Primary'"
-msgstr ""
+#~ msgid "Product Leftovers'"
+#~ msgstr ""
 
-msgid "Product Leftovers'"
-msgstr ""
+#~ msgid "Product'"
+#~ msgstr ""
 
-msgid "Product'"
-msgstr ""
+#~ msgid "Quantity Changed:'"
+#~ msgstr ""
 
-msgid "Quantity Changed:'"
-msgstr ""
+#~ msgid "Quantity Remaining'"
+#~ msgstr ""
 
-msgid "Quantity Remaining'"
-msgstr ""
+#~ msgid "Quantity Variance'"
+#~ msgstr ""
 
-msgid "Quantity Variance'"
-msgstr ""
+#~ msgid "Raw Material'"
+#~ msgstr ""
 
-msgid "Raw Material'"
-msgstr ""
+#~ msgid "Raw Materials - '"
+#~ msgstr ""
 
-msgid "Raw Materials - '"
-msgstr ""
+#~ msgid "Raw Materials of'"
+#~ msgstr ""
 
-msgid "Raw Materials of'"
-msgstr ""
+#~ msgid "Remove this entry?'"
+#~ msgstr ""
 
-msgid "Remove this entry?'"
-msgstr ""
+#~ msgid "Removed:'"
+#~ msgstr ""
 
-msgid "Removed:'"
-msgstr ""
+#~ msgid "Required - \""
+#~ msgstr ""
 
-msgid "Required - \""
-msgstr ""
+#~ msgid "Required - existing category name in system'"
+#~ msgstr ""
 
-msgid "Required - existing category name in system'"
-msgstr ""
+#~ msgid "Required file format:'"
+#~ msgstr ""
 
-msgid "Required file format:'"
-msgstr ""
+#~ msgid ""
+#~ "Required metadata fields are missing. "
+#~ "Ensure the file contains type and "
+#~ "category rows.'"
+#~ msgstr ""
 
-msgid "Required metadata fields are missing. Ensure the file contains type and category rows.'"
-msgstr ""
+#~ msgid "Return to update sales data for the previous week (if sold).'"
+#~ msgstr ""
 
-msgid "Return to update sales data for the previous week (if sold).'"
-msgstr ""
+#~ msgid "Review Recipes for Import'"
+#~ msgstr ""
 
-msgid "Review Recipes for Import'"
-msgstr ""
+#~ msgid "Same'"
+#~ msgstr ""
 
-msgid "Same'"
-msgstr ""
+#~ msgid "Save'"
+#~ msgstr ""
 
-msgid "Save'"
-msgstr ""
+#~ msgid "Search material...\""
+#~ msgstr ""
 
-msgid "Search material...\""
-msgstr ""
+#~ msgid "Secondary'"
+#~ msgstr ""
 
-msgid "Secondary'"
-msgstr ""
+#~ msgid "Select All\""
+#~ msgstr ""
 
-msgid "Select All\""
-msgstr ""
+#~ msgid "Select All'"
+#~ msgstr ""
 
-msgid "Select All'"
-msgstr ""
+#~ msgid "Select Excel file:'"
+#~ msgstr ""
 
-msgid "Select Excel file:'"
-msgstr ""
+#~ msgid ""
+#~ "Select a match for all missing "
+#~ "materials in selected recipes from the"
+#~ " dropdowns.\""
+#~ msgstr ""
 
-msgid "Select a match for all missing materials in selected recipes from the dropdowns.\""
-msgstr ""
+#~ msgid ""
+#~ "Select a match for missing materials "
+#~ "from the dropdown, or add the "
+#~ "materials to the system:'"
+#~ msgstr ""
 
-msgid "Select a match for missing materials from the dropdown, or add the materials to the system:'"
-msgstr ""
+#~ msgid ""
+#~ "Select a material from the dropdown "
+#~ "or add new materials to the system"
+#~ " and then import again.'"
+#~ msgstr ""
 
-msgid "Select a material from the dropdown or add new materials to the system and then import again.'"
-msgstr ""
+#~ msgid "Select employee...'"
+#~ msgstr ""
 
-msgid "Select employee...'"
-msgstr ""
+#~ msgid "Select material from system...'"
+#~ msgstr ""
 
-msgid "Select material from system...'"
-msgstr ""
+#~ msgid "Select recipes to import\""
+#~ msgstr ""
 
-msgid "Select recipes to import\""
-msgstr ""
+#~ msgid "Select sheet to import:'"
+#~ msgstr ""
 
-msgid "Select sheet to import:'"
-msgstr ""
+#~ msgid "Set as primary supplier for this material'"
+#~ msgstr ""
 
-msgid "Set as primary supplier for this material'"
-msgstr ""
+#~ msgid "Shortages'"
+#~ msgstr ""
 
-msgid "Shortages'"
-msgstr ""
+#~ msgid "Should we reset inventory and transfer the balance to waste (loss)?'"
+#~ msgstr ""
 
-msgid "Should we reset inventory and transfer the balance to waste (loss)?'"
-msgstr ""
+#~ msgid "Status'"
+#~ msgstr ""
 
-msgid "Status'"
-msgstr ""
+#~ msgid "Status:'"
+#~ msgstr ""
 
-msgid "Status:'"
-msgstr ""
+#~ msgid "Stock Audit'"
+#~ msgstr ""
 
-msgid "Stock Audit'"
-msgstr ""
+#~ msgid "Supplied Raw Materials'"
+#~ msgstr ""
 
-msgid "Supplied Raw Materials'"
-msgstr ""
+#~ msgid "Suppliers'"
+#~ msgstr ""
 
-msgid "Suppliers'"
-msgstr ""
+#~ msgid "Surplus'"
+#~ msgstr ""
 
-msgid "Surplus'"
-msgstr ""
+#~ msgid "System Quantity'"
+#~ msgstr ""
 
-msgid "System Quantity'"
-msgstr ""
+#~ msgid "To Date'"
+#~ msgstr ""
 
-msgid "To Date'"
-msgstr ""
+#~ msgid "Total Cost:'"
+#~ msgstr ""
 
-msgid "Total Cost:'"
-msgstr ""
+#~ msgid "Total Variance (Financial)'"
+#~ msgstr ""
 
-msgid "Total Variance (Financial)'"
-msgstr ""
+#~ msgid "Total Variance'"
+#~ msgstr ""
 
-msgid "Total Variance'"
-msgstr ""
+#~ msgid "Total cost for this week'"
+#~ msgstr ""
 
-msgid "Total cost for this week'"
-msgstr ""
+#~ msgid "Total estimated loss (unmarked for transfer):'"
+#~ msgstr ""
 
-msgid "Total estimated loss (unmarked for transfer):'"
-msgstr ""
+#~ msgid "Total losses from inventory discrepancies:'"
+#~ msgstr ""
 
-msgid "Total losses from inventory discrepancies:'"
-msgstr ""
+#~ msgid "Total recipes:'"
+#~ msgstr ""
 
-msgid "Total recipes:'"
-msgstr ""
+#~ msgid "Track inventory discrepancies and loss analysis'"
+#~ msgstr ""
 
-msgid "Track inventory discrepancies and loss analysis'"
-msgstr ""
+#~ msgid "Transfer to next week?'"
+#~ msgstr ""
 
-msgid "Transfer to next week?'"
-msgstr ""
+#~ msgid "Type'"
+#~ msgstr ""
 
-msgid "Type'"
-msgstr ""
+#~ msgid "Type:'"
+#~ msgstr ""
 
-msgid "Type:'"
-msgstr ""
+#~ msgid "Unit'"
+#~ msgstr ""
 
-msgid "Unit'"
-msgstr ""
+#~ msgid "Unit:'"
+#~ msgstr ""
 
-msgid "Unit:'"
-msgstr ""
+#~ msgid ""
+#~ "Unmarked items will be transferred to"
+#~ " waste. Marked items will remain in"
+#~ " inventory/available.'"
+#~ msgstr ""
 
-msgid "Unmarked items will be transferred to waste. Marked items will remain in inventory/available.'"
-msgstr ""
+#~ msgid "Update Raw Material Price'"
+#~ msgstr ""
 
-msgid "Update Raw Material Price'"
-msgstr ""
+#~ msgid "Update Sales'"
+#~ msgstr ""
 
-msgid "Update Sales'"
-msgstr ""
+#~ msgid "Upload Different File'"
+#~ msgstr ""
 
-msgid "Upload Different File'"
-msgstr ""
+#~ msgid "Upload Recipe File'"
+#~ msgstr ""
 
-msgid "Upload Recipe File'"
-msgstr ""
+#~ msgid "Upload an Excel file with recipes for premakes or products'"
+#~ msgstr ""
 
-msgid "Upload an Excel file with recipes for premakes or products'"
-msgstr ""
+#~ msgid "Value (Cost)'"
+#~ msgstr ""
 
-msgid "Value (Cost)'"
-msgstr ""
+#~ msgid "Variance'"
+#~ msgstr ""
 
-msgid "Variance'"
-msgstr ""
+#~ msgid "Week Details'"
+#~ msgstr ""
 
-msgid "Week Details'"
-msgstr ""
+#~ msgid "Week'"
+#~ msgstr ""
 
-msgid "Week'"
-msgstr ""
+#~ msgid "Weekly Labor'"
+#~ msgstr ""
 
-msgid "Weekly Labor'"
-msgstr ""
+#~ msgid "Weight (g)'"
+#~ msgstr ""
 
-msgid "Weight (g)'"
-msgstr ""
+#~ msgid "Weight and Cost Summary:'"
+#~ msgstr ""
 
-msgid "Weight and Cost Summary:'"
-msgstr ""
+#~ msgid "Work Hours (HH:MM)'"
+#~ msgstr ""
 
-msgid "Work Hours (HH:MM)'"
-msgstr ""
+#~ msgid "Work Hours Details'"
+#~ msgstr ""
 
-msgid "Work Hours Details'"
-msgstr ""
+#~ msgid "counts'"
+#~ msgstr ""
 
-msgid "counts'"
-msgstr ""
+#~ msgid "g'"
+#~ msgstr ""
 
-msgid "g'"
-msgstr ""
+#~ msgid "hour'"
+#~ msgstr ""
 
-msgid "hour'"
-msgstr ""
+#~ msgid "recipes selected\""
+#~ msgstr ""
 
-msgid "recipes selected\""
-msgstr ""
+#~ msgid "recipes\""
+#~ msgstr ""
 
-msgid "recipes\""
-msgstr ""
+#~ msgid "units'"
+#~ msgstr ""
 
-msgid "units'"
-msgstr ""
+#~ msgid "unmapped materials in selected recipes\""
+#~ msgstr ""
 
-msgid "unmapped materials in selected recipes\""
-msgstr ""
+#~ msgid "unsold products remain.'"
+#~ msgstr ""
 
-msgid "unsold products remain.'"
-msgstr ""
+#~ msgid "Raw Materials of"
+#~ msgstr "חומרי גלם של"
 
-msgid "0 recipes selected"
-msgstr "0 מתכונים נבחרו"
-
-msgid "Add Employee Hours"
-msgstr "הוסף שעות עובד"
-
-msgid "Add to List"
-msgstr "הוסף לרשימה"
-
-msgid "Added:"
-msgstr "נוסף:"
-
-msgid "Affected Categories"
-msgstr "קטגוריות מושפעות"
-
-msgid "After metadata, blank row, then recipes"
-msgstr "אחרי המטא-דאטה, שורה ריקה ואז מתכונים"
-
-msgid "Analysis by Category"
-msgstr "ניתוח לפי קטגוריה"
-
-msgid "Approve and Close Week"
-msgstr "אשר וסגור שבוע"
-
-msgid "Audit History"
-msgstr "היסטוריית ביקורת"
-
-msgid "Average financial variance per count:"
-msgstr "הפרש כספי ממוצע לספירה:"
-
-msgid "Calculated Cost"
-msgstr "עלות מחושבת"
-
-msgid "Changes (compared to existing recipe):"
-msgstr "שינויים (בהשוואה למתכון קיים):"
-
-msgid "Close Week - Reset Inventory"
-msgstr "סגירת שבוע - אתחול מלאי"
-
-msgid "Columns: name, type, price/kg, weight (g), total price"
-msgstr "עמודות: שם, סוג, מחיר/ק״ג, משקל (ג׳), מחיר כולל"
-
-msgid "Confirm and Import Recipes"
-msgstr "אשר וייבא מתכונים"
-
-msgid "Continue to Review"
-msgstr "המשך לסקירה"
-
-msgid "Cost calculated automatically according to employee rate (including employer costs)."
-msgstr "עלות מחושבת אוטומטית לפי תעריף עובד (כולל עלויות מעסיק)."
-
-msgid "Cost per 100g:"
-msgstr "עלות ל-100 ג׳:"
-
-msgid "Deselect All"
-msgstr "בטל בחירה"
-
-msgid "Different"
-msgstr "שונה"
-
-msgid "Each recipe starts with title, 2 header rows, then materials"
-msgstr "כל מתכון מתחיל עם כותרת, 2 שורות כותרת ואז חומרים"
-
-msgid "Employee / Role"
-msgstr "עובד / תפקיד"
-
-msgid "Enter hours in HH:MM format (example: 8:30)"
-msgstr "הזן שעות בפורמט HH:MM (דוגמה: 8:30)"
-
-msgid "Enter in HH:MM format (example: 8:30 for eight and a half hours)"
-msgstr "הזן בפורמט HH:MM (דוגמה: 8:30 לשמונה שעות וחצי)"
-
-msgid "Error loading"
-msgstr "שגיאה בטעינה"
-
-msgid "Error updating price"
-msgstr "שגיאה בעדכון מחיר"
-
-msgid "Error updating price:"
-msgstr "שגיאה בעדכון מחיר:"
-
-msgid "Example: 8:30"
-msgstr "דוגמה: 8:30"
-
-msgid "Exists - Will Update"
-msgstr "קיים - יעודכן"
-
-msgid "File uploaded successfully"
-msgstr "הקובץ הועלה בהצלחה"
-
-msgid "First rows must contain metadata:"
-msgstr "השורות הראשונות חייבות להכיל מטא-דאטה:"
-
-msgid "For the week ending on"
-msgstr "לשבוע המסתיים ב"
-
-msgid "Found (alternative name)"
-msgstr "נמצא (שם חלופי)"
-
-msgid "Found via alternative name"
-msgstr "נמצא דרך שם חלופי"
-
-msgid "From Date"
-msgstr "מתאריך"
-
-msgid "Gross Weight:"
-msgstr "משקל ברוטו:"
-
-msgid "Import Recipes from Excel"
-msgstr "ייבוא מתכונים מאקסל"
-
-msgid "Leftovers found in inventory from last week"
-msgstr "נמצאו שאריות במלאי מהשבוע שעבר"
-
-msgid "List of all raw materials supplied by this supplier."
-msgstr "רשימת כל חומרי הגלם המסופקים על ידי ספק זה."
-
-msgid "Loss Value (Cost)"
-msgstr "ערך הפסד (עלות)"
-
-msgid "Material with highest discrepancies:"
-msgstr "חומר עם אי-התאמות הגבוהות ביותר:"
-
-msgid "Materials with High Discrepancies"
-msgstr "חומרים עם אי-התאמות גבוהות"
-
-msgid "Materials:"
-msgstr "חומרים:"
-
-msgid "Metadata preview:"
-msgstr "תצוגה מקדימה של מטא-דאטה:"
-
-msgid "Missing Materials"
-msgstr "חומרים חסרים"
-
-msgid "Missing materials in system!"
-msgstr "חומרים חסרים במערכת!"
-
-msgid "Most problematic category:"
-msgstr "קטגוריה הבעייתית ביותר:"
-
-msgid "Net Weight:"
-msgstr "משקל נטו:"
-
-msgid "No changes"
-msgstr "אין שינויים"
-
-msgid "No cost"
-msgstr "ללא עלות"
-
-msgid "No hours have been entered for this week yet."
-msgstr "לא הוזנו שעות לשבוע זה עדיין."
-
-msgid "No stock audits found for the requested period"
-msgstr "לא נמצאו ביקורות מלאי לתקופה המבוקשת"
-
-msgid "Not detected (required!)"
-msgstr "לא זוהה (נדרש!)"
-
-msgid "Physical Quantity"
-msgstr "כמות פיזית"
-
-msgid "Premake Leftovers"
-msgstr "שאריות הכנות"
-
-msgid "Price in Sheet"
-msgstr "מחיר בגיליון"
-
-msgid "Primary"
-msgstr "ראשי"
-
-msgid "Primary Supplier"
-msgstr "ספק ראשי"
-
-msgid "Product Leftovers"
-msgstr "שאריות מוצרים"
-
-msgid "Quantity Changed:"
-msgstr "כמות שונתה:"
-
-msgid "Quantity Remaining"
-msgstr "כמות נותרת"
-
-msgid "Quantity Variance"
-msgstr "הפרש כמות"
-
-msgid "Remove this entry?"
-msgstr "להסיר רשומה זו?"
-
-msgid "Removed:"
-msgstr "הוסר:"
-
-msgid "Required - existing category name in system"
-msgstr "נדרש - שם קטגוריה קיימת במערכת"
-
-msgid "Required file format:"
-msgstr "פורמט קובץ נדרש:"
-
-msgid "Required metadata fields are missing. Ensure the file contains type and category rows."
-msgstr "שדות מטא-דאטה נדרשים חסרים. ודא שהקובץ מכיל שורות type ו-category."
-
-msgid "Return to update sales data for the previous week (if sold)."
-msgstr "חזור לעדכון נתוני מכירות לשבוע הקודם (אם נמכר)."
-
-msgid "Review Recipes for Import"
-msgstr "סקירת מתכונים לייבוא"
-
-msgid "Same"
-msgstr "זהה"
-
-msgid "Search material..."
-msgstr "חפש חומר..."
-
-msgid "Secondary"
-msgstr "משני"
-
-msgid "Select All"
-msgstr "בחר הכל"
-
-msgid "Select Excel file:"
-msgstr "בחר קובץ אקסל:"
-
-msgid "Select a match for all missing materials in selected recipes from the dropdowns."
-msgstr "בחר התאמה לכל החומרים החסרים במתכונים הנבחרים מהרשימות."
-
-msgid "Select a match for missing materials from the dropdown, or add the materials to the system:"
-msgstr "בחר התאמה לחומרים חסרים מהרשימה, או הוסף את החומרים למערכת:"
-
-msgid "Select a material from the dropdown or add new materials to the system and then import again."
-msgstr "בחר חומר מהרשימה או הוסף חומרים חדשים למערכת ואז ייבא שוב."
-
-msgid "Select employee..."
-msgstr "בחר עובד..."
-
-msgid "Select material from system..."
-msgstr "בחר חומר מהמערכת..."
-
-msgid "Select recipes to import"
-msgstr "בחר מתכונים לייבוא"
-
-msgid "Select sheet to import:"
-msgstr "בחר גיליון לייבוא:"
-
-msgid "Set as primary supplier for this material"
-msgstr "הגדר כספק ראשי לחומר זה"
-
-msgid "Shortages"
-msgstr "חסרים"
-
-msgid "Should we reset inventory and transfer the balance to waste (loss)?"
-msgstr "האם לאפס את המלאי ולהעביר את היתרה לפסולת (הפסד)?"
-
-msgid "Supplied Raw Materials"
-msgstr "חומרי גלם מסופקים"
-
-msgid "Surplus"
-msgstr "עודף"
-
-msgid "System Quantity"
-msgstr "כמות במערכת"
-
-msgid "To Date"
-msgstr "עד תאריך"
-
-msgid "Total Variance"
-msgstr "סך הפרשים"
-
-msgid "Total Variance (Financial)"
-msgstr "סך הפרשים (כספי)"
-
-msgid "Total cost for this week"
-msgstr "עלות כוללת לשבוע זה"
-
-msgid "Total estimated loss (unmarked for transfer):"
-msgstr "סך הפסד משוער (ללא סימון להעברה):"
-
-msgid "Total losses from inventory discrepancies:"
-msgstr "סך הפסדים מאי-התאמות במלאי:"
-
-msgid "Total recipes:"
-msgstr "סך מתכונים:"
-
-msgid "Track inventory discrepancies and loss analysis"
-msgstr "מעקב אחר אי-התאמות במלאי וניתוח הפסדים"
-
-msgid "Transfer to next week?"
-msgstr "להעביר לשבוע הבא?"
-
-msgid "Unmarked items will be transferred to waste. Marked items will remain in inventory/available."
-msgstr "פריטים ללא סימון יועברו לפסולת. פריטים מסומנים יישארו במלאי/זמינים."
-
-msgid "Update Raw Material Price"
-msgstr "עדכון מחיר חומר גלם"
-
-msgid "Upload Different File"
-msgstr "העלה קובץ אחר"
-
-msgid "Upload Recipe File"
-msgstr "העלה קובץ מתכונים"
-
-msgid "Upload an Excel file with recipes for premakes or products"
-msgstr "העלה קובץ אקסל עם מתכונים להכנות או מוצרים"
-
-msgid "Value (Cost)"
-msgstr "ערך (עלות)"
-
-msgid "Week Details"
-msgstr "פרטי שבוע"
-
-msgid "Weight (g)"
-msgstr "משקל (ג׳)"
-
-msgid "Weight and Cost Summary:"
-msgstr "סיכום משקל ועלות:"
-
-msgid "Work Hours (HH:MM)"
-msgstr "שעות עבודה (HH:MM)"
-
-msgid "Work Hours Details"
-msgstr "פירוט שעות עבודה"
-
-msgid "counts"
-msgstr "ספירות"
-
-msgid "recipes selected"
-msgstr "מתכונים נבחרו"
-
-msgid "unmapped materials in selected recipes"
-msgstr "חומרים ללא התאמה במתכונים נבחרים"
-
-msgid "SKU"
-msgstr "מק\"ט"
-
-msgid "Active"
-msgstr "פעיל"
-
-msgid "Status"
-msgstr "סטטוס"
-
-msgid "Filter"
-msgstr "סנן"
-
-msgid "Variance"
-msgstr "הפרש"
-
-msgid "Financial Value"
-msgstr "ערך כספי"
-
-msgid "Auditor"
-msgstr "מבקר"
-
-msgid "Insights"
-msgstr "תובנות"
-
-msgid "Hours"
-msgstr "שעות"
-
-msgid "Material types: \"חומר גלם\", \"הכנה\", \"מוצר מקדים\", \"אבדן\""
-msgstr "סוגי חומרים: \"חומר גלם\", \"הכנה\", \"מוצר מקדים\", \"אבדן\""
-
-msgid "Optional - default \"g\""
-msgstr "אופציונלי - ברירת מחדל \"g\""
-
-msgid "Required - \"premake\" or \"product\""
-msgstr "נדרש - \"premake\" או \"product\""
-
-msgid "Contact Person:"
-msgstr "איש קשר:"
-
-msgid "Phone:"
-msgstr "טלפון:"
-
-msgid "Status:"
-msgstr "סטטוס:"
-
-msgid "Raw Materials of"
-msgstr "חומרי גלם של"
-
-msgid "Raw Materials - "
-msgstr "חומרי גלם - "
-
-msgid "Premake"
-msgstr "הכנה מקדימה"
-
-msgid "unsold products remain."
-msgstr "נותרו מוצרים שלא נמכרו."
-
-msgid "Product Cost"
-msgstr "עלות מוצרים"
-
-msgid "Products sold + waste"
-msgstr "מוצרים שנמכרו + פסולת"
-
-msgid "Premake Stock Value Increase"
-msgstr "עליית ערך מלאי הכנות"
-
-msgid "Produced - Consumed"
-msgstr "יוצר - נצרך"
-
-msgid "Total Production Cost"
-msgstr "עלות ייצור כוללת"
-
-msgid "Profit/Unit"
-msgstr "רווח ליחידה"
-
-msgid "Margin %"
-msgstr "%% רווח"
-
-
-# New translations for cost breakdown (2024-12-10)
-msgid "Sold Items Cost (COGS)"
-msgstr "עלות פריטים שנמכרו"
-
-msgid "In Stock Cost"
-msgstr "עלות במלאי"
-
-msgid "In-Stock Analysis"
-msgstr "ניתוח מלאי"
-
-msgid "Unsold Products (In Inventory)"
-msgstr "מוצרים שלא נמכרו (במלאי)"
-
-msgid "Premake Stock Increases"
-msgstr "עליות מלאי הכנות"
-
-msgid "Total Stock Value"
-msgstr "ערך מלאי כולל"
-
-msgid "Total Unsold Product Value:"
-msgstr "ערך מוצרים שלא נמכרו:"
-
-msgid "Total Premake Stock Value Increase:"
-msgstr "עליית ערך מלאי הכנות:"
-
-msgid "No unsold products in inventory"
-msgstr "אין מוצרים שלא נמכרו במלאי"
-
-msgid "In Stock Cost represents capital tied up in inventory: unsold products and premakes produced but not yet consumed."
-msgstr "עלות במלאי מייצגת הון קשור במלאי: מוצרים שלא נמכרו והכנות שיוצרו אך טרם נצרכו."
-
-msgid "In Stock Cost represents capital tied up in inventory across all weeks: unsold products and premakes produced but not yet consumed."
-msgstr "עלות במלאי מייצגת הון קשור במלאי בכל השבועות: מוצרים שלא נמכרו והכנות שיוצרו אך טרם נצרכו."
-
-msgid "Packaging inventory is tracked separately and deducted during production. Stock values represent current inventory investment."
-msgstr "מלאי אריזות נספר בנפרד ומנוכה במהלך הייצור. ערכי המלאי מייצגים השקעה במלאי נוכחי."
-
-msgid "Total Packaging Stock Value:"
-msgstr "סך שווי מלאי אריזות:"
-
-msgid "Stock Value"
-msgstr "שווי מלאי"
-
-msgid "Ending Stock"
-msgstr "מלאי סופי"
-
-msgid "Usage"
-msgstr "שימוש"
-
-msgid "Beginning Stock"
-msgstr "מלאי פתיחה"
-
-msgid "Packaging Item"
-msgstr "פריט אריזה"
-
-msgid "Packaging Inventory"
-msgstr "מלאי אריזות"
-
-msgid "Products + Premake Inventory"
-msgstr "מלאי מוצרים והכנות"
-
-msgid "Total Production Cost = COGS + Waste + In Stock"
-msgstr "עלות ייצור כוללת = עלות מכירות + פסולת + במלאי"
-
-msgid "Sold Items Cost = Σ(quantity_sold × cost_per_unit)"
-msgstr "עלות פריטים שנמכרו = Σ(כמות נמכרה × עלות ליחידה)"
-
-msgid "Waste Cost = Σ(quantity_waste × cost_per_unit)"
-msgstr "עלות פסולת = Σ(כמות פסולת × עלות ליחידה)"
-
-msgid "In Stock Cost = Unsold Products + Premake Stock Increase"
-msgstr "עלות במלאי = מוצרים שלא נמכרו + עליית מלאי הכנות"
-
-msgid "Discount Percentage"
-msgstr "אחוז הנחה"
-
-msgid "Enter discount percentage (0-100%%). This will be applied to all material prices from this supplier."
-msgstr "הזן אחוז הנחה (0-100%%). ההנחה תחול על כל מחירי חומרי הגלם מספק זה."
-
-msgid "Optional"
-msgstr "אופציונלי"
-
-msgid "Current discount:"
-msgstr "הנחה נוכחית:"
-
-msgid "Example: ₪100 becomes ₪"
-msgstr "דוגמה: ₪100 הופך ל-₪"
-
-msgid "Discount"
-msgstr "הנחה"
-
-msgid "Original Price"
-msgstr "מחיר מקורי"
-
-msgid "Discounted Price"
-msgstr "מחיר אחרי הנחה"
-
-
-msgid "Unlimited Material"
-msgstr "חומר ללא הגבלה"
-
-msgid "infinite stock, no cost"
-msgstr "מלאי אינסופי, ללא עלות"
-
-msgid "Check for materials like water that do not require stock tracking or cost."
-msgstr "סמן עבור חומרים כמו מים שאינם דורשים מעקב מלאי או עלות."
-
-msgid "Alternative Names (optional)"
-msgstr "שמות חלופיים (אופציונלי)"
-
-msgid "Alternative names help with recipe imports - e.g., \"White Flour\" for \"White Flour T55 12kg\""
-msgstr "שמות חלופיים עוזרים בייבוא מתכונים - לדוגמה, \"קמח לבן\" עבור \"קמח לבן T55 12 ק\"ג\""
-
-msgid "Suppliers and Prices"
-msgstr "ספקים ומחירים"
-
-msgid "Edit Raw Material"
-msgstr "עריכת חומר גלם"
-
-msgid "New Supplier"
-msgstr "ספק חדש"
-
-msgid "Add Alternative Name"
-msgstr "הוסף שם חלופי"
+#~ msgid "Raw Materials - "
+#~ msgstr "חומרי גלם - "
 
