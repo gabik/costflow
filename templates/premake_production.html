@@ -19,7 +19,7 @@
     </div>
     <div class="form-group mb-3">
         <label for="premake_id" class="form-label">{{ _('Select Premake') }}</label>
-        <select id="premake_id" name="premake_id" class="form-select select2" required onchange="updateCalculation()">
+        <select id="premake_id" name="premake_id" class="form-select select2" required>
             <option value="" disabled selected>{{ _('Select premake...') }}</option>
             {% for premake in premakes %}
             <option value="{{ premake.id }}" data-batch-size="{{ premake.batch_size }}" data-unit="{{ premake.unit }}">

@@ -382,15 +382,93 @@ def delete_weekly_labor(week_id, entry_id):
 
 @weekly_costs_blueprint.route('/weekly_sales/<int:week_id>', methods=['GET', 'POST'])
 def update_weekly_sales(week_id):
+    from .utils import calculate_premake_current_stock
+    from ..models import StockLog
     week = WeeklyLaborCost.query.get_or_404(week_id)
+
+    # Get show_all parameter from URL (default is False - show only in stock)
+    show_all = request.args.get('show_all', 'false').lower() == 'true'
+
     # Filter out migrated products and premakes - only show products and preproducts (sellable items)
-    products = Product.query.filter(
+    all_products = Product.query.filter(
         Product.is_migrated == False,
         db.or_(Product.is_product == True, Product.is_preproduct == True)
     ).all()
-    
+
+    # Calculate stock for each product
+    def calculate_product_stock(product):
+        """Calculate current stock for a product based on production and sales."""
+        # For products (not premakes), stock comes from ProductionLog entries
+        # since products don't create StockLog entries when produced
+        stock = 0
+
+        # Check if product uses StockLog (preproducts might)
+        # Get last 'set' action if it exists
+        last_set_log = StockLog.query.filter(
+            StockLog.product_id == product.id,
+            StockLog.action_type == 'set'
+        ).order_by(StockLog.timestamp.desc()).first()
+
+        if last_set_log:
+            stock = last_set_log.quantity
+
+            # Get all 'add' actions after last set
+            add_logs = StockLog.query.filter(
+                StockLog.product_id == product.id,
+                StockLog.action_type == 'add',
+                StockLog.timestamp > last_set_log.timestamp
+            ).all()
+
+            for log in add_logs:
+                stock += log.quantity
+
+            # Get production after last set
+            production_logs = ProductionLog.query.filter(
+                ProductionLog.product_id == product.id,
+                ProductionLog.timestamp > last_set_log.timestamp
+            ).all()
+        else:
+            # No stock log, use all production logs for this product
+            production_logs = ProductionLog.query.filter(
+                ProductionLog.product_id == product.id
+            ).all()
+
+        # Add production to stock
+        for log in production_logs:
+            # Convert batches to units
+            units = log.quantity_produced * product.products_per_recipe
+            stock += units
+
+        # Subtract all sales and waste from stock
+        sales = WeeklyProductSales.query.filter_by(product_id=product.id).all()
+        for sale in sales:
+            stock -= (sale.quantity_sold + sale.quantity_waste)
+
+        return stock
+
+    # Apply stock calculation to products
+    if not show_all:
+        products_with_stock = []
+        for product in all_products:
+            stock = calculate_product_stock(product)
+
+            # Only include products with stock > 0
+            if stock > 0:
+                products_with_stock.append(product)
+                product.current_stock = stock  # Add stock as attribute for display
+
+        products = products_with_stock
+    else:
+        # Calculate stock for all products for display
+        for product in all_products:
+            stock = calculate_product_stock(product)
+            product.current_stock = stock  # Add stock as attribute for display
+        products = all_products
+
     if request.method == 'POST':
-        for product in products:
+        # When processing POST, we need to check all products (not just filtered ones)
+        # because the form might contain data for products that were visible before filtering
+        for product in all_products:
             key_sales = f"sales_{product.id}"
             key_waste = f"waste_{product.id}"
             
@@ -448,5 +526,5 @@ def update_weekly_sales(week_id):
 
     # Create a map of existing sales for easy lookup in template
     sales_map = {s.product_id: {'sold': s.quantity_sold, 'waste': s.quantity_waste} for s in week.sales}
-    
-    return render_template('update_weekly_sales.html', week=week, products=products, sales_map=sales_map, production_map=production_map)
+
+    return render_template('update_weekly_sales.html', week=week, products=products, sales_map=sales_map, production_map=production_map, show_all=show_all)

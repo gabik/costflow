@@ -15,6 +15,30 @@
     </div>
 </div>
 
+<!-- Toggle for showing all products vs only in stock -->
+<div class="row mb-3">
+    <div class="col">
+        <div class="btn-group" role="group" aria-label="{{ _('Product filter toggle') }}">
+            <a href="{{ url_for('weekly_costs.update_weekly_sales', week_id=week.id, show_all='false') }}"
+               class="btn {% if not show_all %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                <i class="bi bi-box2-fill me-1"></i>
+                {{ _('In Stock Only') }}
+            </a>
+            <a href="{{ url_for('weekly_costs.update_weekly_sales', week_id=week.id, show_all='true') }}"
+               class="btn {% if show_all %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                <i class="bi bi-grid-3x3-gap me-1"></i>
+                {{ _('All Products') }}
+            </a>
+        </div>
+        {% if not show_all and products|length == 0 %}
+        <div class="alert alert-warning mt-3" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            {{ _('No products currently in stock. Click "All Products" to see all available products.') }}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
 <div class="card shadow-sm">
     <div class="card-body">
         <form method="POST">
@@ -24,6 +48,7 @@
                         <tr>
                             <th style="width: 60px;">{{ _('Image') }}</th>
                             <th>{{ _('Product') }}</th>
+                            <th>{{ _('Current Stock') }}</th>
                             <th>{{ _('Produced This Week') }}</th>
                             <th>{{ _('Sold So Far') }}</th>
                             <th style="width: 150px;">{{ _('Add Sales') }}</th>
@@ -46,6 +71,17 @@
                                 {% endif %}
                             </td>
                             <td class="fw-medium">{{ product.name }}</td>
+                            <td>
+                                {% if product.current_stock is defined %}
+                                    {% if product.current_stock > 0 %}
+                                        <span class="badge bg-success">{{ product.current_stock | int }}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ _('Out of Stock') }}</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ _('N/A') }}</span>
+                                {% endif %}
+                            </td>
                             <td>
                                 <span class="badge bg-secondary text-white produced-badge">{{ _('Produced:') }} {{ produced | int }}</span>
                                 <span class="badge bg-info text-dark remaining-badge ms-1">{{ _('Remaining:') }} {{ (produced - sales.sold - sales.waste) | int }}</span>
