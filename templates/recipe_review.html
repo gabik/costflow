@@ -53,6 +53,11 @@
 </div>
 {% endif %}
 
+<!-- Supplier Creation Section (hidden by default, shown when needed) -->
+<div id="supplierCreationSection" class="mb-4" style="display:none;">
+    <div id="supplierCreationContainer"></div>
+</div>
+
 <!-- Recipes Review -->
 <form method="POST" action="{{ url_for('recipe_import.confirm_import') }}" id="recipeImportForm">
 

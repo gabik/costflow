@@ -255,17 +255,18 @@ class RecipeImportMaterialCreator {
             }
         });
 
-        // Proceed to materials button
-        $(document).on('click', '#proceedToMaterials', function() {
-            $('#supplierCreationSection').hide();
-        });
     }
 
     showSupplierForm(callback) {
         const formHtml = `
-            <div class="card mb-3">
+            <div class="card border-primary shadow">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-plus-circle me-2"></i>New Supplier Details
+                        <button type="button" class="btn-close btn-close-white float-end" id="closeSupplierForm"></button>
+                    </h6>
+                </div>
                 <div class="card-body">
-                    <h6 class="card-title">New Supplier Details</h6>
                     <div class="row g-2">
                         <div class="col-md-4">
                             <label class="form-label">Supplier Name <span class="text-danger">*</span></label>
@@ -308,7 +309,14 @@ class RecipeImportMaterialCreator {
 
         $('#supplierCreationContainer').html(formHtml);
         $('#supplierCreationSection').show();
-        $('#proceedToMaterials').show();
+
+        // Scroll to the supplier form so user can see it
+        $('html, body').animate({
+            scrollTop: $('#supplierCreationSection').offset().top - 100
+        }, 500, function() {
+            // Focus on supplier name field after scrolling
+            $('#newSupplierName').focus();
+        });
 
         const self = this;
 
@@ -318,7 +326,7 @@ class RecipeImportMaterialCreator {
         });
 
         // Cancel supplier button
-        $('#cancelSupplierBtn').on('click', function() {
+        $('#cancelSupplierBtn, #closeSupplierForm').on('click', function() {
             $('#supplierCreationSection').hide();
             // Reset the dropdown if it was set to "new"
             if (self.currentSupplierSelect && self.currentSupplierSelect.val() === 'new') {
@@ -352,7 +360,7 @@ class RecipeImportMaterialCreator {
                     // Add to local list
                     this.newSuppliers.push(response.supplier_id);
 
-                    // Show success message
+                    // Show success message briefly
                     const successHtml = `
                         <div class="alert alert-success">
                             <i class="bi bi-check-circle me-2"></i>
@@ -360,6 +368,11 @@ class RecipeImportMaterialCreator {
                         </div>
                     `;
                     $('#supplierCreationContainer').html(successHtml);
+
+                    // Hide the section after a short delay
+                    setTimeout(() => {
+                        $('#supplierCreationSection').hide();
+                    }, 2000);
 
                     // Reload suppliers list
                     this.loadSuppliers();
