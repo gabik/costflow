@@ -13,6 +13,7 @@ class RecipeImportMaterialCreator {
         this.categories = [];
         this.suppliers = [];
         this.errors = [];
+        this.currentSupplierSelect = null; // Track which select triggered new supplier
         this.init();
     }
 
@@ -212,11 +213,19 @@ class RecipeImportMaterialCreator {
             const $select = $(this);
 
             if ($select.val() === 'new') {
+                // Store reference to the select that triggered this
+                self.currentSupplierSelect = $select;
+
+                // Show supplier form with callback
                 self.showSupplierForm(function(newSupplierId) {
-                    // After creating supplier, select it
+                    // After creating supplier, reload list and select the new one
                     self.loadSuppliers();
                     setTimeout(() => {
-                        $select.val(newSupplierId);
+                        // Set the value on the original select that triggered this
+                        if (self.currentSupplierSelect) {
+                            self.currentSupplierSelect.val(newSupplierId);
+                            self.currentSupplierSelect = null; // Clear reference
+                        }
                     }, 500);
                 });
             }
@@ -310,6 +319,11 @@ class RecipeImportMaterialCreator {
         // Cancel supplier button
         $('#cancelSupplierBtn').on('click', function() {
             $('#supplierCreationSection').hide();
+            // Reset the dropdown if it was set to "new"
+            if (self.currentSupplierSelect && self.currentSupplierSelect.val() === 'new') {
+                self.currentSupplierSelect.val(''); // Reset to empty
+                self.currentSupplierSelect = null;
+            }
         });
     }
 
@@ -380,8 +394,12 @@ class RecipeImportMaterialCreator {
             alert('Please select a category');
             return;
         }
-        if (!materialData.supplier_id || materialData.supplier_id === 'new') {
+        if (!materialData.supplier_id) {
             alert('Please select a supplier');
+            return;
+        }
+        if (materialData.supplier_id === 'new') {
+            alert('Please create the new supplier first by selecting "New Supplier" from the dropdown');
             return;
         }
         if (!materialData.sku) {
