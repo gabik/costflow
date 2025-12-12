@@ -318,6 +318,26 @@ def calculate_recipe_diff(existing_components, new_materials, matched_materials_
                 material_unit      # Material's base unit (e.g., 'kg')
             ) if material_unit else new_mat['weight']
 
+            # Handle historical issue with liquid materials imported with wrong conversion
+            # If material is in L and sheet is in g/kg, check for 10x factor issue
+            if material_unit in ['L', 'l'] and metadata['unit'] in ['g', 'kg']:
+                # Check if existing quantity is likely wrong (10x too high)
+                # For example: 0.4L instead of 0.04L for 40ml
+                ratio = existing_comp.quantity / new_quantity_converted if new_quantity_converted > 0 else 0
+
+                # If ratio is close to 10, this is likely the historical issue
+                if 9.5 <= ratio <= 10.5:
+                    # Adjust for comparison - the existing data is 10x too high
+                    # Don't change the data, just recognize it's not actually different
+                    new_quantity_converted = existing_comp.quantity
+
+            # Similar check for ml materials with kg sheet units
+            elif material_unit == 'ml' and metadata['unit'] == 'kg':
+                # Check for 1000x factor issue (kg to ml direct conversion)
+                ratio = existing_comp.quantity / new_quantity_converted if new_quantity_converted > 0 else 0
+                if 950 <= ratio <= 1050:
+                    new_quantity_converted = existing_comp.quantity
+
             # Check if quantity changed (compare in same units)
             if abs(existing_comp.quantity - new_quantity_converted) > 0.01:
                 changed.append({
