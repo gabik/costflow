@@ -59,19 +59,42 @@ def convert_to_base_unit(quantity, selected_unit, base_unit):
         return quantity * 1000.0
 
     # Handle L/ml conversions (both uppercase L and lowercase l)
-    # When Excel units are in 'g', treat ml as g and L as kg equivalents
     if selected_unit == 'ml' and base_unit in ['L', 'l']:
         return quantity / 1000.0
     if selected_unit in ['L', 'l'] and base_unit == 'ml':
         return quantity * 1000.0
 
-    # Handle g/ml to L conversions (when sheet units are 'g', materials in L are treated as ml)
+    # Handle g↔ml conversions (1g ≈ 1ml for liquids)
+    if selected_unit == 'g' and base_unit == 'ml':
+        # g to ml: treat as equivalent (1:1)
+        return quantity
+    if selected_unit == 'ml' and base_unit == 'g':
+        # ml to g: treat as equivalent (1:1)
+        return quantity
+
+    # Handle g↔L conversions (when sheet units are 'g', materials in L are treated as ml)
     if selected_unit == 'g' and base_unit in ['L', 'l']:
         # g to L: treat as ml to L (divide by 1000)
         return quantity / 1000.0
     if selected_unit in ['L', 'l'] and base_unit == 'g':
         # L to g: treat as L to ml (multiply by 1000)
         return quantity * 1000.0
+
+    # Handle kg↔L conversions (1kg ≈ 1L for liquids)
+    if selected_unit == 'kg' and base_unit in ['L', 'l']:
+        # kg to L: treat as equivalent (1:1)
+        return quantity
+    if selected_unit in ['L', 'l'] and base_unit == 'kg':
+        # L to kg: treat as equivalent (1:1)
+        return quantity
+
+    # Handle kg↔ml conversions
+    if selected_unit == 'kg' and base_unit == 'ml':
+        # kg to ml: multiply by 1000 (1kg = 1000ml)
+        return quantity * 1000.0
+    if selected_unit == 'ml' and base_unit == 'kg':
+        # ml to kg: divide by 1000 (1000ml = 1kg)
+        return quantity / 1000.0
 
     return quantity
 
