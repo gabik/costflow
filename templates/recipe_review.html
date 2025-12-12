@@ -25,6 +25,20 @@
   {% endif %}
 {% endwith %}
 
+<!-- Supplier Creation Section (appears when needed) -->
+<div id="supplierCreationSection" class="alert alert-info mb-4" style="display:none;">
+    <h5><i class="bi bi-truck me-2"></i>{{ _('New Suppliers Required') }}</h5>
+    <p>{{ _('The following materials require new suppliers. Please create the suppliers first:') }}</p>
+    <div id="supplierCreationContainer" class="mt-3">
+        <!-- Supplier forms will be added here dynamically -->
+    </div>
+    <div class="mt-3">
+        <button id="proceedToMaterials" class="btn btn-primary" style="display:none;">
+            <i class="bi bi-arrow-right me-2"></i>{{ _('Continue to Materials') }}
+        </button>
+    </div>
+</div>
+
 <!-- Missing Materials Warning -->
 {% if has_missing_materials %}
 <div class="alert alert-danger" role="alert">
@@ -109,10 +123,88 @@
                         </thead>
                         <tbody>
                             {% for material in recipe.materials %}
-                            <tr class="{% if not material.found %}table-danger{% elif material.price_differs %}table-warning{% endif %}">
-                                <td><strong>{{ material.name }}</strong></td>
-                                <td><small class="text-muted">{{ material.type }}</small></td>
+                            {% set mat_idx = loop.index0 %}
+                            <tr class="material-row {% if not material.found %}table-danger{% elif material.price_differs %}table-warning{% endif %}"
+                                data-recipe-idx="{{ recipe_idx }}"
+                                data-material-idx="{{ mat_idx }}"
+                                data-material-name="{{ material.name }}"
+                                data-material-type="{{ material.type }}"
+                                data-sheet-price="{{ material.sheet_price }}">
                                 <td>
+                                    <div class="material-header d-flex justify-content-between align-items-center">
+                                        <strong>{{ material.name }}</strong>
+                                        {% if not material.found %}
+                                        <button class="btn btn-sm btn-link expand-create-btn p-0" type="button">
+                                            <i class="bi bi-chevron-down"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                    {% if not material.found %}
+                                    <div class="material-create-form mt-2" style="display:none;">
+                                        <!-- Create/Map toggle -->
+                                        <div class="form-check form-switch mb-2">
+                                            <input type="checkbox" class="form-check-input create-toggle"
+                                                   id="createToggle_{{ recipe_idx }}_{{ mat_idx }}">
+                                            <label class="form-check-label" for="createToggle_{{ recipe_idx }}_{{ mat_idx }}">
+                                                {{ _('Create New Material') }}
+                                            </label>
+                                        </div>
+                                        <!-- Creation fields (hidden by default) -->
+                                        <div class="create-fields" style="display:none;">
+                                            <div class="row g-2">
+                                                <div class="col-md-4">
+                                                    <label class="form-label small">{{ _('Category') }}</label>
+                                                    <select class="form-select form-select-sm category-select">
+                                                        <option value="">{{ _('Select...') }}</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label class="form-label small">{{ _('Unit') }}</label>
+                                                    <select class="form-select form-select-sm unit-select">
+                                                        <option value="kg" selected>kg</option>
+                                                        <option value="L">L</option>
+                                                        <option value="piece">piece</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label small">{{ _('Supplier') }}</label>
+                                                    <div class="input-group input-group-sm">
+                                                        <select class="form-select supplier-select">
+                                                            <option value="">{{ _('Select...') }}</option>
+                                                            <option value="new">➕ {{ _('New Supplier...') }}</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row g-2 mt-1">
+                                                <div class="col-md-4">
+                                                    <label class="form-label small">{{ _('SKU') }}</label>
+                                                    <input type="text" class="form-control form-control-sm sku-input"
+                                                           placeholder="{{ _('SKU') }}" required>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="form-label small">{{ _('Price') }}</label>
+                                                    <input type="number" class="form-control form-control-sm price-input"
+                                                           value="{{ material.sheet_price }}" step="0.01" required>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="form-label small">&nbsp;</label>
+                                                    <div>
+                                                        <button class="btn btn-sm btn-success create-material-btn">
+                                                            <i class="bi bi-check-lg me-1"></i>{{ _('Create') }}
+                                                        </button>
+                                                        <button class="btn btn-sm btn-secondary cancel-create-btn ms-1">
+                                                            <i class="bi bi-x me-1"></i>{{ _('Cancel') }}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                                <td><small class="text-muted">{{ material.type }}</small></td>
+                                <td class="material-status-cell">
                                     {% if material.found %}
                                         {% if material.matched_via_alternative %}
                                         <span class="badge bg-info" title="{{ _('Found via alternative name') }}">
@@ -279,6 +371,8 @@
 {% endblock %}
 
 {% block scripts %}
+<!-- Include Recipe Import JavaScript -->
+<script src="{{ url_for('static', filename='js/recipe_import.js') }}"></script>
 <script>
 $(document).ready(function() {
     // Initialize Select2 on material mapping dropdowns

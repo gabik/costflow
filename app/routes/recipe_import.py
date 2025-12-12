@@ -1,10 +1,11 @@
 import os
 import tempfile
 import json
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
+from flask_babel import gettext as _
 import pandas as pd
-from ..models import db, Product, ProductComponent, RawMaterial, RawMaterialAlternativeName, Category
-from .utils import log_audit, convert_to_base_unit
+from ..models import db, Product, ProductComponent, RawMaterial, RawMaterialAlternativeName, Category, Supplier, RawMaterialSupplier
+from .utils import log_audit, convert_to_base_unit, get_or_create_general_category
 
 recipe_import_blueprint = Blueprint('recipe_import', __name__)
 
@@ -353,6 +354,220 @@ def calculate_100g_cost(total_weight, total_cost):
 
 
 # ----------------------------
+# AJAX API Endpoints
+# ----------------------------
+
+@recipe_import_blueprint.route('/api/recipe_import/create_supplier', methods=['POST'])
+def create_supplier_ajax():
+    """AJAX endpoint to create supplier during import"""
+    try:
+        # Get form data
+        name = request.form.get('name', '').strip()
+        contact_person = request.form.get('contact_person', '').strip()
+        phone = request.form.get('phone', '').strip()
+        email = request.form.get('email', '').strip()
+        discount_percentage = float(request.form.get('discount_percentage', 0))
+
+        # Validate required fields
+        if not name:
+            return jsonify({'success': False, 'error': _('Supplier name is required')}), 400
+
+        # Check if supplier already exists
+        existing = Supplier.query.filter_by(name=name).first()
+        if existing:
+            return jsonify({'success': False, 'error': _('Supplier with this name already exists')}), 400
+
+        # Create new supplier
+        new_supplier = Supplier(
+            name=name,
+            contact_person=contact_person if contact_person else None,
+            phone=phone if phone else None,
+            email=email if email else None,
+            discount_percentage=discount_percentage,
+            is_active=True
+        )
+
+        db.session.add(new_supplier)
+        db.session.commit()
+
+        # Track new supplier in session
+        new_suppliers = session.get('recipe_import_new_suppliers', [])
+        new_suppliers.append(new_supplier.id)
+        session['recipe_import_new_suppliers'] = new_suppliers
+
+        # Log audit
+        log_audit("CREATE", "Supplier", new_supplier.id, f"Created supplier during recipe import: {name}")
+
+        return jsonify({
+            'success': True,
+            'supplier_id': new_supplier.id,
+            'supplier_name': new_supplier.name,
+            'discount_percentage': new_supplier.discount_percentage
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@recipe_import_blueprint.route('/api/recipe_import/create_material', methods=['POST'])
+def create_material_ajax():
+    """AJAX endpoint to create material during import"""
+    try:
+        # Get form data
+        name = request.form.get('name', '').strip()
+        category_id = request.form.get('category_id')
+        unit = request.form.get('unit', 'kg')
+        supplier_id = request.form.get('supplier_id')
+        sku = request.form.get('sku', '').strip()
+        price = float(request.form.get('price', 0))
+
+        # Validate required fields
+        if not all([name, category_id, unit, supplier_id, sku]):
+            return jsonify({'success': False, 'error': _('All fields are required')}), 400
+
+        # Check if material already exists
+        existing = RawMaterial.query.filter_by(name=name, is_deleted=False).first()
+        if existing:
+            return jsonify({'success': False, 'error': _('Material with this name already exists')}), 400
+
+        # Check alternative names
+        alt_name = RawMaterialAlternativeName.query.filter_by(alternative_name=name).first()
+        if alt_name and not alt_name.raw_material.is_deleted:
+            return jsonify({
+                'success': False,
+                'error': _('This name is already used as an alternative for: {}').format(alt_name.raw_material.name)
+            }), 400
+
+        # Create new material
+        new_material = RawMaterial(
+            name=name,
+            category_id=int(category_id),
+            unit=unit,
+            is_unlimited=False,
+            is_deleted=False
+        )
+
+        db.session.add(new_material)
+        db.session.flush()  # Get ID for supplier link
+
+        # Apply supplier discount if any
+        supplier = Supplier.query.get(int(supplier_id))
+        if supplier and supplier.discount_percentage > 0:
+            discounted_price = price * (1 - supplier.discount_percentage / 100)
+        else:
+            discounted_price = price
+
+        # Create supplier link with SKU
+        supplier_link = RawMaterialSupplier(
+            raw_material_id=new_material.id,
+            supplier_id=int(supplier_id),
+            cost_per_unit=discounted_price,
+            is_primary=True,  # First supplier is primary
+            sku=sku if sku else None
+        )
+
+        db.session.add(supplier_link)
+        db.session.commit()
+
+        # Track created material in session
+        created_materials = session.get('recipe_import_created_materials', [])
+        created_materials.append(new_material.id)
+        session['recipe_import_created_materials'] = created_materials
+
+        # Log audit
+        log_audit("CREATE", "RawMaterial", new_material.id, f"Created material during recipe import: {name}")
+
+        return jsonify({
+            'success': True,
+            'material_id': new_material.id,
+            'material_name': new_material.name,
+            'final_price': discounted_price
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@recipe_import_blueprint.route('/api/recipe_import/get_categories', methods=['GET'])
+def get_categories_ajax():
+    """Get categories for dropdown"""
+    try:
+        categories = Category.query.filter_by(type='raw_material').order_by(Category.name).all()
+
+        return jsonify({
+            'success': True,
+            'categories': [
+                {'id': cat.id, 'name': cat.name}
+                for cat in categories
+            ]
+        })
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@recipe_import_blueprint.route('/api/recipe_import/get_suppliers', methods=['GET'])
+def get_suppliers_ajax():
+    """Get all active suppliers for dropdown"""
+    try:
+        suppliers = Supplier.query.filter_by(is_active=True).order_by(Supplier.name).all()
+
+        # Include newly created suppliers from session if any
+        new_supplier_ids = session.get('recipe_import_new_suppliers', [])
+
+        return jsonify({
+            'success': True,
+            'suppliers': [
+                {
+                    'id': sup.id,
+                    'name': sup.name,
+                    'discount_percentage': sup.discount_percentage,
+                    'is_new': sup.id in new_supplier_ids
+                }
+                for sup in suppliers
+            ]
+        })
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@recipe_import_blueprint.route('/api/recipe_import/validate_material_name', methods=['POST'])
+def validate_material_name():
+    """Check if material name already exists"""
+    try:
+        name = request.form.get('name', '').strip()
+
+        if not name:
+            return jsonify({'exists': False})
+
+        # Check main material name
+        material = RawMaterial.query.filter_by(name=name, is_deleted=False).first()
+        if material:
+            return jsonify({
+                'exists': True,
+                'material_id': material.id,
+                'message': _('Material with this name already exists')
+            })
+
+        # Check alternative names
+        alt_name = RawMaterialAlternativeName.query.filter_by(alternative_name=name).first()
+        if alt_name and not alt_name.raw_material.is_deleted:
+            return jsonify({
+                'exists': True,
+                'material_id': alt_name.raw_material.id,
+                'message': _('This name is used as alternative for: {}').format(alt_name.raw_material.name)
+            })
+
+        return jsonify({'exists': False})
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ----------------------------
 # Routes
 # ----------------------------
 
@@ -645,6 +860,12 @@ def confirm_import():
         is_premake = metadata['type'] == 'premake'
         created_count = 0
         updated_count = 0
+        skipped_recipes = []
+        skipped_materials = []
+        created_materials_count = 0
+
+        # Track materials created during this import session
+        created_material_ids = session.get('recipe_import_created_materials', [])
 
         # Process only selected recipes, using original indices for form field lookups
         for recipe_idx in sorted(selected_recipe_indices):
@@ -735,9 +956,19 @@ def confirm_import():
                     found, mat_id, _, _, _ = match_material(material['name'], material['type'])
 
                 if not found:
-                    # Skip missing materials or show error
-                    flash(f'חומר חסר או מיפוי שגוי: {material["name"]}', 'error')
-                    return redirect(url_for('recipe_import.upload_recipes'))
+                    # Track skipped material
+                    skipped_materials.append({
+                        'material_name': material['name'],
+                        'recipe_name': recipe['name'],
+                        'reason': _('Material not found or invalid mapping')
+                    })
+                    # Skip this recipe entirely
+                    skipped_recipes.append({
+                        'recipe_name': recipe['name'],
+                        'reason': _('Missing material: {}').format(material['name'])
+                    })
+                    # Continue to next recipe
+                    break
 
                 # Determine component type
                 type_map = {
@@ -807,8 +1038,35 @@ def confirm_import():
         session.pop('recipe_temp_file', None)
         session.pop('recipe_data_file', None)
 
-        # Success message
-        flash(f'ייבוא הושלם בהצלחה: {created_count} מתכונים חדשים, {updated_count} מתכונים עודכנו', 'success')
+        # Build comprehensive summary message
+        summary_parts = []
+
+        if created_count > 0 or updated_count > 0:
+            summary_parts.append(f'{created_count} מתכונים חדשים, {updated_count} מתכונים עודכנו')
+
+        if created_materials_count > 0:
+            summary_parts.append(f'{created_materials_count} חומרי גלם נוצרו')
+
+        if skipped_recipes:
+            summary_parts.append(f'{len(skipped_recipes)} מתכונים דולגו')
+
+        # Main success/warning message
+        if summary_parts:
+            if skipped_recipes:
+                flash(f'ייבוא הושלם עם אזהרות: {", ".join(summary_parts)}', 'warning')
+            else:
+                flash(f'ייבוא הושלם בהצלחה: {", ".join(summary_parts)}', 'success')
+        else:
+            flash('לא בוצעו שינויים', 'info')
+
+        # Show details of skipped items if any
+        if skipped_recipes:
+            skipped_list = '<br>'.join([f'• {item["recipe_name"]}: {item["reason"]}' for item in skipped_recipes])
+            flash(f'המתכונים הבאים דולגו:<br>{skipped_list}', 'warning')
+
+        # Clear session data
+        session.pop('recipe_import_new_suppliers', None)
+        session.pop('recipe_import_created_materials', None)
 
         # Redirect based on type
         if is_premake:
