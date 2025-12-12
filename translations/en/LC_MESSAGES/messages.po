@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-12-12 08:44+0200\n"
+"POT-Creation-Date: 2025-12-12 14:17+0200\n"
 "PO-Revision-Date: 2024-12-14 21:06+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -29,7 +29,7 @@ msgid "Missing required fields"
 msgstr "Missing Materials"
 
 #: app/routes/packaging.py:304 app/routes/packaging.py:397
-#: app/routes/utils.py:731
+#: app/routes/utils.py:742
 #, fuzzy
 msgid "Packaging not found"
 msgstr "Packaging Name"
@@ -39,7 +39,43 @@ msgstr "Packaging Name"
 msgid "Stock updated successfully"
 msgstr "File uploaded successfully"
 
-#: app/routes/utils.py:742 app/routes/utils.py:803
+#: app/routes/recipe_import.py:373
+#, fuzzy
+msgid "Supplier name is required"
+msgstr "Supplier Name"
+
+#: app/routes/recipe_import.py:378
+msgid "Supplier with this name already exists"
+msgstr ""
+
+#: app/routes/recipe_import.py:427
+msgid "All fields are required"
+msgstr ""
+
+#: app/routes/recipe_import.py:432 app/routes/recipe_import.py:552
+msgid "Material with this name already exists"
+msgstr ""
+
+#: app/routes/recipe_import.py:439
+#, python-brace-format
+msgid "This name is already used as an alternative for: {}"
+msgstr ""
+
+#: app/routes/recipe_import.py:561
+#, python-brace-format
+msgid "This name is used as alternative for: {}"
+msgstr ""
+
+#: app/routes/recipe_import.py:963
+msgid "Material not found or invalid mapping"
+msgstr ""
+
+#: app/routes/recipe_import.py:968
+#, fuzzy, python-brace-format
+msgid "Missing material: {}"
+msgstr "Missing Materials"
+
+#: app/routes/utils.py:753 app/routes/utils.py:814
 #, python-format
 msgid ""
 "Insufficient packaging stock for %(name)s. Required: %(required).2f, "
@@ -74,13 +110,13 @@ msgstr "Total Hourly Cost (₪)"
 msgid "Including base salary and employer costs."
 msgstr "Including base salary and employer costs."
 
-#: templates/add_or_edit_labor.html:30 templates/add_or_edit_product.html:355
+#: templates/add_or_edit_labor.html:30 templates/add_or_edit_product.html:368
 #: templates/add_or_edit_raw_material.html:158 templates/categories.html:85
 #: templates/premake_production.html:131 templates/production.html:138
 msgid "Save Changes"
 msgstr ""
 
-#: templates/add_or_edit_labor.html:31 templates/add_or_edit_product.html:357
+#: templates/add_or_edit_labor.html:31 templates/add_or_edit_product.html:370
 #: templates/add_or_edit_raw_material.html:160
 msgid "Cancel and Return"
 msgstr "Cancel and Return"
@@ -90,13 +126,13 @@ msgstr "Cancel and Return"
 #: templates/add_or_edit_supplier.html:2 templates/add_or_edit_supplier.html:10
 #: templates/add_or_edit_supplier.html:13 templates/labor.html:66
 #: templates/packaging.html:103 templates/premake_production.html:95
-#: templates/premakes.html:61 templates/production.html:106
+#: templates/premakes.html:77 templates/production.html:106
 #: templates/products.html:99 templates/suppliers.html:61
 msgid "Edit"
 msgstr "Edit"
 
 #: templates/add_or_edit_packaging.html:2 templates/add_or_edit_premake.html:58
-#: templates/add_or_edit_premake.html:153
+#: templates/add_or_edit_premake.html:157
 #: templates/add_or_edit_raw_material.html:2
 #: templates/add_or_edit_supplier.html:2 templates/add_or_edit_supplier.html:10
 #: templates/add_or_edit_supplier.html:13
@@ -118,12 +154,12 @@ msgid "Edit Packaging"
 msgstr "New Packaging"
 
 #: templates/add_or_edit_packaging.html:33
-#: templates/add_or_edit_product.html:445
+#: templates/add_or_edit_product.html:458
 msgid "Add New Packaging"
 msgstr "Add New Packaging"
 
 #: templates/add_or_edit_packaging.html:44
-#: templates/add_or_edit_product.html:450 templates/weekly_report.html:503
+#: templates/add_or_edit_product.html:463 templates/weekly_report.html:503
 msgid "Packaging Name"
 msgstr "Packaging Name"
 
@@ -231,9 +267,9 @@ msgid "Enter initial stock quantity"
 msgstr ""
 
 #: templates/add_or_edit_packaging.html:172
-#: templates/add_or_edit_premake.html:199
-#: templates/add_or_edit_product.html:412
-#: templates/add_or_edit_product.html:463
+#: templates/add_or_edit_premake.html:203
+#: templates/add_or_edit_product.html:425
+#: templates/add_or_edit_product.html:476
 #: templates/add_or_edit_raw_material.html:185
 #: templates/add_or_edit_raw_material.html:220
 #: templates/add_or_edit_raw_material.html:277
@@ -242,9 +278,10 @@ msgstr ""
 #: templates/categories.html:118 templates/packaging.html:196
 #: templates/premake_production.html:130 templates/production.html:137
 #: templates/raw_materials.html:261 templates/raw_materials.html:302
-#: templates/raw_materials.html:324 templates/recipe_review.html:268
-#: templates/supplier_materials.html:252 templates/update_weekly_sales.html:108
-#: templates/upload_inventory.html:116 templates/weekly_costs.html:69
+#: templates/raw_materials.html:324 templates/recipe_review.html:200
+#: templates/recipe_review.html:363 templates/supplier_materials.html:252
+#: templates/update_weekly_sales.html:108 templates/upload_inventory.html:116
+#: templates/weekly_costs.html:69
 msgid "Cancel"
 msgstr ""
 
@@ -274,14 +311,14 @@ msgid "Premake Name"
 msgstr "Premake Name"
 
 #: templates/add_or_edit_premake.html:18 templates/add_or_edit_product.html:20
-#: templates/add_or_edit_product.html:382
+#: templates/add_or_edit_product.html:395
 #: templates/add_or_edit_raw_material.html:42 templates/monthly_report.html:371
 #: templates/monthly_report.html:418 templates/premakes.html:43
-#: templates/raw_materials.html:87 templates/stock_audits.html:102
-#: templates/stock_audits.html:172 templates/supplier_materials.html:76
-#: templates/weekly_report.html:212 templates/weekly_report.html:267
-#: templates/weekly_report.html:599 templates/weekly_report.html:775
-#: templates/weekly_report.html:810
+#: templates/raw_materials.html:87 templates/recipe_review.html:157
+#: templates/stock_audits.html:102 templates/stock_audits.html:172
+#: templates/supplier_materials.html:76 templates/weekly_report.html:212
+#: templates/weekly_report.html:267 templates/weekly_report.html:599
+#: templates/weekly_report.html:775 templates/weekly_report.html:810
 msgid "Category"
 msgstr ""
 
@@ -302,7 +339,7 @@ msgstr ""
 "Product quantity will be calculated automatically as sum of component "
 "weights."
 
-#: templates/add_or_edit_premake.html:51 templates/view_premake.html:91
+#: templates/add_or_edit_premake.html:51 templates/view_premake.html:110
 msgid "Components"
 msgstr "Components"
 
@@ -313,33 +350,33 @@ msgstr "Components"
 msgid "Raw Materials"
 msgstr ""
 
-#: templates/add_or_edit_premake.html:77 templates/add_or_edit_premake.html:120
-#: templates/add_or_edit_premake.html:230
-#: templates/add_or_edit_product.html:245
-#: templates/add_or_edit_product.html:495
+#: templates/add_or_edit_premake.html:77 templates/add_or_edit_premake.html:122
+#: templates/add_or_edit_premake.html:234
+#: templates/add_or_edit_product.html:253
+#: templates/add_or_edit_product.html:508
 msgid "Select raw material..."
 msgstr "Select raw material..."
 
-#: templates/add_or_edit_premake.html:87 templates/add_or_edit_premake.html:130
-#: templates/add_or_edit_premake.html:182
-#: templates/add_or_edit_premake.html:246
-#: templates/add_or_edit_premake.html:326 templates/add_or_edit_product.html:90
+#: templates/add_or_edit_premake.html:87 templates/add_or_edit_premake.html:132
+#: templates/add_or_edit_premake.html:186
+#: templates/add_or_edit_premake.html:250
+#: templates/add_or_edit_premake.html:332 templates/add_or_edit_product.html:90
 #: templates/add_or_edit_product.html:116
 #: templates/add_or_edit_product.html:157
 #: templates/add_or_edit_product.html:183
 #: templates/add_or_edit_product.html:228
-#: templates/add_or_edit_product.html:257
-#: templates/add_or_edit_product.html:300
-#: templates/add_or_edit_product.html:321
-#: templates/add_or_edit_product.html:517
-#: templates/add_or_edit_product.html:576
-#: templates/add_or_edit_product.html:615
-#: templates/add_or_edit_product.html:689 templates/packaging.html:180
-#: templates/product_details.html:302 templates/view_premake.html:101
+#: templates/add_or_edit_product.html:265
+#: templates/add_or_edit_product.html:313
+#: templates/add_or_edit_product.html:334
+#: templates/add_or_edit_product.html:530
+#: templates/add_or_edit_product.html:594
+#: templates/add_or_edit_product.html:633
+#: templates/add_or_edit_product.html:707 templates/packaging.html:180
+#: templates/product_details.html:302 templates/view_premake.html:120
 msgid "Quantity"
 msgstr ""
 
-#: templates/add_or_edit_premake.html:151 templates/add_or_edit_product.html:67
+#: templates/add_or_edit_premake.html:155 templates/add_or_edit_product.html:67
 #: templates/base.html:43 templates/base.html:47 templates/categories.html:36
 #: templates/index.html:30 templates/premakes.html:2 templates/premakes.html:8
 #: templates/product_details.html:158
@@ -347,41 +384,41 @@ msgid "Premakes"
 msgstr "Premakes"
 
 # Premake Production page translations
-#: templates/add_or_edit_premake.html:172
-#: templates/add_or_edit_premake.html:311
+#: templates/add_or_edit_premake.html:176
+#: templates/add_or_edit_premake.html:317
 #: templates/add_or_edit_product.html:107
-#: templates/add_or_edit_product.html:601 templates/premake_production.html:23
+#: templates/add_or_edit_product.html:619 templates/premake_production.html:23
 #, fuzzy
 msgid "Select premake..."
 msgstr "Select Premake"
 
-#: templates/add_or_edit_premake.html:198
-#: templates/add_or_edit_premake.html:216
-#: templates/add_or_edit_product.html:432 templates/supplier_materials.html:253
+#: templates/add_or_edit_premake.html:202
+#: templates/add_or_edit_premake.html:220
+#: templates/add_or_edit_product.html:445 templates/supplier_materials.html:253
 msgid "Save"
 msgstr "Save"
 
-#: templates/add_or_edit_premake.html:209
-#: templates/add_or_edit_product.html:425
+#: templates/add_or_edit_premake.html:213
+#: templates/add_or_edit_product.html:438
 #: templates/add_or_edit_raw_material.html:186
 msgid "Add Category"
 msgstr ""
 
-#: templates/add_or_edit_premake.html:215
-#: templates/add_or_edit_product.html:431
+#: templates/add_or_edit_premake.html:219
+#: templates/add_or_edit_product.html:444
 #: templates/add_or_edit_raw_material.html:180 templates/categories.html:46
 #: templates/categories.html:79 templates/categories.html:113
 msgid "Category Name"
 msgstr ""
 
-#: templates/add_or_edit_premake.html:270
-#: templates/add_or_edit_premake.html:347
-#: templates/add_or_edit_premake.html:404
-#: templates/add_or_edit_product.html:541
-#: templates/add_or_edit_product.html:592
-#: templates/add_or_edit_product.html:638
-#: templates/add_or_edit_product.html:710
-#: templates/add_or_edit_product.html:761 templates/base.html:110
+#: templates/add_or_edit_premake.html:276
+#: templates/add_or_edit_premake.html:353
+#: templates/add_or_edit_premake.html:410
+#: templates/add_or_edit_product.html:559
+#: templates/add_or_edit_product.html:610
+#: templates/add_or_edit_product.html:656
+#: templates/add_or_edit_product.html:728
+#: templates/add_or_edit_product.html:779 templates/base.html:110
 #: templates/premake_production.html:149 templates/production.html:156
 msgid "No results found"
 msgstr "No results found"
@@ -406,8 +443,8 @@ msgstr ""
 msgid "e.g., Uniform Bread"
 msgstr "e.g., Uniform Bread"
 
-#: templates/add_or_edit_product.html:23 templates/premakes.html:51
-#: templates/premakes.html:53 templates/weekly_report.html:284
+#: templates/add_or_edit_product.html:23 templates/premakes.html:53
+#: templates/premakes.html:55 templates/weekly_report.html:284
 msgid "No Category"
 msgstr "No Category"
 
@@ -440,17 +477,18 @@ msgstr "Preproducts"
 #: templates/add_or_edit_product.html:161
 #: templates/add_or_edit_product.html:176
 #: templates/add_or_edit_product.html:187
-#: templates/add_or_edit_product.html:670
-#: templates/add_or_edit_product.html:677
-#: templates/add_or_edit_product.html:719 templates/premakes.html:45
+#: templates/add_or_edit_product.html:688
+#: templates/add_or_edit_product.html:695
+#: templates/add_or_edit_product.html:737 templates/premakes.html:45
 #: templates/product_details.html:169 templates/product_details.html:201
 #: templates/product_details.html:252 templates/raw_materials.html:89
-#: templates/supplier_materials.html:77 templates/view_premake.html:102
+#: templates/recipe_review.html:163 templates/supplier_materials.html:77
+#: templates/view_premake.html:121
 msgid "Unit"
 msgstr ""
 
 #: templates/add_or_edit_product.html:174
-#: templates/add_or_edit_product.html:674
+#: templates/add_or_edit_product.html:692
 msgid "Select preproduct..."
 msgstr "Select preproduct..."
 
@@ -462,40 +500,40 @@ msgstr "Add Preproduct"
 msgid "Required Raw Materials"
 msgstr "Required Raw Materials"
 
-#: templates/add_or_edit_product.html:273
-#: templates/add_or_edit_product.html:413
+#: templates/add_or_edit_product.html:286
+#: templates/add_or_edit_product.html:426
 #: templates/add_or_edit_raw_material.html:158 templates/raw_materials.html:56
 msgid "Add Raw Material"
 msgstr ""
 
-#: templates/add_or_edit_product.html:277
+#: templates/add_or_edit_product.html:290
 msgid "Required Packaging"
 msgstr "Required Packaging"
 
-#: templates/add_or_edit_product.html:312
-#: templates/add_or_edit_product.html:562
+#: templates/add_or_edit_product.html:325
+#: templates/add_or_edit_product.html:580
 msgid "Select packaging..."
 msgstr "Select packaging..."
 
-#: templates/add_or_edit_product.html:330
-#: templates/add_or_edit_product.html:464 templates/packaging.html:44
+#: templates/add_or_edit_product.html:343
+#: templates/add_or_edit_product.html:477 templates/packaging.html:44
 #, fuzzy
 msgid "Add Packaging"
 msgstr "Add Packaging"
 
-#: templates/add_or_edit_product.html:336
+#: templates/add_or_edit_product.html:349
 msgid "Cost Summary (Primary Supplier Prices)"
 msgstr "Cost Summary (Primary Supplier Prices)"
 
-#: templates/add_or_edit_product.html:340
+#: templates/add_or_edit_product.html:353
 msgid "Raw Material Cost per Recipe:"
 msgstr "Raw Material Cost per Recipe:"
 
-#: templates/add_or_edit_product.html:343
+#: templates/add_or_edit_product.html:356
 msgid "Cost per Unit:"
 msgstr "Cost per Unit:"
 
-#: templates/add_or_edit_product.html:347
+#: templates/add_or_edit_product.html:360
 msgid ""
 "Costs are calculated based on primary supplier prices for each raw "
 "material, which will be used in actual production."
@@ -503,26 +541,26 @@ msgstr ""
 "Costs are calculated based on primary supplier prices for each raw "
 "material, which will be used in actual production."
 
-#: templates/add_or_edit_product.html:355
+#: templates/add_or_edit_product.html:368
 msgid "Add Product"
 msgstr "Add Product"
 
-#: templates/add_or_edit_product.html:373
+#: templates/add_or_edit_product.html:386
 #: templates/add_or_edit_raw_material.html:25
 msgid "Add New Raw Material"
 msgstr ""
 
-#: templates/add_or_edit_product.html:378
+#: templates/add_or_edit_product.html:391
 #: templates/add_or_edit_raw_material.html:36
 msgid "Raw Material Name"
 msgstr "Raw Material Name"
 
-#: templates/add_or_edit_product.html:395
+#: templates/add_or_edit_product.html:408
 #: templates/add_or_edit_raw_material.html:60
 msgid "Unit of Measure"
 msgstr "Unit of Measure"
 
-#: templates/add_or_edit_product.html:403
+#: templates/add_or_edit_product.html:416
 #: templates/add_or_edit_raw_material.html:121
 #: templates/add_or_edit_raw_material.html:128
 #: templates/supplier_materials.html:240
@@ -530,21 +568,21 @@ msgstr "Unit of Measure"
 msgid "Price per Unit"
 msgstr "Price per Unit"
 
-#: templates/add_or_edit_product.html:407
+#: templates/add_or_edit_product.html:420
 #: templates/add_or_edit_raw_material.html:150
 #, fuzzy
 msgid "Initial Stock"
 msgstr "In Stock"
 
-#: templates/add_or_edit_product.html:454
+#: templates/add_or_edit_product.html:467
 msgid "Quantity per Packaging Unit"
 msgstr "Quantity per Packaging Unit"
 
-#: templates/add_or_edit_product.html:458 templates/product_details.html:303
+#: templates/add_or_edit_product.html:471 templates/product_details.html:303
 msgid "Price per Packaging Unit"
 msgstr "Price per Packaging Unit"
 
-#: templates/add_or_edit_product.html:499
+#: templates/add_or_edit_product.html:512
 msgid "Average"
 msgstr "Average"
 
@@ -613,14 +651,14 @@ msgstr "Supplier Name"
 #: templates/add_or_edit_supplier.html:13
 #: templates/add_or_edit_supplier.html:106 templates/packaging.html:172
 #: templates/raw_materials.html:88 templates/raw_materials.html:248
-#: templates/raw_materials.html:285
+#: templates/raw_materials.html:285 templates/recipe_review.html:173
 msgid "Supplier"
 msgstr "Supplier"
 
 #: templates/add_or_edit_raw_material.html:120
-#: templates/add_or_edit_raw_material.html:127
-#: templates/supplier_materials.html:75 templates/supplier_materials.html:150
-#: templates/supplier_materials.html:236
+#: templates/add_or_edit_raw_material.html:127 templates/recipe_review.html:184
+#: templates/recipe_review.html:186 templates/supplier_materials.html:75
+#: templates/supplier_materials.html:150 templates/supplier_materials.html:236
 msgid "SKU"
 msgstr "SKU"
 
@@ -628,7 +666,7 @@ msgstr "SKU"
 #: templates/packaging.html:58 templates/premake_production.html:55
 #: templates/production.html:61 templates/raw_materials.html:91
 #: templates/supplier_materials.html:80 templates/supplier_materials.html:154
-#: templates/update_weekly_sales.html:51 templates/view_premake.html:41
+#: templates/update_weekly_sales.html:51 templates/view_premake.html:60
 msgid "Current Stock"
 msgstr "Current Stock"
 
@@ -856,13 +894,13 @@ msgstr "Target ID"
 msgid "Details"
 msgstr "Week Details"
 
-#: templates/audit_log.html:43
+#: templates/audit_log.html:43 templates/recipe_review.html:197
 msgid "Create"
 msgstr "Create"
 
 #: templates/audit_log.html:47 templates/labor.html:70
 #: templates/packaging.html:107 templates/premake_production.html:98
-#: templates/premakes.html:65 templates/production.html:109
+#: templates/premakes.html:81 templates/production.html:109
 #: templates/raw_materials.html:220 templates/raw_materials.html:325
 #: templates/suppliers.html:75
 msgid "Delete"
@@ -1016,7 +1054,7 @@ msgstr ""
 
 #: templates/categories.html:47 templates/labor.html:55
 #: templates/packaging.html:59 templates/premake_production.html:82
-#: templates/premakes.html:46 templates/production.html:91
+#: templates/premakes.html:48 templates/production.html:91
 #: templates/products.html:29 templates/raw_materials.html:92
 #: templates/supplier_materials.html:82 templates/supplier_materials.html:156
 #: templates/suppliers.html:28 templates/weekly_costs.html:25
@@ -1352,7 +1390,7 @@ msgstr "Employee List"
 
 #: templates/labor.html:52 templates/packaging.html:54
 #: templates/premakes.html:42 templates/raw_materials.html:86
-#: templates/recipe_review.html:101
+#: templates/recipe_review.html:116
 msgid "Name"
 msgstr ""
 
@@ -1591,8 +1629,8 @@ msgid "Unsold Products (In Inventory)"
 msgstr "Unsold Products (In Inventory)"
 
 #: templates/monthly_report.html:461 templates/product_details.html:170
-#: templates/product_details.html:253 templates/view_premake.html:66
-#: templates/view_premake.html:183 templates/weekly_report.html:331
+#: templates/product_details.html:253 templates/view_premake.html:85
+#: templates/view_premake.html:202 templates/weekly_report.html:331
 #: templates/weekly_report.html:370 templates/weekly_report.html:507
 msgid "Cost per Unit"
 msgstr "Cost per Unit"
@@ -1835,12 +1873,12 @@ msgid "Material and Premake Usage Breakdown"
 msgstr "Material and Premake Usage Breakdown"
 
 #: templates/premake_production.html:53 templates/product_details.html:199
-#: templates/production.html:59 templates/view_premake.html:100
+#: templates/production.html:59 templates/view_premake.html:119
 msgid "Component"
 msgstr "Component"
 
 #: templates/premake_production.html:54 templates/production.html:60
-#: templates/recipe_review.html:102
+#: templates/recipe_review.html:117
 msgid "Type"
 msgstr "Type"
 
@@ -1853,7 +1891,7 @@ msgid "Stock after production"
 msgstr "Stock after production"
 
 #: templates/premake_production.html:59 templates/production.html:65
-#: templates/view_premake.html:105
+#: templates/view_premake.html:124
 msgid "Cost"
 msgstr "Cost"
 
@@ -1923,15 +1961,31 @@ msgstr "All Categories"
 msgid "Batch Quantity"
 msgstr "Batch Quantity"
 
-#: templates/premakes.html:58 templates/products.html:96
+#: templates/premakes.html:46
+#, fuzzy
+msgid "Price per Batch"
+msgstr "Price per Unit"
+
+#: templates/premakes.html:47
+#, fuzzy
+msgid "Price per 100g/kg"
+msgstr "Price per Package"
+
+# Product Details page translations
+#: templates/premakes.html:69
+#, fuzzy
+msgid "unit"
+msgstr "units"
+
+#: templates/premakes.html:74 templates/products.html:96
 msgid "View Details"
 msgstr "View Details"
 
-#: templates/premakes.html:64
+#: templates/premakes.html:80
 msgid "Are you sure you want to delete this premake?"
 msgstr "Are you sure you want to delete this premake?"
 
-#: templates/premakes.html:74
+#: templates/premakes.html:90
 msgid "No premakes found."
 msgstr "No premakes found."
 
@@ -1958,7 +2012,7 @@ msgstr "Product Components"
 
 #: templates/product_details.html:91 templates/product_details.html:159
 #: templates/product_details.html:242 templates/product_details.html:293
-#: templates/view_premake.html:92
+#: templates/view_premake.html:111
 msgid "items"
 msgstr "items"
 
@@ -1968,12 +2022,12 @@ msgid "Quantity in Recipe"
 msgstr "Quantity in Recipe"
 
 #: templates/product_details.html:101 templates/supplier_materials.html:78
-#: templates/supplier_materials.html:152 templates/view_premake.html:103
+#: templates/supplier_materials.html:152 templates/view_premake.html:122
 msgid "Original Price"
 msgstr ""
 
 #: templates/product_details.html:102 templates/supplier_materials.html:79
-#: templates/supplier_materials.html:153 templates/view_premake.html:104
+#: templates/supplier_materials.html:153 templates/view_premake.html:123
 #, fuzzy
 msgid "Discounted Price"
 msgstr "Same price"
@@ -2015,7 +2069,7 @@ msgstr "Total Preproducts:"
 msgid "Total Packaging:"
 msgstr "Total Packaging:"
 
-#: templates/product_details.html:339 templates/view_premake.html:156
+#: templates/product_details.html:339 templates/view_premake.html:175
 msgid "Cost Summary"
 msgstr "Cost Summary"
 
@@ -2265,7 +2319,7 @@ msgstr "No suppliers defined for this raw material"
 msgid "Error loading suppliers"
 msgstr "Error loading suppliers"
 
-#: templates/raw_materials.html:419 templates/view_premake.html:187
+#: templates/raw_materials.html:419 templates/view_premake.html:206
 #, fuzzy
 msgid "Current Stock:"
 msgstr "Current Stock"
@@ -2280,7 +2334,7 @@ msgid "Type:"
 msgstr "Type:'"
 
 #: templates/recipe_review.html:10 templates/recipe_upload.html:94
-#: templates/view_premake.html:77
+#: templates/view_premake.html:96
 msgid "Category:"
 msgstr "Category:"
 
@@ -2293,11 +2347,11 @@ msgstr "Unit:'"
 msgid "Total recipes:"
 msgstr "Total recipes:"
 
-#: templates/recipe_review.html:31
+#: templates/recipe_review.html:34
 msgid "Missing materials in system!"
 msgstr "Missing materials in system!"
 
-#: templates/recipe_review.html:32
+#: templates/recipe_review.html:42
 msgid ""
 "Select a match for missing materials from the dropdown, or add the "
 "materials to the system:"
@@ -2305,7 +2359,7 @@ msgstr ""
 "Select a match for missing materials from the dropdown, or add the "
 "materials to the system:"
 
-#: templates/recipe_review.html:41
+#: templates/recipe_review.html:50
 msgid ""
 "Select a material from the dropdown or add new materials to the system "
 "and then import again."
@@ -2313,173 +2367,195 @@ msgstr ""
 "Select a material from the dropdown or add new materials to the system "
 "and then import again."
 
-#: templates/recipe_review.html:52 templates/recipe_review.html:392
+#: templates/recipe_review.html:67 templates/recipe_review.html:502
 msgid "Select All"
 msgstr "Select All"
 
-#: templates/recipe_review.html:54
+#: templates/recipe_review.html:69
 msgid "0 recipes selected"
 msgstr "0 recipes selected"
 
-#: templates/recipe_review.html:80
+#: templates/recipe_review.html:95
 msgid "Exists - Will Update"
 msgstr "Exists - Will Update"
 
-#: templates/recipe_review.html:82 templates/upload_inventory.html:82
+#: templates/recipe_review.html:97 templates/upload_inventory.html:82
 msgid "New"
 msgstr "New"
 
-#: templates/recipe_review.html:85
+#: templates/recipe_review.html:100
 msgid "Missing Materials"
 msgstr "Missing Materials"
 
-#: templates/recipe_review.html:96
+#: templates/recipe_review.html:111
 msgid "Materials:"
 msgstr "Materials:"
 
-#: templates/recipe_review.html:103 templates/suppliers.html:27
+#: templates/recipe_review.html:118 templates/suppliers.html:27
 #: templates/upload_inventory.html:46
 msgid "Status"
 msgstr "Status"
 
-#: templates/recipe_review.html:104
+#: templates/recipe_review.html:119
 msgid "Weight (g)"
 msgstr "Weight (g)"
 
-#: templates/recipe_review.html:105
+#: templates/recipe_review.html:120
 msgid "Price in Sheet"
 msgstr "Price in Sheet"
 
-#: templates/recipe_review.html:106 templates/upload_inventory.html:49
+#: templates/recipe_review.html:121 templates/upload_inventory.html:49
 msgid "Price in System"
 msgstr "Price in System"
 
-#: templates/recipe_review.html:107
+#: templates/recipe_review.html:122
 #, fuzzy
 msgid "Match"
 msgstr "Match'"
 
-#: templates/recipe_review.html:118
+#: templates/recipe_review.html:150
+#, fuzzy
+msgid "Create New Material"
+msgstr "Delete Raw Material"
+
+# Production page translations
+#: templates/recipe_review.html:159 templates/recipe_review.html:176
+#, fuzzy
+msgid "Select..."
+msgstr "Select product..."
+
+# add_or_edit_raw_material.html new translations
+#: templates/recipe_review.html:177
+#, fuzzy
+msgid "New Supplier..."
+msgstr "Add New Supplier"
+
+#: templates/recipe_review.html:189
+#, fuzzy
+msgid "Price"
+msgstr "Same price"
+
+#: templates/recipe_review.html:213
 msgid "Found via alternative name"
 msgstr "Found via alternative name"
 
-#: templates/recipe_review.html:119
+#: templates/recipe_review.html:214
 msgid "Found (alternative name)"
 msgstr "Found (alternative name)"
 
-#: templates/recipe_review.html:122
+#: templates/recipe_review.html:217
 #, fuzzy
 msgid "Found"
 msgstr "Found'"
 
-#: templates/recipe_review.html:132
+#: templates/recipe_review.html:227
 msgid "Select material from system..."
 msgstr "Select material from system..."
 
-#: templates/recipe_review.html:173
+#: templates/recipe_review.html:268
 msgid "Different"
 msgstr "Different"
 
-#: templates/recipe_review.html:175
+#: templates/recipe_review.html:270
 msgid "Same"
 msgstr "Same"
 
-#: templates/recipe_review.html:188 templates/recipe_review.html:189
+#: templates/recipe_review.html:283 templates/recipe_review.html:284
 #, fuzzy
 msgid "Loss"
 msgstr "Loss'"
 
-#: templates/recipe_review.html:191
+#: templates/recipe_review.html:286
 msgid "No cost"
 msgstr "No cost"
 
-#: templates/recipe_review.html:203
+#: templates/recipe_review.html:298
 msgid "Weight and Cost Summary:"
 msgstr "Weight and Cost Summary:"
 
-#: templates/recipe_review.html:205
+#: templates/recipe_review.html:300
 msgid "Gross Weight:"
 msgstr "Gross Weight:"
 
-#: templates/recipe_review.html:205 templates/recipe_review.html:207
-#: templates/recipe_review.html:208
+#: templates/recipe_review.html:300 templates/recipe_review.html:302
+#: templates/recipe_review.html:303
 #, fuzzy
 msgid "g"
 msgstr "g'"
 
-#: templates/recipe_review.html:207
+#: templates/recipe_review.html:302
 #, fuzzy
 msgid "Loss:"
 msgstr "Loss:'"
 
-#: templates/recipe_review.html:208
+#: templates/recipe_review.html:303
 msgid "Net Weight:"
 msgstr "Net Weight:"
 
-#: templates/recipe_review.html:210
+#: templates/recipe_review.html:305
 #, fuzzy
 msgid "Total Cost:"
 msgstr "Total Cost:'"
 
-#: templates/recipe_review.html:211
+#: templates/recipe_review.html:306
 msgid "Cost per 100g:"
 msgstr "Cost per 100g:"
 
-#: templates/recipe_review.html:222
+#: templates/recipe_review.html:317
 msgid "Changes (compared to existing recipe):"
 msgstr "Changes (compared to existing recipe):"
 
-#: templates/recipe_review.html:226
+#: templates/recipe_review.html:321
 msgid "Added:"
 msgstr "Added:"
 
-#: templates/recipe_review.html:234
+#: templates/recipe_review.html:329
 msgid "Removed:"
 msgstr "Removed:"
 
-#: templates/recipe_review.html:242
+#: templates/recipe_review.html:337
 msgid "Quantity Changed:"
 msgstr "Quantity Changed:"
 
-#: templates/recipe_review.html:249
+#: templates/recipe_review.html:344
 msgid "No changes"
 msgstr "No changes"
 
-#: templates/recipe_review.html:271
+#: templates/recipe_review.html:366
 msgid "Confirm and Import Recipes"
 msgstr "Confirm and Import Recipes"
 
-#: templates/recipe_review.html:288
+#: templates/recipe_review.html:398
 msgid "Search material..."
 msgstr "Search material..."
 
-#: templates/recipe_review.html:379
+#: templates/recipe_review.html:489
 msgid "Deselect All"
 msgstr "Deselect All"
 
-#: templates/recipe_review.html:423
+#: templates/recipe_review.html:533
 msgid "recipes selected"
 msgstr "recipes selected"
 
-#: templates/recipe_review.html:435
+#: templates/recipe_review.html:546
 msgid "Select recipes to import"
 msgstr "Select recipes to import"
 
-#: templates/recipe_review.html:452
+#: templates/recipe_review.html:563
 #, fuzzy
 msgid "Import"
 msgstr "Import\""
 
-#: templates/recipe_review.html:452
+#: templates/recipe_review.html:563
 #, fuzzy
 msgid "recipes"
 msgstr "Recipes"
 
-#: templates/recipe_review.html:457
+#: templates/recipe_review.html:568
 msgid "unmapped materials in selected recipes"
 msgstr "unmapped materials in selected recipes"
 
-#: templates/recipe_review.html:458
+#: templates/recipe_review.html:569
 msgid ""
 "Select a match for all missing materials in selected recipes from the "
 "dropdowns."
@@ -2995,39 +3071,39 @@ msgstr "Back to List"
 msgid "Batch Size"
 msgstr "Batch Size"
 
-#: templates/view_premake.html:57
+#: templates/view_premake.html:76
 msgid "Cost per Batch"
 msgstr "Cost per Batch"
 
-#: templates/view_premake.html:68
+#: templates/view_premake.html:87
 msgid "per"
 msgstr "per"
 
-#: templates/view_premake.html:84
+#: templates/view_premake.html:103
 msgid "Preparation Components"
 msgstr "Preparation Components"
 
-#: templates/view_premake.html:137
+#: templates/view_premake.html:156
 msgid "Total Cost per Batch:"
 msgstr "Total Cost per Batch:"
 
-#: templates/view_premake.html:148
+#: templates/view_premake.html:167
 msgid "No components defined for this preparation."
 msgstr "No components defined for this preparation."
 
-#: templates/view_premake.html:165
+#: templates/view_premake.html:184
 msgid "Batch Size:"
 msgstr "Batch Size:"
 
-#: templates/view_premake.html:169
+#: templates/view_premake.html:188
 msgid "Number of Components:"
 msgstr "Number of Components:"
 
-#: templates/view_premake.html:173
+#: templates/view_premake.html:192
 msgid "Total Batch Cost:"
 msgstr "Total Batch Cost:"
 
-#: templates/view_premake.html:198
+#: templates/view_premake.html:219
 msgid "Stock Value:"
 msgstr "Stock Value:"
 
