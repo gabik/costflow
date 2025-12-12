@@ -630,5 +630,138 @@ def migrate_packaging_stock_units():
         return f"Migration failed: {e}", 500
 
 
+@admin_blueprint.route('/migrate_reset_sequences', methods=['GET', 'POST'])
+def migrate_reset_sequences():
+    """
+    Migration endpoint to reset all PostgreSQL sequences after database truncation.
+    This fixes the duplicate key violation errors that occur when sequences aren't reset.
+
+    IMPORTANT: Remove this endpoint after successful migration to prevent accidental re-runs.
+    """
+    from flask_babel import gettext as _
+
+    if request.method == 'GET':
+        # Show migration info page
+        return '''
+        <html>
+        <head>
+            <title>Reset PostgreSQL Sequences</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; }
+                .warning { color: red; font-weight: bold; }
+                .info { background: #f0f0f0; padding: 10px; margin: 10px 0; }
+                button { padding: 10px 20px; font-size: 16px; }
+            </style>
+        </head>
+        <body>
+            <h1>Reset PostgreSQL Sequences</h1>
+            <div class="info">
+                <h2>What this migration does:</h2>
+                <ul>
+                    <li>Resets all PostgreSQL sequences to match the current maximum ID in each table</li>
+                    <li>Fixes "duplicate key value violates unique constraint" errors</li>
+                    <li>Safe to run after truncating tables or importing data</li>
+                    <li>Only affects PostgreSQL databases (SQLite ignored)</li>
+                </ul>
+            </div>
+            <div class="warning">
+                ⚠️ Run this if you're getting duplicate key errors after truncating the database.
+            </div>
+            <form method="POST" onsubmit="return confirm('Are you sure you want to reset all sequences?');">
+                <button type="submit">Reset Sequences</button>
+            </form>
+        </body>
+        </html>
+        '''
+
+    # POST - Run the migration
+    try:
+        # Only run for PostgreSQL
+        if 'postgresql' not in str(db.engine.url):
+            return "This migration is only for PostgreSQL databases", 400
+
+        # List of tables with their primary key columns
+        tables_with_sequences = [
+            ('category', 'id'),
+            ('labor', 'id'),
+            ('supplier', 'id'),
+            ('raw_material', 'id'),
+            ('raw_material_supplier', 'id'),
+            ('raw_material_alternative_name', 'id'),
+            ('packaging', 'id'),
+            ('packaging_supplier', 'id'),
+            ('product', 'id'),
+            ('stock_log', 'id'),
+            ('production_log', 'id'),
+            ('stock_audit', 'id'),
+            ('weekly_labor_cost', 'id'),
+            ('weekly_labor_entry', 'id'),
+            ('weekly_product_sales', 'id'),
+            ('audit_log', 'id')
+        ]
+
+        reset_count = 0
+        results = []
+
+        for table_name, id_column in tables_with_sequences:
+            try:
+                # Reset the sequence for this table
+                # This will set the sequence to the maximum existing ID + 1
+                sequence_name = f"{table_name}_{id_column}_seq"
+
+                # First check if the table has any records
+                count_result = db.session.execute(text(f"SELECT COUNT(*) FROM {table_name}")).scalar()
+
+                if count_result > 0:
+                    # If there are records, set sequence to max(id) + 1
+                    db.session.execute(text(f"""
+                        SELECT setval('{sequence_name}',
+                                     (SELECT MAX({id_column}) FROM {table_name}))
+                    """))
+                else:
+                    # If table is empty, reset sequence to 1
+                    db.session.execute(text(f"""
+                        SELECT setval('{sequence_name}', 1, false)
+                    """))
+
+                reset_count += 1
+                results.append(f"{table_name}: sequence reset successfully")
+
+            except Exception as e:
+                results.append(f"{table_name}: {str(e)}")
+
+        db.session.commit()
+
+        log_audit("MIGRATION_COMPLETE", "System", None,
+                 f"PostgreSQL sequences reset: {reset_count} sequences updated")
+
+        return f'''
+        <html>
+        <head>
+            <title>Sequences Reset Complete</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 40px; }}
+                .success {{ color: green; font-weight: bold; }}
+                .results {{ background: #f0f0f0; padding: 10px; margin: 10px 0; }}
+                pre {{ white-space: pre-wrap; }}
+            </style>
+        </head>
+        <body>
+            <h1 class="success">Sequences Reset Successfully!</h1>
+            <p>Reset {reset_count} sequences.</p>
+            <div class="results">
+                <h3>Results:</h3>
+                <pre>{chr(10).join(results)}</pre>
+            </div>
+            <p>You should no longer get duplicate key errors.</p>
+            <a href="/">Return to Dashboard</a>
+        </body>
+        </html>
+        '''
+
+    except Exception as e:
+        db.session.rollback()
+        log_audit("MIGRATION_ERROR", "System", None, f"Sequence reset failed: {str(e)}")
+        return f"Migration failed: {e}", 500
 
 
