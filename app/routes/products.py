@@ -67,8 +67,10 @@ def add_product():
         # Extract product-level data
         name = request.form['name']
         category_id = request.form.get('category_id')
-        if not category_id:
+        if not category_id or category_id == '':
             category_id = get_or_create_general_category('product')
+        else:
+            category_id = int(category_id)
 
         products_per_recipe = request.form['products_per_recipe']
         selling_price_per_unit = request.form['selling_price_per_unit']
@@ -433,9 +435,11 @@ def edit_product(product_id):
 
     if request.method == 'POST':
         product.name = request.form['name']
-        product.category_id = request.form.get('category_id')
-        if not product.category_id:
+        category_id = request.form.get('category_id')
+        if not category_id or category_id == '':
             product.category_id = get_or_create_general_category('product')
+        else:
+            product.category_id = int(category_id)
 
         product.products_per_recipe = int(request.form['products_per_recipe'])
         product.selling_price_per_unit = float(request.form['selling_price_per_unit'])

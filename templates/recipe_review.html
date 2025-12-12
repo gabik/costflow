@@ -42,18 +42,27 @@
 <!-- Missing Materials Warning -->
 {% if has_missing_materials %}
 <div class="alert alert-danger" role="alert">
-    <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ _('Missing materials in system!') }}</h5>
-    <p>{{ _('Select a match for missing materials from the dropdown, or add the materials to the system:') }}</p>
-    <ul class="mb-3">
-        {% for material in missing_materials %}
-        <li><strong>{{ material.name }}</strong> ({{ material.type }})</li>
-        {% endfor %}
-    </ul>
-    <hr>
-    <p class="mb-0">
-        <i class="bi bi-lightbulb me-2"></i>
-        {{ _('Select a material from the dropdown or add new materials to the system and then import again.') }}
-    </p>
+    <div class="d-flex justify-content-between align-items-center">
+        <h5 class="alert-heading mb-0">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ _('Missing materials in system!') }}
+        </h5>
+        <button class="btn btn-sm btn-link text-danger p-0" type="button" data-bs-toggle="collapse" data-bs-target="#missingMaterialsList" aria-expanded="false">
+            <i class="bi bi-chevron-down" id="missingMaterialsToggleIcon"></i>
+        </button>
+    </div>
+    <div class="collapse" id="missingMaterialsList">
+        <hr class="mt-2">
+        <p>{{ _('Select a match for missing materials from the dropdown, or add the materials to the system:') }}</p>
+        <ul class="mb-3">
+            {% for material in missing_materials %}
+            <li><strong>{{ material.name }}</strong> ({{ material.type }})</li>
+            {% endfor %}
+        </ul>
+        <p class="mb-0">
+            <i class="bi bi-lightbulb me-2"></i>
+            {{ _('Select a material from the dropdown or add new materials to the system and then import again.') }}
+        </p>
+    </div>
 </div>
 {% endif %}
 
@@ -162,7 +171,9 @@
                                                     <label class="form-label small">{{ _('Unit') }}</label>
                                                     <select class="form-select form-select-sm unit-select">
                                                         <option value="kg" selected>kg</option>
+                                                        <option value="g">g</option>
                                                         <option value="L">L</option>
+                                                        <option value="ml">ml</option>
                                                         <option value="piece">piece</option>
                                                     </select>
                                                 </div>
@@ -375,6 +386,14 @@
 <script src="{{ url_for('static', filename='js/recipe_import.js') }}"></script>
 <script>
 $(document).ready(function() {
+    // Toggle icon for missing materials collapse
+    $('#missingMaterialsList').on('show.bs.collapse', function() {
+        $('#missingMaterialsToggleIcon').removeClass('bi-chevron-down').addClass('bi-chevron-up');
+    });
+    $('#missingMaterialsList').on('hide.bs.collapse', function() {
+        $('#missingMaterialsToggleIcon').removeClass('bi-chevron-up').addClass('bi-chevron-down');
+    });
+
     // Initialize Select2 on material mapping dropdowns
     $('.material-mapping-select').select2({
         theme: 'bootstrap-5',

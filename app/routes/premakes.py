@@ -126,8 +126,10 @@ def add_premake():
     if request.method == 'POST':
         name = request.form['name']
         category_id = request.form.get('category')
-        if not category_id:
+        if not category_id or category_id == '':
             category_id = get_or_create_general_category('premake')
+        else:
+            category_id = int(category_id)
 
         unit = request.form.get('unit', 'unit')
 
@@ -223,9 +225,10 @@ def edit_premake(premake_id):
     if request.method == 'POST':
         premake.name = request.form['name']
         category_id = request.form.get('category')
-        if not category_id:
-            category_id = get_or_create_general_category('premake')
-        premake.category_id = category_id
+        if not category_id or category_id == '':
+            premake.category_id = get_or_create_general_category('premake')
+        else:
+            premake.category_id = int(category_id)
 
         premake.unit = request.form.get('unit', 'unit')
 
