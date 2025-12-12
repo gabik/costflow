@@ -90,8 +90,8 @@
                                             {% if component.material.unit in ['kg', 'g'] %}
                                                 <option value="kg" {% if component.material.unit == 'kg' %}selected{% endif %}>kg</option>
                                                 <option value="g" {% if component.material.unit == 'g' %}selected{% endif %}>g</option>
-                                            {% elif component.material.unit in ['l', 'ml'] %}
-                                                <option value="l" {% if component.material.unit == 'l' %}selected{% endif %}>l</option>
+                                            {% elif component.material.unit in ['L', 'ml'] %}
+                                                <option value="L" {% if component.material.unit == 'L' %}selected{% endif %}>L</option>
                                                 <option value="ml" {% if component.material.unit == 'ml' %}selected{% endif %}>ml</option>
                                             {% else %}
                                                 <option value="{{ component.material.unit }}">{{ component.material.unit }}</option>
@@ -99,6 +99,8 @@
                                         {% else %}
                                             <option value="kg">kg</option>
                                             <option value="g">g</option>
+                                            <option value="L">L</option>
+                                            <option value="ml">ml</option>
                                         {% endif %}
                                     </select>
                                 </div>
@@ -131,6 +133,8 @@
                                 <select class="form-select unit-selector" style="max-width: 80px;">
                                     <option value="kg">kg</option>
                                     <option value="g">g</option>
+                                    <option value="L">L</option>
+                                    <option value="ml">ml</option>
                                 </select>
                             </div>
                         </div>
@@ -247,6 +251,8 @@
                         <select class="form-select unit-selector" style="max-width: 80px;">
                             <option value="kg">kg</option>
                             <option value="g">g</option>
+                            <option value="L">L</option>
+                            <option value="ml">ml</option>
                         </select>
                     </div>
                 </div>
@@ -290,8 +296,8 @@
             if (baseUnit === 'kg' || baseUnit === 'g') {
                 unitSelector.innerHTML = '<option value="kg">kg</option><option value="g">g</option>';
                 unitSelector.value = baseUnit;
-            } else if (baseUnit === 'l' || baseUnit === 'ml') {
-                unitSelector.innerHTML = '<option value="l">l</option><option value="ml">ml</option>';
+            } else if (baseUnit === 'L' || baseUnit === 'ml') {
+                unitSelector.innerHTML = '<option value="L">L</option><option value="ml">ml</option>';
                 unitSelector.value = baseUnit;
             } else {
                 unitSelector.innerHTML = `<option value="${baseUnit}">${baseUnit}</option>`;
@@ -381,10 +387,10 @@
                         quantity = quantity / 1000; // g to kg
                     } else if (baseUnit === 'g' && currentUnit === 'kg') {
                         quantity = quantity * 1000; // kg to g
-                    } else if (baseUnit === 'l' && currentUnit === 'ml') {
-                        quantity = quantity / 1000; // ml to l
-                    } else if (baseUnit === 'ml' && currentUnit === 'l') {
-                        quantity = quantity * 1000; // l to ml
+                    } else if (baseUnit === 'L' && currentUnit === 'ml') {
+                        quantity = quantity / 1000; // ml to L
+                    } else if (baseUnit === 'ml' && currentUnit === 'L') {
+                        quantity = quantity * 1000; // L to ml
                     }
 
                     quantityInput.value = quantity;

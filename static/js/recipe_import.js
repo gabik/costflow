@@ -443,6 +443,27 @@ class RecipeImportMaterialCreator {
                         // Add new option to dropdown
                         $mappingSelect.append(`<option value="${response.material_id}" selected>${response.material_name}</option>`);
                         $mappingSelect.val(response.material_id);
+
+                        // Update the Select2 widget if it exists
+                        if ($mappingSelect.data('select2')) {
+                            $mappingSelect.trigger('change.select2');
+                        }
+
+                        // Manually update the main page's tracking since trigger('change') might not work properly
+                        const recipeIdx = parseInt($row.data('recipe-idx'));
+                        const materialIdx = parseInt($row.data('material-idx'));
+
+                        // Remove from unmapped set in main page tracking
+                        if (typeof recipeMaterialStatus !== 'undefined' && recipeMaterialStatus.has(recipeIdx)) {
+                            recipeMaterialStatus.get(recipeIdx).delete(materialIdx);
+                        }
+
+                        // Call the main page's updateSubmitButton if it exists
+                        if (typeof updateSubmitButton === 'function') {
+                            updateSubmitButton();
+                        }
+
+                        // Also trigger the change event for any other handlers
                         $mappingSelect.trigger('change');
                     }
 

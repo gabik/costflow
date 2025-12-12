@@ -372,6 +372,11 @@
 <!-- Include Recipe Import JavaScript -->
 <script src="{{ url_for('static', filename='js/recipe_import.js') }}"></script>
 <script>
+// Make these variables global so they can be accessed from recipe_import.js
+let recipeMaterialStatus = new Map();
+let updateSubmitButton = null;
+let selectedRecipes = new Set();
+
 $(document).ready(function() {
     // Toggle icon for missing materials collapse
     $('#missingMaterialsList').on('show.bs.collapse', function() {
@@ -391,7 +396,7 @@ $(document).ready(function() {
     });
 
     // Track unmapped materials per recipe: Map<recipeIdx, Set<materialIdx>>
-    let recipeMaterialStatus = new Map();
+    recipeMaterialStatus = new Map();
 
     // Initialize material tracking from dropdowns
     $('.material-mapping-select').each(function() {
@@ -405,10 +410,9 @@ $(document).ready(function() {
         recipeMaterialStatus.get(recipeIdx).add(materialIdx);
     });
 
-    // Track selected recipes
-    let selectedRecipes = new Set();
+    // Initialize selected recipes (using global variable)
+    selectedRecipes = new Set();
 
-    updateSubmitButton();
     updateSelectedCount();
 
     // Handle material selection change
@@ -524,7 +528,8 @@ $(document).ready(function() {
         $('#selectedCount').text(`${selectedRecipes.size} {{ _("recipes selected") }}`);
     }
 
-    function updateSubmitButton() {
+    // Assign the function to the global variable so it can be called from recipe_import.js
+    updateSubmitButton = function() {
         const $btn = $('#confirmImportBtn');
         const $alert = $('#mappingInfoAlert');
         const $alertText = $('#mappingInfoText');

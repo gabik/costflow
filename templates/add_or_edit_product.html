@@ -229,7 +229,15 @@
                 </div>
                 <div class="col-md-3">
                     <select name="raw_material_unit[]" class="form-select unit-select">
-                        <option value="{{ component.material.unit }}" selected>{{ component.material.unit }}</option>
+                        {% if component.material.unit in ['kg', 'g'] %}
+                            <option value="kg" {% if component.material.unit == 'kg' %}selected{% endif %}>kg</option>
+                            <option value="g" {% if component.material.unit == 'g' %}selected{% endif %}>g</option>
+                        {% elif component.material.unit in ['L', 'ml'] %}
+                            <option value="L" {% if component.material.unit == 'L' %}selected{% endif %}>L</option>
+                            <option value="ml" {% if component.material.unit == 'ml' %}selected{% endif %}>ml</option>
+                        {% else %}
+                            <option value="{{ component.material.unit }}" selected>{{ component.material.unit }}</option>
+                        {% endif %}
                     </select>
                 </div>
                 <div class="col-md-1">
@@ -259,6 +267,11 @@
                 <div class="col-md-3">
                     <select name="raw_material_unit[]" class="form-select unit-select">
                         <option value="kg">kg</option>
+                        <option value="g">g</option>
+                        <option value="L">L</option>
+                        <option value="ml">ml</option>
+                        <option value="piece">piece</option>
+                        <option value="unit">unit</option>
                     </select>
                 </div>
                 <div class="col-md-1">
@@ -519,6 +532,11 @@
                 <div class="col-md-3">
                     <select name="raw_material_unit[]" class="form-select unit-select">
                         <option value="kg">kg</option>
+                        <option value="g">g</option>
+                        <option value="L">L</option>
+                        <option value="ml">ml</option>
+                        <option value="piece">piece</option>
+                        <option value="unit">unit</option>
                     </select>
                 </div>
                 <div class="col-md-1">
@@ -728,16 +746,16 @@
 
     function updateUnitOptions(selectElement, baseUnit, selectedUnit = null) {
         selectElement.innerHTML = ''; // Clear existing
-        
+
         const options = [];
         if (baseUnit === 'kg' || baseUnit === 'g') {
             options.push('kg', 'g');
-        } else if (baseUnit === 'l' || baseUnit === 'ml') {
-            options.push('l', 'ml');
+        } else if (baseUnit === 'L' || baseUnit === 'ml') {
+            options.push('L', 'ml');
         } else {
             options.push(baseUnit);
         }
-        
+
         options.forEach(u => {
             const opt = document.createElement('option');
             opt.value = u;
