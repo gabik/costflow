@@ -1,7 +1,8 @@
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for
+from flask_babel import gettext as _
 from ..models import db, Product, ProductComponent, StockLog, Category, RawMaterial, Packaging, AuditLog, ProductionLog
-from .utils import get_or_create_general_category, log_audit, calculate_premake_current_stock, get_primary_supplier_discounted_price
+from .utils import get_or_create_general_category, log_audit, calculate_premake_current_stock, get_primary_supplier_discounted_price, calculate_premake_cost_per_unit
 
 premakes_blueprint = Blueprint('premakes', __name__)
 
@@ -14,27 +15,34 @@ def premakes():
     """List all premakes (Products with is_premake=True)"""
     premakes = Product.query.filter_by(is_premake=True).all()
 
-    # Calculate current stock for each premake
+    # Calculate current stock and costs for each premake
     for premake in premakes:
         premake.current_stock = calculate_premake_current_stock(premake.id)
 
-        # Calculate cost per unit
-        cost_per_batch = 0
-        for comp in premake.components:
-            if comp.component_type == 'raw_material' and comp.material:
-                # Get supplier price
-                supplier_price = 0
-                for link in comp.material.supplier_links:
-                    if link.is_primary:
-                        supplier_price = link.cost_per_unit
-                        break
-                if supplier_price == 0 and comp.material.supplier_links:
-                    supplier_price = comp.material.supplier_links[0].cost_per_unit
-                cost_per_batch += comp.quantity * supplier_price
-            elif comp.component_type == 'packaging' and comp.packaging:
-                cost_per_batch += comp.quantity * comp.packaging.price_per_unit
+        # Calculate cost per unit using the comprehensive utility function
+        premake.cost_per_unit = calculate_premake_cost_per_unit(premake, use_actual_costs=False)  # Use estimated costs for list view
 
-        premake.cost_per_unit = cost_per_batch / premake.batch_size if premake.batch_size > 0 else 0
+        # Calculate cost per batch
+        premake.cost_per_batch = premake.cost_per_unit * premake.batch_size if premake.batch_size > 0 else 0
+
+        # Calculate cost per 100g (or per kg if unit is kg)
+        if premake.unit in ['g', 'kg', 'ml', 'L']:
+            # Convert to per 100g or per kg based on unit
+            if premake.unit == 'g':
+                # Cost per 100g
+                premake.cost_per_100g = (premake.cost_per_unit * 100) if premake.cost_per_unit else 0
+            elif premake.unit == 'kg':
+                # Cost per kg (which is already per unit)
+                premake.cost_per_100g = premake.cost_per_unit if premake.cost_per_unit else 0
+            elif premake.unit == 'ml':
+                # Cost per 100ml
+                premake.cost_per_100g = (premake.cost_per_unit * 100) if premake.cost_per_unit else 0
+            elif premake.unit == 'L':
+                # Cost per L (which is already per unit)
+                premake.cost_per_100g = premake.cost_per_unit if premake.cost_per_unit else 0
+        else:
+            # For piece/unit, show per unit cost
+            premake.cost_per_100g = premake.cost_per_unit if premake.cost_per_unit else 0
 
     return render_template('premakes.html', premakes=premakes)
 

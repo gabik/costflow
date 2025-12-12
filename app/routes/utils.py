@@ -51,15 +51,26 @@ def get_or_create_general_category(type_val):
 def convert_to_base_unit(quantity, selected_unit, base_unit):
     if selected_unit == base_unit:
         return quantity
-    
+
+    # Handle kg/g conversions
     if selected_unit == 'g' and base_unit == 'kg':
         return quantity / 1000.0
     if selected_unit == 'kg' and base_unit == 'g':
         return quantity * 1000.0
-    
-    if selected_unit == 'ml' and base_unit == 'l':
+
+    # Handle L/ml conversions (both uppercase L and lowercase l)
+    # When Excel units are in 'g', treat ml as g and L as kg equivalents
+    if selected_unit == 'ml' and base_unit in ['L', 'l']:
         return quantity / 1000.0
-    if selected_unit == 'l' and base_unit == 'ml':
+    if selected_unit in ['L', 'l'] and base_unit == 'ml':
+        return quantity * 1000.0
+
+    # Handle g/ml to L conversions (when sheet units are 'g', materials in L are treated as ml)
+    if selected_unit == 'g' and base_unit in ['L', 'l']:
+        # g to L: treat as ml to L (divide by 1000)
+        return quantity / 1000.0
+    if selected_unit in ['L', 'l'] and base_unit == 'g':
+        # L to g: treat as L to ml (multiply by 1000)
         return quantity * 1000.0
 
     return quantity

@@ -43,6 +43,8 @@
                 <th>{{ _('Category') }}</th>
                 <th>{{ _('Batch Quantity') }}</th>
                 <th>{{ _('Unit') }}</th>
+                <th class="text-end">{{ _('Price per Batch') }}</th>
+                <th class="text-end">{{ _('Price per 100g/kg') }}</th>
                 <th class="text-end">{{ _('Actions') }}</th>
             </tr>
             </thead>
@@ -53,6 +55,20 @@
                 <td><span class="badge bg-light text-dark border">{{ premake.category.name if premake.category else _('No Category') }}</span></td>
                 <td>{{ "%.2f"|format(premake.batch_size) }}</td>
                 <td>{{ premake.unit }}</td>
+                <td class="text-end">₪{{ "%.2f"|format(premake.cost_per_batch) }}</td>
+                <td class="text-end">
+                    {% if premake.unit == 'g' %}
+                        ₪{{ "%.2f"|format(premake.cost_per_100g) }}/100g
+                    {% elif premake.unit == 'kg' %}
+                        ₪{{ "%.2f"|format(premake.cost_per_100g) }}/kg
+                    {% elif premake.unit == 'ml' %}
+                        ₪{{ "%.2f"|format(premake.cost_per_100g) }}/100ml
+                    {% elif premake.unit == 'L' %}
+                        ₪{{ "%.2f"|format(premake.cost_per_100g) }}/L
+                    {% else %}
+                        ₪{{ "%.2f"|format(premake.cost_per_100g) }}/{{ _('unit') }}
+                    {% endif %}
+                </td>
                 <td class="text-end">
                     <div class="btn-group">
                         <a href="{{ url_for('premakes.view_premake', premake_id=premake.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('View Details') }}">
@@ -71,7 +87,7 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="4" class="text-center py-4 text-muted">{{ _('No premakes found.') }}</td>
+                <td colspan="7" class="text-center py-4 text-muted">{{ _('No premakes found.') }}</td>
             </tr>
             {% endfor %}
             </tbody>
