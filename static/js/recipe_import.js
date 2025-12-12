@@ -435,30 +435,42 @@ class RecipeImportMaterialCreator {
                     this.materialStates.set(key, 'created');
                     this.createdMaterials[key] = response.material_id;
 
-                    // Update UI
-                    $row.removeClass('table-danger').addClass('table-success');
+                    // Update UI - remove danger class
+                    $row.removeClass('table-danger table-warning');
 
-                    // Update status cell
-                    const $statusCell = $row.find('.material-status-cell');
-                    $statusCell.html(`
-                        <span class="badge bg-success">
-                            <i class="bi bi-check-circle"></i> Created
-                        </span>
-                    `);
+                    // First, reset the create toggle and show the mapping dropdown
+                    const $createToggle = $row.find('.create-toggle');
+                    const $createFields = $row.find('.create-fields');
 
-                    // Hide creation form
+                    // Uncheck the toggle and hide creation fields
+                    if ($createToggle.length) {
+                        $createToggle.prop('checked', false);
+                        $createFields.hide();
+                    }
+
+                    // Hide the entire creation form
                     $row.find('.material-create-form').slideUp(200);
                     $row.find('.expand-create-btn i').removeClass('bi-chevron-up').addClass('bi-chevron-down');
 
-                    // Update the mapping dropdown if it exists
+                    // Update the mapping dropdown if it exists and ensure it's visible
+                    const $statusCell = $row.find('.material-status-cell');
                     const $mappingSelect = $row.find('.material-mapping-select');
+
                     if ($mappingSelect.length) {
-                        // Add new option to dropdown
-                        $mappingSelect.append(`<option value="${response.material_id}" selected>${response.material_name}</option>`);
+                        // First show the dropdown container (it was hidden when create mode was active)
+                        $mappingSelect.closest('.material-status-cell').find('select, .badge').show();
+
+                        // Add new option to dropdown if it doesn't exist
+                        if ($mappingSelect.find(`option[value="${response.material_id}"]`).length === 0) {
+                            $mappingSelect.append(`<option value="${response.material_id}">${response.material_name}</option>`);
+                        }
+
+                        // Set the value
                         $mappingSelect.val(response.material_id);
 
                         // Update the Select2 widget if it exists
                         if ($mappingSelect.data('select2')) {
+                            // Force Select2 to refresh with the new value
                             $mappingSelect.trigger('change.select2');
                         }
 
@@ -476,8 +488,28 @@ class RecipeImportMaterialCreator {
                             updateSubmitButton();
                         }
 
+                        // Force update the DB price cell to show the material is mapped
+                        const $dbPriceCell = $row.find('.db-price-cell');
+                        if ($dbPriceCell.length) {
+                            $dbPriceCell.html(`<span class="text-success">${response.final_price.toFixed(2)} ₪</span>`);
+                        }
+
                         // Also trigger the change event for any other handlers
-                        $mappingSelect.trigger('change');
+                        // Use a small timeout to ensure DOM is updated
+                        setTimeout(() => {
+                            $mappingSelect.trigger('change');
+                            // Force another update of the submit button
+                            if (typeof updateSubmitButton === 'function') {
+                                updateSubmitButton();
+                            }
+                        }, 100);
+                    } else {
+                        // If no mapping dropdown, update the status cell directly
+                        $statusCell.html(`
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle"></i> Created
+                            </span>
+                        `);
                     }
 
                     // Update all mapping dropdowns for same material type
