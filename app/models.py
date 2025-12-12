@@ -114,6 +114,17 @@ class RawMaterial(db.Model):
         # If no primary, return first supplier
         return self.supplier_links[0].supplier if self.supplier_links else None
 
+    @property
+    def cost_per_unit(self):
+        """Get cost per unit from primary supplier for compatibility"""
+        for link in self.supplier_links:
+            if link.is_primary:
+                return link.cost_per_unit
+        # If no primary, return first supplier's cost
+        if self.supplier_links:
+            return self.supplier_links[0].cost_per_unit
+        return 0  # No suppliers
+
     def to_dict(self):
         return {
             'id': self.id,
