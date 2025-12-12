@@ -630,6 +630,183 @@ def migrate_packaging_stock_units():
         return f"Migration failed: {e}", 500
 
 
+@admin_blueprint.route('/debug/add_test_stock', methods=['GET', 'POST'])
+def debug_add_test_stock():
+    """
+    DEBUG endpoint to add test stock for all raw materials and packaging.
+    Adds 100 units for each raw material and 2 containers for each packaging.
+
+    IMPORTANT: This is for debugging/testing only. Remove in production.
+    """
+    from flask_babel import gettext as _
+
+    if request.method == 'GET':
+        # Count items to be updated
+        raw_materials_count = RawMaterial.query.filter_by(is_deleted=False, is_unlimited=False).count()
+        packaging_count = Packaging.query.count()
+
+        # Show confirmation page
+        return f'''
+        <html>
+        <head>
+            <title>Debug: Add Test Stock</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 40px; }}
+                .warning {{ color: orange; font-weight: bold; }}
+                .info {{ background: #f0f0f0; padding: 10px; margin: 10px 0; }}
+                button {{ padding: 10px 20px; font-size: 16px; margin: 5px; }}
+                .stats {{ background: #e8f4f8; padding: 15px; margin: 20px 0; border-radius: 5px; }}
+            </style>
+        </head>
+        <body>
+            <h1>🔧 Debug: Add Test Stock</h1>
+            <div class="warning">
+                ⚠️ DEBUG TOOL - For testing purposes only!
+            </div>
+            <div class="info">
+                <h2>What this will do:</h2>
+                <ul>
+                    <li>Add 100 units to each raw material (non-unlimited)</li>
+                    <li>Add 2 containers to each packaging item</li>
+                    <li>Uses primary supplier if available, otherwise first supplier</li>
+                    <li>Creates StockLog entries for tracking</li>
+                </ul>
+            </div>
+            <div class="stats">
+                <h3>Items to update:</h3>
+                <ul>
+                    <li>Raw Materials: {raw_materials_count} items</li>
+                    <li>Packaging: {packaging_count} items</li>
+                </ul>
+            </div>
+            <form method="POST" onsubmit="return confirm('Add test stock to all items?');">
+                <button type="submit">Add Test Stock</button>
+                <button type="button" onclick="window.location.href='/'">Cancel</button>
+            </form>
+        </body>
+        </html>
+        '''
+
+    # POST - Execute the stock additions
+    try:
+        added_materials = 0
+        added_packaging = 0
+        errors = []
+
+        # Add stock for raw materials
+        raw_materials = RawMaterial.query.filter_by(is_deleted=False, is_unlimited=False).all()
+
+        for material in raw_materials:
+            # Get primary supplier or first supplier
+            supplier_link = RawMaterialSupplier.query.filter_by(
+                raw_material_id=material.id,
+                is_primary=True
+            ).first()
+
+            if not supplier_link:
+                supplier_link = RawMaterialSupplier.query.filter_by(
+                    raw_material_id=material.id
+                ).first()
+
+            if supplier_link:
+                # Add stock log entry
+                stock_log = StockLog(
+                    raw_material_id=material.id,
+                    supplier_id=supplier_link.supplier_id,
+                    action_type='add',
+                    quantity=100,
+                    timestamp=datetime.utcnow()
+                )
+                db.session.add(stock_log)
+                added_materials += 1
+
+                log_audit("DEBUG_STOCK", "RawMaterial", material.id,
+                         f"Added 100 units of {material.name} (supplier: {supplier_link.supplier.name})")
+            else:
+                errors.append(f"No supplier found for raw material: {material.name}")
+
+        # Add stock for packaging
+        packaging_items = Packaging.query.all()
+
+        for pkg in packaging_items:
+            # Get primary supplier or first supplier
+            supplier_link = PackagingSupplier.query.filter_by(
+                packaging_id=pkg.id,
+                is_primary=True
+            ).first()
+
+            if not supplier_link:
+                supplier_link = PackagingSupplier.query.filter_by(
+                    packaging_id=pkg.id
+                ).first()
+
+            if supplier_link:
+                # Convert containers to units
+                units_to_add = 2 * pkg.quantity_per_package
+
+                # Add stock log entry
+                stock_log = StockLog(
+                    packaging_id=pkg.id,
+                    supplier_id=supplier_link.supplier_id,
+                    action_type='add',
+                    quantity=units_to_add,
+                    timestamp=datetime.utcnow()
+                )
+                db.session.add(stock_log)
+                added_packaging += 1
+
+                log_audit("DEBUG_STOCK", "Packaging", pkg.id,
+                         f"Added 2 containers ({units_to_add} units) of {pkg.name} (supplier: {supplier_link.supplier.name})")
+            else:
+                errors.append(f"No supplier found for packaging: {pkg.name}")
+
+        db.session.commit()
+
+        log_audit("DEBUG_COMPLETE", "System", None,
+                 f"Test stock added: {added_materials} materials, {added_packaging} packaging items")
+
+        error_html = ""
+        if errors:
+            error_html = f'''
+            <div style="background: #fff0f0; padding: 10px; margin: 10px 0; border: 1px solid #ffcccc;">
+                <h3 style="color: red;">Items skipped (no suppliers):</h3>
+                <ul>
+                    {"".join(f"<li>{error}</li>" for error in errors)}
+                </ul>
+            </div>
+            '''
+
+        return f'''
+        <html>
+        <head>
+            <title>Test Stock Added</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 40px; }}
+                .success {{ color: green; font-weight: bold; }}
+                .results {{ background: #f0f0f0; padding: 15px; margin: 20px 0; border-radius: 5px; }}
+            </style>
+        </head>
+        <body>
+            <h1 class="success">✅ Test Stock Added Successfully!</h1>
+            <div class="results">
+                <h3>Results:</h3>
+                <ul>
+                    <li>Raw Materials: {added_materials} items updated with 100 units each</li>
+                    <li>Packaging: {added_packaging} items updated with 2 containers each</li>
+                </ul>
+            </div>
+            {error_html}
+            <p><a href="/">Return to Dashboard</a></p>
+        </body>
+        </html>
+        '''
+
+    except Exception as e:
+        db.session.rollback()
+        log_audit("DEBUG_ERROR", "System", None, f"Test stock addition failed: {str(e)}")
+        return f"Failed to add test stock: {e}", 500
+
+
 @admin_blueprint.route('/migrate_reset_sequences', methods=['GET', 'POST'])
 def migrate_reset_sequences():
     """
