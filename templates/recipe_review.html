@@ -92,9 +92,17 @@
                     </div>
                     <div class="d-flex gap-2 me-3">
                         {% if recipe.exists %}
-                        <span class="badge bg-warning">{{ _('Exists - Will Update') }}</span>
+                            {% if recipe.has_actual_changes %}
+                                <span class="badge bg-warning">{{ _('Exists - Will Update') }}</span>
+                            {% elif recipe.has_price_only %}
+                                <span class="badge bg-info bg-opacity-50" title="{{ _('Price differences only - no recipe changes') }}">
+                                    <i class="bi bi-tag"></i> {{ _('Price Info') }}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ _('Exists - No Changes') }}</span>
+                            {% endif %}
                         {% else %}
-                        <span class="badge bg-success">{{ _('New') }}</span>
+                            <span class="badge bg-success">{{ _('New') }}</span>
                         {% endif %}
                         {% if recipe.has_missing %}
                         <span class="badge bg-danger">{{ _('Missing Materials') }}</span>
@@ -125,7 +133,7 @@
                         <tbody>
                             {% for material in recipe.materials %}
                             {% set mat_idx = loop.index0 %}
-                            <tr class="material-row {% if not material.found %}table-danger{% elif material.price_differs %}table-warning{% endif %}"
+                            <tr class="material-row {% if not material.found %}table-danger{% endif %}"
                                 data-recipe-idx="{{ recipe_idx }}"
                                 data-material-idx="{{ mat_idx }}"
                                 data-material-name="{{ material.name }}"
@@ -257,7 +265,11 @@
                                 <td>{{ "%.2f"|format(material.sheet_price) }} ₪</td>
                                 <td class="db-price-cell">
                                     {% if material.db_price %}
-                                    {{ "%.2f"|format(material.db_price) }} ₪
+                                        {% if material.price_differs %}
+                                        <span class="text-danger">{{ "%.2f"|format(material.db_price) }} ₪</span>
+                                        {% else %}
+                                        <span>{{ "%.2f"|format(material.db_price) }} ₪</span>
+                                        {% endif %}
                                     {% else %}
                                     <span class="text-muted mapped-price-placeholder">-</span>
                                     {% endif %}
@@ -265,7 +277,9 @@
                                 <td>
                                     {% if material.found %}
                                         {% if material.price_differs %}
-                                        <span class="badge bg-warning"><i class="bi bi-exclamation-triangle"></i> {{ _('Different') }}</span>
+                                        <span class="text-muted small">
+                                            <i class="bi bi-tag text-info"></i> {{ _('Price only') }}
+                                        </span>
                                         {% else %}
                                         <span class="badge bg-success"><i class="bi bi-check"></i> {{ _('Same') }}</span>
                                         {% endif %}

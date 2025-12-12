@@ -767,6 +767,13 @@ def select_sheet():
 
             cost_100g = calculate_100g_cost(net_weight, recipe['total_cost'])
 
+            # Determine if recipe has only price differences (NEW)
+            has_actual_changes = False
+            has_price_differences = any(mat['price_differs'] for mat in materials_data if mat['found'])
+
+            if exists and diff_data:
+                has_actual_changes = bool(diff_data['added'] or diff_data['removed'] or diff_data['changed'])
+
             recipes_review_data.append({
                 'name': recipe['name'],
                 'exists': exists,
@@ -777,6 +784,8 @@ def select_sheet():
                 'net_weight': net_weight,
                 'cost_100g': cost_100g,
                 'has_missing': has_missing,
+                'has_actual_changes': has_actual_changes,  # NEW
+                'has_price_only': has_price_differences and not has_actual_changes,  # NEW
                 'diff': diff_data
             })
 
