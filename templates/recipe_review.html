@@ -425,11 +425,12 @@ $(document).ready(function() {
             // Show mapped material price
             const dbPrice = selectedOption.data('price');
             if (dbPrice !== undefined) {
+                const dbPriceNum = parseFloat(dbPrice) || 0;
                 const sheetPrice = parseFloat($select.data('sheet-price'));
-                const priceDiff = Math.abs(dbPrice - sheetPrice) > 0.01;
+                const priceDiff = Math.abs(dbPriceNum - sheetPrice) > 0.01;
 
                 // Update price cell
-                const priceHtml = dbPrice.toFixed(2) + ' ₪';
+                const priceHtml = dbPriceNum.toFixed(2) + ' ₪';
                 const priceClass = priceDiff ? 'text-warning' : 'text-success';
                 $row.find('.db-price-cell').html(
                     `<span class="${priceClass}">${priceHtml}</span>`
