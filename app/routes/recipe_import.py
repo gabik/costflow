@@ -442,9 +442,9 @@ def create_material_ajax():
         sku = request.form.get('sku', '').strip()
         price = float(request.form.get('price', 0))
 
-        # Validate required fields
-        if not all([name, category_id, unit, supplier_id, sku]):
-            return jsonify({'success': False, 'error': _('All fields are required')}), 400
+        # Validate required fields (SKU is optional)
+        if not all([name, category_id, unit, supplier_id]):
+            return jsonify({'success': False, 'error': _('Name, category, unit and supplier are required')}), 400
 
         # Check if material already exists
         existing = RawMaterial.query.filter_by(name=name, is_deleted=False).first()

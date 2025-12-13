@@ -416,10 +416,6 @@ class RecipeImportMaterialCreator {
             alert('Please create the new supplier first by selecting "New Supplier" from the dropdown');
             return;
         }
-        if (!materialData.sku) {
-            alert('SKU is required');
-            return;
-        }
 
         // Show loading state
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Creating...');
