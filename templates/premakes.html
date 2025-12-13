@@ -44,7 +44,17 @@
                 <th>{{ _('Batch Quantity') }}</th>
                 <th>{{ _('Unit') }}</th>
                 <th class="text-end">{{ _('Price per Batch') }}</th>
-                <th class="text-end">{{ _('Price per 100g/kg') }}</th>
+                <th class="text-end">
+                    <div class="d-flex align-items-center justify-content-end">
+                        <span class="me-2">{{ _('Price per') }}</span>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <input type="radio" class="btn-check" name="priceUnit" id="price100g" value="100g" checked autocomplete="off">
+                            <label class="btn btn-outline-primary" for="price100g">100g</label>
+                            <input type="radio" class="btn-check" name="priceUnit" id="price1kg" value="1kg" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="price1kg">1kg</label>
+                        </div>
+                    </div>
+                </th>
                 <th class="text-end">{{ _('Actions') }}</th>
             </tr>
             </thead>
@@ -56,18 +66,28 @@
                 <td>{{ "%.2f"|format(premake.display_batch_size) }}</td>
                 <td>{{ premake.display_unit }}</td>
                 <td class="text-end">₪{{ "%.2f"|format(premake.cost_per_batch) }}</td>
-                <td class="text-end">
-                    {% if premake.unit == 'g' %}
-                        ₪{{ "%.2f"|format(premake.cost_per_100g) }}/100g
-                    {% elif premake.unit == 'kg' %}
-                        ₪{{ "%.2f"|format(premake.cost_per_100g) }}/kg
-                    {% elif premake.unit == 'ml' %}
-                        ₪{{ "%.2f"|format(premake.cost_per_100g) }}/100ml
-                    {% elif premake.unit == 'L' %}
-                        ₪{{ "%.2f"|format(premake.cost_per_100g) }}/L
-                    {% else %}
-                        ₪{{ "%.2f"|format(premake.cost_per_100g) }}/{{ _('unit') }}
-                    {% endif %}
+                <td class="text-end price-cell"
+                    data-price-100g="{{ "%.2f"|format(premake.cost_per_100g) }}"
+                    data-price-kg="{{ "%.2f"|format(premake.cost_per_kg) }}"
+                    data-unit="{{ premake.unit }}">
+                    <span class="price-display">
+                        {% if premake.unit in ['g', 'kg', 'ml', 'L'] %}
+                            ₪{{ "%.2f"|format(premake.cost_per_100g) }}
+                        {% else %}
+                            ₪{{ "%.2f"|format(premake.cost_per_100g) }}
+                        {% endif %}
+                    </span>
+                    <span class="unit-display">
+                        {% if premake.unit in ['g', 'kg'] %}
+                            /100g
+                        {% elif premake.unit in ['ml', 'L'] %}
+                            /100ml
+                        {% elif premake.unit == 'piece' %}
+                            /{{ _('piece') }}
+                        {% else %}
+                            /{{ _('unit') }}
+                        {% endif %}
+                    </span>
                 </td>
                 <td class="text-end">
                     <div class="btn-group">
@@ -139,6 +159,54 @@
 
         searchInput.addEventListener('keyup', filterTable);
         categoryFilter.addEventListener('change', filterTable);
+
+        // Price toggle functionality
+        const price100gRadio = document.getElementById('price100g');
+        const price1kgRadio = document.getElementById('price1kg');
+
+        function updatePriceDisplay() {
+            const show100g = price100gRadio.checked;
+            const priceCells = document.querySelectorAll('.price-cell');
+
+            priceCells.forEach(cell => {
+                const priceDisplay = cell.querySelector('.price-display');
+                const unitDisplay = cell.querySelector('.unit-display');
+                const unit = cell.getAttribute('data-unit');
+
+                if (show100g) {
+                    // Show per 100g/100ml
+                    const price100g = cell.getAttribute('data-price-100g');
+                    priceDisplay.textContent = '₪' + price100g;
+
+                    if (unit === 'g' || unit === 'kg') {
+                        unitDisplay.textContent = '/100g';
+                    } else if (unit === 'ml' || unit === 'L') {
+                        unitDisplay.textContent = '/100ml';
+                    } else if (unit === 'piece') {
+                        unitDisplay.textContent = '/' + "{{ _('piece') }}";
+                    } else {
+                        unitDisplay.textContent = '/' + "{{ _('unit') }}";
+                    }
+                } else {
+                    // Show per kg/L
+                    const priceKg = cell.getAttribute('data-price-kg');
+                    priceDisplay.textContent = '₪' + priceKg;
+
+                    if (unit === 'g' || unit === 'kg') {
+                        unitDisplay.textContent = '/kg';
+                    } else if (unit === 'ml' || unit === 'L') {
+                        unitDisplay.textContent = '/L';
+                    } else if (unit === 'piece') {
+                        unitDisplay.textContent = '/' + "{{ _('piece') }}";
+                    } else {
+                        unitDisplay.textContent = '/' + "{{ _('unit') }}";
+                    }
+                }
+            });
+        }
+
+        price100gRadio.addEventListener('change', updatePriceDisplay);
+        price1kgRadio.addEventListener('change', updatePriceDisplay);
     });
 </script>
 {% endblock %}

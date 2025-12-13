@@ -957,15 +957,16 @@ def confirm_import():
                             ).first()
 
                             if existing_alt:
-                                # Error: name already exists for another material
-                                flash(f'שם חלופי "{original_name}" כבר קיים עבור חומר אחר: {existing_alt.raw_material.name}', 'error')
-                                db.session.rollback()
-                                return redirect(url_for('recipe_import.upload_recipes'))
+                                # Check if it's for the same material
+                                if existing_alt.raw_material_id != mat_id:
+                                    # Error: name already exists for another material
+                                    flash(f'שם חלופי "{original_name}" כבר קיים עבור חומר אחר: {existing_alt.raw_material.name}', 'error')
+                                    db.session.rollback()
+                                    return redirect(url_for('recipe_import.upload_recipes'))
+                                # else: Alternative name already exists for this material, skip adding
 
-                            # Check if already an alternative for this material
-                            has_alt = any(alt.alternative_name == original_name for alt in db_mat.alternative_names)
-
-                            if not has_alt:
+                            # Only add if not already an alternative (including the check above)
+                            elif not any(alt.alternative_name == original_name for alt in db_mat.alternative_names):
                                 # Add new alternative name
                                 new_alt = RawMaterialAlternativeName(
                                     raw_material_id=mat_id,

@@ -28,24 +28,31 @@ def premakes():
         # Format batch size for display with appropriate units
         premake.display_batch_size, premake.display_unit = format_quantity_with_unit(premake.batch_size, premake.unit)
 
-        # Calculate cost per 100g (or per kg if unit is kg)
-        if premake.unit in ['g', 'kg', 'ml', 'L']:
-            # Convert to per 100g or per kg based on unit
-            if premake.unit == 'g':
-                # Cost per 100g
-                premake.cost_per_100g = (premake.cost_per_unit * 100) if premake.cost_per_unit else 0
-            elif premake.unit == 'kg':
-                # Cost per kg (which is already per unit)
-                premake.cost_per_100g = premake.cost_per_unit if premake.cost_per_unit else 0
-            elif premake.unit == 'ml':
-                # Cost per 100ml
-                premake.cost_per_100g = (premake.cost_per_unit * 100) if premake.cost_per_unit else 0
-            elif premake.unit == 'L':
-                # Cost per L (which is already per unit)
-                premake.cost_per_100g = premake.cost_per_unit if premake.cost_per_unit else 0
-        else:
-            # For piece/unit, show per unit cost
+        # Calculate BOTH cost per 100g AND cost per kg for consistency
+        if premake.unit == 'g':
+            # From per gram
+            premake.cost_per_100g = (premake.cost_per_unit * 100) if premake.cost_per_unit else 0
+            premake.cost_per_kg = (premake.cost_per_unit * 1000) if premake.cost_per_unit else 0
+        elif premake.unit == 'kg':
+            # From per kg
+            premake.cost_per_100g = (premake.cost_per_unit / 10) if premake.cost_per_unit else 0  # kg to 100g
+            premake.cost_per_kg = premake.cost_per_unit if premake.cost_per_unit else 0
+        elif premake.unit == 'ml':
+            # From per ml (treat as equivalent to g)
+            premake.cost_per_100g = (premake.cost_per_unit * 100) if premake.cost_per_unit else 0
+            premake.cost_per_kg = (premake.cost_per_unit * 1000) if premake.cost_per_unit else 0  # L
+        elif premake.unit == 'L':
+            # From per L (treat as equivalent to kg)
+            premake.cost_per_100g = (premake.cost_per_unit / 10) if premake.cost_per_unit else 0  # L to 100ml
+            premake.cost_per_kg = premake.cost_per_unit if premake.cost_per_unit else 0
+        elif premake.unit == 'piece':
+            # For piece, no conversion needed
             premake.cost_per_100g = premake.cost_per_unit if premake.cost_per_unit else 0
+            premake.cost_per_kg = premake.cost_per_unit if premake.cost_per_unit else 0
+        else:
+            # For other units, show per unit cost
+            premake.cost_per_100g = premake.cost_per_unit if premake.cost_per_unit else 0
+            premake.cost_per_kg = premake.cost_per_unit if premake.cost_per_unit else 0
 
     return render_template('premakes.html', premakes=premakes)
 
