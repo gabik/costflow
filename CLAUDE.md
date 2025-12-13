@@ -103,7 +103,7 @@ The application follows Flask's application factory pattern with modular bluepri
   - `database.py`: Database helper functions
   - `routes/`: Modular blueprint structure (refactored Dec 2024)
     - `main.py`: Dashboard and overview
-    - `products.py`: Product management and migration
+    - `products.py`: Product management
     - `premakes.py`: Premake management (Products with is_premake=True)
     - `raw_materials.py`: Raw material management with multi-supplier support
     - `suppliers.py`: Supplier management (updated Dec 2024 to include packaging items)
@@ -316,7 +316,6 @@ unit: g
   - Stock transfer options when removing suppliers
 - **Production Cost Tracking**: ProductionLog stores actual costs per batch with supplier breakdown
 - **Stock Management**: "Primary first, then others" deduction strategy
-- **Migrated Products**: Kept for historical data, marked with "(Migrated to Premake: X)"
 - **Hebrew Default**: RTL support throughout with Flask-Babel
 
 ### Key Implementation Details

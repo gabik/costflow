@@ -220,10 +220,7 @@ def restore_db():
                 is_premake=prod_data.get('is_premake', False),
                 is_preproduct=prod_data.get('is_preproduct', False),
                 batch_size=prod_data.get('batch_size'),
-                unit=prod_data.get('unit'),
-                is_migrated=prod_data.get('is_migrated', False),
-                migrated_to_premake_id=prod_data.get('migrated_to_premake_id'),
-                original_prime_cost=prod_data.get('original_prime_cost')
+                unit=prod_data.get('unit')
             )
             db.session.add(prod)
 
@@ -441,10 +438,7 @@ def restore_legacy_backup(data):
                 is_premake=p_data.get('is_premake', False),
                 is_preproduct=p_data.get('is_preproduct', False),
                 batch_size=p_data.get('batch_size'),
-                unit=p_data.get('unit'),
-                is_migrated=p_data.get('is_migrated', False),
-                migrated_to_premake_id=p_data.get('migrated_to_premake_id'),
-                original_prime_cost=p_data.get('original_prime_cost')
+                unit=p_data.get('unit')
             )
             db.session.add(p)
             db.session.flush()
@@ -939,6 +933,122 @@ def migrate_reset_sequences():
     except Exception as e:
         db.session.rollback()
         log_audit("MIGRATION_ERROR", "System", None, f"Sequence reset failed: {str(e)}")
+        return f"Migration failed: {e}", 500
+
+
+@admin_blueprint.route('/migrate_remove_product_migration_fields', methods=['GET', 'POST'])
+def migrate_remove_product_migration_fields():
+    """
+    Remove legacy product migration fields from the database.
+    These fields were used for a one-time migration that has been completed.
+
+    IMPORTANT: Remove this endpoint after successful migration to prevent accidental re-runs.
+    """
+    from flask_babel import gettext as _
+
+    if request.method == 'GET':
+        # Show migration info page
+        return '''
+        <html>
+        <head>
+            <title>Remove Product Migration Fields</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; }
+                .warning { background: #ffffcc; border: 2px solid #ffaa00; padding: 15px; margin: 20px 0; }
+                .info { background: #e6f3ff; border: 1px solid #0066cc; padding: 10px; margin: 10px 0; }
+                button { font-size: 16px; padding: 10px 20px; margin: 10px 0; }
+            </style>
+        </head>
+        <body>
+            <h1>Remove Product Migration Fields</h1>
+            <div class="info">
+                <h2>What this migration does:</h2>
+                <ul>
+                    <li>Removes the is_migrated column from the product table</li>
+                    <li>Removes the migrated_to_premake_id column from the product table</li>
+                    <li>Removes the original_prime_cost column from the product table</li>
+                    <li>These fields were used for a one-time migration that has been completed</li>
+                </ul>
+            </div>
+            <div class="warning">
+                ⚠️ WARNING: This migration will permanently remove these columns!<br>
+                Make sure you have a backup before proceeding.
+            </div>
+            <form method="POST" onsubmit="return confirm('Are you sure you want to remove the product migration fields? This action cannot be undone.');">
+                <button type="submit">Run Migration</button>
+            </form>
+            <a href="/">Cancel and Return to Dashboard</a>
+        </body>
+        </html>
+        '''
+
+    # POST - Run the migration
+    try:
+        # Check if using PostgreSQL or SQLite
+        is_postgres = 'postgresql' in str(db.engine.url)
+
+        if is_postgres:
+            # PostgreSQL syntax
+            db.session.execute(text('ALTER TABLE product DROP COLUMN IF EXISTS is_migrated'))
+            db.session.execute(text('ALTER TABLE product DROP COLUMN IF EXISTS migrated_to_premake_id'))
+            db.session.execute(text('ALTER TABLE product DROP COLUMN IF EXISTS original_prime_cost'))
+        else:
+            # SQLite doesn't support DROP COLUMN easily, need to recreate table
+            # First check if columns exist
+            result = db.session.execute(text('PRAGMA table_info(product)'))
+            columns = [row[1] for row in result]
+
+            if 'is_migrated' in columns or 'migrated_to_premake_id' in columns or 'original_prime_cost' in columns:
+                # For SQLite, we need to recreate the table without the columns
+                # This is complex and risky, so we'll just warn the user
+                return '''
+                <html>
+                <body style="font-family: Arial, sans-serif; margin: 40px;">
+                    <h1>SQLite Migration Not Supported</h1>
+                    <p style="color: red;">
+                        SQLite does not support dropping columns easily.
+                        The migration fields exist but cannot be removed automatically.
+                    </p>
+                    <p>
+                        For local development, this is not a problem - the fields will be ignored.
+                        For production (PostgreSQL), run this migration on the production server.
+                    </p>
+                    <a href="/">Return to Dashboard</a>
+                </body>
+                </html>
+                ''', 400
+
+        db.session.commit()
+
+        log_audit("MIGRATION_COMPLETE", "System", None,
+                 _("Product migration fields removed successfully"))
+
+        return '''
+        <html>
+        <head>
+            <title>Migration Complete</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; }
+                .success { color: green; font-weight: bold; }
+            </style>
+        </head>
+        <body>
+            <h1 class="success">✓ Migration Completed Successfully!</h1>
+            <p>The following columns have been removed from the product table:</p>
+            <ul>
+                <li>is_migrated</li>
+                <li>migrated_to_premake_id</li>
+                <li>original_prime_cost</li>
+            </ul>
+            <p><strong>IMPORTANT:</strong> Please remove the /migrate_remove_product_migration_fields endpoint now to prevent accidental re-runs.</p>
+            <a href="/">Return to Dashboard</a>
+        </body>
+        </html>
+        '''
+
+    except Exception as e:
+        db.session.rollback()
+        log_audit("MIGRATION_ERROR", "System", None, f"Product migration fields removal failed: {str(e)}")
         return f"Migration failed: {e}", 500
 
 

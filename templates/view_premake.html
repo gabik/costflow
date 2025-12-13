@@ -30,26 +30,9 @@
                         <i class="bi bi-basket text-primary mb-2" style="font-size: 2rem;"></i>
                         <h6 class="text-muted mb-1">{{ _('Batch Size') }}</h6>
                         <h4 class="mb-0" id="batch-size-display" data-original-value="{{ premake.batch_size }}" data-original-unit="{{ premake.unit }}">
-                            {{ "%.2f"|format(premake.batch_size) }}
+                            {{ "%.2f"|format(premake.display_batch_size) }}
                         </h4>
-                        <div class="d-flex justify-content-center align-items-center">
-                            <small class="text-muted me-2" id="batch-unit-display">{{ premake.unit }}</small>
-                            {% if premake.unit in ['g', 'kg', 'ml', 'L'] %}
-                            <div class="btn-group btn-group-sm" role="group">
-                                {% if premake.unit in ['g', 'kg'] %}
-                                <input type="radio" class="btn-check" name="unitToggle" id="unit-g" value="g" {% if premake.unit == 'g' %}checked{% endif %} autocomplete="off">
-                                <label class="btn btn-outline-primary" for="unit-g">g</label>
-                                <input type="radio" class="btn-check" name="unitToggle" id="unit-kg" value="kg" {% if premake.unit == 'kg' %}checked{% endif %} autocomplete="off">
-                                <label class="btn btn-outline-primary" for="unit-kg">kg</label>
-                                {% elif premake.unit in ['ml', 'L'] %}
-                                <input type="radio" class="btn-check" name="unitToggle" id="unit-ml" value="ml" {% if premake.unit == 'ml' %}checked{% endif %} autocomplete="off">
-                                <label class="btn btn-outline-primary" for="unit-ml">ml</label>
-                                <input type="radio" class="btn-check" name="unitToggle" id="unit-l" value="L" {% if premake.unit == 'L' %}checked{% endif %} autocomplete="off">
-                                <label class="btn btn-outline-primary" for="unit-l">L</label>
-                                {% endif %}
-                            </div>
-                            {% endif %}
-                        </div>
+                        <small class="text-muted" id="batch-unit-display">{{ premake.display_unit }}</small>
                     </div>
                 </div>
             </div>
@@ -60,12 +43,12 @@
                         <h6 class="text-muted mb-1">{{ _('Current Stock') }}</h6>
                         <h4 class="mb-0">
                             {% if premake.current_stock is not none and premake.current_stock < 999999 %}
-                                {{ "%.2f"|format(premake.current_stock) }}
+                                {{ "%.2f"|format(premake.display_current_stock) }}
                             {% else %}
                                 ∞
                             {% endif %}
                         </h4>
-                        <small class="text-muted">{{ premake.unit }}</small>
+                        <small class="text-muted">{{ premake.display_stock_unit }}</small>
                     </div>
                 </div>
             </div>
@@ -128,8 +111,8 @@
                     {% for component in component_costs %}
                     <tr>
                         <td>{{ component.name }}</td>
-                        <td>{{ "%.3f"|format(component.quantity) }}</td>
-                        <td>{{ component.unit }}</td>
+                        <td>{{ "%.3f"|format(component.display_quantity) }}</td>
+                        <td>{{ component.display_unit }}</td>
                         <td>
                             {% if component.price_per_unit_original != component.price_per_unit %}
                             <span class="text-muted text-decoration-line-through">
@@ -182,7 +165,7 @@
                     <tbody>
                         <tr>
                             <td>{{ _('Batch Size:') }}</td>
-                            <td class="text-end"><span id="batch-size-summary" data-original-value="{{ premake.batch_size }}">{{ "%.2f"|format(premake.batch_size) }}</span> <span class="batch-unit-summary">{{ premake.unit }}</span></td>
+                            <td class="text-end"><span id="batch-size-summary" data-original-value="{{ premake.batch_size }}">{{ "%.2f"|format(premake.display_batch_size) }}</span> <span class="batch-unit-summary">{{ premake.display_unit }}</span></td>
                         </tr>
                         <tr>
                             <td>{{ _('Number of Components:') }}</td>

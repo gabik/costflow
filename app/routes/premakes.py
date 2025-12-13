@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for
 from flask_babel import gettext as _
 from ..models import db, Product, ProductComponent, StockLog, Category, RawMaterial, Packaging, AuditLog, ProductionLog
-from .utils import get_or_create_general_category, log_audit, calculate_premake_current_stock, get_primary_supplier_discounted_price, calculate_premake_cost_per_unit
+from .utils import get_or_create_general_category, log_audit, calculate_premake_current_stock, get_primary_supplier_discounted_price, calculate_premake_cost_per_unit, format_quantity_with_unit
 
 premakes_blueprint = Blueprint('premakes', __name__)
 
@@ -24,6 +24,9 @@ def premakes():
 
         # Calculate cost per batch
         premake.cost_per_batch = premake.cost_per_unit * premake.batch_size if premake.batch_size > 0 else 0
+
+        # Format batch size for display with appropriate units
+        premake.display_batch_size, premake.display_unit = format_quantity_with_unit(premake.batch_size, premake.unit)
 
         # Calculate cost per 100g (or per kg if unit is kg)
         if premake.unit in ['g', 'kg', 'ml', 'L']:
@@ -114,10 +117,14 @@ def view_premake(premake_id):
             comp_unit = comp.premake.unit
 
         cost_per_batch += comp_cost
+        # Format quantity with appropriate units for display
+        display_quantity, display_unit = format_quantity_with_unit(comp.quantity, comp_unit)
         component_costs.append({
             'name': comp_name,
-            'quantity': comp.quantity,
-            'unit': comp_unit,
+            'quantity': comp.quantity,  # Keep original for calculations
+            'display_quantity': display_quantity,
+            'unit': comp_unit,  # Keep original unit
+            'display_unit': display_unit,
             'cost': comp_cost,
             'price_per_unit': comp_discounted_price,
             'price_per_unit_original': comp_original_price
@@ -125,6 +132,16 @@ def view_premake(premake_id):
 
     premake.cost_per_unit = cost_per_batch / premake.batch_size if premake.batch_size > 0 else 0
     premake.cost_per_batch = cost_per_batch
+
+    # Format batch size for display
+    premake.display_batch_size, premake.display_unit = format_quantity_with_unit(premake.batch_size, premake.unit)
+
+    # Format current stock for display
+    if premake.current_stock is not None and premake.current_stock < 999999:
+        premake.display_current_stock, premake.display_stock_unit = format_quantity_with_unit(premake.current_stock, premake.unit)
+    else:
+        premake.display_current_stock = premake.current_stock
+        premake.display_stock_unit = premake.unit
 
     return render_template('view_premake.html', premake=premake, component_costs=component_costs)
 

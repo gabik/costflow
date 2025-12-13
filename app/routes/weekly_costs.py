@@ -44,8 +44,7 @@ def weekly_costs():
                     total_potential_revenue = 0
                     
                     # Product Leftovers
-                    # Filter out migrated products
-                    all_products = Product.query.filter_by(is_migrated=False).all()
+                    all_products = Product.query.all()
                     for product in all_products:
                         produced = product_production.get(product.id, 0)
                         sales_data = product_sales.get(product.id, {'sold': 0, 'waste': 0})
@@ -190,8 +189,7 @@ def close_week_confirm():
             
     product_sales = {s.product_id: s for s in prev_week.sales}
 
-    # Filter out migrated products
-    all_products = Product.query.filter_by(is_migrated=False).all()
+    all_products = Product.query.all()
     new_week_start_dt = datetime.strptime(new_week_date, '%Y-%m-%d')
 
     for product in all_products:
@@ -389,9 +387,8 @@ def update_weekly_sales(week_id):
     # Get show_all parameter from URL (default is False - show only in stock)
     show_all = request.args.get('show_all', 'false').lower() == 'true'
 
-    # Filter out migrated products and premakes - only show products and preproducts (sellable items)
+    # Filter out premakes - only show products and preproducts (sellable items)
     all_products = Product.query.filter(
-        Product.is_migrated == False,
         db.or_(Product.is_product == True, Product.is_preproduct == True)
     ).all()
 

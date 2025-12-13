@@ -276,14 +276,7 @@ class Product(db.Model):
     batch_size = db.Column(db.Float, nullable=True)  # From Premake model
     unit = db.Column(db.String(20), nullable=True)  # Unit of measurement ('kg', 'L', 'piece', etc.)
 
-    # Migration fields
-    is_migrated = db.Column(db.Boolean, default=False, nullable=False)
-    migrated_to_premake_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=True)
-    original_prime_cost = db.Column(db.Float, nullable=True)
-
     category = db.relationship('Category', backref='products')
-    # Self-referential relationship for products migrated to premakes
-    migrated_to_premake = db.relationship('Product', remote_side=[id], foreign_keys=[migrated_to_premake_id])
 
     def to_dict(self):
         return {
@@ -298,10 +291,7 @@ class Product(db.Model):
             'is_premake': self.is_premake,
             'is_preproduct': self.is_preproduct,
             'batch_size': self.batch_size,
-            'unit': self.unit,
-            'is_migrated': self.is_migrated,
-            'migrated_to_premake_id': self.migrated_to_premake_id,
-            'original_prime_cost': self.original_prime_cost
+            'unit': self.unit
         }
 
 class ProductComponent(db.Model):

@@ -13,15 +13,9 @@ products_blueprint = Blueprint('products', __name__)
 @products_blueprint.route('/products')
 def products():
     # Show products that can be sold (is_product=True), including hybrids
-    # First check if new columns exist
-    try:
-        products = Product.query.filter(
-            Product.is_product == True,
-            Product.is_migrated == False
-        ).all()
-    except:
-        # Fallback for pre-migration
-        products = Product.query.filter_by(is_migrated=False).all()
+    products = Product.query.filter(
+        Product.is_product == True
+    ).all()
 
     products_data = []
     for product in products:
@@ -385,49 +379,6 @@ def product_detail(product_id):
         preproduct_costs=preproduct_costs
     )
 
-@products_blueprint.route('/products/migrate_to_premake/<int:product_id>', methods=['POST'])
-def migrate_to_premake(product_id):
-    """Convert a product to a premake by changing its flags"""
-    product = Product.query.get_or_404(product_id)
-
-    # Simply toggle the flags - convert product to premake
-    product.is_product = False
-    product.is_premake = True
-
-    # Set batch size based on products_per_recipe
-    if not product.batch_size:
-        product.batch_size = float(product.products_per_recipe) if product.products_per_recipe else 1.0
-
-    # Update category to premake category
-    product.category_id = get_or_create_general_category('premake')
-
-    # Calculate and store current stock for tracking
-    total_produced = 0
-    prod_logs = ProductionLog.query.filter_by(product_id=product.id).all()
-    for log in prod_logs:
-        total_produced += log.quantity_produced * product.products_per_recipe
-
-    total_sold = 0
-    sales = WeeklyProductSales.query.filter_by(product_id=product.id).all()
-    for sale in sales:
-        total_sold += (sale.quantity_sold + sale.quantity_waste)
-
-    current_stock = total_produced - total_sold
-    if current_stock < 0:
-        current_stock = 0
-
-    # Set initial stock for the premake
-    if current_stock > 0:
-        db.session.add(StockLog(
-            product_id=product.id,  # Use product_id for unified model
-            action_type='set',
-            quantity=current_stock
-        ))
-
-    log_audit("MIGRATE", "Product", product_id, f"Converted product {product.name} to premake")
-    db.session.commit()
-
-    return redirect(url_for('premakes.premakes'))
 
 @products_blueprint.route('/products/edit/<int:product_id>', methods=['GET', 'POST'])
 def edit_product(product_id):

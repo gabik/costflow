@@ -263,10 +263,6 @@ def calculate_prime_cost(product):
     Includes recursive calculation for Premakes and Preproducts.
     Works with both old Premake model and new unified Product model.
     """
-    # For migrated products, use stored original cost
-    if hasattr(product, 'is_migrated') and product.is_migrated:
-        return product.original_prime_cost or 0
-
     total_cost = 0
     for component in product.components:
         if component.component_type == 'raw_material' and component.material:
@@ -1043,3 +1039,59 @@ def calculate_100g_cost(product):
         cost_100g = 0
 
     return cost_100g, total_cost, net_weight
+
+def format_quantity_with_unit(quantity, unit):
+    """
+    Format quantity with appropriate unit conversion for display.
+    Rules:
+    - Less than 1 kg/L: convert to g/ml
+    - More than 1000 g/ml: convert to kg/L
+    - Keep values between 1-1000 g/ml as is
+
+    Returns: (formatted_quantity, display_unit) tuple
+    """
+    if quantity is None:
+        return 0, unit
+
+    # Handle weight units (kg/g)
+    if unit == 'kg':
+        if quantity < 1:
+            # Convert to grams
+            return quantity * 1000, 'g'
+        else:
+            # Keep as kg
+            return quantity, 'kg'
+    elif unit == 'g':
+        if quantity >= 1000:
+            # Convert to kg
+            return quantity / 1000, 'kg'
+        else:
+            # Keep as g
+            return quantity, 'g'
+
+    # Handle liquid units (L/ml)
+    elif unit == 'L':
+        if quantity < 1:
+            # Convert to ml
+            return quantity * 1000, 'ml'
+        else:
+            # Keep as L
+            return quantity, 'L'
+    elif unit == 'ml':
+        if quantity >= 1000:
+            # Convert to L
+            return quantity / 1000, 'L'
+        else:
+            # Keep as ml
+            return quantity, 'ml'
+
+    # For other units (piece, unit, etc.), keep as is
+    else:
+        return quantity, unit
+
+def get_display_quantity_and_unit(quantity, unit):
+    """
+    Get formatted quantity and unit for display purposes.
+    This is a wrapper function that returns the display values.
+    """
+    return format_quantity_with_unit(quantity, unit)

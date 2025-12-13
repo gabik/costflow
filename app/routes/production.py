@@ -131,7 +131,7 @@ def production():
             db.session.rollback()
 
             # Get data for template
-            products = Product.query.filter_by(is_product=True, is_migrated=False).all()
+            products = Product.query.filter_by(is_product=True).all()
             production_logs = ProductionLog.query.filter(ProductionLog.product_id != None).order_by(ProductionLog.timestamp.desc()).all()
             current_time = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 
@@ -143,7 +143,7 @@ def production():
                                  current_time=current_time)
 
     # Filter to only show actual products (not premakes or preproducts)
-    products = Product.query.filter_by(is_product=True, is_migrated=False).all()
+    products = Product.query.filter_by(is_product=True).all()
     production_logs = ProductionLog.query.filter(ProductionLog.product_id != None).order_by(ProductionLog.timestamp.desc()).all()
     current_time = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
     return render_template('production.html', products=products, production_logs=production_logs, current_time=current_time)

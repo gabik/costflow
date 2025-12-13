@@ -53,8 +53,8 @@
             <tr class="premake-row" data-category="{{ premake.category.name if premake.category else _('No Category') }}">
                 <td class="fw-medium premake-name">{{ premake.name }}</td>
                 <td><span class="badge bg-light text-dark border">{{ premake.category.name if premake.category else _('No Category') }}</span></td>
-                <td>{{ "%.2f"|format(premake.batch_size) }}</td>
-                <td>{{ premake.unit }}</td>
+                <td>{{ "%.2f"|format(premake.display_batch_size) }}</td>
+                <td>{{ premake.display_unit }}</td>
                 <td class="text-end">₪{{ "%.2f"|format(premake.cost_per_batch) }}</td>
                 <td class="text-end">
                     {% if premake.unit == 'g' %}
