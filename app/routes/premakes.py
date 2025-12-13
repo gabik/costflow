@@ -133,6 +133,28 @@ def view_premake(premake_id):
     premake.cost_per_unit = cost_per_batch / premake.batch_size if premake.batch_size > 0 else 0
     premake.cost_per_batch = cost_per_batch
 
+    # Calculate cost per kg (always display per kg for weight units)
+    if premake.unit == 'g':
+        # Convert from per gram to per kg
+        premake.cost_per_kg = premake.cost_per_unit * 1000
+        premake.price_unit_display = 'kg'
+    elif premake.unit == 'kg':
+        # Already per kg
+        premake.cost_per_kg = premake.cost_per_unit
+        premake.price_unit_display = 'kg'
+    elif premake.unit == 'ml':
+        # Convert from per ml to per L (treat as 1:1 with kg for pricing)
+        premake.cost_per_kg = premake.cost_per_unit * 1000
+        premake.price_unit_display = 'L'
+    elif premake.unit == 'L':
+        # Already per L (treat as equivalent to kg for pricing)
+        premake.cost_per_kg = premake.cost_per_unit
+        premake.price_unit_display = 'L'
+    else:
+        # For piece/unit, keep as is
+        premake.cost_per_kg = premake.cost_per_unit
+        premake.price_unit_display = premake.unit
+
     # Format batch size for display
     premake.display_batch_size, premake.display_unit = format_quantity_with_unit(premake.batch_size, premake.unit)
 

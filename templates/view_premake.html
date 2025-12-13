@@ -66,8 +66,8 @@
                     <div class="card-body text-center">
                         <i class="bi bi-cash-coin text-info mb-2" style="font-size: 2rem;"></i>
                         <h6 class="text-muted mb-1">{{ _('Cost per Unit') }}</h6>
-                        <h4 class="mb-0">₪{{ "%.2f"|format(premake.cost_per_unit) }}</h4>
-                        <small class="text-muted">{{ _('per') }} {{ premake.unit }}</small>
+                        <h4 class="mb-0">₪{{ "%.2f"|format(premake.cost_per_kg) }}</h4>
+                        <small class="text-muted">{{ _('per') }} {{ premake.price_unit_display }}</small>
                     </div>
                 </div>
             </div>
@@ -182,8 +182,8 @@
                 <table class="table table-sm">
                     <tbody>
                         <tr>
-                            <td>{{ _('Cost per Unit') }} ({{ premake.unit }}):</td>
-                            <td class="text-end fw-bold">₪{{ "%.2f"|format(premake.cost_per_unit) }}</td>
+                            <td>{{ _('Cost per Unit') }} ({{ premake.price_unit_display }}):</td>
+                            <td class="text-end fw-bold">₪{{ "%.2f"|format(premake.cost_per_kg) }}</td>
                         </tr>
                         <tr>
                             <td>{{ _('Current Stock:') }}</td>
