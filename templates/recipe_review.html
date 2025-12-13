@@ -74,10 +74,10 @@
     {% set recipe_idx = loop.index0 %}
     <div class="accordion-item">
         <h2 class="accordion-header" id="heading{{ loop.index }}">
-            <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button"
-                    data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}"
-                    aria-expanded="{% if loop.first %}true{% else %}false{% endif %}"
-                    aria-controls="collapse{{ loop.index }}">
+            <div class="accordion-button {% if not loop.first %}collapsed{% endif %}"
+                 style="cursor: pointer;"
+                 aria-expanded="{% if loop.first %}true{% else %}false{% endif %}"
+                 aria-controls="collapse{{ loop.index }}">
                 <div class="d-flex w-100 justify-content-between align-items-center">
                     <div class="d-flex align-items-center gap-2">
                         <input type="checkbox"
@@ -88,7 +88,10 @@
                                data-recipe-idx="{{ recipe_idx }}"
                                data-has-missing="{{ recipe.has_missing|lower }}"
                                onclick="event.stopPropagation();">
-                        <label for="recipeCheckbox{{ recipe_idx }}" class="fw-bold mb-0" onclick="event.stopPropagation();">{{ recipe.name }}</label>
+                        <span class="fw-bold mb-0 recipe-name-label"
+                              style="cursor: pointer;"
+                              data-bs-toggle="collapse"
+                              data-bs-target="#collapse{{ loop.index }}">{{ recipe.name }}</span>
                     </div>
                     <div class="d-flex gap-2 me-3">
                         {% if recipe.exists %}
@@ -109,7 +112,7 @@
                         {% endif %}
                     </div>
                 </div>
-            </button>
+            </div>
         </h2>
         <div id="collapse{{ loop.index }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
              aria-labelledby="heading{{ loop.index }}" data-bs-parent="#recipesAccordion">
@@ -401,6 +404,25 @@ $(document).ready(function() {
     });
     $('#missingMaterialsList').on('hide.bs.collapse', function() {
         $('#missingMaterialsToggleIcon').removeClass('bi-chevron-up').addClass('bi-chevron-down');
+    });
+
+    // Handle accordion header clicks (except checkbox and label)
+    $('.accordion-button').on('click', function(e) {
+        // Only toggle if click was not on checkbox or label
+        if (!$(e.target).is('.recipe-select-checkbox') && !$(e.target).is('.recipe-name-label')) {
+            const collapseId = $(this).attr('aria-controls');
+            $('#' + collapseId).collapse('toggle');
+        }
+    });
+
+    // Update accordion button state when collapse changes
+    $('.accordion-collapse').on('shown.bs.collapse', function() {
+        const headerId = $(this).attr('aria-labelledby');
+        $('#' + headerId).find('.accordion-button').removeClass('collapsed').attr('aria-expanded', 'true');
+    });
+    $('.accordion-collapse').on('hidden.bs.collapse', function() {
+        const headerId = $(this).attr('aria-labelledby');
+        $('#' + headerId).find('.accordion-button').addClass('collapsed').attr('aria-expanded', 'false');
     });
 
     // Initialize Select2 on material mapping dropdowns
