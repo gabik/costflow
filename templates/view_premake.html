@@ -58,14 +58,14 @@
                     <div class="card-body text-center">
                         <i class="bi bi-box-seam text-success mb-2" style="font-size: 2rem;"></i>
                         <h6 class="text-muted mb-1">{{ _('Current Stock') }}</h6>
-                        <h4 class="mb-0" id="current-stock-display" data-original-value="{% if premake.current_stock is not none and premake.current_stock < 999999 %}{{ premake.current_stock }}{% else %}infinity{% endif %}">
+                        <h4 class="mb-0">
                             {% if premake.current_stock is not none and premake.current_stock < 999999 %}
                                 {{ "%.2f"|format(premake.current_stock) }}
                             {% else %}
                                 ∞
                             {% endif %}
                         </h4>
-                        <small class="text-muted stock-unit-display">{{ premake.unit }}</small>
+                        <small class="text-muted">{{ premake.unit }}</small>
                     </div>
                 </div>
             </div>
@@ -83,8 +83,8 @@
                     <div class="card-body text-center">
                         <i class="bi bi-cash-coin text-info mb-2" style="font-size: 2rem;"></i>
                         <h6 class="text-muted mb-1">{{ _('Cost per Unit') }}</h6>
-                        <h4 class="mb-0" id="cost-per-unit-display" data-original-value="{{ premake.cost_per_unit }}">₪{{ "%.2f"|format(premake.cost_per_unit) }}</h4>
-                        <small class="text-muted">{{ _('per') }} <span class="cost-unit-display">{{ premake.unit }}</span></small>
+                        <h4 class="mb-0">₪{{ "%.2f"|format(premake.cost_per_unit) }}</h4>
+                        <small class="text-muted">{{ _('per') }} {{ premake.unit }}</small>
                     </div>
                 </div>
             </div>
@@ -199,20 +199,18 @@
                 <table class="table table-sm">
                     <tbody>
                         <tr>
-                            <td>{{ _('Cost per Unit') }} (<span class="cost-unit-summary">{{ premake.unit }}</span>):</td>
-                            <td class="text-end fw-bold">₪<span id="cost-per-unit-summary" data-original-value="{{ premake.cost_per_unit }}">{{ "%.2f"|format(premake.cost_per_unit) }}</span></td>
+                            <td>{{ _('Cost per Unit') }} ({{ premake.unit }}):</td>
+                            <td class="text-end fw-bold">₪{{ "%.2f"|format(premake.cost_per_unit) }}</td>
                         </tr>
                         <tr>
                             <td>{{ _('Current Stock:') }}</td>
                             <td class="text-end">
-                                <span id="current-stock-summary" data-original-value="{% if premake.current_stock is not none and premake.current_stock < 999999 %}{{ premake.current_stock }}{% else %}infinity{% endif %}">
                                 {% if premake.current_stock is not none and premake.current_stock < 999999 %}
                                     {{ "%.2f"|format(premake.current_stock) }}
                                 {% else %}
                                     ∞
                                 {% endif %}
-                                </span>
-                                <span class="stock-unit-summary">{{ premake.unit }}</span>
+                                {{ premake.unit }}
                             </td>
                         </tr>
                         <tr>
@@ -240,25 +238,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Get original values and unit
     const batchSizeDisplay = document.getElementById('batch-size-display');
-    const currentStockDisplay = document.getElementById('current-stock-display');
-    const costPerUnitDisplay = document.getElementById('cost-per-unit-display');
     const batchSizeSummary = document.getElementById('batch-size-summary');
-    const currentStockSummary = document.getElementById('current-stock-summary');
-    const costPerUnitSummary = document.getElementById('cost-per-unit-summary');
 
     const originalUnit = batchSizeDisplay?.dataset.originalUnit || 'g';
     const originalBatchSize = parseFloat(batchSizeDisplay?.dataset.originalValue || 0);
-    const originalStock = currentStockDisplay?.dataset.originalValue === 'infinity'
-        ? 'infinity'
-        : parseFloat(currentStockDisplay?.dataset.originalValue || 0);
-    const originalCostPerUnit = parseFloat(costPerUnitDisplay?.dataset.originalValue || 0);
 
-    // Function to update all unit displays
-    function updateAllUnits(newUnit) {
-        // Update all unit display elements
-        document.querySelectorAll('#batch-unit-display, .stock-unit-display, .cost-unit-display, .batch-unit-summary, .stock-unit-summary, .cost-unit-summary').forEach(el => {
-            el.textContent = newUnit;
-        });
+    // Function to update batch size unit displays only
+    function updateBatchSizeUnits(newUnit) {
+        // Only update batch size unit displays
+        const batchUnitDisplay = document.getElementById('batch-unit-display');
+        const batchUnitSummary = document.querySelector('.batch-unit-summary');
+
+        if (batchUnitDisplay) {
+            batchUnitDisplay.textContent = newUnit;
+        }
+        if (batchUnitSummary) {
+            batchUnitSummary.textContent = newUnit;
+        }
     }
 
     // Function to convert values based on unit change
@@ -291,7 +287,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const newUnit = this.value;
 
-            // Convert batch size
+            // Convert ONLY batch size
             const convertedBatchSize = convertValues(originalUnit, newUnit, originalBatchSize);
             if (batchSizeDisplay) {
                 batchSizeDisplay.textContent = convertedBatchSize.toFixed(2);
@@ -300,28 +296,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 batchSizeSummary.textContent = convertedBatchSize.toFixed(2);
             }
 
-            // Convert current stock
-            if (originalStock !== 'infinity') {
-                const convertedStock = convertValues(originalUnit, newUnit, originalStock);
-                if (currentStockDisplay) {
-                    currentStockDisplay.textContent = convertedStock.toFixed(2);
-                }
-                if (currentStockSummary) {
-                    currentStockSummary.textContent = convertedStock.toFixed(2);
-                }
-            }
-
-            // Convert cost per unit (inverse conversion for cost)
-            const convertedCostPerUnit = convertValues(newUnit, originalUnit, originalCostPerUnit);
-            if (costPerUnitDisplay) {
-                costPerUnitDisplay.textContent = '₪' + convertedCostPerUnit.toFixed(2);
-            }
-            if (costPerUnitSummary) {
-                costPerUnitSummary.textContent = convertedCostPerUnit.toFixed(2);
-            }
-
-            // Update all unit displays
-            updateAllUnits(newUnit);
+            // Update ONLY batch size unit displays
+            updateBatchSizeUnits(newUnit);
         });
     });
 });
