@@ -166,6 +166,38 @@ html[dir="rtl"] .navbar-nav {
     padding-right: 0;
 }
 
+/* Fix navbar alignment in RTL */
+html[dir="rtl"] .navbar-collapse {
+    text-align: right;
+}
+
+html[dir="rtl"] .ms-auto {
+    margin-left: 0 !important;
+    margin-right: auto !important;
+}
+
+html[dir="rtl"] .me-auto {
+    margin-right: 0 !important;
+    margin-left: auto !important;
+}
+
+/* Fix navbar toggler position in mobile RTL */
+html[dir="rtl"] .navbar-toggler {
+    margin-left: 0;
+    margin-right: auto;
+}
+
+/* Fix navbar brand alignment in RTL - keep natural flow */
+html[dir="rtl"] .navbar-brand {
+    margin-left: 0;
+}
+
+/* Ensure navbar items stay on the correct side */
+html[dir="rtl"] .navbar-nav.ms-auto {
+    margin-right: auto !important;
+    margin-left: 0 !important;
+}
+
 /* Form Elements - Checkboxes & Radio Buttons */
 html[dir="rtl"] .form-check {
     padding-left: 0;
@@ -202,6 +234,12 @@ html[dir="rtl"] .dropdown-menu-end {
 
 html[dir="rtl"] .dropdown-menu {
     text-align: right;
+}
+
+/* Dropdown toggle caret positioning */
+html[dir="rtl"] .dropdown-toggle::after {
+    margin-left: 0;
+    margin-right: 0.255em;
 }
 
 /* Buttons with Icons */
@@ -383,4 +421,78 @@ html[dir="rtl"] footer .me-2 {
 html[dir="rtl"] footer .ms-2 {
     margin-left: 0 !important;
     margin-right: 0.5rem !important;
+}
+
+/* Accordion Specific Fixes for RTL */
+html[dir="rtl"] .accordion-button {
+    text-align: right;
+    padding-right: 1.25rem;
+    padding-left: 3rem;
+}
+
+html[dir="rtl"] .accordion-button::after {
+    margin-right: auto;
+    margin-left: 0;
+    right: auto;
+    left: 1.25rem;
+    position: absolute;
+}
+
+html[dir="rtl"] .accordion-button:not(.collapsed)::after {
+    right: auto;
+    left: 1.25rem;
+}
+
+/* Recipe Import Checkbox Fix */
+html[dir="rtl"] .recipe-select-checkbox {
+    margin-right: 0;
+    margin-left: 0.5rem;
+}
+
+/* Fix margins in RTL for accordion header items */
+html[dir="rtl"] .accordion-button .me-3 {
+    margin-right: 0 !important;
+    margin-left: 1rem !important;
+}
+
+html[dir="rtl"] .accordion-button .gap-2 {
+    margin-right: 0.5rem;
+}
+
+/* Table Column Alignment for RTL */
+html[dir="rtl"] table td,
+html[dir="rtl"] table th {
+    text-align: right !important;
+}
+
+html[dir="rtl"] .text-center {
+    text-align: center !important;
+}
+
+/* Ensure all table cells align correctly */
+html[dir="rtl"] .table tbody td,
+html[dir="rtl"] .table thead th {
+    text-align: right !important;
+}
+
+/* Exception for centered content */
+html[dir="rtl"] .table .text-center,
+html[dir="rtl"] td.text-center,
+html[dir="rtl"] th.text-center {
+    text-align: center !important;
+}
+
+/* Fix for action buttons in tables */
+html[dir="rtl"] .table .btn-group {
+    display: inline-flex;
+    direction: ltr;
+}
+
+/* Fix Bootstrap utility classes in RTL */
+html[dir="rtl"] .text-left {
+    text-align: right !important;
+}
+
+html[dir="rtl"] .text-right {
+    text-align: left !important;
 }
