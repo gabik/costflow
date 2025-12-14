@@ -25,6 +25,17 @@
   {% endif %}
 {% endwith %}
 
+<!-- DEBUG INFO - REMOVE AFTER FIXING -->
+<div class="alert alert-warning">
+    <strong>DEBUG INFO:</strong><br>
+    Raw materials count: {{ all_raw_materials|length if all_raw_materials else 0 }}<br>
+    Premakes count: {{ all_premakes|length if all_premakes else 0 }}<br>
+    Preproducts count: {{ all_preproducts|length if all_preproducts else 0 }}<br>
+    Categories count: {{ all_categories|length if all_categories else 0 }}<br>
+    Suppliers count: {{ all_suppliers|length if all_suppliers else 0 }}<br>
+    Recipes count: {{ recipes|length if recipes else 0 }}
+</div>
+
 
 <!-- Missing Materials Warning -->
 {% if has_missing_materials %}
