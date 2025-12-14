@@ -1023,63 +1023,47 @@ def calculate_100g_cost(product):
     Calculate cost per 100g for a product or premake.
     Takes into account loss components (negative weight).
     Returns: (cost_100g, total_cost, net_weight)
+
+    NOTE: This function is kept for backward compatibility.
+    For new code, use calculate_standard_unit_cost() which is unit-aware.
     """
-    total_cost = 0
-    total_weight = 0
-    loss_weight = 0
+    # Use the new unit-aware function internally
+    cost_per_standard, total_cost, net_quantity, unit_label = calculate_standard_unit_cost(product)
 
-    for component in product.components:
-        if component.component_type == 'loss':
-            # Loss has negative quantity
-            loss_weight += component.quantity  # This is negative
-            continue
+    # Get the product's unit to convert appropriately
+    product_unit = product.unit if hasattr(product, 'unit') else 'kg'
 
-        # Add weight
-        if component.component_type in ['raw_material', 'premake', 'product']:
-            total_weight += abs(component.quantity)
-
-        # Calculate cost
-        if component.component_type == 'raw_material' and component.material:
-            # Use primary supplier DISCOUNTED price
-            primary_price = get_primary_supplier_discounted_price(component.material)
-            # Component quantities are stored in kg baseline, material prices are per their unit
-            if component.material.unit != 'kg':
-                # Convert kg to material's unit for cost calculation
-                quantity_in_material_unit = convert_to_base_unit(
-                    component.quantity,
-                    'kg',  # Component is stored in kg
-                    component.material.unit  # Convert to material's unit for pricing
-                )
-                total_cost += quantity_in_material_unit * primary_price
+    # Convert to per 100g for backward compatibility
+    if product_unit == 'kg':
+        # cost_per_standard is per kg, convert to per 100g
+        cost_100g = cost_per_standard / 10
+    elif product_unit == 'g':
+        # Need to check what unit cost_per_standard is in
+        if 'per kg' in unit_label:
+            # Convert from per kg to per 100g
+            cost_100g = cost_per_standard / 10
+        elif 'per 100g' in unit_label:
+            # Already per 100g
+            cost_100g = cost_per_standard
+        else:
+            # per g, convert to per 100g
+            cost_100g = cost_per_standard * 100
+    elif product_unit in ['L', 'ml']:
+        # For liquids, return as if it were per 100ml (similar to 100g)
+        if product_unit == 'L':
+            cost_100g = cost_per_standard / 10  # per L to per 100ml
+        else:
+            if 'per L' in unit_label:
+                cost_100g = cost_per_standard / 10
+            elif 'per 100ml' in unit_label:
+                cost_100g = cost_per_standard
             else:
-                # Both are in kg, multiply directly
-                total_cost += component.quantity * primary_price
-
-        elif component.component_type == 'packaging' and component.packaging:
-            total_cost += component.quantity * component.packaging.price_per_unit
-
-        elif component.component_type == 'premake':
-            premake = Product.query.filter_by(id=component.component_id, is_premake=True).first()
-            if premake:
-                premake_unit_cost = calculate_premake_cost_per_unit(premake)
-                total_cost += component.quantity * premake_unit_cost
-
-        elif component.component_type == 'product':
-            preproduct = Product.query.filter_by(id=component.component_id, is_preproduct=True).first()
-            if preproduct:
-                preproduct_unit_cost = calculate_prime_cost(preproduct)
-                total_cost += component.quantity * preproduct_unit_cost
-
-    # Calculate net weight (total - loss)
-    net_weight = total_weight + loss_weight  # loss_weight is negative
-
-    # Calculate cost per 100g
-    if net_weight > 0:
-        cost_100g = (total_cost / net_weight) * 100
+                cost_100g = cost_per_standard * 100  # per ml to per 100ml
     else:
-        cost_100g = 0
+        # For other units, just return the standard cost
+        cost_100g = cost_per_standard
 
-    return cost_100g, total_cost, net_weight
+    return cost_100g, total_cost, net_quantity
 
 def format_quantity_with_unit(quantity, unit):
     """
@@ -1136,3 +1120,227 @@ def get_display_quantity_and_unit(quantity, unit):
     This is a wrapper function that returns the display values.
     """
     return format_quantity_with_unit(quantity, unit)
+
+def get_appropriate_price_unit(unit, batch_size=None):
+    """
+    Determine the appropriate unit for price display based on the product's unit and batch size.
+
+    Args:
+        unit: The base unit of the product ('kg', 'g', 'L', 'ml', 'piece', 'unit', etc.)
+        batch_size: Optional batch size to help determine appropriate scale
+
+    Returns:
+        A tuple of (display_unit, unit_label) e.g., ('kg', 'per kg')
+    """
+    from flask_babel import gettext as _
+
+    if unit == 'kg':
+        return 'kg', _('per kg')
+    elif unit == 'g':
+        # For gram-based items, decide based on batch size
+        if batch_size and batch_size >= 1000:
+            return 'kg', _('per kg')
+        else:
+            return '100g', _('per 100g')
+    elif unit == 'L':
+        return 'L', _('per L')
+    elif unit == 'ml':
+        # For ml-based items, decide based on batch size
+        if batch_size and batch_size >= 1000:
+            return 'L', _('per L')
+        else:
+            return '100ml', _('per 100ml')
+    elif unit in ['piece', 'unit', 'יחידה', 'units']:
+        return 'unit', _('per unit')
+    else:
+        # Default case for any other unit
+        return unit, f"{_('per')} {unit}"
+
+def calculate_unit_price(product, display_unit=None):
+    """
+    Calculate the price for a product based on the appropriate display unit.
+
+    Args:
+        product: The product/premake object
+        display_unit: Optional specific display unit to use (e.g., 'kg', '100g', 'L', '100ml', 'unit')
+                     If not provided, will determine automatically
+
+    Returns:
+        A tuple of (price, unit_label) e.g., (12.50, 'per kg')
+    """
+    from flask_babel import gettext as _
+
+    # Calculate base cost per unit
+    total_cost = calculate_prime_cost(product) if hasattr(product, 'components') else 0
+
+    # For products with batch size
+    if hasattr(product, 'products_per_recipe') and product.products_per_recipe:
+        cost_per_unit = total_cost / product.products_per_recipe
+    # For premakes with batch size
+    elif hasattr(product, 'batch_size') and product.batch_size:
+        cost_per_unit = total_cost / product.batch_size
+    else:
+        cost_per_unit = total_cost
+
+    # Determine display unit if not provided
+    if not display_unit:
+        display_unit, unit_label = get_appropriate_price_unit(
+            product.unit if hasattr(product, 'unit') else 'kg',
+            product.batch_size if hasattr(product, 'batch_size') else None
+        )
+    else:
+        # Create unit label for provided display unit
+        if display_unit == '100g':
+            unit_label = _('per 100g')
+        elif display_unit == '100ml':
+            unit_label = _('per 100ml')
+        elif display_unit == 'kg':
+            unit_label = _('per kg')
+        elif display_unit == 'L':
+            unit_label = _('per L')
+        elif display_unit == 'unit':
+            unit_label = _('per unit')
+        else:
+            unit_label = f"{_('per')} {display_unit}"
+
+    # Get the product's base unit
+    product_unit = product.unit if hasattr(product, 'unit') else 'kg'
+
+    # Convert price based on display unit
+    if product_unit == 'kg':
+        if display_unit == '100g':
+            return cost_per_unit / 10, unit_label  # 1kg = 1000g, so per 100g = per kg / 10
+        elif display_unit == 'g':
+            return cost_per_unit / 1000, unit_label
+        else:
+            return cost_per_unit, unit_label
+    elif product_unit == 'g':
+        if display_unit == 'kg':
+            return cost_per_unit * 1000, unit_label
+        elif display_unit == '100g':
+            return cost_per_unit * 100, unit_label
+        else:
+            return cost_per_unit, unit_label
+    elif product_unit == 'L':
+        if display_unit == '100ml':
+            return cost_per_unit / 10, unit_label  # 1L = 1000ml, so per 100ml = per L / 10
+        elif display_unit == 'ml':
+            return cost_per_unit / 1000, unit_label
+        else:
+            return cost_per_unit, unit_label
+    elif product_unit == 'ml':
+        if display_unit == 'L':
+            return cost_per_unit * 1000, unit_label
+        elif display_unit == '100ml':
+            return cost_per_unit * 100, unit_label
+        else:
+            return cost_per_unit, unit_label
+    else:
+        # For piece, unit, or other units, no conversion needed
+        return cost_per_unit, unit_label
+
+def calculate_standard_unit_cost(product):
+    """
+    Calculate cost per standard unit for a product or premake.
+    This is a unit-aware version of the old calculate_100g_cost function.
+    Takes into account loss components (negative weight) and uses appropriate units.
+
+    Returns: (cost_per_standard_unit, total_cost, net_quantity, unit_label)
+    """
+    from flask_babel import gettext as _
+
+    total_cost = 0
+    total_quantity = 0
+    loss_quantity = 0
+
+    # Get the product's unit
+    product_unit = product.unit if hasattr(product, 'unit') else 'kg'
+
+    for component in product.components:
+        if component.component_type == 'loss':
+            # Loss has negative quantity
+            loss_quantity += component.quantity  # This is negative
+            continue
+
+        # Add quantity
+        if component.component_type in ['raw_material', 'premake', 'product']:
+            total_quantity += abs(component.quantity)
+
+        # Calculate cost for this component
+        if component.component_type == 'raw_material':
+            if component.material:
+                if component.material.is_unlimited:
+                    comp_cost = 0
+                else:
+                    # Get primary supplier discounted price
+                    price = get_primary_supplier_discounted_price(component.material)
+                    comp_cost = component.quantity * price
+            else:
+                comp_cost = 0
+        elif component.component_type == 'premake':
+            if component.premake:
+                # Recursive calculation for premakes
+                premake_cost_per_unit = calculate_premake_cost_per_unit(component.premake, use_actual_costs=False)
+                comp_cost = component.quantity * premake_cost_per_unit
+            else:
+                comp_cost = 0
+        elif component.component_type == 'product':
+            if component.product:
+                # For preproducts, use their cost
+                product_cost = calculate_prime_cost(component.product)
+                if component.product.products_per_recipe:
+                    cost_per_unit = product_cost / component.product.products_per_recipe
+                else:
+                    cost_per_unit = product_cost
+                comp_cost = component.quantity * cost_per_unit
+            else:
+                comp_cost = 0
+        elif component.component_type == 'packaging':
+            if component.packaging:
+                comp_cost = component.quantity * component.packaging.price_per_unit
+            else:
+                comp_cost = 0
+        else:
+            comp_cost = 0
+
+        total_cost += comp_cost
+
+    # Calculate net quantity (after loss)
+    net_quantity = total_quantity + loss_quantity  # loss_quantity is negative
+
+    # Determine appropriate standard unit
+    display_unit, unit_label = get_appropriate_price_unit(product_unit, net_quantity)
+
+    # Calculate cost per standard unit
+    if net_quantity > 0:
+        # Convert to standard unit for calculation
+        if product_unit == 'kg':
+            if display_unit == '100g':
+                cost_per_standard = (total_cost / net_quantity) / 10  # per 100g
+            else:
+                cost_per_standard = total_cost / net_quantity  # per kg
+        elif product_unit == 'g':
+            if display_unit == 'kg':
+                cost_per_standard = (total_cost / net_quantity) * 1000  # per kg
+            elif display_unit == '100g':
+                cost_per_standard = (total_cost / net_quantity) * 100  # per 100g
+            else:
+                cost_per_standard = total_cost / net_quantity  # per g
+        elif product_unit == 'L':
+            if display_unit == '100ml':
+                cost_per_standard = (total_cost / net_quantity) / 10  # per 100ml
+            else:
+                cost_per_standard = total_cost / net_quantity  # per L
+        elif product_unit == 'ml':
+            if display_unit == 'L':
+                cost_per_standard = (total_cost / net_quantity) * 1000  # per L
+            elif display_unit == '100ml':
+                cost_per_standard = (total_cost / net_quantity) * 100  # per 100ml
+            else:
+                cost_per_standard = total_cost / net_quantity  # per ml
+        else:
+            cost_per_standard = total_cost / net_quantity if net_quantity else 0
+    else:
+        cost_per_standard = 0
+
+    return cost_per_standard, total_cost, net_quantity, unit_label

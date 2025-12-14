@@ -5,7 +5,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from flask_babel import gettext as _
 import pandas as pd
 from ..models import db, Product, ProductComponent, RawMaterial, RawMaterialAlternativeName, Category, Supplier, RawMaterialSupplier
-from .utils import log_audit, convert_to_base_unit, get_or_create_general_category
+from .utils import log_audit, convert_to_base_unit, get_or_create_general_category, get_appropriate_price_unit
 
 recipe_import_blueprint = Blueprint('recipe_import', __name__)
 
@@ -366,8 +366,52 @@ def calculate_recipe_diff(existing_components, new_materials, matched_materials_
     return added, removed, changed, unchanged
 
 
+def calculate_standard_cost(total_weight, total_cost, unit='g'):
+    """Calculate cost per standard unit (e.g., per 100g, per kg, per L)"""
+    if total_weight <= 0:
+        return 0, _('per 100g')  # Default
+
+    # Get appropriate display unit based on the unit and quantity
+    display_unit, unit_label = get_appropriate_price_unit(unit, total_weight)
+
+    # Calculate cost for the display unit
+    if unit == 'g':
+        if display_unit == 'kg':
+            # Convert to per kg
+            cost = (total_cost / total_weight) * 1000
+        else:
+            # Per 100g
+            cost = (total_cost / total_weight) * 100
+    elif unit == 'kg':
+        if display_unit == '100g':
+            # Convert to per 100g
+            cost = (total_cost / total_weight) / 10
+        else:
+            # Per kg
+            cost = total_cost / total_weight
+    elif unit == 'ml':
+        if display_unit == 'L':
+            # Convert to per L
+            cost = (total_cost / total_weight) * 1000
+        else:
+            # Per 100ml
+            cost = (total_cost / total_weight) * 100
+    elif unit == 'L':
+        if display_unit == '100ml':
+            # Convert to per 100ml
+            cost = (total_cost / total_weight) / 10
+        else:
+            # Per L
+            cost = total_cost / total_weight
+    else:
+        # For other units, just return per unit
+        cost = total_cost / total_weight
+
+    return cost, unit_label
+
+# Keep old function for backward compatibility
 def calculate_100g_cost(total_weight, total_cost):
-    """Calculate cost per 100g"""
+    """Calculate cost per 100g (kept for backward compatibility)"""
     if total_weight > 0:
         return (total_cost / total_weight) * 100
     return 0
@@ -829,11 +873,18 @@ def select_sheet():
                     'unchanged': unchanged
                 }
 
-            # Calculate 100g cost
+            # Calculate standard unit cost
             net_weight = recipe['total_weight']
             if recipe['loss']:
                 net_weight += recipe['loss']['weight']  # Loss is negative
 
+            # Get the unit from metadata (default to 'g' if not specified)
+            recipe_unit = metadata.get('unit', 'g')
+
+            # Calculate cost using the new unit-aware function
+            cost_per_standard, price_unit_label = calculate_standard_cost(net_weight, recipe['total_cost'], recipe_unit)
+
+            # Keep cost_100g for backward compatibility
             cost_100g = calculate_100g_cost(net_weight, recipe['total_cost'])
 
             # Determine if recipe has only price differences (NEW)
@@ -851,7 +902,8 @@ def select_sheet():
                 'total_weight': recipe['total_weight'],
                 'total_cost': recipe['total_cost'],
                 'net_weight': net_weight,
-                'cost_100g': cost_100g,
+                'cost_100g': cost_per_standard,  # Now unit-aware cost
+                'price_unit_label': price_unit_label,  # Unit label for display
                 'has_missing': has_missing,
                 'has_actual_changes': has_actual_changes,  # NEW
                 'has_price_only': has_price_differences and not has_actual_changes,  # NEW

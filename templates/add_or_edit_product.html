@@ -366,10 +366,10 @@
                 <div id="cost-summary">
                     <div class="row">
                         <div class="col-md-6">
-                            <strong>{{ _('Raw Material Cost per Recipe:') }}</strong> <span id="total-materials-cost">₪0.00</span>
+                            <strong>{{ _('Total Cost per Recipe:') }}</strong> <span id="total-materials-cost">₪0.00</span>
                         </div>
                         <div class="col-md-6">
-                            <strong>{{ _('Cost per Unit:') }}</strong> <span id="cost-per-unit">₪0.00</span>
+                            <strong>{{ _('Cost') }} <span id="cost-unit-label">{{ _('per Unit') }}</span>:</strong> <span id="cost-per-unit">₪0.00</span>
                         </div>
                     </div>
                     <small class="text-muted">
@@ -859,6 +859,13 @@
             });
         }
 
+        // Function to determine appropriate price display unit
+        function getAppropriateUnitLabel() {
+            // For products, we always show "per unit" since they have "units per recipe"
+            // This is different from premakes which show per weight/volume
+            return '{{ _("per Unit") }}';
+        }
+
         // Cost calculation function
         function calculateTotalCost() {
             let totalCost = 0;
@@ -868,12 +875,27 @@
             document.querySelectorAll('.raw-material-row').forEach(row => {
                 const select = row.querySelector('select[name="raw_material[]"]');
                 const quantityInput = row.querySelector('input[name="raw_material_quantity[]"]');
+                const unitSelect = row.querySelector('select[name="raw_material_unit[]"]');
 
                 if (select && select.value && quantityInput && quantityInput.value) {
                     const selectedOption = select.options[select.selectedIndex];
                     const cost = parseFloat(selectedOption.dataset.cost) || 0;
                     const quantity = parseFloat(quantityInput.value) || 0;
-                    totalCost += cost * quantity;
+                    const selectedUnit = unitSelect ? unitSelect.value : 'kg';
+                    const baseUnit = selectedOption.dataset.unit || 'kg';
+
+                    // Convert quantity to base unit for cost calculation
+                    let finalQuantity = quantity;
+                    if (selectedUnit !== baseUnit) {
+                        // Convert between kg/g or L/ml
+                        if ((selectedUnit === 'g' && baseUnit === 'kg') || (selectedUnit === 'ml' && baseUnit === 'L')) {
+                            finalQuantity = quantity / 1000;
+                        } else if ((selectedUnit === 'kg' && baseUnit === 'g') || (selectedUnit === 'L' && baseUnit === 'ml')) {
+                            finalQuantity = quantity * 1000;
+                        }
+                    }
+
+                    totalCost += cost * finalQuantity;
                 }
             });
 
@@ -881,12 +903,27 @@
             document.querySelectorAll('.premake-row').forEach(row => {
                 const select = row.querySelector('select[name="premake[]"]');
                 const quantityInput = row.querySelector('input[name="premake_quantity[]"]');
+                const unitSelect = row.querySelector('select[name="premake_unit[]"]');
 
                 if (select && select.value && quantityInput && quantityInput.value) {
                     const selectedOption = select.options[select.selectedIndex];
                     const cost = parseFloat(selectedOption.dataset.cost) || 0;
                     const quantity = parseFloat(quantityInput.value) || 0;
-                    totalCost += cost * quantity;
+                    const selectedUnit = unitSelect ? unitSelect.value : 'kg';
+                    const baseUnit = selectedOption.dataset.unit || 'kg';
+
+                    // Convert quantity to base unit for cost calculation
+                    let finalQuantity = quantity;
+                    if (selectedUnit !== baseUnit) {
+                        // Convert between kg/g or L/ml
+                        if ((selectedUnit === 'g' && baseUnit === 'kg') || (selectedUnit === 'ml' && baseUnit === 'L')) {
+                            finalQuantity = quantity / 1000;
+                        } else if ((selectedUnit === 'kg' && baseUnit === 'g') || (selectedUnit === 'L' && baseUnit === 'ml')) {
+                            finalQuantity = quantity * 1000;
+                        }
+                    }
+
+                    totalCost += cost * finalQuantity;
                 }
             });
 
@@ -919,12 +956,18 @@
             // Update display
             const totalMaterialsCostEl = document.getElementById('total-materials-cost');
             const costPerUnitEl = document.getElementById('cost-per-unit');
+            const costUnitLabelEl = document.getElementById('cost-unit-label');
 
             if (totalMaterialsCostEl) {
                 totalMaterialsCostEl.textContent = `₪${totalCost.toFixed(2)}`;
             }
             if (costPerUnitEl) {
-                costPerUnitEl.textContent = `₪${(totalCost / productsPerRecipe).toFixed(2)}`;
+                const costPerUnit = totalCost / productsPerRecipe;
+                costPerUnitEl.textContent = `₪${costPerUnit.toFixed(2)}`;
+            }
+            // Update unit label (for products it's always "per Unit")
+            if (costUnitLabelEl) {
+                costUnitLabelEl.textContent = getAppropriateUnitLabel();
             }
         }
 

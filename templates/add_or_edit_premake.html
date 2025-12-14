@@ -198,6 +198,26 @@
             </div>
         </div>
 
+        <!-- Cost Summary Section -->
+        <div class="card bg-light mt-4 mb-4">
+            <div class="card-body">
+                <h5 class="card-title">{{ _('Cost Summary (Primary Supplier Prices)') }}</h5>
+                <div id="cost-summary">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>{{ _('Total Cost per Batch:') }}</strong> <span id="total-batch-cost">₪0.00</span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>{{ _('Cost') }} <span id="cost-unit-label">{{ _('per kg') }}</span>:</strong> <span id="cost-per-unit">₪0.00</span>
+                        </div>
+                    </div>
+                    <small class="text-muted">
+                        * {{ _('Costs are calculated based on primary supplier prices. Batch size is calculated from component weights.') }}
+                    </small>
+                </div>
+            </div>
+        </div>
+
         <div class="mt-4">
             <button type="submit" class="btn btn-success">{{ _('Save') }}</button>
             <a href="{{ url_for('premakes.premakes') }}" class="btn btn-secondary">{{ _('Cancel') }}</a>
@@ -385,6 +405,181 @@
         return true;
     }
 
+    // Function to determine appropriate price display unit based on premake's unit
+    function getAppropriateUnitLabel() {
+        const unitSelect = document.getElementById('unit');
+        if (!unitSelect) return '{{ _("per kg") }}';
+
+        const unit = unitSelect.value;
+        const totalWeight = calculateTotalWeight();
+
+        if (unit === 'kg') {
+            return '{{ _("per kg") }}';
+        } else if (unit === 'g') {
+            // For gram-based items, show per 100g if batch is small, per kg if large
+            if (totalWeight >= 1000) {
+                return '{{ _("per kg") }}';
+            } else {
+                return '{{ _("per 100g") }}';
+            }
+        } else if (unit === 'L') {
+            return '{{ _("per L") }}';
+        } else if (unit === 'ml') {
+            // For ml-based items, show per 100ml if batch is small, per L if large
+            if (totalWeight >= 1000) {
+                return '{{ _("per L") }}';
+            } else {
+                return '{{ _("per 100ml") }}';
+            }
+        } else if (unit === 'piece' || unit === 'unit') {
+            return '{{ _("per unit") }}';
+        } else {
+            return '{{ _("per") }} ' + unit;
+        }
+    }
+
+    // Function to calculate total weight/volume of the batch
+    function calculateTotalWeight() {
+        let totalWeight = 0;
+
+        // Sum raw material weights
+        document.querySelectorAll('.raw-material-row').forEach(row => {
+            const quantityInput = row.querySelector('input[name="quantity[]"]');
+            const unitSelect = row.querySelector('.unit-selector');
+
+            if (quantityInput && quantityInput.value) {
+                const quantity = parseFloat(quantityInput.value) || 0;
+                const selectedUnit = unitSelect ? unitSelect.value : 'kg';
+
+                // Convert everything to kg/L for consistency
+                let weightInKg = quantity;
+                if (selectedUnit === 'g') {
+                    weightInKg = quantity / 1000;
+                } else if (selectedUnit === 'ml') {
+                    weightInKg = quantity / 1000;
+                }
+
+                totalWeight += weightInKg;
+            }
+        });
+
+        // Sum premake weights
+        document.querySelectorAll('.premake-row').forEach(row => {
+            const quantityInput = row.querySelector('input[name="quantity[]"]');
+            if (quantityInput && quantityInput.value) {
+                const quantity = parseFloat(quantityInput.value) || 0;
+                // Premake quantities are already in their base units
+                totalWeight += quantity;
+            }
+        });
+
+        return totalWeight;
+    }
+
+    // Function to calculate total cost and cost per unit
+    function calculateTotalCost() {
+        let totalCost = 0;
+        const totalWeight = calculateTotalWeight();
+        const unit = document.getElementById('unit').value;
+
+        // Get raw materials from the page data
+        const allRawMaterials = {{ all_raw_materials_json | default([]) | tojson | safe }};
+        const allPremakes = {{ all_premakes_json | default([]) | tojson | safe }};
+
+        // Calculate raw materials cost
+        document.querySelectorAll('.raw-material-row').forEach(row => {
+            const select = row.querySelector('select[name="component_id[]"]');
+            const quantityInput = row.querySelector('input[name="quantity[]"]');
+            const unitSelect = row.querySelector('.unit-selector');
+
+            if (select && select.value && quantityInput && quantityInput.value) {
+                const materialId = parseInt(select.value);
+                const material = allRawMaterials.find(m => m.id === materialId);
+
+                if (material) {
+                    const quantity = parseFloat(quantityInput.value) || 0;
+                    const selectedUnit = unitSelect ? unitSelect.value : 'kg';
+                    const cost = material.cost_per_unit || 0;
+
+                    // Convert quantity to material's base unit for cost calculation
+                    let finalQuantity = quantity;
+                    if (selectedUnit !== material.unit) {
+                        // Convert between kg/g or L/ml
+                        if ((selectedUnit === 'g' && material.unit === 'kg') || (selectedUnit === 'ml' && material.unit === 'L')) {
+                            finalQuantity = quantity / 1000;
+                        } else if ((selectedUnit === 'kg' && material.unit === 'g') || (selectedUnit === 'L' && material.unit === 'ml')) {
+                            finalQuantity = quantity * 1000;
+                        }
+                    }
+
+                    totalCost += cost * finalQuantity;
+                }
+            }
+        });
+
+        // Calculate premakes cost
+        document.querySelectorAll('.premake-row').forEach(row => {
+            const select = row.querySelector('select[name="component_id[]"]');
+            const quantityInput = row.querySelector('input[name="quantity[]"]');
+
+            if (select && select.value && quantityInput && quantityInput.value) {
+                const premakeId = parseInt(select.value);
+                const premake = allPremakes.find(p => p.id === premakeId);
+
+                if (premake) {
+                    const quantity = parseFloat(quantityInput.value) || 0;
+                    const cost = premake.cost_per_unit || 0;
+                    totalCost += cost * quantity;
+                }
+            }
+        });
+
+        // Calculate cost per unit based on the appropriate unit
+        let costPerUnit = 0;
+        const unitLabel = getAppropriateUnitLabel();
+
+        if (totalWeight > 0) {
+            if (unit === 'kg') {
+                costPerUnit = totalCost / totalWeight;
+            } else if (unit === 'g') {
+                if (unitLabel.includes('100g')) {
+                    // Convert to cost per 100g
+                    costPerUnit = (totalCost / (totalWeight * 1000)) * 100;
+                } else {
+                    // Convert to cost per kg
+                    costPerUnit = totalCost / totalWeight;
+                }
+            } else if (unit === 'L') {
+                costPerUnit = totalCost / totalWeight;
+            } else if (unit === 'ml') {
+                if (unitLabel.includes('100ml')) {
+                    // Convert to cost per 100ml
+                    costPerUnit = (totalCost / (totalWeight * 1000)) * 100;
+                } else {
+                    // Convert to cost per L
+                    costPerUnit = totalCost / totalWeight;
+                }
+            } else {
+                costPerUnit = totalCost / totalWeight;
+            }
+        }
+
+        // Update display
+        const totalBatchCostEl = document.getElementById('total-batch-cost');
+        const costPerUnitEl = document.getElementById('cost-per-unit');
+        const costUnitLabelEl = document.getElementById('cost-unit-label');
+
+        if (totalBatchCostEl) {
+            totalBatchCostEl.textContent = `₪${totalCost.toFixed(2)}`;
+        }
+        if (costPerUnitEl) {
+            costPerUnitEl.textContent = `₪${costPerUnit.toFixed(2)}`;
+        }
+        if (costUnitLabelEl) {
+            costUnitLabelEl.textContent = unitLabel;
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize select2 for existing rows (server-rendered)
         $('.select2').select2({
@@ -405,6 +600,23 @@
                 }
             });
         }
+
+        // Attach event listeners for cost calculation
+        document.addEventListener('input', function(e) {
+            if (e.target.name === 'quantity[]' || e.target.name === 'unit[]' || e.target.id === 'unit') {
+                calculateTotalCost();
+            }
+        });
+
+        // Recalculate when materials/premakes are selected
+        document.addEventListener('change', function(e) {
+            if (e.target.name === 'component_id[]') {
+                calculateTotalCost();
+            }
+        });
+
+        // Initial calculation on page load
+        calculateTotalCost();
     });
 </script>
 {% endblock %}
