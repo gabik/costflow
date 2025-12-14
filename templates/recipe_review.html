@@ -251,21 +251,27 @@
                                             data-recipe-idx="{{ recipe_idx }}"
                                             data-material-idx="{{ loop.index0 }}">
                                         <option value="">{{ _('Select material from system...') }}</option>
+                                        <!-- DEBUG: material.type = "{{ material.type }}" -->
 
                                         {% if material.type == 'חומר גלם' %}
+                                            <!-- DEBUG: Adding {{ all_raw_materials|length }} raw materials -->
                                             {% for rm in all_raw_materials %}
                                             <option value="{{ rm.id }}">
                                                 {{ rm.name }} ({{ rm.unit }})
                                             </option>
                                             {% endfor %}
                                         {% elif material.type == 'הכנה' %}
+                                            <!-- DEBUG: Adding {{ all_premakes|length }} premakes -->
                                             {% for pm in all_premakes %}
                                             <option value="{{ pm.id }}">{{ pm.name }}</option>
                                             {% endfor %}
                                         {% elif material.type == 'מוצר מקדים' %}
+                                            <!-- DEBUG: Adding {{ all_preproducts|length }} preproducts -->
                                             {% for pp in all_preproducts %}
                                             <option value="{{ pp.id }}">{{ pp.name }}</option>
                                             {% endfor %}
+                                        {% else %}
+                                            <!-- DEBUG: Unknown type "{{ material.type }}" - no materials added -->
                                         {% endif %}
                                     </select>
                                     {% endif %}
@@ -443,6 +449,10 @@ $(document).ready(function() {
     });
 
     // Initialize Select2 on material mapping dropdowns
+    $('.material-mapping-select').each(function() {
+        console.log('Select dropdown found:', $(this).attr('name'), 'Options count:', $(this).find('option').length);
+    });
+
     $('.material-mapping-select').select2({
         theme: 'bootstrap-5',
         dir: 'rtl',
