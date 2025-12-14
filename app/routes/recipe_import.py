@@ -309,7 +309,7 @@ def calculate_recipe_diff(existing_components, new_materials, matched_materials_
                     material_unit = db_mat.unit if db_mat else 'kg'
                 elif comp_type in ['premake', 'product']:
                     db_prod = Product.query.get(mat_id)
-                    material_unit = db_prod.unit if db_prod else 'g'
+                    material_unit = db_prod.unit if db_prod else 'kg'  # Default to kg
 
             # Convert new quantity to material's base unit for fair comparison
             new_quantity_converted = convert_to_base_unit(
@@ -954,19 +954,31 @@ def confirm_import():
                 # Update existing
                 product = existing_recipe
                 product.category_id = category_id
-                product.batch_size = recipe['total_weight']
-                product.unit = metadata.get('unit', 'g')
+                # Convert batch size to kg if needed
+                batch_size_kg = convert_to_base_unit(
+                    recipe['total_weight'],
+                    metadata.get('unit', 'g'),
+                    'kg'
+                )
+                product.batch_size = batch_size_kg
+                product.unit = 'kg'  # Always store in kg internally
 
                 # Clear old components
                 ProductComponent.query.filter_by(product_id=product.id).delete()
                 updated_count += 1
             else:
                 # Create new
+                # Convert batch size to kg if needed
+                batch_size_kg = convert_to_base_unit(
+                    recipe['total_weight'],
+                    metadata.get('unit', 'g'),
+                    'kg'
+                )
                 product = Product(
                     name=recipe['name'],
                     category_id=category_id,
-                    batch_size=recipe['total_weight'],
-                    unit=metadata.get('unit', 'g'),
+                    batch_size=batch_size_kg,
+                    unit='kg',  # Always store in kg internally
                     products_per_recipe=1,
                     is_product=not is_premake,
                     is_premake=is_premake,
@@ -1064,7 +1076,7 @@ def confirm_import():
                     material_unit = db_mat.unit if db_mat else 'kg'
                 elif comp_type in ['premake', 'product']:
                     db_prod = Product.query.get(mat_id)
-                    material_unit = db_prod.unit if db_prod else 'g'
+                    material_unit = db_prod.unit if db_prod else 'kg'  # Default to kg
 
                 # Convert from Excel unit to material's base unit
                 final_quantity = convert_to_base_unit(
@@ -1083,11 +1095,11 @@ def confirm_import():
 
             # Add loss component if exists
             if recipe.get('loss'):
-                # Convert loss weight from Excel unit to grams (typical for loss)
+                # Convert loss weight from Excel unit to kg
                 final_loss_quantity = convert_to_base_unit(
                     recipe['loss']['weight'],  # Negative value
                     metadata['unit'],          # e.g., 'g' from Excel
-                    'g'                        # Loss typically stored in grams
+                    'kg'                       # Store in kg for consistency
                 )
 
                 loss_component = ProductComponent(

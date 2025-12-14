@@ -230,7 +230,13 @@ def calculate_premake_cost_per_unit(premake, visited=None, use_actual_costs=True
         if pm_comp.component_type == 'raw_material' and pm_comp.material:
             # Use primary supplier DISCOUNTED price
             primary_price = get_primary_supplier_discounted_price(pm_comp.material)
-            premake_batch_cost += pm_comp.quantity * primary_price
+            # Convert component quantity to material's unit before multiplication
+            quantity_in_material_unit = convert_to_base_unit(
+                pm_comp.quantity,
+                premake.unit if hasattr(premake, 'unit') else 'kg',
+                pm_comp.material.unit
+            )
+            premake_batch_cost += quantity_in_material_unit * primary_price
             calculated_batch_size += pm_comp.quantity
         elif pm_comp.component_type == 'packaging' and pm_comp.packaging:
             premake_batch_cost += pm_comp.quantity * pm_comp.packaging.price_per_unit
@@ -251,7 +257,13 @@ def calculate_premake_cost_per_unit(premake, visited=None, use_actual_costs=True
             if nested_premake:
                 # Recursive call for nested premakes with visited set
                 nested_cost_per_unit = calculate_premake_cost_per_unit(nested_premake, visited.copy(), use_actual_costs)
-                premake_batch_cost += pm_comp.quantity * nested_cost_per_unit
+                # Convert component quantity to nested premake's unit before multiplication
+                quantity_in_nested_unit = convert_to_base_unit(
+                    pm_comp.quantity,
+                    premake.unit if hasattr(premake, 'unit') else 'kg',
+                    nested_premake.unit if hasattr(nested_premake, 'unit') else 'kg'
+                )
+                premake_batch_cost += quantity_in_nested_unit * nested_cost_per_unit
 
     effective_batch_size = premake.batch_size if hasattr(premake, 'batch_size') and premake.batch_size and premake.batch_size > 0 else calculated_batch_size
     return premake_batch_cost / effective_batch_size if effective_batch_size > 0 else 0
@@ -268,7 +280,13 @@ def calculate_prime_cost(product):
         if component.component_type == 'raw_material' and component.material:
             # Use primary supplier DISCOUNTED price
             primary_price = get_primary_supplier_discounted_price(component.material)
-            total_cost += component.quantity * primary_price
+            # Convert component quantity to material's unit before multiplication
+            quantity_in_material_unit = convert_to_base_unit(
+                component.quantity,
+                product.unit if hasattr(product, 'unit') else 'kg',
+                component.material.unit
+            )
+            total_cost += quantity_in_material_unit * primary_price
         elif component.component_type == 'packaging' and component.packaging:
             # EXCLUDED FROM PRIME COST - Packaging is only a cost when sold
             pass  # total_cost += component.quantity * component.packaging.price_per_unit
@@ -291,14 +309,26 @@ def calculate_prime_cost(product):
             if premake:
                 # Use the recursive function to calculate premake cost
                 premake_unit_cost = calculate_premake_cost_per_unit(premake)
-                total_cost += component.quantity * premake_unit_cost
+                # Convert component quantity to premake's unit before multiplication
+                quantity_in_premake_unit = convert_to_base_unit(
+                    component.quantity,
+                    product.unit if hasattr(product, 'unit') else 'kg',
+                    premake.unit if hasattr(premake, 'unit') else 'kg'
+                )
+                total_cost += quantity_in_premake_unit * premake_unit_cost
         elif component.component_type == 'product':
             # Handle preproduct components
             preproduct = Product.query.filter_by(id=component.component_id, is_preproduct=True).first()
             if preproduct:
                 # Recursively calculate the prime cost of the preproduct
                 preproduct_unit_cost = calculate_prime_cost(preproduct)
-                total_cost += component.quantity * preproduct_unit_cost
+                # Convert component quantity to preproduct's unit before multiplication
+                quantity_in_preproduct_unit = convert_to_base_unit(
+                    component.quantity,
+                    product.unit if hasattr(product, 'unit') else 'kg',
+                    preproduct.unit if hasattr(preproduct, 'unit') else 'kg'
+                )
+                total_cost += quantity_in_preproduct_unit * preproduct_unit_cost
 
     if hasattr(product, 'products_per_recipe') and product.products_per_recipe > 0:
         return total_cost / product.products_per_recipe

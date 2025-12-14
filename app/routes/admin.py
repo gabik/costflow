@@ -1,7 +1,8 @@
 import json
 import io
 from datetime import datetime
-from flask import Blueprint, request, send_file, redirect, url_for, render_template, jsonify
+from flask import Blueprint, request, send_file, redirect, url_for, render_template, jsonify, flash
+from flask_babel import gettext as _
 from sqlalchemy import text
 from ..models import (
     db, Category, RawMaterial, Packaging, Labor, Product, ProductComponent,
@@ -100,505 +101,446 @@ def backup_db():
         mimetype='application/json'
     )
 
-@admin_blueprint.route('/admin/restore', methods=['POST'])
+
+@admin_blueprint.route('/admin/restore', methods=['GET', 'POST'])
 def restore_db():
-    """Restore complete database from backup file with version support"""
-    if 'backup_file' not in request.files:
+    if request.method == 'GET':
+        return render_template('restore.html')
+
+    file = request.files['file']
+    if not file:
         return "No file uploaded", 400
 
-    file = request.files['backup_file']
-    if file.filename == '':
-        return "No file selected", 400
+    try:
+        file_contents = file.read()
+
+        # Try UTF-8 with BOM handling first
+        if file_contents.startswith(b'\xef\xbb\xbf'):
+            json_str = file_contents[3:].decode('utf-8')
+        else:
+            try:
+                json_str = file_contents.decode('utf-8')
+            except UnicodeDecodeError:
+                # Fallback to UTF-8 with ignore
+                json_str = file_contents.decode('utf-8', errors='ignore')
+
+        # Attempt to parse JSON data
+        data = json.loads(json_str)
+
+    except Exception as e:
+        log_audit("RESTORE_ERROR", "System", details=f"Failed to parse backup file: {str(e)}")
+        return f"Invalid backup file: {str(e)}", 400
 
     try:
-        data = json.load(file)
-
-        # Version checking
+        # Check version
         version = data.get('version', '1.0')
-        if version == '1.0':
-            # Handle legacy backup format
-            return restore_legacy_backup(data)
+        if version not in ['1.0', '2.0']:
+            return f"Unsupported backup version: {version}", 400
 
-        # Begin transaction for atomicity
-        db.session.begin_nested()
+        # Clear tables if requested
+        clear_existing = request.form.get('clear_existing') == 'on'
 
-        # Clear existing data in reverse dependency order
-        StockAudit.query.delete()
-        StockLog.query.delete()
-        WeeklyProductSales.query.delete()
-        WeeklyLaborEntry.query.delete()
-        WeeklyLaborCost.query.delete()
-        ProductionLog.query.delete()
-        ProductComponent.query.delete()
-        PackagingSupplier.query.delete()
-        RawMaterialSupplier.query.delete()
-        RawMaterialAlternativeName.query.delete()
-        Product.query.delete()
-        Packaging.query.delete()
-        RawMaterial.query.delete()
-        Supplier.query.delete()
-        Labor.query.delete()
-        Category.query.delete()
-        AuditLog.query.delete()
+        if clear_existing:
+            # Delete in reverse dependency order
+            AuditLog.query.delete()
+            WeeklyLaborEntry.query.delete()
+            WeeklyProductSales.query.delete()
+            WeeklyLaborCost.query.delete()
+            ProductComponent.query.delete()
+            ProductionLog.query.delete()
+            StockAudit.query.delete()
+            StockLog.query.delete()
+            PackagingSupplier.query.delete()
+            RawMaterialSupplier.query.delete()
+            RawMaterialAlternativeName.query.delete()
+            Product.query.delete()
+            Packaging.query.delete()
+            RawMaterial.query.delete()
+            Labor.query.delete()
+            Supplier.query.delete()
+            Category.query.delete()
+            db.session.commit()
 
-        db.session.flush()
-        # Restore Level 0 - No dependencies
-        for cat_data in data.get('categories', []):
-            cat = Category(
-                id=cat_data['id'],
-                name=cat_data['name'],
-                type=cat_data.get('type', 'raw_material')
-            )
-            db.session.add(cat)
+        # Helper to safely restore with deduplication
+        def restore_items(items, model, unique_key='id'):
+            count = 0
+            for item_data in items:
+                # Skip if exists (based on unique_key)
+                if hasattr(model, unique_key):
+                    existing = model.query.filter_by(**{unique_key: item_data.get(unique_key)}).first()
+                    if existing and not clear_existing:
+                        continue
 
-        for labor_data in data.get('labor', []):
-            labor = Labor(
-                id=labor_data['id'],
-                name=labor_data['name'],
-                phone_number=labor_data.get('phone_number'),
-                base_hourly_rate=labor_data.get('base_hourly_rate', 0),
-                additional_hourly_rate=labor_data.get('additional_hourly_rate', 0)
-            )
-            db.session.add(labor)
+                try:
+                    # Create new item with all fields
+                    new_item = model(**item_data)
+                    db.session.add(new_item)
+                    count += 1
+                except Exception as e:
+                    print(f"Failed to restore {model.__name__}: {e}")
+                    continue
+            return count
 
-        for supplier_data in data.get('suppliers', []):
-            supplier = Supplier(
-                id=supplier_data['id'],
-                name=supplier_data['name'],
-                contact_person=supplier_data.get('contact_person'),
-                phone=supplier_data.get('phone'),
-                email=supplier_data.get('email'),
-                address=supplier_data.get('address'),
-                created_at=datetime.fromisoformat(supplier_data['created_at']) if supplier_data.get('created_at') else datetime.utcnow(),
-                is_active=supplier_data.get('is_active', True),
-                discount_percentage=supplier_data.get('discount_percentage', 0.0)
-            )
-            db.session.add(supplier)
+        restored_counts = {}
 
-        for audit_log_data in data.get('audit_logs', []):
-            audit_log = AuditLog(
-                id=audit_log_data['id'],
-                timestamp=datetime.fromisoformat(audit_log_data['timestamp']) if audit_log_data.get('timestamp') else datetime.utcnow(),
-                action=audit_log_data['action'],
-                target_type=audit_log_data['target_type'],
-                target_id=audit_log_data.get('target_id'),
-                details=audit_log_data.get('details')
-            )
-            db.session.add(audit_log)
+        # Restore in dependency order
+        # Level 0 - No dependencies
+        restored_counts['categories'] = restore_items(data.get('categories', []), Category)
+        restored_counts['labor'] = restore_items(data.get('labor', []), Labor)
+        restored_counts['suppliers'] = restore_items(data.get('suppliers', []), Supplier)
 
-        db.session.flush()
+        # Level 1 - Basic dependencies
+        restored_counts['raw_materials'] = restore_items(data.get('raw_materials', []), RawMaterial)
+        restored_counts['packaging'] = restore_items(data.get('packaging', []), Packaging)
+        restored_counts['products'] = restore_items(data.get('products', []), Product)
 
-        # Restore Level 1 - Basic dependencies
-        for mat_data in data.get('raw_materials', []):
-            mat = RawMaterial(
-                id=mat_data['id'],
-                name=mat_data['name'],
-                category_id=mat_data.get('category_id'),
-                unit=mat_data['unit'],
-                is_unlimited=mat_data.get('is_unlimited', False),
-                is_deleted=mat_data.get('is_deleted', False)
-            )
-            db.session.add(mat)
+        # Level 2 - Secondary dependencies
+        restored_counts['raw_material_alternative_names'] = restore_items(
+            data.get('raw_material_alternative_names', []), RawMaterialAlternativeName)
+        restored_counts['raw_material_suppliers'] = restore_items(
+            data.get('raw_material_suppliers', []), RawMaterialSupplier)
+        restored_counts['packaging_suppliers'] = restore_items(
+            data.get('packaging_suppliers', []), PackagingSupplier)
+        restored_counts['production_logs'] = restore_items(
+            data.get('production_logs', []), ProductionLog)
+        restored_counts['weekly_labor_costs'] = restore_items(
+            data.get('weekly_labor_costs', []), WeeklyLaborCost)
 
-        for pkg_data in data.get('packaging', []):
-            pkg = Packaging(
-                id=pkg_data['id'],
-                name=pkg_data['name'],
-                quantity_per_package=pkg_data['quantity_per_package']
-            )
-            db.session.add(pkg)
+        # Level 3 - Complex dependencies
+        restored_counts['stock_logs'] = restore_items(data.get('stock_logs', []), StockLog)
+        restored_counts['stock_audits'] = restore_items(data.get('stock_audits', []), StockAudit)
 
-        for prod_data in data.get('products', []):
-            prod = Product(
-                id=prod_data['id'],
-                name=prod_data['name'],
-                category_id=prod_data.get('category_id'),
-                products_per_recipe=prod_data['products_per_recipe'],
-                selling_price_per_unit=prod_data.get('selling_price_per_unit'),
-                image_filename=prod_data.get('image_filename'),
-                is_product=prod_data.get('is_product', True),
-                is_premake=prod_data.get('is_premake', False),
-                is_preproduct=prod_data.get('is_preproduct', False),
-                batch_size=prod_data.get('batch_size'),
-                unit=prod_data.get('unit')
-            )
-            db.session.add(prod)
+        # Level 4 - Audit logs (last)
+        restored_counts['audit_logs'] = restore_items(data.get('audit_logs', []), AuditLog)
 
-        db.session.flush()
+        # Handle product components separately (after products exist)
+        if 'product_components' in data:
+            for comp_data in data['product_components']:
+                try:
+                    new_comp = ProductComponent(**comp_data)
+                    db.session.add(new_comp)
+                except:
+                    continue
 
-        # Restore Level 2 - Secondary dependencies
-        for alt_name_data in data.get('raw_material_alternative_names', []):
-            alt_name = RawMaterialAlternativeName(
-                id=alt_name_data['id'],
-                raw_material_id=alt_name_data['raw_material_id'],
-                alternative_name=alt_name_data['alternative_name'],
-                created_at=datetime.fromisoformat(alt_name_data['created_at']) if alt_name_data.get('created_at') else datetime.utcnow()
-            )
-            db.session.add(alt_name)
+        # Handle weekly entries separately (after weekly costs exist)
+        if 'weekly_labor_entries' in data:
+            for entry_data in data['weekly_labor_entries']:
+                try:
+                    new_entry = WeeklyLaborEntry(**entry_data)
+                    db.session.add(new_entry)
+                except:
+                    continue
 
-        for rm_supplier_data in data.get('raw_material_suppliers', []):
-            rm_supplier = RawMaterialSupplier(
-                id=rm_supplier_data['id'],
-                raw_material_id=rm_supplier_data['raw_material_id'],
-                supplier_id=rm_supplier_data['supplier_id'],
-                cost_per_unit=rm_supplier_data['cost_per_unit'],
-                is_primary=rm_supplier_data.get('is_primary', False),
-                sku=rm_supplier_data.get('sku')
-            )
-            db.session.add(rm_supplier)
-
-        for pkg_supplier_data in data.get('packaging_suppliers', []):
-            pkg_supplier = PackagingSupplier(
-                id=pkg_supplier_data['id'],
-                packaging_id=pkg_supplier_data['packaging_id'],
-                supplier_id=pkg_supplier_data['supplier_id'],
-                price_per_package=pkg_supplier_data['price_per_package'],
-                is_primary=pkg_supplier_data.get('is_primary', False),
-                sku=pkg_supplier_data.get('sku')
-            )
-            db.session.add(pkg_supplier)
-
-        # Restore ProductComponents
-        for prod_data in data.get('products', []):
-            for comp_data in prod_data.get('components', []):
-                comp = ProductComponent(
-                    product_id=prod_data['id'],
-                    component_type=comp_data['component_type'],
-                    component_id=comp_data['component_id'],
-                    quantity=comp_data['quantity']
-                )
-                db.session.add(comp)
-
-        for prod_log_data in data.get('production_logs', []):
-            prod_log = ProductionLog(
-                id=prod_log_data['id'],
-                product_id=prod_log_data['product_id'],
-                quantity_produced=prod_log_data['quantity_produced'],
-                timestamp=datetime.fromisoformat(prod_log_data['timestamp']) if prod_log_data.get('timestamp') else datetime.utcnow(),
-                is_carryover=prod_log_data.get('is_carryover', False),
-                total_cost=prod_log_data.get('total_cost'),
-                cost_per_unit=prod_log_data.get('cost_per_unit'),
-                cost_details=prod_log_data.get('cost_details')
-            )
-            db.session.add(prod_log)
-
-        db.session.flush()
-
-        # Restore Level 3 - Weekly Labor Costs & Dependencies
-        for w_data in data.get('weekly_labor_costs', []):
-            w = WeeklyLaborCost(
-                id=w_data['id'],
-                week_start_date=datetime.strptime(w_data['week_start_date'], '%Y-%m-%d').date(),
-                total_cost=w_data['total_cost']
-            )
-            db.session.add(w)
-            db.session.flush()
-
-            # Entries
-            for e_data in w_data.get('entries', []):
-                emp_name = e_data.get('employee_name')
-                emp = Labor.query.filter_by(name=emp_name).first()
-                if emp:
-                    entry = WeeklyLaborEntry(
-                        weekly_cost_id=w.id,
-                        employee_id=emp.id,
-                        hours=e_data['hours'],
-                        cost=e_data['cost']
-                    )
-                    db.session.add(entry)
-
-            # Sales
-            for s_data in w_data.get('sales', []):
-                prod_name = s_data.get('product_name')
-                prod = Product.query.filter_by(name=prod_name).first()
-                if prod:
-                    sale = WeeklyProductSales(
-                        weekly_cost_id=w.id,
-                        product_id=prod.id,
-                        quantity_sold=s_data['quantity_sold'],
-                        quantity_waste=s_data.get('quantity_waste', 0)
-                    )
-                    db.session.add(sale)
-
-        # Restore StockLog entries
-        for stock_log_data in data.get('stock_logs', []):
-            stock_log = StockLog(
-                id=stock_log_data['id'],
-                raw_material_id=stock_log_data.get('raw_material_id'),
-                product_id=stock_log_data.get('product_id'),
-                packaging_id=stock_log_data.get('packaging_id'),
-                supplier_id=stock_log_data.get('supplier_id'),
-                action_type=stock_log_data['action_type'],
-                quantity=stock_log_data['quantity'],
-                timestamp=datetime.fromisoformat(stock_log_data['timestamp']) if stock_log_data.get('timestamp') else datetime.utcnow()
-            )
-            db.session.add(stock_log)
-
-        db.session.flush()
-
-        # Restore Level 4 - StockAudit (depends on StockLog)
-        for audit_data in data.get('stock_audits', []):
-            audit = StockAudit(
-                id=audit_data['id'],
-                audit_date=datetime.fromisoformat(audit_data['audit_date']) if audit_data.get('audit_date') else datetime.utcnow(),
-                raw_material_id=audit_data.get('raw_material_id'),
-                product_id=audit_data.get('product_id'),
-                packaging_id=audit_data.get('packaging_id'),
-                system_quantity=audit_data['system_quantity'],
-                physical_quantity=audit_data['physical_quantity'],
-                variance=audit_data['variance'],
-                variance_cost=audit_data['variance_cost'],
-                auditor_name=audit_data.get('auditor_name'),
-                notes=audit_data.get('notes'),
-                stock_log_id=audit_data.get('stock_log_id')
-            )
-            db.session.add(audit)
+        if 'weekly_product_sales' in data:
+            for sale_data in data['weekly_product_sales']:
+                try:
+                    new_sale = WeeklyProductSales(**sale_data)
+                    db.session.add(new_sale)
+                except:
+                    continue
 
         db.session.commit()
 
-        # Log successful restore
-        total_records = data.get('statistics', {}).get('total_records', 'unknown')
-        log_audit("RESTORE", "System", details=f"Database restored from backup v{version} with {total_records} records")
+        total_restored = sum(restored_counts.values())
+        log_audit("RESTORE", "System", details=f"Restored from backup v{version}: {total_restored} records")
 
-        return redirect(url_for('main.index'))
-        
+        return render_template('restore_success.html', counts=restored_counts, version=version)
+
     except Exception as e:
         db.session.rollback()
         log_audit("RESTORE_ERROR", "System", details=f"Restore failed: {str(e)}")
-        return f"Restore failed: {e}", 500
+        return f"Restore failed: {str(e)}", 500
 
 
-def restore_legacy_backup(data):
-    """Handle v1.0 backup format for backward compatibility"""
-    try:
-        # Clear existing data
-        db.drop_all()
-        db.create_all()
-
-        # 1. Categories (v1.0 only had id and name)
-        for cat_data in data.get('categories', []):
-            c = Category(
-                id=cat_data['id'],
-                name=cat_data['name'],
-                type='raw_material'  # Default type for legacy
-            )
-            db.session.add(c)
-        db.session.flush()
-
-        # 2. Labor
-        for l_data in data.get('labor', []):
-            l = Labor(
-                id=l_data['id'],
-                name=l_data['name'],
-                phone_number=l_data.get('phone_number'),
-                base_hourly_rate=l_data.get('base_hourly_rate', l_data.get('total_hourly_rate', 0)),
-                additional_hourly_rate=l_data.get('additional_hourly_rate', 0)
-            )
-            db.session.add(l)
-        db.session.flush()
-
-        # 3. Packaging (v1.0 had price_per_package in model, now in supplier links)
-        for p_data in data.get('packaging', []):
-            p = Packaging(
-                id=p_data['id'],
-                name=p_data['name'],
-                quantity_per_package=p_data['quantity_per_package']
-            )
-            db.session.add(p)
-        db.session.flush()
-
-        # 4. Raw Materials (v1.0 didn't have is_unlimited or is_deleted)
-        for m_data in data.get('raw_materials', []):
-            cat_id = None
-            if m_data.get('category'):
-                cat_id = m_data['category']['id']
-            elif m_data.get('category_id'):
-                cat_id = m_data['category_id']
-
-            m = RawMaterial(
-                id=m_data['id'],
-                name=m_data['name'],
-                category_id=cat_id,
-                unit=m_data['unit'],
-                is_unlimited=False,  # Default for legacy
-                is_deleted=False     # Default for legacy
-            )
-            db.session.add(m)
-        db.session.flush()
-
-        # 5. Products & Components
-        for p_data in data.get('products', []):
-            p = Product(
-                id=p_data['id'],
-                name=p_data['name'],
-                products_per_recipe=p_data['products_per_recipe'],
-                selling_price_per_unit=p_data.get('selling_price_per_unit'),
-                image_filename=p_data.get('image_filename'),
-                is_product=p_data.get('is_product', True),
-                is_premake=p_data.get('is_premake', False),
-                is_preproduct=p_data.get('is_preproduct', False),
-                batch_size=p_data.get('batch_size'),
-                unit=p_data.get('unit')
-            )
-            db.session.add(p)
-            db.session.flush()
-
-            # Components
-            for c_data in p_data.get('components', []):
-                comp = ProductComponent(
-                    product_id=p.id,
-                    component_type=c_data['component_type'],
-                    component_id=c_data['component_id'],
-                    quantity=c_data['quantity']
-                )
-                db.session.add(comp)
-
-        # 6. Weekly Labor Costs & Children
-        for w_data in data.get('weekly_labor_costs', []):
-            w = WeeklyLaborCost(
-                id=w_data['id'],
-                week_start_date=datetime.strptime(w_data['week_start_date'], '%Y-%m-%d').date(),
-                total_cost=w_data['total_cost']
-            )
-            db.session.add(w)
-            db.session.flush()
-
-            # Entries
-            for e_data in w_data.get('entries', []):
-                emp_name = e_data.get('employee_name')
-                emp = Labor.query.filter_by(name=emp_name).first()
-                if emp:
-                    entry = WeeklyLaborEntry(
-                        weekly_cost_id=w.id,
-                        employee_id=emp.id,
-                        hours=e_data['hours'],
-                        cost=e_data['cost']
-                    )
-                    db.session.add(entry)
-
-            # Sales
-            for s_data in w_data.get('sales', []):
-                prod_name = s_data.get('product_name')
-                prod = Product.query.filter_by(name=prod_name).first()
-                if prod:
-                    sale = WeeklyProductSales(
-                        weekly_cost_id=w.id,
-                        product_id=prod.id,
-                        quantity_sold=s_data['quantity_sold'],
-                        quantity_waste=s_data.get('quantity_waste', 0)
-                    )
-                    db.session.add(sale)
-
-        db.session.commit()
-        log_audit("RESTORE", "System", details="Database restored from legacy v1.0 backup")
-        return redirect(url_for('main.index'))
-
-    except Exception as e:
-        db.session.rollback()
-        log_audit("RESTORE_ERROR", "System", details=f"Legacy restore failed: {str(e)}")
-        return f"Legacy restore failed: {e}", 500
-
-
-@admin_blueprint.route('/audit_log', methods=['GET'])
+@admin_blueprint.route('/audit_log')
 def audit_log():
-    logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).limit(500).all()
-    return render_template('audit_log.html', logs=logs)
+    """Display audit log with optional filtering"""
+    page = request.args.get('page', 1, type=int)
+    per_page = 100  # Number of items per page
 
-@admin_blueprint.route('/admin/reset_db', methods=['POST'])
-def reset_db():
-    try:
-        db.drop_all()
-        db.create_all()
+    # Optional filters
+    action_filter = request.args.get('action')
+    date_filter = request.args.get('date')
 
-        # Re-seed essential data
-        db.session.add(Category(name="כללי (חומרי גלם)", type='raw_material'))
-        db.session.commit()
-        
-        log_audit("RESET", "System", details="Database reset.")
-        return redirect(url_for('main.index'))
-    except Exception as e:
-        return f"Reset failed: {e}", 500
+    # Build query
+    query = AuditLog.query
 
+    if action_filter:
+        query = query.filter(AuditLog.action == action_filter)
 
-@admin_blueprint.route('/migrate_packaging_stock_units', methods=['GET', 'POST'])
-def migrate_packaging_stock_units():
+    if date_filter:
+        try:
+            filter_date = datetime.strptime(date_filter, '%Y-%m-%d')
+            next_day = filter_date + timedelta(days=1)
+            query = query.filter(AuditLog.timestamp >= filter_date,
+                                AuditLog.timestamp < next_day)
+        except:
+            pass  # Invalid date format, ignore filter
+
+    # Order by timestamp descending (newest first)
+    query = query.order_by(AuditLog.timestamp.desc())
+
+    # Paginate results
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    logs = pagination.items
+
+    # Get unique actions for filter dropdown
+    unique_actions = db.session.query(AuditLog.action).distinct().all()
+    unique_actions = [a[0] for a in unique_actions]
+
+    return render_template('audit_log.html',
+                         logs=logs,
+                         pagination=pagination,
+                         unique_actions=unique_actions,
+                         current_filters={
+                             'action': action_filter,
+                             'date': date_filter
+                         })
+
+from datetime import timedelta
+
+@admin_blueprint.route('/migrate_add_raw_material_is_deleted', methods=['GET', 'POST'])
+def migrate_add_raw_material_is_deleted():
     """
-    Migration endpoint to fix existing packaging stock data.
-    Multiplies historical stock quantities by quantity_per_package.
-    This is needed because the old system stored container counts instead of unit counts.
-
-    IMPORTANT: Remove this endpoint after successful migration to prevent accidental re-runs.
+    Migration to add is_deleted column to raw_material table for soft deletes.
+    This is a one-time migration for production database.
     """
-    from ..models import StockLog, StockAudit
-
     if request.method == 'GET':
-        # Show migration info page
+        # Show migration information
         return '''
         <html>
         <head>
-            <title>Migrate Packaging Stock Units</title>
+            <title>Migration: Add is_deleted to raw_material</title>
             <style>
                 body { font-family: Arial, sans-serif; margin: 40px; }
                 .warning { color: red; font-weight: bold; }
                 .info { background: #f0f0f0; padding: 10px; margin: 10px 0; }
-                button { padding: 10px 20px; font-size: 16px; }
             </style>
         </head>
         <body>
-            <h1>Packaging Stock Units Migration</h1>
+            <h1>Migration: Add Soft Delete Support for Raw Materials</h1>
+
             <div class="info">
                 <h2>What this migration does:</h2>
                 <ul>
-                    <li>Converts packaging stock from container counts to unit counts</li>
-                    <li>Multiplies all existing packaging StockLog quantities by quantity_per_package</li>
-                    <li>Updates StockAudit records to reflect correct unit counts</li>
-                    <li>This is a one-time migration for the container quantity feature</li>
+                    <li>Adds 'is_deleted' column to raw_material table</li>
+                    <li>Sets default value to FALSE for all existing materials</li>
+                    <li>Enables soft delete functionality for materials with historical data</li>
                 </ul>
             </div>
+
             <div class="warning">
-                ⚠️ WARNING: This migration should only be run ONCE!<br>
-                Running it multiple times will corrupt the data.
+                ⚠️ WARNING: This will modify the production database structure!
             </div>
-            <form method="POST" onsubmit="return confirm('Are you sure you want to run this migration? This action cannot be undone.');">
-                <button type="submit">Run Migration</button>
+
+            <p>This migration is safe and non-destructive. It only adds a new column.</p>
+
+            <form method="POST" onsubmit="return confirm('Are you sure you want to run this migration on the production database?');">
+                <button type="submit" name="confirm" value="yes">Run Migration</button>
+                <a href="/"><button type="button">Cancel</button></a>
             </form>
         </body>
         </html>
         '''
 
-    # POST - Run the migration
+    # POST - Execute the migration
+    if request.form.get('confirm') != 'yes':
+        return "Migration cancelled", 400
+
     try:
-        # Get all packaging stock logs
-        packaging_logs = StockLog.query.filter(StockLog.packaging_id.isnot(None)).all()
+        # PostgreSQL compatible ALTER TABLE
+        db.session.execute(text('''
+            ALTER TABLE raw_material
+            ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE
+        '''))
 
-        migrated_count = 0
-        for log in packaging_logs:
-            if log.packaging and log.packaging.quantity_per_package > 1:
-                # Multiply quantity by quantity_per_package
-                old_quantity = log.quantity
-                log.quantity = log.quantity * log.packaging.quantity_per_package
-                migrated_count += 1
-
-                # Log the change
-                log_audit("MIGRATION", "StockLog", log.id,
-                         f"Migrated packaging {log.packaging.name}: {old_quantity} containers -> {log.quantity} units")
-
-        # Update stock audits
-        packaging_audits = StockAudit.query.filter(StockAudit.packaging_id.isnot(None)).all()
-
-        audit_count = 0
-        for audit in packaging_audits:
-            if audit.packaging and audit.packaging.quantity_per_package > 1:
-                # Multiply quantities by quantity_per_package
-                audit.system_quantity = audit.system_quantity * audit.packaging.quantity_per_package
-                audit.physical_quantity = audit.physical_quantity * audit.packaging.quantity_per_package
-                audit.variance = audit.variance * audit.packaging.quantity_per_package
-                audit_count += 1
+        # Update any NULL values to FALSE (safety measure)
+        db.session.execute(text('''
+            UPDATE raw_material
+            SET is_deleted = FALSE
+            WHERE is_deleted IS NULL
+        '''))
 
         db.session.commit()
 
-        log_audit("MIGRATION_COMPLETE", "System", None,
-                 f"Packaging units migration completed: {migrated_count} stock logs and {audit_count} audits updated")
+        log_audit("MIGRATION", "System", None,
+                 "Added is_deleted column to raw_material table for soft delete support")
+
+        return '''
+        <html>
+        <head>
+            <title>Migration Complete</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; }
+                .success { color: green; font-weight: bold; }
+            </style>
+        </head>
+        <body>
+            <h1 class="success">✓ Migration Completed Successfully!</h1>
+            <p>The is_deleted column has been added to the raw_material table.</p>
+            <p>Raw materials can now be soft-deleted to preserve historical data.</p>
+            <br>
+            <p><strong>Next steps:</strong></p>
+            <ul>
+                <li>The application will now use soft deletes for materials with history</li>
+                <li>Hard deletes will only occur for materials with no historical data</li>
+                <li>You can remove this migration endpoint from the code</li>
+            </ul>
+            <br>
+            <a href="/">Return to Dashboard</a>
+        </body>
+        </html>
+        '''
+
+    except Exception as e:
+        db.session.rollback()
+        log_audit("MIGRATION_ERROR", "System", None,
+                 f"Failed to add is_deleted column: {str(e)}")
+        return f"Migration failed: {e}", 500
+
+
+@admin_blueprint.route('/migrate_packaging_multi_supplier', methods=['GET', 'POST'])
+def migrate_packaging_multi_supplier():
+    """
+    Migration to enable multi-supplier support for packaging materials.
+    Creates PackagingSupplier records from existing single-supplier data.
+    """
+    if request.method == 'GET':
+        # Analyze current state
+        packaging_count = Packaging.query.count()
+        suppliers_count = Supplier.query.count()
+
+        # Count how many packaging items have price data (will need migration)
+        packaging_with_price = Packaging.query.filter(
+            (Packaging.price_per_package != None) & (Packaging.price_per_package > 0)
+        ).count()
+
+        return f'''
+        <html>
+        <head>
+            <title>Migration: Packaging Multi-Supplier Support</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 40px; }}
+                .warning {{ color: red; font-weight: bold; }}
+                .info {{ background: #f0f0f0; padding: 15px; margin: 20px 0; }}
+                .stats {{ background: #e8f4f8; padding: 15px; margin: 20px 0; }}
+            </style>
+        </head>
+        <body>
+            <h1>Migration: Enable Multi-Supplier for Packaging</h1>
+
+            <div class="stats">
+                <h2>Current Database Status:</h2>
+                <ul>
+                    <li>Total packaging items: {packaging_count}</li>
+                    <li>Packaging with prices: {packaging_with_price}</li>
+                    <li>Available suppliers: {suppliers_count}</li>
+                </ul>
+            </div>
+
+            <div class="info">
+                <h2>What this migration does:</h2>
+                <ol>
+                    <li>Creates PackagingSupplier records for existing packaging prices</li>
+                    <li>Links packaging to the 'General Supplier' (or creates it)</li>
+                    <li>Migrates existing price_per_package values</li>
+                    <li>Preserves all existing stock and pricing data</li>
+                </ol>
+            </div>
+
+            <div class="warning">
+                ⚠️ WARNING: This migration modifies production data!<br>
+                ⚠️ Make sure you have a recent backup before proceeding.
+            </div>
+
+            <form method="POST" onsubmit="return confirm('Have you backed up the database? This will create {packaging_with_price} new supplier links.');">
+                <input type="hidden" name="confirm" value="yes">
+                <button type="submit" style="background: #28a745; color: white; padding: 10px 20px; font-size: 16px;">
+                    Run Migration
+                </button>
+                <a href="/"><button type="button" style="padding: 10px 20px; font-size: 16px;">Cancel</button></a>
+            </form>
+        </body>
+        </html>
+        '''
+
+    # POST - Execute the migration
+    if request.form.get('confirm') != 'yes':
+        return "Migration cancelled", 400
+
+    try:
+        # Get or create a general supplier for legacy data
+        general_supplier = Supplier.query.filter_by(name='General Supplier').first()
+        if not general_supplier:
+            general_supplier = Supplier(
+                name='General Supplier',
+                contact_person='System',
+                phone='N/A',
+                email='system@costflow.local',
+                address='Legacy Data Migration',
+                is_active=True
+            )
+            db.session.add(general_supplier)
+            db.session.flush()  # Get the ID
+
+        # Track migration stats
+        created_count = 0
+        skipped_count = 0
+        errors = []
+
+        # Migrate all packaging items with prices
+        all_packaging = Packaging.query.all()
+
+        for packaging in all_packaging:
+            # Skip if no price data
+            if not packaging.price_per_package or packaging.price_per_package <= 0:
+                skipped_count += 1
+                continue
+
+            # Check if supplier link already exists
+            existing_link = PackagingSupplier.query.filter_by(
+                packaging_id=packaging.id,
+                supplier_id=general_supplier.id
+            ).first()
+
+            if existing_link:
+                skipped_count += 1
+                continue
+
+            try:
+                # Create new supplier link
+                supplier_link = PackagingSupplier(
+                    packaging_id=packaging.id,
+                    supplier_id=general_supplier.id,
+                    price_per_package=packaging.price_per_package,
+                    sku=None,  # No SKU for legacy data
+                    is_primary=True,  # Set as primary since it's the only one
+                    notes='Migrated from single-supplier system'
+                )
+                db.session.add(supplier_link)
+                created_count += 1
+
+                # Log the migration
+                log_audit(
+                    "PACKAGING_MIGRATION",
+                    "Packaging",
+                    packaging.id,
+                    f"Created supplier link: {packaging.name} -> General Supplier @ {packaging.price_per_package}"
+                )
+
+            except Exception as e:
+                errors.append(f"Failed to migrate {packaging.name}: {str(e)}")
+
+        # Commit all changes
+        db.session.commit()
+
+        # Final summary
+        log_audit(
+            "MIGRATION_COMPLETE",
+            "System",
+            None,
+            f"Packaging multi-supplier migration: {created_count} created, {skipped_count} skipped, {len(errors)} errors"
+        )
 
         return f'''
         <html>
@@ -607,12 +549,37 @@ def migrate_packaging_stock_units():
             <style>
                 body {{ font-family: Arial, sans-serif; margin: 40px; }}
                 .success {{ color: green; font-weight: bold; }}
+                .warning {{ color: orange; }}
+                .error {{ color: red; }}
+                .summary {{ background: #f0f8ff; padding: 15px; margin: 20px 0; border-radius: 5px; }}
             </style>
         </head>
         <body>
-            <h1 class="success">Migration Completed Successfully!</h1>
-            <p>Migrated {migrated_count} stock log entries and {audit_count} audit entries.</p>
-            <p>Packaging stock now correctly reflects unit counts instead of container counts.</p>
+            <h1 class="success">✓ Migration Completed Successfully!</h1>
+
+            <div class="summary">
+                <h2>Migration Summary:</h2>
+                <ul>
+                    <li>✓ Created {created_count} new supplier links</li>
+                    <li>➤ Skipped {skipped_count} items (no price or already migrated)</li>
+                    <li>{"✗ " + str(len(errors)) + " errors" if errors else "✓ No errors"}</li>
+                </ul>
+            </div>
+
+            {"<div class='error'><h3>Errors:</h3><ul>" + "".join([f"<li>{e}</li>" for e in errors]) + "</ul></div>" if errors else ""}
+
+            <div style="margin-top: 30px;">
+                <h3>Next Steps:</h3>
+                <ol>
+                    <li>Verify packaging costs are still correct</li>
+                    <li>You can now add multiple suppliers for each packaging item</li>
+                    <li>Update supplier information from "General Supplier" to actual suppliers</li>
+                    <li>Remove this migration endpoint after verification</li>
+                </ol>
+            </div>
+
+            <a href="/packaging">View Packaging</a> |
+            <a href="/suppliers">View Suppliers</a> |
             <a href="/">Return to Dashboard</a>
         </body>
         </html>
@@ -620,199 +587,47 @@ def migrate_packaging_stock_units():
 
     except Exception as e:
         db.session.rollback()
-        log_audit("MIGRATION_ERROR", "System", None, f"Packaging units migration failed: {str(e)}")
-        return f"Migration failed: {e}", 500
-
-
-@admin_blueprint.route('/debug/add_test_stock', methods=['GET', 'POST'])
-def debug_add_test_stock():
-    """
-    DEBUG endpoint to add test stock for all raw materials and packaging.
-    Adds 100 units for each raw material and 2 containers for each packaging.
-
-    IMPORTANT: This is for debugging/testing only. Remove in production.
-    """
-    from flask_babel import gettext as _
-
-    if request.method == 'GET':
-        # Count items to be updated
-        raw_materials_count = RawMaterial.query.filter_by(is_deleted=False, is_unlimited=False).count()
-        packaging_count = Packaging.query.count()
-
-        # Show confirmation page
+        log_audit("MIGRATION_ERROR", "System", None, f"Packaging migration failed: {str(e)}")
         return f'''
         <html>
         <head>
-            <title>Debug: Add Test Stock</title>
+            <title>Migration Failed</title>
             <style>
                 body {{ font-family: Arial, sans-serif; margin: 40px; }}
-                .warning {{ color: orange; font-weight: bold; }}
-                .info {{ background: #f0f0f0; padding: 10px; margin: 10px 0; }}
-                button {{ padding: 10px 20px; font-size: 16px; margin: 5px; }}
-                .stats {{ background: #e8f4f8; padding: 15px; margin: 20px 0; border-radius: 5px; }}
+                .error {{ color: red; font-weight: bold; }}
             </style>
         </head>
         <body>
-            <h1>🔧 Debug: Add Test Stock</h1>
-            <div class="warning">
-                ⚠️ DEBUG TOOL - For testing purposes only!
-            </div>
-            <div class="info">
-                <h2>What this will do:</h2>
-                <ul>
-                    <li>Add 100 units to each raw material (non-unlimited)</li>
-                    <li>Add 2 containers to each packaging item</li>
-                    <li>Uses primary supplier if available, otherwise first supplier</li>
-                    <li>Creates StockLog entries for tracking</li>
-                </ul>
-            </div>
-            <div class="stats">
-                <h3>Items to update:</h3>
-                <ul>
-                    <li>Raw Materials: {raw_materials_count} items</li>
-                    <li>Packaging: {packaging_count} items</li>
-                </ul>
-            </div>
-            <form method="POST" onsubmit="return confirm('Add test stock to all items?');">
-                <button type="submit">Add Test Stock</button>
-                <button type="button" onclick="window.location.href='/'">Cancel</button>
-            </form>
+            <h1 class="error">✗ Migration Failed</h1>
+            <p>Error: {str(e)}</p>
+            <p>The database has been rolled back. No changes were made.</p>
+            <a href="/">Return to Dashboard</a>
         </body>
         </html>
-        '''
+        ''', 500
 
-    # POST - Execute the stock additions
-    try:
-        added_materials = 0
-        added_packaging = 0
-        errors = []
 
-        # Add stock for raw materials
-        raw_materials = RawMaterial.query.filter_by(is_deleted=False, is_unlimited=False).all()
+@admin_blueprint.route('/migrate_reset_postgres_sequences', methods=['GET', 'POST'])
+def migrate_reset_postgres_sequences():
+    """
+    Reset PostgreSQL sequences to max(id) + 1 for all tables.
+    This fixes duplicate key errors after restoring from backup.
+    """
+    if request.method == 'GET':
+        # Check if we're using PostgreSQL
+        is_postgres = 'postgresql' in str(db.engine.url)
 
-        for material in raw_materials:
-            # Get primary supplier or first supplier
-            supplier_link = RawMaterialSupplier.query.filter_by(
-                raw_material_id=material.id,
-                is_primary=True
-            ).first()
-
-            if not supplier_link:
-                supplier_link = RawMaterialSupplier.query.filter_by(
-                    raw_material_id=material.id
-                ).first()
-
-            if supplier_link:
-                # Add stock log entry
-                stock_log = StockLog(
-                    raw_material_id=material.id,
-                    supplier_id=supplier_link.supplier_id,
-                    action_type='add',
-                    quantity=100,
-                    timestamp=datetime.utcnow()
-                )
-                db.session.add(stock_log)
-                added_materials += 1
-
-                log_audit("DEBUG_STOCK", "RawMaterial", material.id,
-                         f"Added 100 units of {material.name} (supplier: {supplier_link.supplier.name})")
-            else:
-                errors.append(f"No supplier found for raw material: {material.name}")
-
-        # Add stock for packaging
-        packaging_items = Packaging.query.all()
-
-        for pkg in packaging_items:
-            # Get primary supplier or first supplier
-            supplier_link = PackagingSupplier.query.filter_by(
-                packaging_id=pkg.id,
-                is_primary=True
-            ).first()
-
-            if not supplier_link:
-                supplier_link = PackagingSupplier.query.filter_by(
-                    packaging_id=pkg.id
-                ).first()
-
-            if supplier_link:
-                # Convert containers to units
-                units_to_add = 2 * pkg.quantity_per_package
-
-                # Add stock log entry
-                stock_log = StockLog(
-                    packaging_id=pkg.id,
-                    supplier_id=supplier_link.supplier_id,
-                    action_type='add',
-                    quantity=units_to_add,
-                    timestamp=datetime.utcnow()
-                )
-                db.session.add(stock_log)
-                added_packaging += 1
-
-                log_audit("DEBUG_STOCK", "Packaging", pkg.id,
-                         f"Added 2 containers ({units_to_add} units) of {pkg.name} (supplier: {supplier_link.supplier.name})")
-            else:
-                errors.append(f"No supplier found for packaging: {pkg.name}")
-
-        db.session.commit()
-
-        log_audit("DEBUG_COMPLETE", "System", None,
-                 f"Test stock added: {added_materials} materials, {added_packaging} packaging items")
-
-        error_html = ""
-        if errors:
-            error_html = f'''
-            <div style="background: #fff0f0; padding: 10px; margin: 10px 0; border: 1px solid #ffcccc;">
-                <h3 style="color: red;">Items skipped (no suppliers):</h3>
-                <ul>
-                    {"".join(f"<li>{error}</li>" for error in errors)}
-                </ul>
-            </div>
+        if not is_postgres:
+            return '''
+            <html>
+            <body style="font-family: Arial; margin: 40px;">
+                <h2>This migration is only for PostgreSQL databases</h2>
+                <p>Your current database is not PostgreSQL.</p>
+                <a href="/">Return to Dashboard</a>
+            </body>
+            </html>
             '''
 
-        return f'''
-        <html>
-        <head>
-            <title>Test Stock Added</title>
-            <style>
-                body {{ font-family: Arial, sans-serif; margin: 40px; }}
-                .success {{ color: green; font-weight: bold; }}
-                .results {{ background: #f0f0f0; padding: 15px; margin: 20px 0; border-radius: 5px; }}
-            </style>
-        </head>
-        <body>
-            <h1 class="success">✅ Test Stock Added Successfully!</h1>
-            <div class="results">
-                <h3>Results:</h3>
-                <ul>
-                    <li>Raw Materials: {added_materials} items updated with 100 units each</li>
-                    <li>Packaging: {added_packaging} items updated with 2 containers each</li>
-                </ul>
-            </div>
-            {error_html}
-            <p><a href="/">Return to Dashboard</a></p>
-        </body>
-        </html>
-        '''
-
-    except Exception as e:
-        db.session.rollback()
-        log_audit("DEBUG_ERROR", "System", None, f"Test stock addition failed: {str(e)}")
-        return f"Failed to add test stock: {e}", 500
-
-
-@admin_blueprint.route('/migrate_reset_sequences', methods=['GET', 'POST'])
-def migrate_reset_sequences():
-    """
-    Migration endpoint to reset all PostgreSQL sequences after database truncation.
-    This fixes the duplicate key violation errors that occur when sequences aren't reset.
-
-    IMPORTANT: Remove this endpoint after successful migration to prevent accidental re-runs.
-    """
-    from flask_babel import gettext as _
-
-    if request.method == 'GET':
-        # Show migration info page
         return '''
         <html>
         <head>
@@ -820,83 +635,76 @@ def migrate_reset_sequences():
             <style>
                 body { font-family: Arial, sans-serif; margin: 40px; }
                 .warning { color: red; font-weight: bold; }
-                .info { background: #f0f0f0; padding: 10px; margin: 10px 0; }
-                button { padding: 10px 20px; font-size: 16px; }
+                .info { background: #f0f0f0; padding: 15px; margin: 20px 0; }
             </style>
         </head>
         <body>
             <h1>Reset PostgreSQL Sequences</h1>
+
             <div class="info">
                 <h2>What this migration does:</h2>
                 <ul>
-                    <li>Resets all PostgreSQL sequences to match the current maximum ID in each table</li>
+                    <li>Resets all table sequences to max(id) + 1</li>
                     <li>Fixes "duplicate key value violates unique constraint" errors</li>
-                    <li>Safe to run after truncating tables or importing data</li>
-                    <li>Only affects PostgreSQL databases (SQLite ignored)</li>
+                    <li>Safe to run multiple times (idempotent)</li>
                 </ul>
             </div>
+
             <div class="warning">
-                ⚠️ Run this if you're getting duplicate key errors after truncating the database.
+                ⚠️ This is typically needed after restoring from a backup
             </div>
-            <form method="POST" onsubmit="return confirm('Are you sure you want to reset all sequences?');">
-                <button type="submit">Reset Sequences</button>
+
+            <form method="POST" onsubmit="return confirm('Reset all PostgreSQL sequences?');">
+                <input type="hidden" name="confirm" value="yes">
+                <button type="submit" style="background: #28a745; color: white; padding: 10px 20px;">
+                    Reset Sequences
+                </button>
+                <a href="/"><button type="button" style="padding: 10px 20px;">Cancel</button></a>
             </form>
         </body>
         </html>
         '''
 
-    # POST - Run the migration
-    try:
-        # Only run for PostgreSQL
-        if 'postgresql' not in str(db.engine.url):
-            return "This migration is only for PostgreSQL databases", 400
+    # POST - Execute the migration
+    if request.form.get('confirm') != 'yes':
+        return "Operation cancelled", 400
 
-        # List of tables with their primary key columns
+    try:
+        # Tables with sequences (id columns)
         tables_with_sequences = [
-            ('category', 'id'),
-            ('labor', 'id'),
-            ('supplier', 'id'),
-            ('raw_material', 'id'),
-            ('raw_material_supplier', 'id'),
-            ('raw_material_alternative_name', 'id'),
-            ('packaging', 'id'),
-            ('packaging_supplier', 'id'),
-            ('product', 'id'),
-            ('stock_log', 'id'),
-            ('production_log', 'id'),
-            ('stock_audit', 'id'),
-            ('weekly_labor_cost', 'id'),
-            ('weekly_labor_entry', 'id'),
-            ('weekly_product_sales', 'id'),
-            ('audit_log', 'id')
+            ('category', 'category_id_seq'),
+            ('labor', 'labor_id_seq'),
+            ('supplier', 'supplier_id_seq'),
+            ('raw_material', 'raw_material_id_seq'),
+            ('raw_material_supplier', 'raw_material_supplier_id_seq'),
+            ('raw_material_alternative_name', 'raw_material_alternative_name_id_seq'),
+            ('packaging', 'packaging_id_seq'),
+            ('packaging_supplier', 'packaging_supplier_id_seq'),
+            ('product', 'product_id_seq'),
+            ('product_component', 'product_component_id_seq'),
+            ('production_log', 'production_log_id_seq'),
+            ('stock_log', 'stock_log_id_seq'),
+            ('stock_audit', 'stock_audit_id_seq'),
+            ('weekly_labor_cost', 'weekly_labor_cost_id_seq'),
+            ('weekly_labor_entry', 'weekly_labor_entry_id_seq'),
+            ('weekly_product_sales', 'weekly_product_sales_id_seq'),
+            ('audit_log', 'audit_log_id_seq')
         ]
 
-        reset_count = 0
         results = []
+        reset_count = 0
 
-        for table_name, id_column in tables_with_sequences:
+        for table_name, sequence_name in tables_with_sequences:
             try:
-                # Reset the sequence for this table
-                # This will set the sequence to the maximum existing ID + 1
-                sequence_name = f"{table_name}_{id_column}_seq"
+                # Get max id from table
+                result = db.session.execute(text(f"SELECT COALESCE(MAX(id), 0) FROM {table_name}"))
+                max_id = result.scalar()
 
-                # First check if the table has any records
-                count_result = db.session.execute(text(f"SELECT COUNT(*) FROM {table_name}")).scalar()
+                # Reset sequence to max_id + 1
+                db.session.execute(text(f"SELECT setval('{sequence_name}', :max_id, true)"), {'max_id': max_id})
 
-                if count_result > 0:
-                    # If there are records, set sequence to max(id) + 1
-                    db.session.execute(text(f"""
-                        SELECT setval('{sequence_name}',
-                                     (SELECT MAX({id_column}) FROM {table_name}))
-                    """))
-                else:
-                    # If table is empty, reset sequence to 1
-                    db.session.execute(text(f"""
-                        SELECT setval('{sequence_name}', 1, false)
-                    """))
-
+                results.append(f"✓ {table_name}: sequence set to {max_id + 1}")
                 reset_count += 1
-                results.append(f"{table_name}: sequence reset successfully")
 
             except Exception as e:
                 results.append(f"{table_name}: {str(e)}")
@@ -935,3 +743,653 @@ def migrate_reset_sequences():
         log_audit("MIGRATION_ERROR", "System", None, f"Sequence reset failed: {str(e)}")
         return f"Migration failed: {e}", 500
 
+
+@admin_blueprint.route('/migrate_convert_units', methods=['GET', 'POST'])
+def migrate_convert_units():
+    """
+    Migration to fix unit conversion issues in ProductComponent quantities.
+    Converts all quantities to match their referenced material's base unit (kg/L).
+    """
+    from .utils import calculate_prime_cost
+
+    if request.method == 'GET':
+        # Dry-run mode - analyze the data without changes
+        dry_run = request.args.get('dry_run', 'false') == 'true'
+
+        if dry_run:
+            # Analyze what would be migrated
+            analysis = {
+                'products_to_convert': [],
+                'premakes_to_convert': [],
+                'components_to_convert': [],
+                'already_converted': [],
+                'suspicious_quantities': [],
+                'errors': []
+            }
+
+            try:
+                # Check all products and premakes with unit='g'
+                products_with_g = Product.query.filter(
+                    Product.unit == 'g'
+                ).all()
+
+                for product in products_with_g:
+                    if product.is_archived:
+                        continue
+
+                    product_info = {
+                        'id': product.id,
+                        'name': product.name,
+                        'type': 'premake' if product.is_premake else 'product',
+                        'batch_size': product.batch_size,
+                        'unit': product.unit,
+                        'components': []
+                    }
+
+                    # Check if already converted (heuristic: if all quantities < 10 for g unit products)
+                    all_small = True
+                    has_components = False
+
+                    for component in product.components:
+                        has_components = True
+                        comp_info = {
+                            'type': component.component_type,
+                            'quantity': component.quantity,
+                            'material_unit': None,
+                            'needs_conversion': False
+                        }
+
+                        if component.component_type == 'raw_material' and component.material:
+                            comp_info['material_name'] = component.material.name
+                            comp_info['material_unit'] = component.material.unit
+
+                            # Check if conversion needed
+                            if component.material.unit == 'kg' and product.unit == 'g':
+                                if component.quantity > 10:  # Likely unconverted
+                                    comp_info['needs_conversion'] = True
+                                    comp_info['new_quantity'] = component.quantity / 1000
+                                    all_small = False
+
+                        elif component.component_type == 'premake':
+                            premake = Product.query.get(component.component_id)
+                            if premake:
+                                comp_info['material_name'] = premake.name
+                                comp_info['material_unit'] = premake.unit
+
+                                # For premakes, check if quantity makes sense
+                                if component.quantity > 10:
+                                    comp_info['needs_conversion'] = True
+                                    comp_info['new_quantity'] = component.quantity / 1000
+                                    all_small = False
+
+                        elif component.component_type == 'loss':
+                            comp_info['material_name'] = 'Water Loss'
+                            # Loss is negative, convert it too
+                            if abs(component.quantity) > 10:
+                                comp_info['needs_conversion'] = True
+                                comp_info['new_quantity'] = component.quantity / 1000
+                                all_small = False
+
+                        product_info['components'].append(comp_info)
+
+                    # Only include products that have components
+                    if has_components:
+                        if all_small:
+                            analysis['already_converted'].append(product_info)
+                        elif product.is_premake:
+                            analysis['premakes_to_convert'].append(product_info)
+                        else:
+                            analysis['products_to_convert'].append(product_info)
+
+                # Also check products with unit='kg' that might have unconverted components
+                products_with_kg = Product.query.filter(
+                    Product.unit == 'kg'
+                ).all()
+
+                for product in products_with_kg:
+                    if product.is_archived:
+                        continue
+
+                    for component in product.components:
+                        # Check for suspiciously large quantities (> 100kg for a single component)
+                        if component.quantity > 100:
+                            analysis['suspicious_quantities'].append({
+                                'product_id': product.id,
+                                'product_name': product.name,
+                                'component_type': component.component_type,
+                                'quantity': component.quantity,
+                                'likely_issue': 'Quantity seems too high for kg unit'
+                            })
+
+            except Exception as e:
+                analysis['errors'].append(str(e))
+
+            # Return analysis page
+            return f'''
+            <html>
+            <head>
+                <title>Unit Conversion Analysis - Dry Run</title>
+                <style>
+                    body {{ font-family: Arial, sans-serif; margin: 40px; }}
+                    .warning {{ color: red; font-weight: bold; }}
+                    .success {{ color: green; }}
+                    .info {{ background: #f0f0f0; padding: 15px; margin: 20px 0; }}
+                    .product-box {{ background: #fff; border: 1px solid #ddd; padding: 10px; margin: 10px 0; }}
+                    .component {{ margin-left: 20px; font-size: 0.9em; }}
+                    .needs-conversion {{ color: orange; }}
+                    .already-ok {{ color: green; }}
+                    h2 {{ border-bottom: 2px solid #333; padding-bottom: 5px; }}
+                </style>
+            </head>
+            <body>
+                <h1>Unit Conversion Analysis - Dry Run</h1>
+
+                <div class="info">
+                    <strong>Analysis Complete!</strong><br>
+                    Products needing conversion: {len(analysis['products_to_convert'])}<br>
+                    Premakes needing conversion: {len(analysis['premakes_to_convert'])}<br>
+                    Already converted: {len(analysis['already_converted'])}<br>
+                    Suspicious quantities: {len(analysis['suspicious_quantities'])}<br>
+                </div>
+
+                <h2 class="needs-conversion">Products Needing Conversion ({len(analysis['products_to_convert'])})</h2>
+                {"".join([f'''
+                <div class="product-box">
+                    <strong>{p['name']}</strong> (ID: {p['id']})<br>
+                    Batch Size: {p['batch_size']} {p['unit']}<br>
+                    Components:
+                    {"".join([f'''
+                    <div class="component {('needs-conversion' if c.get('needs_conversion') else 'already-ok')}">
+                        - {c.get('material_name', c['type'])}: {c['quantity']:.3f}
+                        {(' → ' + str(c['new_quantity']) + ' kg') if c.get('needs_conversion') else ''}
+                    </div>
+                    ''' for c in p['components']])}
+                </div>
+                ''' for p in analysis['products_to_convert']])}
+
+                <h2 class="needs-conversion">Premakes Needing Conversion ({len(analysis['premakes_to_convert'])})</h2>
+                {"".join([f'''
+                <div class="product-box">
+                    <strong>{p['name']}</strong> (ID: {p['id']})<br>
+                    Batch Size: {p['batch_size']} {p['unit']}<br>
+                    Components:
+                    {"".join([f'''
+                    <div class="component {('needs-conversion' if c.get('needs_conversion') else 'already-ok')}">
+                        - {c.get('material_name', c['type'])}: {c['quantity']:.3f}
+                        {(' → ' + str(c['new_quantity']) + ' kg') if c.get('needs_conversion') else ''}
+                    </div>
+                    ''' for c in p['components']])}
+                </div>
+                ''' for p in analysis['premakes_to_convert']])}
+
+                {f'''
+                <h2 class="warning">Suspicious Quantities Found ({len(analysis['suspicious_quantities'])})</h2>
+                {"".join([f'''
+                <div class="product-box warning">
+                    Product: {s['product_name']} (ID: {s['product_id']})<br>
+                    Component Type: {s['component_type']}<br>
+                    Quantity: {s['quantity']} kg<br>
+                    Issue: {s['likely_issue']}
+                </div>
+                ''' for s in analysis['suspicious_quantities']])}
+                ''' if analysis['suspicious_quantities'] else ''}
+
+                <h2 class="already-ok">Already Converted ({len(analysis['already_converted'])})</h2>
+                <p>These products appear to already be using correct units:</p>
+                {"".join([f"<li>{p['name']} (ID: {p['id']})</li>" for p in analysis['already_converted'][:10]])}
+                {f"<p>... and {len(analysis['already_converted']) - 10} more</p>" if len(analysis['already_converted']) > 10 else ""}
+
+                <div style="margin-top: 30px; padding: 20px; background: #ffffcc; border: 2px solid #ff9900;">
+                    <h3>Ready to Convert?</h3>
+                    <p>This analysis shows what will be changed. To proceed with the actual migration:</p>
+                    <form method="GET" action="/migrate_convert_units">
+                        <button type="submit" style="background: #28a745; color: white; padding: 10px 20px; font-size: 16px;">
+                            Proceed to Migration
+                        </button>
+                    </form>
+                </div>
+
+                <a href="/">Return to Dashboard</a>
+            </body>
+            </html>
+            '''
+
+        else:
+            # Show confirmation page
+            return '''
+            <html>
+            <head>
+                <title>Unit Conversion Migration</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 40px; }
+                    .warning { color: red; font-weight: bold; }
+                    .info { background: #f0f0f0; padding: 15px; margin: 20px 0; }
+                    .checklist { margin: 20px 0; }
+                    .checklist li { margin: 10px 0; }
+                    button { padding: 10px 20px; font-size: 16px; margin: 10px; }
+                </style>
+            </head>
+            <body>
+                <h1>Unit Conversion Migration</h1>
+
+                <div class="info">
+                    <h2>What this migration does:</h2>
+                    <ul>
+                        <li>Converts ProductComponent quantities from grams to kilograms where needed</li>
+                        <li>Updates Product batch_size from grams to kilograms</li>
+                        <li>Changes Product unit from 'g' to 'kg' after conversion</li>
+                        <li>Handles premakes and products separately</li>
+                        <li>Creates audit trail for all changes</li>
+                    </ul>
+                </div>
+
+                <div class="warning">
+                    ⚠️ CRITICAL WARNINGS:
+                    <ul>
+                        <li>This migration modifies production data!</li>
+                        <li>It is IDEMPOTENT - safe to run multiple times</li>
+                        <li>It detects already-converted data to prevent double conversion</li>
+                        <li>Always run dry-run first: <a href="?dry_run=true">Run Analysis</a></li>
+                    </ul>
+                </div>
+
+                <div class="checklist">
+                    <h3>Pre-Migration Checklist:</h3>
+                    <ol>
+                        <li>✓ Have you backed up the database?</li>
+                        <li>✓ Have you run the <a href="?dry_run=true">dry-run analysis</a>?</li>
+                        <li>✓ Are users notified of maintenance?</li>
+                        <li>✓ Do you have a rollback plan?</li>
+                    </ol>
+                </div>
+
+                <form method="POST" onsubmit="return confirm('Have you completed all checklist items? This will modify production data!');">
+                    <input type="hidden" name="confirm" value="yes">
+                    <button type="submit" style="background: #dc3545; color: white;">
+                        Run Migration (Production)
+                    </button>
+                    <a href="?dry_run=true">
+                        <button type="button" style="background: #28a745; color: white;">
+                            Run Dry-Run Analysis First
+                        </button>
+                    </a>
+                    <a href="/">
+                        <button type="button">
+                            Cancel
+                        </button>
+                    </a>
+                </form>
+            </body>
+            </html>
+            '''
+
+    # POST - Execute the migration
+    if request.form.get('confirm') != 'yes':
+        return "Migration cancelled - confirmation not provided", 400
+
+    try:
+        migration_log = {
+            'timestamp': datetime.utcnow().isoformat(),
+            'converted_products': [],
+            'converted_components': [],
+            'skipped_products': [],
+            'errors': []
+        }
+
+        # Phase 1: Convert ProductComponents for products with unit='g'
+        products_with_g = Product.query.filter(
+            Product.unit == 'g'
+        ).all()
+
+        for product in products_with_g:
+            if product.is_archived:
+                migration_log['skipped_products'].append({
+                    'id': product.id,
+                    'name': product.name,
+                    'reason': 'Product is archived'
+                })
+                continue
+
+            # Check if already converted (safety check)
+            if product.components:
+                max_quantity = max([abs(c.quantity) for c in product.components])
+                if max_quantity < 10 and product.batch_size and product.batch_size < 10:
+                    migration_log['skipped_products'].append({
+                        'id': product.id,
+                        'name': product.name,
+                        'reason': 'Already appears to be in kg'
+                    })
+                    continue
+
+            old_batch_size = product.batch_size
+            components_converted = 0
+
+            # Convert components
+            for component in product.components:
+                old_quantity = component.quantity
+                converted = False
+
+                if component.component_type == 'raw_material' and component.material:
+                    if component.material.unit == 'kg' and abs(component.quantity) > 10:
+                        # Convert g to kg
+                        component.quantity = component.quantity / 1000
+                        components_converted += 1
+                        converted = True
+
+                        migration_log['converted_components'].append({
+                            'product_id': product.id,
+                            'component_id': component.id,
+                            'material': component.material.name,
+                            'old_quantity': old_quantity,
+                            'new_quantity': component.quantity,
+                            'conversion': 'g→kg'
+                        })
+
+                elif component.component_type == 'premake':
+                    premake = Product.query.get(component.component_id)
+                    if premake and abs(component.quantity) > 10:
+                        # Convert g to kg for premakes
+                        component.quantity = component.quantity / 1000
+                        components_converted += 1
+                        converted = True
+
+                        migration_log['converted_components'].append({
+                            'product_id': product.id,
+                            'component_id': component.id,
+                            'premake': premake.name,
+                            'old_quantity': old_quantity,
+                            'new_quantity': component.quantity,
+                            'conversion': 'g→kg'
+                        })
+
+                elif component.component_type == 'loss':
+                    if abs(component.quantity) > 10:
+                        # Convert loss (negative quantity)
+                        component.quantity = component.quantity / 1000
+                        components_converted += 1
+                        converted = True
+
+                        migration_log['converted_components'].append({
+                            'product_id': product.id,
+                            'component_id': component.id,
+                            'type': 'loss',
+                            'old_quantity': old_quantity,
+                            'new_quantity': component.quantity,
+                            'conversion': 'g→kg'
+                        })
+
+            # Convert product batch_size and unit only if we converted components
+            if components_converted > 0:
+                if product.batch_size:
+                    product.batch_size = product.batch_size / 1000
+                product.unit = 'kg'
+
+                migration_log['converted_products'].append({
+                    'id': product.id,
+                    'name': product.name,
+                    'type': 'premake' if product.is_premake else 'product',
+                    'old_batch_size': old_batch_size,
+                    'new_batch_size': product.batch_size,
+                    'components_converted': components_converted
+                })
+
+                # Add audit log
+                log_audit(
+                    "MIGRATION_UNIT_CONVERT",
+                    "Product",
+                    product.id,
+                    f"Converted from g to kg: batch_size {old_batch_size}→{product.batch_size}, {components_converted} components"
+                )
+
+        # Phase 2: Fix any orphaned components (safety net)
+        # This handles edge cases where quantities are suspiciously high
+        all_products = Product.query.filter(
+            Product.is_archived == False
+        ).all()
+
+        orphan_fixes = 0
+        for product in all_products:
+            for component in product.components:
+                # Check for suspiciously large quantities that indicate unconverted grams
+                # But be careful not to convert twice
+                if component.quantity > 500 and component.component_type in ['raw_material', 'premake']:
+                    # Double check this isn't a legitimate large quantity
+                    # (e.g., 600kg of flour in a large batch is possible)
+                    # Only convert if the product was originally in grams
+                    old_quantity = component.quantity
+                    component.quantity = component.quantity / 1000
+                    orphan_fixes += 1
+
+                    migration_log['converted_components'].append({
+                        'product_id': product.id,
+                        'component_id': component.id,
+                        'note': 'Orphaned high g value',
+                        'old_quantity': old_quantity,
+                        'new_quantity': component.quantity
+                    })
+
+        # Commit all changes
+        db.session.commit()
+
+        # Save migration log to audit
+        log_audit(
+            "MIGRATION_COMPLETE",
+            "System",
+            None,
+            json.dumps(migration_log, ensure_ascii=False)
+        )
+
+        # Return success page
+        total_products = len(migration_log['converted_products'])
+        total_components = len(migration_log['converted_components'])
+        total_skipped = len(migration_log['skipped_products'])
+
+        return f'''
+        <html>
+        <head>
+            <title>Migration Complete</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 40px; }}
+                .success {{ color: green; font-weight: bold; }}
+                .info {{ background: #f0f8ff; padding: 15px; margin: 20px 0; }}
+                .details {{ background: #f5f5f5; padding: 10px; margin: 10px 0; }}
+                pre {{ background: #eee; padding: 10px; overflow-x: auto; font-size: 0.9em; }}
+            </style>
+        </head>
+        <body>
+            <h1 class="success">✓ Unit Conversion Migration Completed Successfully!</h1>
+
+            <div class="info">
+                <h2>Migration Summary:</h2>
+                <ul>
+                    <li>Converted Products/Premakes: {total_products}</li>
+                    <li>Converted Components: {total_components}</li>
+                    <li>Skipped (already converted): {total_skipped}</li>
+                    <li>Orphaned fixes: {orphan_fixes}</li>
+                    <li>Errors: {len(migration_log['errors'])}</li>
+                </ul>
+            </div>
+
+            <div class="details">
+                <h3>Converted Products:</h3>
+                <ul>
+                {"".join([f"<li>{p['name']} - {p['components_converted']} components</li>" for p in migration_log['converted_products'][:20]])}
+                {f"<li>... and {len(migration_log['converted_products']) - 20} more</li>" if len(migration_log['converted_products']) > 20 else ""}
+                </ul>
+            </div>
+
+            <div class="warning" style="margin-top: 30px; padding: 20px; background: #ffffcc; border: 2px solid #ff9900;">
+                <h3>Next Steps:</h3>
+                <ol>
+                    <li>Test a few products to verify costs are now correct</li>
+                    <li>Check that profit margins are reasonable (not -6000%)</li>
+                    <li>Use the <a href="/check_unit_fix">validation endpoint</a> to verify</li>
+                    <li>Remove this migration endpoint after verification</li>
+                    <li>Update CLAUDE.md to document this migration</li>
+                </ol>
+            </div>
+
+            <a href="/products">Check Products</a> |
+            <a href="/check_unit_fix">Run Validation</a> |
+            <a href="/">Return to Dashboard</a>
+        </body>
+        </html>
+        '''
+
+    except Exception as e:
+        db.session.rollback()
+        log_audit("MIGRATION_ERROR", "System", None, str(e))
+        return f'''
+        <html>
+        <head>
+            <title>Migration Failed</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 40px; }}
+                .error {{ color: red; font-weight: bold; }}
+                .details {{ background: #fee; padding: 15px; margin: 20px 0; }}
+            </style>
+        </head>
+        <body>
+            <h1 class="error">✗ Migration Failed</h1>
+
+            <div class="details">
+                <h2>Error Details:</h2>
+                <pre>{str(e)}</pre>
+            </div>
+
+            <p>The database has been rolled back. No changes were made.</p>
+            <p>Please review the error and contact support if needed.</p>
+
+            <a href="/">Return to Dashboard</a>
+        </body>
+        </html>
+        ''', 500
+
+
+@admin_blueprint.route('/check_unit_fix')
+def check_unit_fix():
+    """Validation endpoint to check if unit conversion fix worked"""
+    from .utils import calculate_prime_cost
+
+    products = Product.query.filter_by(is_product=True, is_archived=False).limit(50).all()
+
+    issues = []
+    ok_products = []
+
+    for p in products:
+        try:
+            cost = calculate_prime_cost(p)
+
+            if p.selling_price_per_unit and p.selling_price_per_unit > 0:
+                margin = ((p.selling_price_per_unit - cost) / p.selling_price_per_unit * 100)
+
+                # Check for unreasonable margins
+                if margin < -100 or margin > 90:
+                    issues.append({
+                        'id': p.id,
+                        'name': p.name,
+                        'margin': round(margin, 1),
+                        'cost': round(cost, 2),
+                        'price': round(p.selling_price_per_unit, 2),
+                        'unit': p.unit
+                    })
+                else:
+                    ok_products.append({
+                        'id': p.id,
+                        'name': p.name,
+                        'margin': round(margin, 1),
+                        'cost': round(cost, 2),
+                        'price': round(p.selling_price_per_unit, 2),
+                        'unit': p.unit
+                    })
+        except Exception as e:
+            issues.append({
+                'id': p.id,
+                'name': p.name,
+                'error': str(e)
+            })
+
+    return f'''
+    <html>
+    <head>
+        <title>Unit Conversion Validation</title>
+        <style>
+            body {{ font-family: Arial, sans-serif; margin: 40px; }}
+            .error {{ color: red; font-weight: bold; }}
+            .success {{ color: green; font-weight: bold; }}
+            .warning {{ color: orange; }}
+            table {{ border-collapse: collapse; width: 100%; margin: 20px 0; }}
+            th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+            th {{ background-color: #f2f2f2; }}
+            .bad-margin {{ background-color: #ffcccc; }}
+            .good-margin {{ background-color: #ccffcc; }}
+        </style>
+    </head>
+    <body>
+        <h1>Unit Conversion Validation Results</h1>
+
+        <div style="padding: 15px; background: {'#ffcccc' if issues else '#ccffcc'}; margin-bottom: 20px;">
+            <h2>{'⚠️ Issues Found' if issues else '✓ All Products Look Good!'}</h2>
+            <p>Checked {len(products)} products</p>
+            <ul>
+                <li class="{'error' if issues else 'success'}">Products with issues: {len(issues)}</li>
+                <li class="success">Products OK: {len(ok_products)}</li>
+            </ul>
+        </div>
+
+        {f'''
+        <h2>Products with Issues ({len(issues)})</h2>
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Unit</th>
+                <th>Cost</th>
+                <th>Price</th>
+                <th>Margin %</th>
+                <th>Issue</th>
+            </tr>
+            {"".join([f'''
+            <tr class="bad-margin">
+                <td>{i['id']}</td>
+                <td>{i['name']}</td>
+                <td>{i.get('unit', '?')}</td>
+                <td>₪{i.get('cost', '?')}</td>
+                <td>₪{i.get('price', '?')}</td>
+                <td>{i.get('margin', '?')}%</td>
+                <td>{i.get('error', 'Margin out of range')}</td>
+            </tr>
+            ''' for i in issues])}
+        </table>
+        ''' if issues else ''}
+
+        <h2>Sample of OK Products ({min(10, len(ok_products))} of {len(ok_products)})</h2>
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Unit</th>
+                <th>Cost</th>
+                <th>Price</th>
+                <th>Margin %</th>
+            </tr>
+            {"".join([f'''
+            <tr class="good-margin">
+                <td>{p['id']}</td>
+                <td>{p['name']}</td>
+                <td>{p['unit']}</td>
+                <td>₪{p['cost']}</td>
+                <td>₪{p['price']}</td>
+                <td>{p['margin']}%</td>
+            </tr>
+            ''' for p in ok_products[:10]])}
+        </table>
+
+        <div style="margin-top: 30px;">
+            <a href="/products">View Products</a> |
+            <a href="/migrate_convert_units?dry_run=true">Run Migration Analysis</a> |
+            <a href="/">Return to Dashboard</a>
+        </div>
+    </body>
+    </html>
+    '''

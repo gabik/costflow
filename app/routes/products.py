@@ -112,7 +112,8 @@ def add_product():
             is_product=is_product,
             is_premake=is_premake,
             is_preproduct=is_preproduct,
-            batch_size=batch_size
+            batch_size=batch_size,
+            unit='kg'  # Always use kg internally
         )
         db.session.add(product)
         db.session.flush()
