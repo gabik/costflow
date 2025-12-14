@@ -171,31 +171,22 @@ html[dir="rtl"] .navbar-collapse {
     text-align: right;
 }
 
-html[dir="rtl"] .ms-auto {
-    margin-left: 0 !important;
-    margin-right: auto !important;
-}
-
-html[dir="rtl"] .me-auto {
-    margin-right: 0 !important;
+/* Ensure navbar items align to the left (which appears as right in RTL) */
+html[dir="rtl"] .navbar-nav.ms-auto {
     margin-left: auto !important;
+    margin-right: 0 !important;
 }
 
 /* Fix navbar toggler position in mobile RTL */
 html[dir="rtl"] .navbar-toggler {
-    margin-left: 0;
-    margin-right: auto;
+    margin-left: auto;
+    margin-right: 0;
 }
 
-/* Fix navbar brand alignment in RTL - keep natural flow */
+/* Keep navbar brand on the right in RTL */
 html[dir="rtl"] .navbar-brand {
     margin-left: 0;
-}
-
-/* Ensure navbar items stay on the correct side */
-html[dir="rtl"] .navbar-nav.ms-auto {
-    margin-right: auto !important;
-    margin-left: 0 !important;
+    margin-right: 0;
 }
 
 /* Form Elements - Checkboxes & Radio Buttons */
@@ -227,13 +218,14 @@ html[dir="rtl"] .form-switch .form-check-input:checked {
 }
 
 /* Dropdown Menus */
-html[dir="rtl"] .dropdown-menu-end {
-    right: auto !important;
-    left: 0 !important;
-}
-
 html[dir="rtl"] .dropdown-menu {
     text-align: right;
+}
+
+/* Fix dropdown menu positioning in navbar */
+html[dir="rtl"] .navbar .dropdown-menu-end {
+    left: 0 !important;
+    right: auto !important;
 }
 
 /* Dropdown toggle caret positioning */
@@ -242,22 +234,27 @@ html[dir="rtl"] .dropdown-toggle::after {
     margin-right: 0.255em;
 }
 
-/* Buttons with Icons */
+/* Buttons with Icons - fix spacing */
 html[dir="rtl"] .btn i.bi {
-    margin-left: 0;
-    margin-right: 0;
+    margin: 0;
 }
 
-html[dir="rtl"] .btn i.me-1,
-html[dir="rtl"] .btn i.me-2 {
-    margin-right: 0;
-    margin-left: 0.25rem;
+/* Icons that should be on the left of text in RTL (originally me-* classes) */
+html[dir="rtl"] .btn .bi.me-1,
+html[dir="rtl"] .btn .bi.me-2,
+html[dir="rtl"] .bi.me-1,
+html[dir="rtl"] .bi.me-2 {
+    margin-right: 0 !important;
+    margin-left: 0.5rem !important;
 }
 
-html[dir="rtl"] .btn i.ms-1,
-html[dir="rtl"] .btn i.ms-2 {
-    margin-left: 0;
-    margin-right: 0.25rem;
+/* Icons that should be on the right of text in RTL (originally ms-* classes) */
+html[dir="rtl"] .btn .bi.ms-1,
+html[dir="rtl"] .btn .bi.ms-2,
+html[dir="rtl"] .bi.ms-1,
+html[dir="rtl"] .bi.ms-2 {
+    margin-left: 0 !important;
+    margin-right: 0.5rem !important;
 }
 
 /* Tables */
@@ -290,38 +287,34 @@ html[dir="rtl"] .badge {
     margin-right: 0;
 }
 
-/* Icon Directional Flipping */
-html[dir="rtl"] .bi-arrow-left::before {
-    content: "\f130"; /* arrow-right icon code */
-}
+/* Icon Directional Flipping - Only for specific navigation contexts */
+/* Back/Forward navigation buttons - these should flip in RTL */
+/* But for now, keep them consistent with LTR to avoid confusion */
 
-html[dir="rtl"] .bi-arrow-right::before {
-    content: "\f127"; /* arrow-left icon code */
-}
-
-html[dir="rtl"] .bi-chevron-left::before {
+/* Pagination chevrons - flip for prev/next */
+html[dir="rtl"] .pagination .bi-chevron-left::before {
     content: "\f286"; /* chevron-right icon code */
 }
 
-html[dir="rtl"] .bi-chevron-right::before {
+html[dir="rtl"] .pagination .bi-chevron-right::before {
     content: "\f283"; /* chevron-left icon code */
 }
 
-html[dir="rtl"] .bi-caret-left::before {
-    content: "\f233"; /* caret-right icon code */
+/* Collapse/Expand chevrons - these should flip */
+html[dir="rtl"] [data-bs-toggle="collapse"] .bi-chevron-down::before,
+html[dir="rtl"] [data-bs-toggle="collapse"] .bi-chevron-up::before {
+    /* These vertical chevrons don't need flipping */
 }
 
-html[dir="rtl"] .bi-caret-right::before {
-    content: "\f230"; /* caret-left icon code */
+html[dir="rtl"] [data-bs-toggle="collapse"] .bi-chevron-left::before {
+    content: "\f286"; /* chevron-right */
 }
 
-html[dir="rtl"] .bi-caret-left-fill::before {
-    content: "\f234"; /* caret-right-fill icon code */
+html[dir="rtl"] [data-bs-toggle="collapse"] .bi-chevron-right::before {
+    content: "\f283"; /* chevron-left */
 }
 
-html[dir="rtl"] .bi-caret-right-fill::before {
-    content: "\f231"; /* caret-left-fill icon code */
-}
+/* Caret icons - usually don't need flipping except in specific contexts */
 
 /* Float Utilities */
 html[dir="rtl"] .float-start {
@@ -487,6 +480,9 @@ html[dir="rtl"] .table .btn-group {
     display: inline-flex;
     direction: ltr;
 }
+
+/* Action buttons in tables and cards keep their original icons */
+/* No need to override since we removed global icon flipping */
 
 /* Fix Bootstrap utility classes in RTL */
 html[dir="rtl"] .text-left {

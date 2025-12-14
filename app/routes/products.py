@@ -149,14 +149,29 @@ def add_product():
         # Process premakes
         premake_ids = request.form.getlist('premake[]')
         premake_quantities = request.form.getlist('premake_quantity[]')
-        for premake_id, quantity in zip(premake_ids, premake_quantities):
+        premake_units = request.form.getlist('premake_unit[]')
+
+        for i in range(len(premake_ids)):
+            premake_id = premake_ids[i]
+            quantity = premake_quantities[i] if i < len(premake_quantities) else None
+            selected_unit = premake_units[i] if i < len(premake_units) else None
+
             if not premake_id or not quantity or float(quantity) <= 0:
                 continue
+
+            # Get the premake to find its base unit
+            premake = Product.query.get(premake_id)
+            if not premake or not premake.is_premake:
+                continue
+
+            # Convert quantity to premake's base unit
+            final_quantity = convert_to_base_unit(float(quantity), selected_unit, premake.unit)
+
             component = ProductComponent(
                 product_id=product.id,
                 component_type='premake',
                 component_id=premake_id,
-                quantity=float(quantity)
+                quantity=final_quantity
             )
             db.session.add(component)
 
@@ -460,14 +475,29 @@ def edit_product(product_id):
         # Process premakes
         premake_ids = request.form.getlist('premake[]')
         premake_quantities = request.form.getlist('premake_quantity[]')
-        for premake_id, quantity in zip(premake_ids, premake_quantities):
+        premake_units = request.form.getlist('premake_unit[]')
+
+        for i in range(len(premake_ids)):
+            premake_id = premake_ids[i]
+            quantity = premake_quantities[i] if i < len(premake_quantities) else None
+            selected_unit = premake_units[i] if i < len(premake_units) else None
+
             if not premake_id or not quantity or float(quantity) <= 0:
                 continue
+
+            # Get the premake to find its base unit
+            premake = Product.query.get(premake_id)
+            if not premake or not premake.is_premake:
+                continue
+
+            # Convert quantity to premake's base unit
+            final_quantity = convert_to_base_unit(float(quantity), selected_unit, premake.unit)
+
             component = ProductComponent(
                 product_id=product.id,
                 component_type='premake',
                 component_id=premake_id,
-                quantity=float(quantity)
+                quantity=final_quantity
             )
             db.session.add(component)
 

@@ -108,6 +108,18 @@ unit: g
             </div>
             {% endif %}
 
+            <!-- Category creation alert (hidden by default) -->
+            <div class="alert alert-warning d-none" id="categoryMissingAlert">
+                <h5><i class="bi bi-exclamation-triangle me-2"></i>{{ _('Category not found') }}</h5>
+                <p>{{ _('The category') }} "<strong id="missingCategoryName"></strong>" {{ _('does not exist in the system.') }}</p>
+                <button type="button" class="btn btn-sm btn-primary" id="createCategoryBtn">
+                    <i class="bi bi-plus-circle me-1"></i>{{ _('Create Category') }}
+                </button>
+                <span class="ms-2 text-success d-none" id="categoryCreatedMsg">
+                    <i class="bi bi-check-circle me-1"></i>{{ _('Category created successfully!') }}
+                </span>
+            </div>
+
             <div class="mt-4 d-flex justify-content-end gap-2">
                 <a href="{{ url_for('recipe_import.upload_recipes') }}" class="btn btn-secondary">
                     <i class="bi bi-arrow-counterclockwise me-2"></i> {{ _('Upload Different File') }}
@@ -129,6 +141,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const metadataCategory = document.getElementById('metadata-category');
     const metadataUnit = document.getElementById('metadata-unit');
     const metadataWarning = document.getElementById('metadata-warning');
+    const categoryMissingAlert = document.getElementById('categoryMissingAlert');
+    const createCategoryBtn = document.getElementById('createCategoryBtn');
+    const categoryCreatedMsg = document.getElementById('categoryCreatedMsg');
+    const missingCategoryName = document.getElementById('missingCategoryName');
+    const continueBtn = document.querySelector('button[type="submit"]');
+
+    let categoryCreated = false;
+    let missingCategoryType = null;
 
     if (sheetSelect) {
         sheetSelect.addEventListener('change', function() {
@@ -169,6 +189,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     metadataWarning.classList.add('d-none');
                 }
+
+                // Check category existence
+                if (data.category && !data.category_exists) {
+                    missingCategoryName.textContent = data.category;
+                    missingCategoryType = data.category_type;
+                    categoryMissingAlert.classList.remove('d-none');
+                    continueBtn.disabled = true;
+                    categoryCreated = false;
+
+                    // Reset the creation UI
+                    createCategoryBtn.classList.remove('d-none');
+                    categoryCreatedMsg.classList.add('d-none');
+                } else {
+                    categoryMissingAlert.classList.add('d-none');
+                    if (data.type && data.category) {
+                        continueBtn.disabled = false;
+                    }
+                    categoryCreated = true;
+                }
             })
             .catch(error => {
                 console.error('Error fetching metadata:', error);
@@ -176,6 +215,41 @@ document.addEventListener('DOMContentLoaded', function() {
                 metadataCategory.textContent = '{{ _("Error loading") }}';
                 metadataUnit.textContent = '{{ _("Error loading") }}';
                 metadataWarning.classList.remove('d-none');
+            });
+        });
+    }
+
+    // Create category button handler
+    if (createCategoryBtn) {
+        createCategoryBtn.addEventListener('click', function() {
+            const categoryName = missingCategoryName.textContent;
+            const btn = this;
+            btn.disabled = true;
+
+            fetch('{{ url_for("recipe_import.create_category_ajax") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'name=' + encodeURIComponent(categoryName) + '&type=' + encodeURIComponent(missingCategoryType)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    categoryCreated = true;
+                    categoryCreatedMsg.classList.remove('d-none');
+                    createCategoryBtn.classList.add('d-none');
+                    continueBtn.disabled = false;
+                } else {
+                    alert(data.error || '{{ _("Failed to create category") }}');
+                }
+            })
+            .catch(error => {
+                console.error('Error creating category:', error);
+                alert('{{ _("Failed to create category") }}');
+            })
+            .finally(() => {
+                btn.disabled = false;
             });
         });
     }

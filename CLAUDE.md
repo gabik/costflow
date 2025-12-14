@@ -164,12 +164,23 @@ Main functional areas:
 
 ### Local Development
 ```bash
-# Activate virtual environment
+# IMPORTANT: Always use the specific virtual environment at ~/workspace/venv/costflow/bin/
+# This ensures consistent Python environment across all development
+
+# Activate virtual environment (shortcut if configured)
 venv costflow
 
+# OR use the full path directly:
+source ~/workspace/venv/costflow/bin/activate
+
 # Run development server
-python run.py
+~/workspace/venv/costflow/bin/python run.py
 # Server runs on http://0.0.0.0:8080
+
+# For any Python commands, always use:
+~/workspace/venv/costflow/bin/python [command]
+# For pip installations:
+~/workspace/venv/costflow/bin/pip install [package]
 ```
 
 ### Docker Deployment

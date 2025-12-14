@@ -587,6 +587,41 @@ def validate_material_name():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+@recipe_import_blueprint.route('/api/recipe_import/create_category', methods=['POST'])
+def create_category_ajax():
+    """AJAX endpoint to create category during import"""
+    try:
+        name = request.form.get('name', '').strip()
+        type_val = request.form.get('type', 'raw_material')
+
+        # Validate
+        if not name:
+            return jsonify({'success': False, 'error': _('Category name is required')}), 400
+
+        # Check if exists
+        existing = Category.query.filter_by(name=name, type=type_val).first()
+        if existing:
+            return jsonify({'success': True, 'category_id': existing.id, 'category_name': existing.name})
+
+        # Create new category
+        new_category = Category(name=name, type=type_val)
+        db.session.add(new_category)
+        db.session.commit()
+
+        # Log audit
+        log_audit("CREATE", "Category", new_category.id, f"Created category during recipe import: {name}")
+
+        return jsonify({
+            'success': True,
+            'category_id': new_category.id,
+            'category_name': new_category.name
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 # ----------------------------
 # Routes
 # ----------------------------
@@ -660,10 +695,20 @@ def get_sheet_metadata():
         # Parse metadata
         metadata = parse_metadata(df)
 
+        # Check if category exists
+        category_exists = True
+        category_type = None
+        if metadata['category']:
+            category_type = 'premake' if metadata['type'] == 'premake' else 'product'
+            category = Category.query.filter_by(name=metadata['category'], type=category_type).first()
+            category_exists = category is not None
+
         return {
             'type': metadata['type'] or '',
             'category': metadata['category'] or '',
-            'unit': metadata['unit']
+            'unit': metadata['unit'],
+            'category_exists': category_exists,
+            'category_type': category_type
         }
     except Exception as e:
         return {'error': str(e)}, 500

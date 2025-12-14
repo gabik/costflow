@@ -90,8 +90,22 @@
                     <input type="number" name="premake_quantity[]" class="form-control" placeholder="{{ _('Quantity') }}" step="0.001" value="{{ component.quantity }}">
                 </div>
                 <div class="col-md-3">
-                        <select name="premake_unit[]" class="form-select unit-select">
-                        <option value="kg">kg</option>
+                    <select name="premake_unit[]" class="form-select unit-select">
+                        <!-- Options will be populated by JavaScript based on premake's unit -->
+                        {% if component.premake %}
+                            {% if component.premake.unit in ['kg', 'g'] %}
+                                <option value="kg">kg</option>
+                                <option value="g">g</option>
+                            {% elif component.premake.unit in ['L', 'ml'] %}
+                                <option value="L">L</option>
+                                <option value="ml">ml</option>
+                            {% else %}
+                                <option value="{{ component.premake.unit }}">{{ component.premake.unit }}</option>
+                            {% endif %}
+                        {% else %}
+                            <option value="kg">kg</option>
+                            <option value="g">g</option>
+                        {% endif %}
                     </select>
                 </div>
                 <div class="col-md-1">
@@ -116,8 +130,10 @@
                     <input type="number" name="premake_quantity[]" class="form-control" placeholder="{{ _('Quantity') }}" step="0.001">
                 </div>
                 <div class="col-md-3">
-                     <select name="premake_unit[]" class="form-select unit-select">
+                    <select name="premake_unit[]" class="form-select unit-select">
+                        <!-- Options will be populated by JavaScript when premake is selected -->
                         <option value="kg">kg</option>
+                        <option value="g">g</option>
                     </select>
                 </div>
                 <div class="col-md-1">
@@ -212,7 +228,7 @@
             {% for component in raw_material_components %}
             <div class="row g-2 mb-2 align-items-center raw-material-row">
                 <div class="col-md-5">
-                    <select name="raw_material[]" class="form-select select2" required onchange="handleMaterialChange(this)">
+                    <select name="raw_material[]" class="form-select select2" onchange="handleMaterialChange(this)">
                         {% for material_option in all_raw_materials %}
                             <option value="{{ material_option.id }}"
                                     data-unit="{{ material_option.unit }}"
@@ -225,7 +241,7 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="{{ _('Quantity') }}" step="0.01" value="{{ component.quantity }}" required>
+                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="{{ _('Quantity') }}" step="0.01" value="{{ component.quantity }}">
                 </div>
                 <div class="col-md-3">
                     <select name="raw_material_unit[]" class="form-select unit-select">
@@ -249,7 +265,7 @@
             {% if not raw_material_components %}
             <div class="row g-2 mb-2 align-items-center raw-material-row">
                 <div class="col-md-5">
-                    <select name="raw_material[]" class="form-select select2" required onchange="handleMaterialChange(this)">
+                    <select name="raw_material[]" class="form-select select2" onchange="handleMaterialChange(this)">
                          <option value="" disabled selected>{{ _('Select raw material...') }}</option>
                         {% for material_option in all_raw_materials %}
                             <option value="{{ material_option.id }}"
@@ -262,7 +278,7 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="{{ _('Quantity') }}" step="0.01" required>
+                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="{{ _('Quantity') }}" step="0.01">
                 </div>
                 <div class="col-md-3">
                     <select name="raw_material_unit[]" class="form-select unit-select">
@@ -527,7 +543,7 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="{{ _("Quantity") }}" step="0.01" value="${quantity}" required>
+                    <input type="number" name="raw_material_quantity[]" class="form-control" placeholder="{{ _("Quantity") }}" step="0.01" value="${quantity}">
                 </div>
                 <div class="col-md-3">
                     <select name="raw_material_unit[]" class="form-select unit-select">
@@ -634,7 +650,7 @@
                 </div>
                 <div class="col-md-3">
                     <select name="premake_unit[]" class="form-select unit-select">
-                        <option value="kg">kg</option>
+                        <!-- Options will be set dynamically based on premake's unit -->
                     </select>
                 </div>
                 <div class="col-md-1">
@@ -655,6 +671,21 @@
             width: '100%',
             language: { noResults: () => "{{ _("No results found") }}" }
         });
+
+        // Update unit options for the newly added premake row
+        const newPremakeSelect = rowElement.querySelector('.select2');
+        const newUnitSelect = rowElement.querySelector('.unit-select');
+        if (newPremakeSelect && newUnitSelect && premakeId) {
+            // If a premake is pre-selected, set its units
+            const selectedOption = newPremakeSelect.options[newPremakeSelect.selectedIndex];
+            const baseUnit = selectedOption ? selectedOption.getAttribute('data-unit') : null;
+            if (baseUnit) {
+                updateUnitOptions(newUnitSelect, baseUnit, unit);
+            }
+        } else if (newUnitSelect) {
+            // Default to kg/g options if no premake selected
+            updateUnitOptions(newUnitSelect, 'kg', unit);
+        }
     }
 
     function handleMaterialChange(selectElement) {
@@ -679,10 +710,13 @@
         const selectedOption = selectElement.options[selectElement.selectedIndex];
         const baseUnit = selectedOption.getAttribute('data-unit');
 
-        // For premakes, for now, we only allow kg as requested.
-        // So we just set the unitSelect to kg and make it readonly.
-        unitSelect.innerHTML = '<option value="kg" selected>kg</option>';
-        // unitSelect.disabled = true; // Optional: disable if fixed to kg
+        // Update unit options based on premake's base unit, same as raw materials
+        updateUnitOptions(unitSelect, baseUnit);
+
+        // Trigger cost recalculation
+        if (typeof calculateTotalCost === 'function') {
+            calculateTotalCost();
+        }
     }
 
     function addPreproductRow(preproductId = '', quantity = '', unit = '{{ _("Unit") }}') {
@@ -805,12 +839,17 @@
             }
         });
 
-        // For premake rows, ensure kg is selected.
+        // Update units for existing premake rows (in case of edit mode)
         document.querySelectorAll('.premake-row').forEach(row => {
+            const premakeSelect = row.querySelector('select[name="premake[]"]');
             const unitSelect = row.querySelector('select[name="premake_unit[]"]');
-            if (unitSelect) {
-                unitSelect.innerHTML = '<option value="kg" selected>kg</option>';
-                // unitSelect.disabled = true; // Optional
+            if (premakeSelect && unitSelect) {
+                const selectedOption = premakeSelect.options[premakeSelect.selectedIndex];
+                const baseUnit = selectedOption ? selectedOption.getAttribute('data-unit') : null;
+                if (baseUnit) {
+                    // For existing premake rows, update unit options based on the premake's unit
+                    updateUnitOptions(unitSelect, baseUnit, unitSelect.value);
+                }
             }
         });
 
