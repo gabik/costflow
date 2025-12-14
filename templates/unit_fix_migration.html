@@ -108,7 +108,7 @@
         {% endfor %}
         {% if analysis.products_with_g|length > 20 %}
         <tr>
-            <td colspan="5">... {{ _('and {} more').format(analysis.products_with_g|length - 20) }}</td>
+            <td colspan="5">... and {{ analysis.products_with_g|length - 20 }} more</td>
         </tr>
         {% endif %}
     </table>
@@ -133,7 +133,7 @@
         {% endfor %}
         {% if analysis.components_to_fix|length > 20 %}
         <tr>
-            <td colspan="4">... {{ _('and {} more').format(analysis.components_to_fix|length - 20) }}</td>
+            <td colspan="4">... and {{ analysis.components_to_fix|length - 20 }} more</td>
         </tr>
         {% endif %}
     </table>
@@ -156,13 +156,13 @@
         {% endfor %}
         {% if analysis.batch_sizes_to_fix|length > 20 %}
         <tr>
-            <td colspan="3">... {{ _('and {} more').format(analysis.batch_sizes_to_fix|length - 20) }}</td>
+            <td colspan="3">... and {{ analysis.batch_sizes_to_fix|length - 20 }} more</td>
         </tr>
         {% endif %}
     </table>
     {% endif %}
 
-    <form method="POST" onsubmit="return confirm('{{ _('Are you sure? This will fix {} items in the database.').format(analysis.total_fixes_needed) }}');">
+    <form method="POST" onsubmit="return confirm('Are you sure? This will fix {{ analysis.total_fixes_needed }} items in the database.');">
         <input type="hidden" name="confirm" value="yes">
         <button type="submit" class="btn-fix">
             🔧 {{ _('Execute Complete Unit Fix') }}

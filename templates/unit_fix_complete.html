@@ -67,7 +67,7 @@
             <li>{{ detail }}</li>
             {% endfor %}
             {% if fixes_log.details|length > 50 %}
-            <li>... {{ _('and {} more changes').format(fixes_log.details|length - 50) }}</li>
+            <li>... and {{ fixes_log.details|length - 50 }} more changes</li>
             {% endif %}
         </ul>
     </div>
