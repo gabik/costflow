@@ -202,6 +202,16 @@ $(document).ready(function() {
     }
 });
 
+// Helper function to format quantity with dynamic units
+function formatQuantityWithUnit(quantity, unit) {
+    // If unit is kg and quantity is less than 1, convert to grams
+    if (unit.toLowerCase() === 'kg' && quantity < 1 && quantity > 0) {
+        return `${(quantity * 1000).toFixed(1)} g`;
+    }
+    // For other units or quantities >= 1kg, keep original
+    return `${quantity.toFixed(2)} ${unit}`;
+}
+
 function fetchRecipeData(premakeId) {
     console.log('Fetching recipe for premake:', premakeId);
     const batches = parseFloat(document.getElementById('quantity_produced').value) || 1;
@@ -273,9 +283,9 @@ function updateProductionDetails() {
                 tr.innerHTML = `
                     <td>${comp.name}</td>
                     <td>{{ _('Raw Material') }}</td>
-                    <td>${consumption.stock_available.toFixed(2)} ${comp.unit}</td>
-                    <td class="fw-bold">${consumption.amount_to_consume.toFixed(2)} ${comp.unit}</td>
-                    <td class="${consumption.remaining_after < 0 ? 'text-danger fw-bold' : ''}">${consumption.remaining_after.toFixed(2)} ${comp.unit}</td>
+                    <td>${formatQuantityWithUnit(consumption.stock_available, comp.unit)}</td>
+                    <td class="fw-bold">${formatQuantityWithUnit(consumption.amount_to_consume, comp.unit)}</td>
+                    <td class="${consumption.remaining_after < 0 ? 'text-danger fw-bold' : ''}">${formatQuantityWithUnit(consumption.remaining_after, comp.unit)}</td>
                     <td>${costDisplay}</td>
                     <td>${consumption.total_cost.toFixed(2)} ₪</td>
                 `;
@@ -307,9 +317,9 @@ function updateProductionDetails() {
                     tr.innerHTML = `
                         <td>${nameDisplay}</td>
                         <td>${index === 0 ? '{{ _("Raw Material") }}' : ''}</td>
-                        <td>${consumption.stock_available.toFixed(2)} ${comp.unit}</td>
-                        <td class="fw-bold">${consumption.amount_to_consume.toFixed(2)} ${comp.unit}</td>
-                        <td class="${consumption.remaining_after < 0 ? 'text-danger fw-bold' : ''}">${consumption.remaining_after.toFixed(2)} ${comp.unit}</td>
+                        <td>${formatQuantityWithUnit(consumption.stock_available, comp.unit)}</td>
+                        <td class="fw-bold">${formatQuantityWithUnit(consumption.amount_to_consume, comp.unit)}</td>
+                        <td class="${consumption.remaining_after < 0 ? 'text-danger fw-bold' : ''}">${formatQuantityWithUnit(consumption.remaining_after, comp.unit)}</td>
                         <td>${costDisplay}</td>
                         <td>${consumption.total_cost.toFixed(2)} ₪</td>
                     `;
@@ -333,8 +343,8 @@ function updateProductionDetails() {
                 stockAfterDisplay = '<span class="badge bg-primary fs-6">∞</span>';
             } else {
                 stockAfter = comp.current_stock - usage;
-                currentStockDisplay = `${comp.current_stock.toFixed(2)} ${comp.unit}`;
-                stockAfterDisplay = `${stockAfter.toFixed(2)} ${comp.unit}`;
+                currentStockDisplay = formatQuantityWithUnit(comp.current_stock, comp.unit);
+                stockAfterDisplay = formatQuantityWithUnit(stockAfter, comp.unit);
             }
 
             // Check for deficit
@@ -349,7 +359,7 @@ function updateProductionDetails() {
                 <td>${nameDisplay}</td>
                 <td>${comp.type === 'Raw Material' ? '{{ _("Raw Material") }}' : (comp.type === 'Packaging' ? '{{ _("Packaging") }}' : '{{ _("Premake") }}')}</td>
                 <td>${currentStockDisplay}</td>
-                <td class="fw-bold">${usage.toFixed(2)} ${comp.unit}</td>
+                <td class="fw-bold">${formatQuantityWithUnit(usage, comp.unit)}</td>
                 <td class="${!isUnlimited && stockAfter < 0 ? 'text-danger fw-bold' : ''}">${stockAfterDisplay}</td>
                 <td>${comp.cost_per_unit.toFixed(2)} ₪</td>
                 <td>${cost.toFixed(2)} ₪</td>
