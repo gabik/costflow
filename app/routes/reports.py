@@ -16,10 +16,23 @@ def weekly_report():
     week_start = request.args.get('week_start')
 
     if not week_start:
-        # Default to current week start (Sunday) if not specified
-        today = date.today()
-        days_since_sunday = (today.weekday() + 1) % 7
-        week_start = today - timedelta(days=days_since_sunday)
+        # Default to the most recent week that has data (either WeeklyLaborCost or ProductionLog)
+        if all_weeks:
+            # Use the most recent week from WeeklyLaborCost (already sorted desc)
+            week_start = all_weeks[0].week_start_date
+        else:
+            # If no weeks exist, check for any production data
+            latest_production = ProductionLog.query.order_by(ProductionLog.timestamp.desc()).first()
+            if latest_production:
+                # Use the week of the latest production
+                prod_date = latest_production.timestamp.date() if hasattr(latest_production.timestamp, 'date') else latest_production.timestamp
+                days_since_sunday = (prod_date.weekday() + 1) % 7
+                week_start = prod_date - timedelta(days=days_since_sunday)
+            else:
+                # No data at all - default to current week
+                today = date.today()
+                days_since_sunday = (today.weekday() + 1) % 7
+                week_start = today - timedelta(days=days_since_sunday)
     else:
         week_start = datetime.strptime(week_start, '%Y-%m-%d').date()
 
