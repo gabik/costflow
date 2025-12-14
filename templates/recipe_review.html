@@ -25,16 +25,6 @@
   {% endif %}
 {% endwith %}
 
-<!-- DEBUG INFO - REMOVE AFTER FIXING -->
-<div class="alert alert-warning">
-    <strong>DEBUG INFO:</strong><br>
-    Raw materials count: {{ all_raw_materials|length if all_raw_materials else 0 }}<br>
-    Premakes count: {{ all_premakes|length if all_premakes else 0 }}<br>
-    Preproducts count: {{ all_preproducts|length if all_preproducts else 0 }}<br>
-    Categories count: {{ all_categories|length if all_categories else 0 }}<br>
-    Suppliers count: {{ all_suppliers|length if all_suppliers else 0 }}<br>
-    Recipes count: {{ recipes|length if recipes else 0 }}
-</div>
 
 
 <!-- Missing Materials Warning -->
@@ -251,28 +241,23 @@
                                             data-recipe-idx="{{ recipe_idx }}"
                                             data-material-idx="{{ loop.index0 }}">
                                         <option value="">{{ _('Select material from system...') }}</option>
-                                        <!-- DEBUG: material.type = "{{ material.type }}" -->
 
                                         {% set normalized_type = material.type|trim|lower if material.type else '' %}
                                         {% if normalized_type in ['חומר גלם', 'חומר', 'raw material', 'raw'] or 'חומר' in normalized_type %}
-                                            <!-- DEBUG: Matched as raw material - Adding {{ all_raw_materials|length }} raw materials -->
                                             {% for rm in all_raw_materials %}
                                             <option value="{{ rm.id }}">
                                                 {{ rm.name }} ({{ rm.unit }})
                                             </option>
                                             {% endfor %}
                                         {% elif normalized_type in ['הכנה', 'premake', 'preparation'] or 'הכנה' in normalized_type %}
-                                            <!-- DEBUG: Matched as premake - Adding {{ all_premakes|length }} premakes -->
                                             {% for pm in all_premakes %}
                                             <option value="{{ pm.id }}">{{ pm.name }}</option>
                                             {% endfor %}
                                         {% elif normalized_type in ['מוצר מקדים', 'preproduct', 'pre-product'] or 'מוצר' in normalized_type %}
-                                            <!-- DEBUG: Matched as preproduct - Adding {{ all_preproducts|length }} preproducts -->
                                             {% for pp in all_preproducts %}
                                             <option value="{{ pp.id }}">{{ pp.name }}</option>
                                             {% endfor %}
                                         {% else %}
-                                            <!-- DEBUG: Unknown type "{{ material.type }}" (normalized: "{{ normalized_type }}") - no materials added -->
                                         {% endif %}
                                     </select>
                                     {% endif %}
@@ -450,10 +435,6 @@ $(document).ready(function() {
     });
 
     // Initialize Select2 on material mapping dropdowns
-    $('.material-mapping-select').each(function() {
-        console.log('Select dropdown found:', $(this).attr('name'), 'Options count:', $(this).find('option').length);
-    });
-
     $('.material-mapping-select').select2({
         theme: 'bootstrap-5',
         dir: 'rtl',

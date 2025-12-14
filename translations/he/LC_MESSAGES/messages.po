@@ -1978,9 +1978,8 @@ msgid "Price per Batch"
 msgstr "מחיר לאצווה"
 
 #: templates/premakes.html:49
-#, fuzzy
 msgid "Price per"
-msgstr "מחיר ליחידה"
+msgstr "מחיר ל"
 
 #: templates/premakes.html:86 templates/premakes.html:186
 #: templates/premakes.html:200
@@ -2202,7 +2201,7 @@ msgstr "פעיל"
 
 #: templates/products.html:18
 msgid "Show Archived"
-msgstr ""
+msgstr "הצג מוצרים בארכיון"
 
 #: templates/products.html:33 templates/update_weekly_sales.html:49
 msgid "Image"

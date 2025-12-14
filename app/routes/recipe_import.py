@@ -626,33 +626,6 @@ def create_category_ajax():
 # Routes
 # ----------------------------
 
-@recipe_import_blueprint.route('/debug_materials')
-def debug_materials():
-    """Debug endpoint to check what materials are in the database"""
-    raw_materials = RawMaterial.query.filter_by(is_deleted=False).all()
-    premakes = Product.query.filter_by(is_premake=True, is_archived=False).all()
-    preproducts = Product.query.filter_by(is_preproduct=True, is_archived=False).all()
-    categories = Category.query.filter_by(type='raw_material').all()
-    suppliers = Supplier.query.filter_by(is_active=True).all()
-
-    return f"""
-    <h1>Database Materials Debug</h1>
-    <h2>Raw Materials: {len(raw_materials)}</h2>
-    <ul>{''.join([f'<li>{rm.name} ({rm.unit})</li>' for rm in raw_materials[:10]])}</ul>
-
-    <h2>Premakes: {len(premakes)}</h2>
-    <ul>{''.join([f'<li>{pm.name}</li>' for pm in premakes[:10]])}</ul>
-
-    <h2>Preproducts: {len(preproducts)}</h2>
-    <ul>{''.join([f'<li>{pp.name}</li>' for pp in preproducts[:10]])}</ul>
-
-    <h2>Categories: {len(categories)}</h2>
-    <ul>{''.join([f'<li>{cat.name}</li>' for cat in categories[:10]])}</ul>
-
-    <h2>Suppliers: {len(suppliers)}</h2>
-    <ul>{''.join([f'<li>{sup.name}</li>' for sup in suppliers[:10]])}</ul>
-    """
-
 @recipe_import_blueprint.route('/recipes/upload', methods=['GET', 'POST'])
 def upload_recipes():
     """Upload Excel file and select sheet"""
