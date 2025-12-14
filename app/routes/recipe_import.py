@@ -377,39 +377,6 @@ def calculate_100g_cost(total_weight, total_cost):
 # AJAX API Endpoints
 # ----------------------------
 
-@recipe_import_blueprint.route('/api/recipe_import/get_categories', methods=['GET'])
-def get_categories_ajax():
-    """AJAX endpoint to get raw material categories"""
-    try:
-        categories = Category.query.filter_by(type='raw_material').order_by(Category.name).all()
-        return jsonify({
-            'success': True,
-            'categories': [{'id': c.id, 'name': c.name} for c in categories]
-        })
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@recipe_import_blueprint.route('/api/recipe_import/get_suppliers', methods=['GET'])
-def get_suppliers_ajax():
-    """AJAX endpoint to get active suppliers"""
-    try:
-        suppliers = Supplier.query.filter_by(is_active=True).order_by(Supplier.name).all()
-        return jsonify({
-            'success': True,
-            'suppliers': [
-                {
-                    'id': s.id,
-                    'name': s.name,
-                    'discount_percentage': s.discount_percentage if s.discount_percentage else 0
-                }
-                for s in suppliers
-            ]
-        })
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
 @recipe_import_blueprint.route('/api/recipe_import/create_supplier', methods=['POST'])
 def create_supplier_ajax():
     """AJAX endpoint to create supplier during import"""
