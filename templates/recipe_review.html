@@ -253,25 +253,26 @@
                                         <option value="">{{ _('Select material from system...') }}</option>
                                         <!-- DEBUG: material.type = "{{ material.type }}" -->
 
-                                        {% if material.type == 'חומר גלם' %}
-                                            <!-- DEBUG: Adding {{ all_raw_materials|length }} raw materials -->
+                                        {% set normalized_type = material.type|trim|lower if material.type else '' %}
+                                        {% if normalized_type in ['חומר גלם', 'חומר', 'raw material', 'raw'] or 'חומר' in normalized_type %}
+                                            <!-- DEBUG: Matched as raw material - Adding {{ all_raw_materials|length }} raw materials -->
                                             {% for rm in all_raw_materials %}
                                             <option value="{{ rm.id }}">
                                                 {{ rm.name }} ({{ rm.unit }})
                                             </option>
                                             {% endfor %}
-                                        {% elif material.type == 'הכנה' %}
-                                            <!-- DEBUG: Adding {{ all_premakes|length }} premakes -->
+                                        {% elif normalized_type in ['הכנה', 'premake', 'preparation'] or 'הכנה' in normalized_type %}
+                                            <!-- DEBUG: Matched as premake - Adding {{ all_premakes|length }} premakes -->
                                             {% for pm in all_premakes %}
                                             <option value="{{ pm.id }}">{{ pm.name }}</option>
                                             {% endfor %}
-                                        {% elif material.type == 'מוצר מקדים' %}
-                                            <!-- DEBUG: Adding {{ all_preproducts|length }} preproducts -->
+                                        {% elif normalized_type in ['מוצר מקדים', 'preproduct', 'pre-product'] or 'מוצר' in normalized_type %}
+                                            <!-- DEBUG: Matched as preproduct - Adding {{ all_preproducts|length }} preproducts -->
                                             {% for pp in all_preproducts %}
                                             <option value="{{ pp.id }}">{{ pp.name }}</option>
                                             {% endfor %}
                                         {% else %}
-                                            <!-- DEBUG: Unknown type "{{ material.type }}" - no materials added -->
+                                            <!-- DEBUG: Unknown type "{{ material.type }}" (normalized: "{{ normalized_type }}") - no materials added -->
                                         {% endif %}
                                     </select>
                                     {% endif %}
