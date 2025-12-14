@@ -168,6 +168,9 @@
                                                     <label class="form-label small">{{ _('Category') }}</label>
                                                     <select class="form-select form-select-sm category-select">
                                                         <option value="">{{ _('Select...') }}</option>
+                                                        {% for cat in all_categories %}
+                                                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                                                        {% endfor %}
                                                     </select>
                                                 </div>
                                                 <div class="col-md-2">
@@ -184,6 +187,9 @@
                                                         <select class="form-select supplier-select">
                                                             <option value="">{{ _('Select...') }}</option>
                                                             <option value="new">➕ {{ _('New Supplier...') }}</option>
+                                                            {% for supplier in all_suppliers %}
+                                                            <option value="{{ supplier.id }}">{{ supplier.name }}</option>
+                                                            {% endfor %}
                                                         </select>
                                                     </div>
                                                 </div>

@@ -377,6 +377,39 @@ def calculate_100g_cost(total_weight, total_cost):
 # AJAX API Endpoints
 # ----------------------------
 
+@recipe_import_blueprint.route('/api/recipe_import/get_categories', methods=['GET'])
+def get_categories_ajax():
+    """AJAX endpoint to get raw material categories"""
+    try:
+        categories = Category.query.filter_by(type='raw_material').order_by(Category.name).all()
+        return jsonify({
+            'success': True,
+            'categories': [{'id': c.id, 'name': c.name} for c in categories]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@recipe_import_blueprint.route('/api/recipe_import/get_suppliers', methods=['GET'])
+def get_suppliers_ajax():
+    """AJAX endpoint to get active suppliers"""
+    try:
+        suppliers = Supplier.query.filter_by(is_active=True).order_by(Supplier.name).all()
+        return jsonify({
+            'success': True,
+            'suppliers': [
+                {
+                    'id': s.id,
+                    'name': s.name,
+                    'discount_percentage': s.discount_percentage if s.discount_percentage else 0
+                }
+                for s in suppliers
+            ]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @recipe_import_blueprint.route('/api/recipe_import/create_supplier', methods=['POST'])
 def create_supplier_ajax():
     """AJAX endpoint to create supplier during import"""
@@ -760,6 +793,10 @@ def select_sheet():
         all_premakes = Product.query.filter_by(is_premake=True, is_archived=False).order_by(Product.name).all()
         all_preproducts = Product.query.filter_by(is_preproduct=True, is_archived=False).order_by(Product.name).all()
 
+        # Query categories and suppliers for material creation
+        all_categories = Category.query.filter_by(type='raw_material').order_by(Category.name).all()
+        all_suppliers = Supplier.query.filter_by(is_active=True).order_by(Supplier.name).all()
+
         # Process each recipe
         recipes_review_data = []
         all_missing_materials = []
@@ -873,7 +910,9 @@ def select_sheet():
                              missing_materials=all_missing_materials,
                              all_raw_materials=all_raw_materials,
                              all_premakes=all_premakes,
-                             all_preproducts=all_preproducts)
+                             all_preproducts=all_preproducts,
+                             all_categories=all_categories,
+                             all_suppliers=all_suppliers)
 
     except Exception as e:
         flash(f'שגיאה בעיבוד הגיליון: {str(e)}', 'error')
