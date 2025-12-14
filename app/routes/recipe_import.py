@@ -757,8 +757,8 @@ def select_sheet():
 
         # Query all available materials for dropdowns
         all_raw_materials = RawMaterial.query.filter_by(is_deleted=False).order_by(RawMaterial.name).all()
-        all_premakes = Product.query.filter_by(is_premake=True).order_by(Product.name).all()
-        all_preproducts = Product.query.filter_by(is_preproduct=True).order_by(Product.name).all()
+        all_premakes = Product.query.filter_by(is_premake=True, is_archived=False).order_by(Product.name).all()
+        all_preproducts = Product.query.filter_by(is_preproduct=True, is_archived=False).order_by(Product.name).all()
 
         # Process each recipe
         recipes_review_data = []

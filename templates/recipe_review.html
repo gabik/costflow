@@ -237,8 +237,8 @@
 
                                         {% if material.type == 'חומר גלם' %}
                                             {% for rm in all_raw_materials %}
-                                            <option value="{{ rm.id }}" data-price="{{ rm.cost_per_unit }}">
-                                                {{ rm.name }} ({{ "%.2f"|format(rm.cost_per_unit) }} ₪/{{ rm.unit }})
+                                            <option value="{{ rm.id }}">
+                                                {{ rm.name }} ({{ rm.unit }})
                                             </option>
                                             {% endfor %}
                                         {% elif material.type == 'הכנה' %}
