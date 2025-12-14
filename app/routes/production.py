@@ -122,6 +122,16 @@ def production():
                 cost_details=json.dumps(cost_details)
             )
             db.session.add(production_log)
+
+            # Create StockLog for preproducts (they need stock tracking like premakes)
+            if product.is_preproduct:
+                stock_log = StockLog(
+                    product_id=product_id,
+                    action_type='add',
+                    quantity=units_produced  # Total units produced
+                )
+                db.session.add(stock_log)
+
             db.session.commit()
 
             return redirect(url_for('production.production'))
