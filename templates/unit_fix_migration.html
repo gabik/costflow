@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ _('Complete Unit System Fix') }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            direction: rtl;
+        }
+        .critical {
+            background: #ffcccc;
+            border: 3px solid red;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .analysis-box {
+            background: #f0f0f0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: right;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .fix-needed {
+            background-color: #ffe6e6;
+        }
+        .btn-fix {
+            background: #dc3545;
+            color: white;
+            padding: 15px 30px;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .btn-cancel {
+            background: #6c757d;
+            color: white;
+            padding: 15px 30px;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .stats {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ _('CRITICAL: Complete Unit System Fix') }}</h1>
+
+    <div class="critical">
+        <h2>⚠️ {{ _('Critical Database Fix Required') }}</h2>
+        <p class="stats">
+            {{ _('Total fixes needed') }}: {{ analysis.total_fixes_needed }}
+        </p>
+        <ul>
+            <li>{{ _('Products with unit="g"') }}: {{ analysis.products_with_g|length }}</li>
+            <li>{{ _('Components stored as grams (1000.0)') }}: {{ analysis.components_to_fix|length }}</li>
+            <li>{{ _('Batch sizes in grams') }}: {{ analysis.batch_sizes_to_fix|length }}</li>
+        </ul>
+    </div>
+
+    <div class="analysis-box">
+        <h2>{{ _('What this migration will do') }}:</h2>
+        <ol>
+            <li>{{ _('Update ALL products/premakes to unit="kg"') }}</li>
+            <li>{{ _('Fix component quantities > 100 (divide by 1000 to convert g to kg)') }}</li>
+            <li>{{ _('Fix batch sizes > 100 (divide by 1000)') }}</li>
+            <li>{{ _('Fix loss components with large negative values') }}</li>
+            <li>{{ _('Ensure everything is stored in kg baseline') }}</li>
+        </ol>
+    </div>
+
+    {% if analysis.products_with_g %}
+    <h3>{{ _('Products/Premakes with unit="g"') }} ({{ analysis.products_with_g|length }})</h3>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>{{ _('Name') }}</th>
+            <th>{{ _('Type') }}</th>
+            <th>{{ _('Current Unit') }}</th>
+            <th>{{ _('Batch Size') }}</th>
+        </tr>
+        {% for product in analysis.products_with_g[:20] %}
+        <tr class="fix-needed">
+            <td>{{ product.id }}</td>
+            <td>{{ product.name }}</td>
+            <td>{{ _(product.type) }}</td>
+            <td>{{ product.unit }}</td>
+            <td>{{ product.batch_size }}</td>
+        </tr>
+        {% endfor %}
+        {% if analysis.products_with_g|length > 20 %}
+        <tr>
+            <td colspan="5">... {{ _('and {} more').format(analysis.products_with_g|length - 20) }}</td>
+        </tr>
+        {% endif %}
+    </table>
+    {% endif %}
+
+    {% if analysis.components_to_fix %}
+    <h3>{{ _('Components Stored as Grams') }} ({{ analysis.components_to_fix|length }})</h3>
+    <table>
+        <tr>
+            <th>{{ _('Product') }}</th>
+            <th>{{ _('Component') }}</th>
+            <th>{{ _('Current Quantity') }}</th>
+            <th>{{ _('Will Change To') }}</th>
+        </tr>
+        {% for comp in analysis.components_to_fix[:20] %}
+        <tr class="fix-needed">
+            <td>{{ comp.product_name }}</td>
+            <td>{{ comp.material_name|default(comp.component_type) }}</td>
+            <td>{{ "%.1f"|format(comp.quantity) }}</td>
+            <td>{{ "%.3f"|format(comp.suggested_fix) }} kg</td>
+        </tr>
+        {% endfor %}
+        {% if analysis.components_to_fix|length > 20 %}
+        <tr>
+            <td colspan="4">... {{ _('and {} more').format(analysis.components_to_fix|length - 20) }}</td>
+        </tr>
+        {% endif %}
+    </table>
+    {% endif %}
+
+    {% if analysis.batch_sizes_to_fix %}
+    <h3>{{ _('Batch Sizes to Fix') }} ({{ analysis.batch_sizes_to_fix|length }})</h3>
+    <table>
+        <tr>
+            <th>{{ _('Product/Premake') }}</th>
+            <th>{{ _('Current Batch Size') }}</th>
+            <th>{{ _('Will Change To') }}</th>
+        </tr>
+        {% for product in analysis.batch_sizes_to_fix[:20] %}
+        <tr class="fix-needed">
+            <td>{{ product.name }}</td>
+            <td>{{ "%.1f"|format(product.batch_size) }}</td>
+            <td>{{ "%.3f"|format(product.suggested_fix) }} kg</td>
+        </tr>
+        {% endfor %}
+        {% if analysis.batch_sizes_to_fix|length > 20 %}
+        <tr>
+            <td colspan="3">... {{ _('and {} more').format(analysis.batch_sizes_to_fix|length - 20) }}</td>
+        </tr>
+        {% endif %}
+    </table>
+    {% endif %}
+
+    <form method="POST" onsubmit="return confirm('{{ _('Are you sure? This will fix {} items in the database.').format(analysis.total_fixes_needed) }}');">
+        <input type="hidden" name="confirm" value="yes">
+        <button type="submit" class="btn-fix">
+            🔧 {{ _('Execute Complete Unit Fix') }}
+        </button>
+        <a href="{{ url_for('products.products') }}">
+            <button type="button" class="btn-cancel">{{ _('Cancel') }}</button>
+        </a>
+    </form>
+
+    <div style="margin-top: 40px; padding: 20px; background: #ffffcc;">
+        <h3>{{ _('Important Notes') }}:</h3>
+        <ul>
+            <li>{{ _('This migration is IDEMPOTENT - safe to run multiple times') }}</li>
+            <li>{{ _('All data will be converted to kg baseline') }}</li>
+            <li>{{ _('Display will automatically show g for values < 1kg') }}</li>
+            <li>{{ _('Product costs will be recalculated correctly') }}</li>
+        </ul>
+    </div>
+</body>
+</html>
