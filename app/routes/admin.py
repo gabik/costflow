@@ -893,46 +893,49 @@ def migrate_convert_units():
                 </div>
 
                 <h2 class="needs-conversion">Products Needing Conversion ({len(analysis['products_to_convert'])})</h2>
-                {"".join([f'''
-                <div class="product-box">
-                    <strong>{p['name']}</strong> (ID: {p['id']})<br>
-                    Batch Size: {p['batch_size']} {p['unit']}<br>
-                    Components:
-                    {"".join([f'''
-                    <div class="component {('needs-conversion' if c.get('needs_conversion') else 'already-ok')}">
-                        - {c.get('material_name', c['type'])}: {c['quantity']:.3f}
-                        {(' → ' + str(c['new_quantity']) + ' kg') if c.get('needs_conversion') else ''}
-                    </div>
-                    ''' for c in p['components']])}
-                </div>
-                ''' for p in analysis['products_to_convert']])}
+                {''.join([
+                    '<div class="product-box">' +
+                    f'<strong>{p["name"]}</strong> (ID: {p["id"]})<br>' +
+                    f'Batch Size: {p["batch_size"]} {p["unit"]}<br>' +
+                    'Components:' +
+                    ''.join([
+                        f'<div class="component {("needs-conversion" if c.get("needs_conversion") else "already-ok")}">' +
+                        f'- {c.get("material_name", c["type"])}: {c["quantity"]:.3f}' +
+                        (f' → {c["new_quantity"]:.3f} kg' if c.get("needs_conversion") else '') +
+                        '</div>'
+                        for c in p['components']
+                    ]) +
+                    '</div>'
+                    for p in analysis['products_to_convert']
+                ])}
 
                 <h2 class="needs-conversion">Premakes Needing Conversion ({len(analysis['premakes_to_convert'])})</h2>
-                {"".join([f'''
-                <div class="product-box">
-                    <strong>{p['name']}</strong> (ID: {p['id']})<br>
-                    Batch Size: {p['batch_size']} {p['unit']}<br>
-                    Components:
-                    {"".join([f'''
-                    <div class="component {('needs-conversion' if c.get('needs_conversion') else 'already-ok')}">
-                        - {c.get('material_name', c['type'])}: {c['quantity']:.3f}
-                        {(' → ' + str(c['new_quantity']) + ' kg') if c.get('needs_conversion') else ''}
-                    </div>
-                    ''' for c in p['components']])}
-                </div>
-                ''' for p in analysis['premakes_to_convert']])}
+                {''.join([
+                    '<div class="product-box">' +
+                    f'<strong>{p["name"]}</strong> (ID: {p["id"]})<br>' +
+                    f'Batch Size: {p["batch_size"]} {p["unit"]}<br>' +
+                    'Components:' +
+                    ''.join([
+                        f'<div class="component {("needs-conversion" if c.get("needs_conversion") else "already-ok")}">' +
+                        f'- {c.get("material_name", c["type"])}: {c["quantity"]:.3f}' +
+                        (f' → {c["new_quantity"]:.3f} kg' if c.get("needs_conversion") else '') +
+                        '</div>'
+                        for c in p['components']
+                    ]) +
+                    '</div>'
+                    for p in analysis['premakes_to_convert']
+                ])}
 
-                {f'''
-                <h2 class="warning">Suspicious Quantities Found ({len(analysis['suspicious_quantities'])})</h2>
-                {"".join([f'''
-                <div class="product-box warning">
-                    Product: {s['product_name']} (ID: {s['product_id']})<br>
-                    Component Type: {s['component_type']}<br>
-                    Quantity: {s['quantity']} kg<br>
-                    Issue: {s['likely_issue']}
-                </div>
-                ''' for s in analysis['suspicious_quantities']])}
-                ''' if analysis['suspicious_quantities'] else ''}
+                {'<h2 class="warning">Suspicious Quantities Found (' + str(len(analysis["suspicious_quantities"])) + ')</h2>' +
+                 ''.join([
+                     '<div class="product-box warning">' +
+                     f'Product: {s["product_name"]} (ID: {s["product_id"]})<br>' +
+                     f'Component Type: {s["component_type"]}<br>' +
+                     f'Quantity: {s["quantity"]} kg<br>' +
+                     f'Issue: {s["likely_issue"]}' +
+                     '</div>'
+                     for s in analysis['suspicious_quantities']
+                 ]) if analysis['suspicious_quantities'] else ''}
 
                 <h2 class="already-ok">Already Converted ({len(analysis['already_converted'])})</h2>
                 <p>These products appear to already be using correct units:</p>
