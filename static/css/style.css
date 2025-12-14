@@ -478,7 +478,7 @@ html[dir="rtl"] th.text-center {
 /* Fix for action buttons in tables */
 html[dir="rtl"] .table .btn-group {
     display: inline-flex;
-    direction: ltr;
+    /* Keep RTL direction for proper button order */
 }
 
 /* Action buttons in tables and cards keep their original icons */
