@@ -21,112 +21,105 @@ msgstr ""
 #: app/routes/fix_sequences.py:70
 #, python-brace-format
 msgid "Fixed {} sequences"
-msgstr ""
+msgstr "תוקנו {} רצפים"
 
 #: app/routes/packaging.py:300
-#, fuzzy
 msgid "Missing required fields"
-msgstr "חומרים חסרים"
+msgstr "שדות חובה חסרים"
 
 #: app/routes/packaging.py:304 app/routes/packaging.py:397
 #: app/routes/utils.py:761
-#, fuzzy
 msgid "Packaging not found"
-msgstr "שם אריזה"
+msgstr "אריזה לא נמצאה"
 
 #: app/routes/packaging.py:388
-#, fuzzy
 msgid "Stock updated successfully"
-msgstr "הקובץ הועלה בהצלחה"
+msgstr "המלאי עודכן בהצלחה"
 
 #: app/routes/products.py:631
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Product archived: It is used as a component in {} other product(s)"
-msgstr "ניתן למכירה וגם לשימוש כרכיב במוצרים אחרים"
+msgstr "המוצר הועבר לארכיון: הוא משמש כרכיב ב-{} מוצרים אחרים"
 
 #: app/routes/products.py:642
 #, python-brace-format
 msgid "Product archived: It has {} production record(s)"
-msgstr ""
+msgstr "המוצר הועבר לארכיון: יש לו {} רשומות ייצור"
 
 #: app/routes/products.py:653
 #, python-brace-format
 msgid "Product archived: It has {} weekly sales record(s)"
-msgstr ""
+msgstr "המוצר הועבר לארכיון: יש לו {} רשומות מכירות שבועיות"
 
 #: app/routes/products.py:672
-#, fuzzy
 msgid "Product deleted successfully"
-msgstr "הקובץ הועלה בהצלחה"
+msgstr "המוצר נמחק בהצלחה"
 
 #: app/routes/products.py:675
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Error deleting product: {}"
-msgstr "שגיאה בעדכון מחיר:"
+msgstr "שגיאה במחיקת מוצר: {}"
 
 #: app/routes/products.py:692
-#, fuzzy
 msgid "Product restored successfully"
-msgstr "הקובץ הועלה בהצלחה"
+msgstr "המוצר שוחזר בהצלחה"
 
 #: app/routes/products.py:695
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Error restoring product: {}"
-msgstr "שגיאה בעדכון מחיר:"
+msgstr "שגיאה בשחזור מוצר: {}"
 
 #: app/routes/products.py:718
 msgid "Migration completed: Added is_archived field to products"
-msgstr ""
+msgstr "המיגרציה הושלמה: נוסף שדה is_archived למוצרים"
 
 #: app/routes/products.py:720
 msgid "Migration skipped: is_archived field already exists"
-msgstr ""
+msgstr "המיגרציה דולגה: שדה is_archived כבר קיים"
 
 #: app/routes/products.py:722
 #, python-brace-format
 msgid "Migration failed: {}"
-msgstr ""
+msgstr "המיגרציה נכשלה: {}"
 
 #: app/routes/recipe_import.py:393
-#, fuzzy
 msgid "Supplier name is required"
-msgstr "שם הספק"
+msgstr "שם הספק הוא שדה חובה"
 
 #: app/routes/recipe_import.py:398
 msgid "Supplier with this name already exists"
-msgstr ""
+msgstr "ספק עם שם זה כבר קיים"
 
 #: app/routes/recipe_import.py:447
 msgid "Name, category, unit and supplier are required"
-msgstr ""
+msgstr "שם, קטגוריה, יחידה וספק הם שדות חובה"
 
 #: app/routes/recipe_import.py:452 app/routes/recipe_import.py:572
 msgid "Material with this name already exists"
-msgstr ""
+msgstr "חומר גלם עם שם זה כבר קיים"
 
 #: app/routes/recipe_import.py:459
 #, python-brace-format
 msgid "This name is already used as an alternative for: {}"
-msgstr ""
+msgstr "שם זה כבר משמש כשם חלופי עבור: {}"
 
 #: app/routes/recipe_import.py:581
 #, python-brace-format
 msgid "This name is used as alternative for: {}"
-msgstr ""
+msgstr "שם זה משמש כשם חלופי עבור: {}"
 
 #: app/routes/recipe_import.py:599
-#, fuzzy
 msgid "Category name is required"
-msgstr "שם הספק"
+msgstr "שם קטגוריה הוא שדה חובה"
 
 #: app/routes/recipe_import.py:1038
 msgid "Material not found or invalid mapping"
-msgstr ""
+msgstr "חומר גלם לא נמצא או מיפוי לא תקין"
 
 #: app/routes/recipe_import.py:1043
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid "Missing material: {}"
-msgstr "חומרים חסרים"
+msgstr "חומר חסר: {}"
 
 #: app/routes/utils.py:772 app/routes/utils.py:833
 #, python-format
@@ -134,11 +127,12 @@ msgid ""
 "Insufficient packaging stock for %(name)s. Required: %(required).2f, "
 "Available: %(available).2f"
 msgstr ""
+"מלאי אריזה לא מספיק עבור %(name)s. נדרש: %(required).2f, "
+"זמין: %(available).2f"
 
 #: templates/add_or_edit_labor.html:2
-#, fuzzy
 msgid "Edit Labor"
-msgstr "עובדים קיימים"
+msgstr "עריכת עובד"
 
 #: templates/add_or_edit_labor.html:7
 msgid "Edit Employee / Role"
@@ -202,9 +196,8 @@ msgid "Packaging"
 msgstr "אריזה"
 
 #: templates/add_or_edit_packaging.html:33
-#, fuzzy
 msgid "Edit Packaging"
-msgstr "מוצר אריזה חדש"
+msgstr "עריכת אריזה"
 
 #: templates/add_or_edit_packaging.html:33
 #: templates/add_or_edit_product.html:474
@@ -218,7 +211,7 @@ msgstr "שם אריזה"
 
 #: templates/add_or_edit_packaging.html:45
 msgid "e.g., Box 12 units"
-msgstr ""
+msgstr "לדוגמה: קרטון 12 יחידות"
 
 #: templates/add_or_edit_packaging.html:50 templates/packaging.html:55
 msgid "Quantity per Package"
@@ -226,15 +219,13 @@ msgstr "כמות לארגז"
 
 #: templates/add_or_edit_packaging.html:51
 msgid "e.g., 12"
-msgstr ""
+msgstr "לדוגמה: 12"
 
 #: templates/add_or_edit_packaging.html:52
-#, fuzzy
 msgid "Number of units in each package"
-msgstr "מספר יחידות"
+msgstr "מספר יחידות בכל אריזה"
 
 #: templates/add_or_edit_packaging.html:58
-#, fuzzy
 msgid "Suppliers & Pricing"
 msgstr "ספקים ומחירים"
 
@@ -263,39 +254,36 @@ msgstr "בחר ספק..."
 #: templates/add_or_edit_packaging.html:83
 #: templates/add_or_edit_packaging.html:112
 #: templates/add_or_edit_packaging.html:213
-#, fuzzy
 msgid "SKU (optional)"
-msgstr "אופציונלי"
+msgstr "מק\"ט (אופציונלי)"
 
 #: templates/add_or_edit_packaging.html:86
 #: templates/add_or_edit_packaging.html:115
 #: templates/add_or_edit_packaging.html:216
-#, fuzzy
 msgid "Price per package"
-msgstr "מחיר לארגז"
+msgstr "מחיר לאריזה"
 
 #: templates/add_or_edit_packaging.html:89
 #: templates/add_or_edit_packaging.html:118
 #: templates/add_or_edit_packaging.html:219
-#, fuzzy
 msgid "Remove"
-msgstr "הוסר:"
+msgstr "הסר"
 
 #: templates/add_or_edit_packaging.html:128
 msgid ""
 "Select primary supplier with the radio button. Primary supplier will be "
 "used first during production."
 msgstr ""
+"בחר ספק ראשי באמצעות כפתור הרדיו. הספק הראשי ישמש "
+"ראשון במהלך הייצור."
 
 #: templates/add_or_edit_packaging.html:134
-#, fuzzy
 msgid "Stock Transfer for Removed Suppliers"
-msgstr "העברת המלאי לספק אחר"
+msgstr "העברת מלאי עבור ספקים שהוסרו"
 
 #: templates/add_or_edit_packaging.html:138
-#, fuzzy
 msgid "Keep existing stock (no changes)"
-msgstr "טיפול במלאי קיים"
+msgstr "שמור מלאי קיים (ללא שינויים)"
 
 #: templates/add_or_edit_packaging.html:144
 #: templates/add_or_edit_raw_material.html:244
@@ -304,20 +292,19 @@ msgstr "העברת המלאי לספק אחר"
 
 #: templates/add_or_edit_packaging.html:150
 msgid "Mark as waste (remove from inventory)"
-msgstr ""
+msgstr "סמן כפחת (הסר מהמלאי)"
 
 #: templates/add_or_edit_packaging.html:154
-#, fuzzy
 msgid "Transfer to:"
-msgstr "להעביר לשבוע הבא?"
+msgstr "העבר אל:"
 
 #: templates/add_or_edit_packaging.html:164
 msgid "Initial Stock (optional)"
-msgstr ""
+msgstr "מלאי התחלתי (אופציונלי)"
 
 #: templates/add_or_edit_packaging.html:165
 msgid "Enter initial stock quantity"
-msgstr ""
+msgstr "הזן כמות מלאי התחלתית"
 
 #: templates/add_or_edit_packaging.html:172
 #: templates/add_or_edit_premake.html:203
@@ -339,13 +326,12 @@ msgid "Cancel"
 msgstr "בטל"
 
 #: templates/add_or_edit_packaging.html:175
-#, fuzzy
 msgid "Save Packaging"
-msgstr "מוצר אריזה חדש"
+msgstr "שמור אריזה"
 
 #: templates/add_or_edit_packaging.html:236
 msgid "At least one supplier is required"
-msgstr ""
+msgstr "נדרש לפחות ספק אחד"
 
 # add_or_edit_premake.html new translations
 #: templates/add_or_edit_premake.html:2 templates/add_or_edit_premake.html:6
