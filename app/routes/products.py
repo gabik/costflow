@@ -304,11 +304,34 @@ def product_detail(product_id):
         # Get discounted price using helper
         primary_price_discounted = get_primary_supplier_discounted_price(material)
 
+        # Convert prices to per 100g for display
+        # Price is already per unit in the material's unit (e.g., per kg, per liter)
+        # We need to convert to price per 100g
+        if material.unit == 'kg':
+            price_per_100g = primary_price_discounted * 0.1  # 100g = 0.1kg
+            price_per_100g_original = primary_price_original * 0.1
+        elif material.unit == 'g':
+            price_per_100g = primary_price_discounted * 100  # price is per g, we want per 100g
+            price_per_100g_original = primary_price_original * 100
+        elif material.unit == 'l':
+            price_per_100g = primary_price_discounted * 0.1  # Assuming 1l = 1kg for liquids
+            price_per_100g_original = primary_price_original * 0.1
+        elif material.unit == 'ml':
+            price_per_100g = primary_price_discounted * 100  # Assuming 1ml = 1g for liquids
+            price_per_100g_original = primary_price_original * 100
+        else:
+            # For units like 'unit', keep the price as is
+            price_per_100g = primary_price_discounted
+            price_per_100g_original = primary_price_original
+
         raw_materials.append({
             'name': material.name,
             'quantity': component.quantity,
-            'price_per_unit': primary_price_discounted,  # Use discounted price
-            'price_per_unit_original': primary_price_original,  # Add original price
+            'unit': material.unit,
+            'price_per_unit': primary_price_discounted,  # Keep for calculations
+            'price_per_unit_original': primary_price_original,  # Keep for calculations
+            'price_per_100g': price_per_100g,  # For display
+            'price_per_100g_original': price_per_100g_original,  # For display
             'price_per_recipe': component.quantity * primary_price_discounted,
             'price_per_product': (component.quantity * primary_price_discounted) / product.products_per_recipe if product.products_per_recipe > 0 else 0
         })
@@ -371,6 +394,15 @@ def product_detail(product_id):
         # Apply dynamic unit conversion for display
         display_quantity, display_unit = format_quantity_with_unit(component.quantity, getattr(premake, 'unit', 'unit'))
 
+        # Convert premake cost to per 100g
+        premake_unit = getattr(premake, 'unit', 'kg')
+        if premake_unit == 'kg':
+            price_per_100g = premake_unit_cost * 0.1  # 100g = 0.1kg
+        elif premake_unit == 'g':
+            price_per_100g = premake_unit_cost * 100  # price is per g, we want per 100g
+        else:
+            price_per_100g = premake_unit_cost  # Keep as is for other units
+
         premake_costs.append({
             'name': premake.name,
             'quantity': component.quantity,  # Keep original for calculations
@@ -378,7 +410,8 @@ def product_detail(product_id):
             'display_quantity': display_quantity,  # Add display quantity
             'display_unit': display_unit,  # Add display unit
             'batch_size': effective_batch_size,
-            'price_per_unit': premake_unit_cost,
+            'price_per_unit': premake_unit_cost,  # Keep for calculations
+            'price_per_100g': price_per_100g,  # For display
             'price_per_recipe': component.quantity * premake_unit_cost,
             'price_per_product': (component.quantity * premake_unit_cost) / product.products_per_recipe if product.products_per_recipe > 0 else 0,
             'components': components_list
@@ -396,11 +429,21 @@ def product_detail(product_id):
         # Calculate prime cost for the preproduct
         preproduct_unit_cost = calculate_prime_cost(preproduct)
 
+        # Convert preproduct cost to per 100g
+        preproduct_unit = getattr(preproduct, 'unit', 'kg')
+        if preproduct_unit == 'kg':
+            price_per_100g = preproduct_unit_cost * 0.1  # 100g = 0.1kg
+        elif preproduct_unit == 'g':
+            price_per_100g = preproduct_unit_cost * 100  # price is per g, we want per 100g
+        else:
+            price_per_100g = preproduct_unit_cost  # Keep as is for other units
+
         preproduct_costs.append({
             'name': preproduct.name,
             'quantity': component.quantity,
             'unit': getattr(preproduct, 'unit', 'unit'),
-            'price_per_unit': preproduct_unit_cost,
+            'price_per_unit': preproduct_unit_cost,  # Keep for calculations
+            'price_per_100g': price_per_100g,  # For display
             'price_per_recipe': component.quantity * preproduct_unit_cost,
             'price_per_product': (component.quantity * preproduct_unit_cost) / product.products_per_recipe if product.products_per_recipe > 0 else 0
         })

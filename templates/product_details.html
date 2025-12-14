@@ -98,8 +98,9 @@
                     <tr>
                         <th style="width: 30%;">{{ _('Raw Material') }}</th>
                         <th>{{ _('Quantity in Recipe') }}</th>
-                        <th>{{ _('Original Price') }}</th>
-                        <th>{{ _('Discounted Price') }}</th>
+                        <th>{{ _('Unit') }}</th>
+                        <th>{{ _('Original Price per 100g') }}</th>
+                        <th>{{ _('Discounted Price per 100g') }}</th>
                         <th>{{ _('Cost per Recipe') }}</th>
                         <th class="text-end">{{ _('Cost per Product') }}</th>
                     </tr>
@@ -109,31 +110,32 @@
                     <tr>
                         <td>{{ component.name }}</td>
                         <td>{{ "%.2f"|format(component.quantity) }}</td>
+                        <td>{{ component.unit }}</td>
                         <td>
-                            {% if component.price_per_unit_original != component.price_per_unit %}
+                            {% if component.price_per_100g_original != component.price_per_100g %}
                             <span class="text-muted text-decoration-line-through">
-                                ₪{{ "%.2f"|format(component.price_per_unit_original) }}
+                                ₪{{ "%.2f"|format(component.price_per_100g_original) }}
                             </span>
                             {% else %}
-                            ₪{{ "%.2f"|format(component.price_per_unit_original) }}
+                            ₪{{ "%.2f"|format(component.price_per_100g_original) }}
                             {% endif %}
                         </td>
                         <td>
-                            <strong class="{{ 'text-success' if component.price_per_unit < component.price_per_unit_original else '' }}">
-                                ₪{{ "%.2f"|format(component.price_per_unit) }}
+                            <strong class="{{ 'text-success' if component.price_per_100g < component.price_per_100g_original else '' }}">
+                                ₪{{ "%.2f"|format(component.price_per_100g) }}
                             </strong>
-                            {% if component.price_per_unit < component.price_per_unit_original %}
+                            {% if component.price_per_100g < component.price_per_100g_original %}
                             <span class="badge bg-success ms-1">
-                                -{{ "%.1f"|format((1 - component.price_per_unit / component.price_per_unit_original) * 100) }}%
+                                -{{ "%.1f"|format((1 - component.price_per_100g / component.price_per_100g_original) * 100) }}%
                             </span>
                             {% endif %}
                         </td>
-                        <td>₪{{ "%.2f"|format(component.price_per_recipe) }}</td>
-                        <td class="text-end fw-bold">₪{{ "%.2f"|format(component.price_per_product) }}</td>
+                        <td>₪{{ "{:.2f}".format(component.price_per_recipe) if component.price_per_recipe >= 0.01 else "{:.4f}".format(component.price_per_recipe) }}</td>
+                        <td class="text-end fw-bold">₪{{ "{:.2f}".format(component.price_per_product) if component.price_per_product >= 0.01 else "{:.4f}".format(component.price_per_product) }}</td>
                     </tr>
                     {% endfor %}
                     <tr class="table-light">
-                        <td colspan="5" class="text-end fw-bold">{{ _('Total Raw Materials:') }}</td>
+                        <td colspan="6" class="text-end fw-bold">{{ _('Total Raw Materials:') }}</td>
                         <td class="text-end fw-bold">
                             {% set raw_total = namespace(value=0) %}
                             {% for item in raw_materials %}
@@ -167,7 +169,7 @@
                         <th style="width: 40%;">{{ _('Premake') }}</th>
                         <th>{{ _('Quantity in Recipe') }}</th>
                         <th>{{ _('Unit') }}</th>
-                        <th>{{ _('Cost per Unit') }}</th>
+                        <th>{{ _('Price per 100g') }}</th>
                         <th>{{ _('Cost per Recipe') }}</th>
                         <th class="text-end">{{ _('Cost per Product') }}</th>
                         <th style="width: 50px;"></th>
@@ -179,9 +181,9 @@
                         <td>{{ item.name }}</td>
                         <td>{{ "%.2f"|format(item.display_quantity if item.display_quantity is defined else item.quantity) }}</td>
                         <td>{{ item.display_unit if item.display_unit is defined else item.unit }}</td>
-                        <td>₪{{ "%.2f"|format(item.price_per_unit) }}</td>
-                        <td>₪{{ "%.2f"|format(item.price_per_recipe) }}</td>
-                        <td class="text-end fw-bold">₪{{ "%.2f"|format(item.price_per_product) }}</td>
+                        <td>₪{{ "%.2f"|format(item.price_per_100g) }}</td>
+                        <td>₪{{ "{:.2f}".format(item.price_per_recipe) if item.price_per_recipe >= 0.01 else "{:.4f}".format(item.price_per_recipe) }}</td>
+                        <td class="text-end fw-bold">₪{{ "{:.2f}".format(item.price_per_product) if item.price_per_product >= 0.01 else "{:.4f}".format(item.price_per_product) }}</td>
                         <td>
                             <button class="btn btn-sm btn-link p-0" type="button" data-bs-toggle="collapse"
                                     data-bs-target="#collapsePremake{{ loop.index }}" aria-expanded="false">
@@ -250,7 +252,7 @@
                         <th style="width: 40%;">{{ _('Preproduct') }}</th>
                         <th>{{ _('Quantity in Recipe') }}</th>
                         <th>{{ _('Unit') }}</th>
-                        <th>{{ _('Cost per Unit') }}</th>
+                        <th>{{ _('Price per 100g') }}</th>
                         <th>{{ _('Cost per Recipe') }}</th>
                         <th class="text-end">{{ _('Cost per Product') }}</th>
                     </tr>
@@ -261,9 +263,9 @@
                         <td>{{ item.name }}</td>
                         <td>{{ "%.2f"|format(item.quantity) }}</td>
                         <td>{{ item.unit }}</td>
-                        <td>₪{{ "%.2f"|format(item.price_per_unit) }}</td>
-                        <td>₪{{ "%.2f"|format(item.price_per_recipe) }}</td>
-                        <td class="text-end fw-bold">₪{{ "%.2f"|format(item.price_per_product) }}</td>
+                        <td>₪{{ "%.2f"|format(item.price_per_100g) }}</td>
+                        <td>₪{{ "{:.2f}".format(item.price_per_recipe) if item.price_per_recipe >= 0.01 else "{:.4f}".format(item.price_per_recipe) }}</td>
+                        <td class="text-end fw-bold">₪{{ "{:.2f}".format(item.price_per_product) if item.price_per_product >= 0.01 else "{:.4f}".format(item.price_per_product) }}</td>
                     </tr>
                     {% endfor %}
                     <tr class="table-light">
@@ -311,8 +313,8 @@
                         <td>{{ item.name }}</td>
                         <td>{{ "%.2f"|format(item.quantity) }}</td>
                         <td>₪{{ "%.2f"|format(item.price_per_unit) }}</td>
-                        <td>₪{{ "%.2f"|format(item.price_per_recipe) }}</td>
-                        <td class="text-end fw-bold">₪{{ "%.2f"|format(item.price_per_product) }}</td>
+                        <td>₪{{ "{:.2f}".format(item.price_per_recipe) if item.price_per_recipe >= 0.01 else "{:.4f}".format(item.price_per_recipe) }}</td>
+                        <td class="text-end fw-bold">₪{{ "{:.2f}".format(item.price_per_product) if item.price_per_product >= 0.01 else "{:.4f}".format(item.price_per_product) }}</td>
                     </tr>
                     {% endfor %}
                     <tr class="table-light">
