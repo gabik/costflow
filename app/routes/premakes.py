@@ -191,6 +191,7 @@ def add_premake():
         component_types = request.form.getlist('component_type[]')
         component_ids = request.form.getlist('component_id[]')
         quantities = request.form.getlist('quantity[]')
+        units = request.form.getlist('unit[]')  # Get selected units from form
 
         # Auto-calculate batch_size as sum of all component quantities (converted to premake's unit)
         batch_size = 0
@@ -238,11 +239,25 @@ def add_premake():
         # Add components (already retrieved above for batch_size calculation)
         for i in range(len(component_types)):
             if component_types[i] and component_ids[i] and quantities[i]:
+                quantity = float(quantities[i])
+                selected_unit = units[i] if i < len(units) else 'kg'
+
+                # ALWAYS convert to kg for storage (base unit)
+                if component_types[i] == 'raw_material':
+                    material = RawMaterial.query.get(component_ids[i])
+                    if material:
+                        # Convert from selected unit to kg (always kg for internal storage)
+                        base_unit = 'kg' if material.unit in ['kg', 'g'] else material.unit
+                        quantity = convert_to_base_unit(quantity, selected_unit, base_unit)
+                elif component_types[i] == 'premake':
+                    # For premakes, always store in kg
+                    quantity = convert_to_base_unit(quantity, selected_unit, 'kg')
+
                 component = ProductComponent(
                     product_id=new_premake.id,
                     component_type=component_types[i],
                     component_id=int(component_ids[i]),
-                    quantity=float(quantities[i])
+                    quantity=quantity
                 )
                 db.session.add(component)
 
@@ -307,6 +322,7 @@ def edit_premake(premake_id):
         component_types = request.form.getlist('component_type[]')
         component_ids = request.form.getlist('component_id[]')
         quantities = request.form.getlist('quantity[]')
+        units = request.form.getlist('unit[]')  # Get selected units from form
 
         # Auto-calculate batch_size as sum of all component quantities (converted to premake's unit)
         batch_size = 0
@@ -349,11 +365,25 @@ def edit_premake(premake_id):
                 if component_types[i] == 'premake' and int(component_ids[i]) == premake.id:
                     continue
 
+                quantity = float(quantities[i])
+                selected_unit = units[i] if i < len(units) else 'kg'
+
+                # ALWAYS convert to kg for storage (base unit)
+                if component_types[i] == 'raw_material':
+                    material = RawMaterial.query.get(component_ids[i])
+                    if material:
+                        # Convert from selected unit to kg (always kg for internal storage)
+                        base_unit = 'kg' if material.unit in ['kg', 'g'] else material.unit
+                        quantity = convert_to_base_unit(quantity, selected_unit, base_unit)
+                elif component_types[i] == 'premake':
+                    # For premakes, always store in kg
+                    quantity = convert_to_base_unit(quantity, selected_unit, 'kg')
+
                 component = ProductComponent(
                     product_id=premake.id,
                     component_type=component_types[i],
                     component_id=int(component_ids[i]),
-                    quantity=float(quantities[i])
+                    quantity=quantity
                 )
                 db.session.add(component)
 

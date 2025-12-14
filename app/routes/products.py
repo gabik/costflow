@@ -135,7 +135,9 @@ def add_product():
             if not material:
                 continue
 
-            final_quantity = convert_to_base_unit(float(quantity), selected_unit, material.unit)
+            # ALWAYS convert to base unit (kg for solids, L for liquids)
+            base_unit = 'kg' if material.unit in ['kg', 'g'] else material.unit
+            final_quantity = convert_to_base_unit(float(quantity), selected_unit, base_unit)
 
             component = ProductComponent(
                 product_id=product.id,
@@ -177,8 +179,8 @@ def add_product():
             if not premake or not premake.is_premake:
                 continue
 
-            # Convert quantity to premake's base unit
-            final_quantity = convert_to_base_unit(float(quantity), selected_unit, premake.unit)
+            # ALWAYS convert to kg for consistent storage (not to premake's unit)
+            final_quantity = convert_to_base_unit(float(quantity), selected_unit, 'kg')
 
             component = ProductComponent(
                 product_id=product.id,
@@ -466,7 +468,9 @@ def edit_product(product_id):
             if not material:
                 continue
 
-            final_quantity = convert_to_base_unit(float(quantity), selected_unit, material.unit)
+            # ALWAYS convert to base unit (kg for solids, L for liquids)
+            base_unit = 'kg' if material.unit in ['kg', 'g'] else material.unit
+            final_quantity = convert_to_base_unit(float(quantity), selected_unit, base_unit)
 
             component = ProductComponent(
                 product_id=product.id,
@@ -508,8 +512,8 @@ def edit_product(product_id):
             if not premake or not premake.is_premake:
                 continue
 
-            # Convert quantity to premake's base unit
-            final_quantity = convert_to_base_unit(float(quantity), selected_unit, premake.unit)
+            # ALWAYS convert to kg for consistent storage (not to premake's unit)
+            final_quantity = convert_to_base_unit(float(quantity), selected_unit, 'kg')
 
             component = ProductComponent(
                 product_id=product.id,

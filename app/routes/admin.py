@@ -299,6 +299,265 @@ def audit_log():
 
 from datetime import timedelta
 
+@admin_blueprint.route('/verify_units', methods=['GET'])
+def verify_units():
+    """
+    Comprehensive verification of how units and quantities are stored in database.
+    Shows the ACTUAL database values without any formatting.
+    """
+    from .utils import calculate_prime_cost, get_primary_supplier_discounted_price
+
+    verification_data = {
+        'products': [],
+        'premakes': [],
+        'issues': [],
+        'summary': {}
+    }
+
+    # Check all products
+    products = Product.query.filter_by(is_product=True, is_archived=False).limit(50).all()
+    for product in products:
+        product_info = {
+            'id': product.id,
+            'name': product.name,
+            'unit': product.unit,
+            'batch_size': product.batch_size,
+            'components': []
+        }
+
+        for comp in product.components:
+            comp_info = {
+                'type': comp.component_type,
+                'quantity': comp.quantity,  # RAW database value
+                'component_id': comp.component_id,
+                'name': None,
+                'unit': None
+            }
+
+            if comp.component_type == 'raw_material' and comp.material:
+                comp_info['name'] = comp.material.name
+                comp_info['unit'] = comp.material.unit
+                comp_info['price'] = get_primary_supplier_discounted_price(comp.material)
+                # Check for unit mismatch issues
+                if comp.material.unit == 'kg' and comp.quantity > 100:
+                    verification_data['issues'].append({
+                        'type': 'High quantity',
+                        'product': product.name,
+                        'component': comp.material.name,
+                        'quantity': comp.quantity,
+                        'unit': comp.material.unit,
+                        'likely_problem': 'Stored in grams instead of kg'
+                    })
+            elif comp.component_type == 'premake':
+                premake = Product.query.get(comp.component_id)
+                if premake:
+                    comp_info['name'] = premake.name
+                    comp_info['unit'] = premake.unit
+                    # Check for unit issues
+                    if comp.quantity > 100:
+                        verification_data['issues'].append({
+                            'type': 'High premake quantity',
+                            'product': product.name,
+                            'component': premake.name,
+                            'quantity': comp.quantity,
+                            'unit': premake.unit,
+                            'likely_problem': 'Unit conversion error'
+                        })
+
+            product_info['components'].append(comp_info)
+
+        # Calculate cost to check for 0 or negative margins
+        try:
+            cost = calculate_prime_cost(product)
+            product_info['calculated_cost'] = cost
+            if product.selling_price_per_unit and product.selling_price_per_unit > 0:
+                margin = ((product.selling_price_per_unit - cost) / product.selling_price_per_unit * 100)
+                product_info['margin'] = margin
+                if margin < -100 or margin > 90:
+                    verification_data['issues'].append({
+                        'type': 'Bad margin',
+                        'product': product.name,
+                        'margin': margin,
+                        'cost': cost,
+                        'price': product.selling_price_per_unit
+                    })
+        except Exception as e:
+            product_info['cost_error'] = str(e)
+
+        verification_data['products'].append(product_info)
+
+    # Check all premakes
+    premakes = Product.query.filter_by(is_premake=True, is_archived=False).limit(50).all()
+    for premake in premakes:
+        premake_info = {
+            'id': premake.id,
+            'name': premake.name,
+            'unit': premake.unit,  # What unit is stored
+            'batch_size': premake.batch_size,
+            'components': []
+        }
+
+        total_weight = 0
+        for comp in premake.components:
+            comp_info = {
+                'type': comp.component_type,
+                'quantity': comp.quantity,  # RAW value
+                'component_id': comp.component_id,
+                'name': None,
+                'unit': None
+            }
+
+            if comp.component_type == 'raw_material' and comp.material:
+                comp_info['name'] = comp.material.name
+                comp_info['unit'] = comp.material.unit
+                total_weight += comp.quantity
+
+                # Check for issues
+                if premake.unit == 'kg' and comp.quantity > 100:
+                    verification_data['issues'].append({
+                        'type': 'Premake component issue',
+                        'premake': premake.name,
+                        'component': comp.material.name,
+                        'quantity': comp.quantity,
+                        'premake_unit': premake.unit,
+                        'material_unit': comp.material.unit
+                    })
+
+            premake_info['components'].append(comp_info)
+
+        premake_info['total_component_weight'] = total_weight
+        premake_info['batch_size_matches'] = abs(total_weight - (premake.batch_size or 0)) < 0.01
+
+        verification_data['premakes'].append(premake_info)
+
+    # Summary statistics
+    verification_data['summary'] = {
+        'products_with_g_unit': len([p for p in verification_data['products'] if p['unit'] == 'g']),
+        'products_with_kg_unit': len([p for p in verification_data['products'] if p['unit'] == 'kg']),
+        'premakes_with_g_unit': len([p for p in verification_data['premakes'] if p['unit'] == 'g']),
+        'premakes_with_kg_unit': len([p for p in verification_data['premakes'] if p['unit'] == 'kg']),
+        'total_issues': len(verification_data['issues'])
+    }
+
+    # Generate HTML report
+    return f'''
+    <html>
+    <head>
+        <title>Unit Verification Report</title>
+        <style>
+            body {{ font-family: monospace; margin: 20px; }}
+            .error {{ color: red; font-weight: bold; }}
+            .warning {{ color: orange; }}
+            .good {{ color: green; }}
+            .data-table {{ border-collapse: collapse; width: 100%; margin: 20px 0; }}
+            .data-table th, .data-table td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+            .data-table th {{ background-color: #f2f2f2; }}
+            .issue-box {{ background: #ffeeee; border: 2px solid red; padding: 10px; margin: 10px 0; }}
+            .component {{ margin-left: 30px; font-size: 0.9em; }}
+            pre {{ background: #f5f5f5; padding: 10px; overflow-x: auto; }}
+        </style>
+    </head>
+    <body>
+        <h1>🔍 Unit System Verification Report</h1>
+
+        <div class="{'issue-box' if verification_data['issues'] else 'good'}">
+            <h2>Summary</h2>
+            <ul>
+                <li>Products with unit='g': {verification_data['summary']['products_with_g_unit']}</li>
+                <li>Products with unit='kg': {verification_data['summary']['products_with_kg_unit']}</li>
+                <li>Premakes with unit='g': {verification_data['summary']['premakes_with_g_unit']}</li>
+                <li>Premakes with unit='kg': {verification_data['summary']['premakes_with_kg_unit']}</li>
+                <li class="{'error' if verification_data['issues'] else 'good'}">
+                    Total Issues Found: {verification_data['summary']['total_issues']}
+                </li>
+            </ul>
+        </div>
+
+        {'<div class="issue-box"><h2>⚠️ CRITICAL ISSUES</h2>' +
+         ''.join([f'<div style="margin-bottom: 15px;"><strong>{issue["type"]}</strong><br>' +
+                  '<br>'.join([f'{k}: {v}' for k, v in issue.items() if k != "type"]) +
+                  '</div>' for issue in verification_data['issues'][:20]]) +
+         '</div>' if verification_data['issues'] else ''}
+
+        <h2>Products Database Values (First 10)</h2>
+        <table class="data-table">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Unit</th>
+                <th>Batch Size</th>
+                <th>Components</th>
+                <th>Cost/Margin</th>
+            </tr>
+            {''.join([
+                f'<tr>' +
+                f'<td>{p["id"]}</td>' +
+                f'<td>{p["name"]}</td>' +
+                f'<td class="{"error" if p["unit"] == "g" else "good"}">{p["unit"]}</td>' +
+                f'<td>{p["batch_size"]}</td>' +
+                f'<td>' +
+                ''.join([f'<div class="component">' +
+                        f'{c["name"] or c["type"]}: ' +
+                        f'<strong>{c["quantity"]}</strong> ' +
+                        f'({c.get("unit", "?")})</div>'
+                        for c in p['components']]) +
+                '</td>' +
+                f'<td>{p.get("margin", "?"):.1f}% (₪{p.get("calculated_cost", "?"):.2f})</td>' +
+                '</tr>'
+                for p in verification_data['products'][:10]
+            ])}
+        </table>
+
+        <h2>Premakes Database Values (First 10)</h2>
+        <table class="data-table">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Unit</th>
+                <th>Batch Size</th>
+                <th>Total Weight</th>
+                <th>Match?</th>
+            </tr>
+            {''.join([
+                f'<tr>' +
+                f'<td>{p["id"]}</td>' +
+                f'<td>{p["name"]}</td>' +
+                f'<td class="{"error" if p["unit"] == "g" else "good"}">{p["unit"]}</td>' +
+                f'<td>{p["batch_size"]}</td>' +
+                f'<td>{p["total_component_weight"]:.3f}</td>' +
+                f'<td class="{"good" if p["batch_size_matches"] else "error"}">{"✓" if p["batch_size_matches"] else "✗"}</td>' +
+                '</tr>'
+                for p in verification_data['premakes'][:10]
+            ])}
+        </table>
+
+        <h2>Raw JSON Sample (for debugging)</h2>
+        <pre>{json.dumps(verification_data['products'][:2], indent=2, ensure_ascii=False)}</pre>
+
+        <div style="margin-top: 40px; padding: 20px; background: #ffffcc; border: 2px solid #ff9900;">
+            <h3>What This Shows:</h3>
+            <ul>
+                <li><strong>quantity</strong>: The EXACT value stored in the database (no formatting)</li>
+                <li><strong>unit</strong>: What unit the Product/Premake claims to use</li>
+                <li><strong>Red values</strong>: Items still using 'g' instead of 'kg'</li>
+                <li><strong>High quantities (&gt;100)</strong>: Likely stored in grams when should be kg</li>
+            </ul>
+
+            <h3>Next Steps:</h3>
+            <ol>
+                <li>Run <a href="/migrate_fix_multiplied_quantities">/migrate_fix_multiplied_quantities</a> to fix high quantities</li>
+                <li>Run <a href="/migrate_convert_units">/migrate_convert_units</a> to convert g → kg</li>
+                <li>Check if components are being saved with proper conversion</li>
+            </ol>
+        </div>
+
+        <a href="/products">Products</a> |
+        <a href="/premakes">Premakes</a> |
+        <a href="/">Dashboard</a>
+    </body>
+    </html>
+    '''
+
 @admin_blueprint.route('/migrate_fix_multiplied_quantities', methods=['GET', 'POST'])
 def migrate_fix_multiplied_quantities():
     """

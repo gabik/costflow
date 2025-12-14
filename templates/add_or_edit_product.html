@@ -675,16 +675,10 @@
         // Update unit options for the newly added premake row
         const newPremakeSelect = rowElement.querySelector('.select2');
         const newUnitSelect = rowElement.querySelector('.unit-select');
-        if (newPremakeSelect && newUnitSelect && premakeId) {
-            // If a premake is pre-selected, set its units
-            const selectedOption = newPremakeSelect.options[newPremakeSelect.selectedIndex];
-            const baseUnit = selectedOption ? selectedOption.getAttribute('data-unit') : null;
-            if (baseUnit) {
-                updateUnitOptions(newUnitSelect, baseUnit, unit);
-            }
-        } else if (newUnitSelect) {
-            // Default to kg/g options if no premake selected
-            updateUnitOptions(newUnitSelect, 'kg', unit);
+        if (newUnitSelect) {
+            // ALWAYS default to kg - don't use the premake's stored unit
+            // Everything should be kg-based internally
+            updateUnitOptions(newUnitSelect, 'kg', unit || 'kg');
         }
     }
 
@@ -692,10 +686,9 @@
         const row = selectElement.closest('.row');
         const unitSelect = row.querySelector('.unit-select');
 
-        const selectedOption = selectElement.options[selectElement.selectedIndex];
-        const baseUnit = selectedOption.getAttribute('data-unit');
-
-        updateUnitOptions(unitSelect, baseUnit);
+        // ALWAYS use kg as baseline for consistency
+        // Don't change based on material's stored unit
+        updateUnitOptions(unitSelect, 'kg');
 
         // Trigger cost recalculation
         if (typeof calculateTotalCost === 'function') {
@@ -707,11 +700,9 @@
         const row = selectElement.closest('.row');
         const unitSelect = row.querySelector('.unit-select');
 
-        const selectedOption = selectElement.options[selectElement.selectedIndex];
-        const baseUnit = selectedOption.getAttribute('data-unit');
-
-        // Update unit options based on premake's base unit, same as raw materials
-        updateUnitOptions(unitSelect, baseUnit);
+        // ALWAYS use kg as baseline - don't change unit based on premake's stored unit
+        // Everything internal should be kg-based, conversions only for display
+        updateUnitOptions(unitSelect, 'kg');
 
         // Trigger cost recalculation
         if (typeof calculateTotalCost === 'function') {
@@ -844,12 +835,9 @@
             const premakeSelect = row.querySelector('select[name="premake[]"]');
             const unitSelect = row.querySelector('select[name="premake_unit[]"]');
             if (premakeSelect && unitSelect) {
-                const selectedOption = premakeSelect.options[premakeSelect.selectedIndex];
-                const baseUnit = selectedOption ? selectedOption.getAttribute('data-unit') : null;
-                if (baseUnit) {
-                    // For existing premake rows, update unit options based on the premake's unit
-                    updateUnitOptions(unitSelect, baseUnit, unitSelect.value);
-                }
+                // ALWAYS use kg as baseline - don't use the premake's stored unit
+                // Keep existing value if editing, otherwise default to kg
+                updateUnitOptions(unitSelect, 'kg', unitSelect.value || 'kg');
             }
         });
 
