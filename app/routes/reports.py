@@ -139,8 +139,8 @@ def weekly_report():
         profit_per_unit = (product.selling_price_per_unit or 0) - cogs_per_unit
         profit_margin_pct = (profit_per_unit / (product.selling_price_per_unit or 1) * 100) if product.selling_price_per_unit else 0
 
-        # Add to sales data (only if there were sales)
-        if sale:
+        # Add to sales data (show even if no sales to display production)
+        if sale or produced_qty > 0:  # Show if there were sales OR production
             sales_data.append({
                 'name': product.name,
                 'category_name': cat_name,
@@ -151,14 +151,19 @@ def weekly_report():
                 'prime_cost_per_unit': cogs_per_unit,  # Use COGS with packaging for sold items
                 'product_cost': cost_sold + cost_waste,
                 'profit_per_unit': profit_per_unit,
-                'profit_margin_pct': profit_margin_pct
+                'profit_margin_pct': profit_margin_pct,
+                # Add production info for context
+                'quantity_produced': produced_qty,
+                'quantity_unsold': unsold_qty
             })
 
-        # Update category summaries
+        # Update category summaries (include production even without sales)
         if cat_name not in category_summaries:
             category_summaries[cat_name] = {
                 'quantity_sold': 0,
                 'quantity_waste': 0,
+                'quantity_produced': 0,
+                'quantity_unsold': 0,
                 'revenue': 0,
                 'product_cost': 0,
                 'products': []
@@ -166,8 +171,10 @@ def weekly_report():
 
         category_summaries[cat_name]['quantity_sold'] += sold_qty
         category_summaries[cat_name]['quantity_waste'] += waste_qty
+        category_summaries[cat_name]['quantity_produced'] += produced_qty
+        category_summaries[cat_name]['quantity_unsold'] += unsold_qty
         category_summaries[cat_name]['revenue'] += revenue
-        category_summaries[cat_name]['product_cost'] += cost_sold + cost_waste
+        category_summaries[cat_name]['product_cost'] += cost_sold + cost_waste + cost_unsold  # Include unsold cost
         if product.name not in category_summaries[cat_name]['products']:
             category_summaries[cat_name]['products'].append(product.name)
 
@@ -581,6 +588,7 @@ def weekly_report():
                          weeks=all_weeks,
                          week_start=week_start,
                          week_end=week_end,
+                         weekly_cost=weekly_cost,  # Add weekly_cost for template access
                          sales_data=sales_data,
                          labor_entries=labor_entries,
                          category_summaries=category_summaries,

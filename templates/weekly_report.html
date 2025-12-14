@@ -41,6 +41,17 @@
 </div>
 {% else %}
 
+{% if sales_data and sales_data|sum(attribute='quantity_sold') == 0 and sales_data|sum(attribute='quantity_produced') > 0 %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    <strong>{{ _('Production data found but no sales recorded') }}</strong><br>
+    {{ _('Products have been produced this week but sales quantities have not been entered yet.') }}<br>
+    <a href="{{ url_for('weekly_costs.update_weekly_sales', week_id=weekly_cost.id) }}" class="btn btn-sm btn-primary mt-2">
+        <i class="bi bi-pencil-square me-1"></i>{{ _('Enter Sales Data') }}
+    </a>
+</div>
+{% endif %}
+
 <!-- Summary Cards -->
 <div class="row mb-4">
     <div class="col-md-3">
@@ -211,8 +222,10 @@
                     <tr>
                         <th>{{ _('Category') }}</th>
                         <th>{{ _('Number of Products') }}</th>
+                        <th>{{ _('Produced') }}</th>
                         <th>{{ _('Quantity Sold') }}</th>
                         <th>{{ _('Waste Quantity') }}</th>
+                        <th>{{ _('In Stock') }}</th>
                         <th>{{ _('Revenue') }}</th>
                         <th>{{ _('Production Cost') }}</th>
                         <th>{{ _('Gross Profit') }}</th>
@@ -223,8 +236,10 @@
                     <tr>
                         <td class="fw-medium">{{ cat_name }}</td>
                         <td>{{ cat_data.products|length }}</td>
+                        <td>{{ (cat_data.quantity_produced|default(0))|int }}</td>
                         <td>{{ cat_data.quantity_sold|int }}</td>
                         <td>{{ cat_data.quantity_waste|int }}</td>
+                        <td>{{ (cat_data.quantity_unsold|default(0))|int }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(cat_data.revenue) }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(cat_data.product_cost) }}</td>
                         <td class="{% if cat_data.revenue - cat_data.product_cost > 0 %}text-success{% else %}text-danger{% endif %}">
@@ -237,8 +252,10 @@
                     <tr>
                         <th>{{ _('Total') }}</th>
                         <th>-</th>
+                        <th>{{ category_summaries.values()|selectattr('quantity_produced', 'defined')|sum(attribute='quantity_produced')|int }}</th>
                         <th>{{ category_summaries.values()|sum(attribute='quantity_sold')|int }}</th>
                         <th>{{ category_summaries.values()|sum(attribute='quantity_waste')|int }}</th>
+                        <th>{{ category_summaries.values()|selectattr('quantity_unsold', 'defined')|sum(attribute='quantity_unsold')|int }}</th>
                         <th>{{ currency_symbol }}{{ "%.2f"|format(total_revenue) }}</th>
                         <th>{{ currency_symbol }}{{ "%.2f"|format(total_product_cost) }}</th>
                         <th>{{ currency_symbol }}{{ "%.2f"|format(total_revenue - total_product_cost) }}</th>
@@ -267,11 +284,11 @@
                         <th>{{ _('Category') }}</th>
                         <th>{{ _('Unit Price') }}</th>
                         <th>{{ _('Unit Cost') }}</th>
+                        <th>{{ _('Produced') }}</th>
                         <th>{{ _('Quantity Sold') }}</th>
                         <th>{{ _('Waste Quantity') }}</th>
-                        <th>{{ _('Waste %') }}</th>
+                        <th>{{ _('In Stock') }}</th>
                         <th>{{ _('Revenue') }}</th>
-                        <th>{{ _('Profit/Unit') }}</th>
                         <th>{{ _('Margin %') }}</th>
                     </tr>
                 </thead>
@@ -284,17 +301,11 @@
                         <td>{{ sale.category_name or _('No Category') }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(sale.selling_price_per_unit or 0) }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(sale.prime_cost_per_unit or 0) }}</td>
+                        <td class="{% if sale.quantity_produced > 0 and sale.quantity_sold == 0 %}text-info{% endif %}">{{ (sale.quantity_produced or 0)|int }}</td>
                         <td>{{ sale.quantity_sold|int }}</td>
                         <td class="{% if sale.quantity_waste > 0 %}text-warning{% endif %}">{{ sale.quantity_waste|int }}</td>
-                        <td class="text-center">
-                            <span class="badge {% if waste_pct > 15 %}bg-danger{% elif waste_pct > 10 %}bg-warning{% else %}bg-success{% endif %}">
-                                {{ "%.1f"|format(waste_pct) }}%
-                            </span>
-                        </td>
+                        <td class="{% if sale.quantity_unsold > 0 %}text-primary{% endif %}">{{ (sale.quantity_unsold or 0)|int }}</td>
                         <td>{{ currency_symbol }}{{ "%.2f"|format(sale.revenue) }}</td>
-                        <td class="{% if sale.profit_per_unit > 0 %}text-success{% else %}text-danger{% endif %}">
-                            {{ currency_symbol }}{{ "%.2f"|format(sale.profit_per_unit or 0) }}
-                        </td>
                         <td class="text-center">
                             <span class="badge {% if sale.profit_margin_pct > 50 %}bg-success{% elif sale.profit_margin_pct > 30 %}bg-info{% elif sale.profit_margin_pct > 0 %}bg-warning{% else %}bg-danger{% endif %}">
                                 {{ "%.1f"|format(sale.profit_margin_pct or 0) }}%
