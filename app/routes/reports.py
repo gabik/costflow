@@ -29,20 +29,35 @@ def weekly_report():
     weekly_cost = WeeklyLaborCost.query.filter_by(week_start_date=week_start).first()
 
     if not weekly_cost:
-        # No data for this week
-        return render_template('weekly_report.html',
-                             weeks=all_weeks,
-                             week_start=week_start,
-                             week_end=week_end,
-                             sales_data=[],
-                             category_summaries={},
-                             total_revenue=0,
-                             labor_costs=0,
-                             net_profit=0,
-                             total_food_cost=0,
-                             avg_food_cost_per_recipe=0,
-                             total_recipes_produced=0,
-                             no_data=True)
+        # Check if there's any production activity for this week
+        from ..models import db
+        production_exists = ProductionLog.query.filter(
+            and_(
+                func.date(ProductionLog.timestamp) >= week_start,
+                func.date(ProductionLog.timestamp) <= week_end
+            )
+        ).first()
+
+        if production_exists:
+            # There's activity but no WeeklyLaborCost entry - create one with zero costs
+            weekly_cost = WeeklyLaborCost(week_start_date=week_start, total_cost=0)
+            db.session.add(weekly_cost)
+            db.session.commit()
+        else:
+            # No activity at all for this week
+            return render_template('weekly_report.html',
+                                 weeks=all_weeks,
+                                 week_start=week_start,
+                                 week_end=week_end,
+                                 sales_data=[],
+                                 category_summaries={},
+                                 total_revenue=0,
+                                 labor_costs=0,
+                                 net_profit=0,
+                                 total_food_cost=0,
+                                 avg_food_cost_per_recipe=0,
+                                 total_recipes_produced=0,
+                                 no_data=True)
 
     # Get sales data with product and category info
     sales_data = []
