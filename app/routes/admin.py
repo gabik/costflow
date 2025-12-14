@@ -1340,31 +1340,32 @@ def check_unit_fix():
             </ul>
         </div>
 
-        {f'''
-        <h2>Products with Issues ({len(issues)})</h2>
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Unit</th>
-                <th>Cost</th>
-                <th>Price</th>
-                <th>Margin %</th>
-                <th>Issue</th>
-            </tr>
-            {"".join([f'''
-            <tr class="bad-margin">
-                <td>{i['id']}</td>
-                <td>{i['name']}</td>
-                <td>{i.get('unit', '?')}</td>
-                <td>&#8362;{i.get('cost', '?')}</td>
-                <td>&#8362;{i.get('price', '?')}</td>
-                <td>{i.get('margin', '?')}%</td>
-                <td>{i.get('error', 'Margin out of range')}</td>
-            </tr>
-            ''' for i in issues])}
-        </table>
-        ''' if issues else ''}
+        {(
+            '<h2>Products with Issues (' + str(len(issues)) + ')</h2>' +
+            '<table>' +
+            '<tr>' +
+            '<th>ID</th>' +
+            '<th>Name</th>' +
+            '<th>Unit</th>' +
+            '<th>Cost</th>' +
+            '<th>Price</th>' +
+            '<th>Margin %</th>' +
+            '<th>Issue</th>' +
+            '</tr>' +
+            ''.join([
+                f'<tr class="bad-margin">' +
+                f'<td>{i["id"]}</td>' +
+                f'<td>{i["name"]}</td>' +
+                f'<td>{i.get("unit", "?")}</td>' +
+                f'<td>&#8362;{i.get("cost", "?")}</td>' +
+                f'<td>&#8362;{i.get("price", "?")}</td>' +
+                f'<td>{i.get("margin", "?")}%</td>' +
+                f'<td>{i.get("error", "Margin out of range")}</td>' +
+                '</tr>'
+                for i in issues
+            ]) +
+            '</table>'
+        ) if issues else ''}
 
         <h2>Sample of OK Products ({min(10, len(ok_products))} of {len(ok_products)})</h2>
         <table>
@@ -1376,16 +1377,17 @@ def check_unit_fix():
                 <th>Price</th>
                 <th>Margin %</th>
             </tr>
-            {"".join([f'''
-            <tr class="good-margin">
-                <td>{p['id']}</td>
-                <td>{p['name']}</td>
-                <td>{p['unit']}</td>
-                <td>&#8362;{p['cost']}</td>
-                <td>&#8362;{p['price']}</td>
-                <td>{p['margin']}%</td>
-            </tr>
-            ''' for p in ok_products[:10]])}
+            {''.join([
+                f'<tr class="good-margin">' +
+                f'<td>{p["id"]}</td>' +
+                f'<td>{p["name"]}</td>' +
+                f'<td>{p["unit"]}</td>' +
+                f'<td>&#8362;{p["cost"]}</td>' +
+                f'<td>&#8362;{p["price"]}</td>' +
+                f'<td>{p["margin"]}%</td>' +
+                '</tr>'
+                for p in ok_products[:10]
+            ])}
         </table>
 
         <div style="margin-top: 30px;">
