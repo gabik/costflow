@@ -372,31 +372,9 @@
         // Convert all quantities to their base units before submitting
         const rawMaterialRows = document.querySelectorAll('.raw-material-row');
 
-        rawMaterialRows.forEach(row => {
-            const quantityInput = row.querySelector('.quantity-input');
-            const unitSelector = row.querySelector('.unit-selector');
-
-            if (quantityInput && unitSelector) {
-                const baseUnit = quantityInput.getAttribute('data-base-unit');
-                const currentUnit = unitSelector.value;
-                let quantity = parseFloat(quantityInput.value) || 0;
-
-                // Convert to base unit if needed
-                if (baseUnit !== currentUnit) {
-                    if (baseUnit === 'kg' && currentUnit === 'g') {
-                        quantity = quantity / 1000; // g to kg
-                    } else if (baseUnit === 'g' && currentUnit === 'kg') {
-                        quantity = quantity * 1000; // kg to g
-                    } else if (baseUnit === 'L' && currentUnit === 'ml') {
-                        quantity = quantity / 1000; // ml to L
-                    } else if (baseUnit === 'ml' && currentUnit === 'L') {
-                        quantity = quantity * 1000; // L to ml
-                    }
-
-                    quantityInput.value = quantity;
-                }
-            }
-        });
+        // REMOVED: Unit conversion logic that was causing the 1.5 kg → 1500 bug
+        // Backend now handles all unit conversions
+        // User input is sent as-is to the server
 
         // Allow form to submit
         return true;

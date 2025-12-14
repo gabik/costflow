@@ -185,7 +185,7 @@ def add_premake():
         else:
             category_id = int(category_id)
 
-        unit = request.form.get('unit', 'unit')
+        unit = request.form.get('unit', 'kg')  # Default to kg for consistency
 
         # Get components to calculate batch size
         component_types = request.form.getlist('component_type[]')

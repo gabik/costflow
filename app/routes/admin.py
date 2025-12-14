@@ -299,6 +299,156 @@ def audit_log():
 
 from datetime import timedelta
 
+@admin_blueprint.route('/migrate_fix_multiplied_quantities', methods=['GET', 'POST'])
+def migrate_fix_multiplied_quantities():
+    """
+    Migration to fix quantities that were incorrectly multiplied by 1000
+    due to the JavaScript unit conversion bug.
+    """
+    if request.method == 'GET':
+        # Analyze current state
+        suspicious_components = []
+
+        # Find components with suspiciously high quantities
+        all_components = ProductComponent.query.join(
+            Product, ProductComponent.product_id == Product.id
+        ).filter(
+            Product.is_archived == False
+        ).all()
+
+        for comp in all_components:
+            # Check for quantities > 100 kg (likely multiplied)
+            if comp.quantity > 100:
+                product = Product.query.get(comp.product_id)
+                component_info = {
+                    'product_id': product.id,
+                    'product_name': product.name,
+                    'product_unit': product.unit,
+                    'component_id': comp.id,
+                    'component_type': comp.component_type,
+                    'quantity': comp.quantity,
+                    'suggested_fix': comp.quantity / 1000
+                }
+
+                if comp.component_type == 'raw_material' and comp.material:
+                    component_info['material_name'] = comp.material.name
+                    component_info['material_unit'] = comp.material.unit
+                elif comp.component_type == 'premake':
+                    premake = Product.query.get(comp.component_id)
+                    if premake:
+                        component_info['material_name'] = premake.name
+                        component_info['material_unit'] = premake.unit
+
+                suspicious_components.append(component_info)
+
+        return f'''
+        <html>
+        <head>
+            <title>Fix Multiplied Quantities Migration</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 40px; }}
+                .warning {{ color: red; font-weight: bold; }}
+                .info {{ background: #f0f0f0; padding: 15px; margin: 20px 0; }}
+                table {{ border-collapse: collapse; width: 100%; }}
+                th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+                th {{ background-color: #f2f2f2; }}
+                .suspicious {{ background-color: #ffcccc; }}
+            </style>
+        </head>
+        <body>
+            <h1>Fix Multiplied Quantities Migration</h1>
+
+            <div class="info">
+                <h2>Found {len(suspicious_components)} Suspicious Components</h2>
+                <p>Components with quantity > 100 kg that may have been incorrectly multiplied by 1000</p>
+            </div>
+
+            <div class="warning">
+                ⚠️ WARNING: This will divide these quantities by 1000!
+            </div>
+
+            {('<table>' +
+              '<tr><th>Product</th><th>Component</th><th>Current Qty</th><th>Will Change To</th></tr>' +
+              ''.join([
+                  f'<tr class="suspicious">' +
+                  f'<td>{c["product_name"]}</td>' +
+                  f'<td>{c.get("material_name", c["component_type"])}</td>' +
+                  f'<td>{c["quantity"]:.1f} {c.get("material_unit", "")}</td>' +
+                  f'<td>{c["suggested_fix"]:.3f} {c.get("material_unit", "")}</td>' +
+                  '</tr>'
+                  for c in suspicious_components[:20]
+              ]) +
+              ('</table>' + f'<p>... and {len(suspicious_components) - 20} more</p>' if len(suspicious_components) > 20 else '</table>')
+            ) if suspicious_components else '<p>No suspicious quantities found.</p>'}
+
+            <form method="POST" onsubmit="return confirm('Fix {len(suspicious_components)} components by dividing by 1000?');">
+                <input type="hidden" name="confirm" value="yes">
+                <button type="submit" style="background: #dc3545; color: white; padding: 10px 20px;"
+                        {'' if suspicious_components else 'disabled'}>
+                    Fix Multiplied Quantities
+                </button>
+                <a href="/"><button type="button" style="padding: 10px 20px;">Cancel</button></a>
+            </form>
+        </body>
+        </html>
+        '''
+
+    # POST - Execute the fix
+    if request.form.get('confirm') != 'yes':
+        return "Migration cancelled", 400
+
+    try:
+        fixed_count = 0
+
+        # Fix components with quantities > 100
+        all_components = ProductComponent.query.join(
+            Product, ProductComponent.product_id == Product.id
+        ).filter(
+            Product.is_archived == False,
+            ProductComponent.quantity > 100
+        ).all()
+
+        for comp in all_components:
+            old_quantity = comp.quantity
+            comp.quantity = comp.quantity / 1000
+            fixed_count += 1
+
+            product = Product.query.get(comp.product_id)
+            log_audit(
+                "FIX_MULTIPLIED_QTY",
+                "ProductComponent",
+                comp.id,
+                f"Fixed quantity for {product.name}: {old_quantity} → {comp.quantity}"
+            )
+
+        db.session.commit()
+
+        return f'''
+        <html>
+        <head>
+            <title>Migration Complete</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 40px; }}
+                .success {{ color: green; font-weight: bold; }}
+            </style>
+        </head>
+        <body>
+            <h1 class="success">✓ Fixed {fixed_count} Components</h1>
+            <p>All suspicious quantities have been divided by 1000.</p>
+            <p>Please verify product costs are now correct.</p>
+            <br>
+            <a href="/products">Check Products</a> |
+            <a href="/check_unit_fix">Validate Costs</a> |
+            <a href="/">Return to Dashboard</a>
+        </body>
+        </html>
+        '''
+
+    except Exception as e:
+        db.session.rollback()
+        log_audit("MIGRATION_ERROR", "System", None, f"Fix quantities failed: {str(e)}")
+        return f"Migration failed: {e}", 500
+
 @admin_blueprint.route('/migrate_add_raw_material_is_deleted', methods=['GET', 'POST'])
 def migrate_add_raw_material_is_deleted():
     """
