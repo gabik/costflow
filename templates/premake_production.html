@@ -23,7 +23,7 @@
             <option value="" disabled selected>{{ _('Select premake...') }}</option>
             {% for premake in premakes %}
             <option value="{{ premake.id }}" data-batch-size="{{ premake.batch_size }}" data-unit="{{ premake.unit }}">
-                {{ premake.name }} ({{ premake.unit }})
+                {{ premake.name }}
             </option>
             {% endfor %}
         </select>

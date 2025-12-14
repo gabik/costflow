@@ -635,7 +635,7 @@
         let optionsHtml = '<option value="" disabled selected>{{ _("Select premake...") }}</option>';
         allPremakes.forEach(premake => {
             const selected = premakeId == premake.id ? 'selected' : '';
-            optionsHtml += `<option value="${premake.id}" data-unit="${premake.unit}" data-cost="${premake.cost_per_unit || 0}" ${selected}>${premake.name} (${premake.unit})</option>`;
+            optionsHtml += `<option value="${premake.id}" data-unit="${premake.unit}" data-cost="${premake.cost_per_unit || 0}" ${selected}>${premake.name}</option>`;
         });
 
         const rowHtml = `

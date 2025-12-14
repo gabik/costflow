@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for
 from flask_babel import gettext as _
 from ..models import db, Product, ProductComponent, StockLog, Category, RawMaterial, Packaging, AuditLog, ProductionLog
-from .utils import get_or_create_general_category, log_audit, calculate_premake_current_stock, get_primary_supplier_discounted_price, calculate_premake_cost_per_unit, format_quantity_with_unit
+from .utils import get_or_create_general_category, log_audit, calculate_premake_current_stock, get_primary_supplier_discounted_price, calculate_premake_cost_per_unit, format_quantity_with_unit, convert_to_base_unit
 
 premakes_blueprint = Blueprint('premakes', __name__)
 
@@ -192,13 +192,30 @@ def add_premake():
         component_ids = request.form.getlist('component_id[]')
         quantities = request.form.getlist('quantity[]')
 
-        # Auto-calculate batch_size as sum of all component quantities
+        # Auto-calculate batch_size as sum of all component quantities (converted to premake's unit)
         batch_size = 0
         # Use minimum length to avoid index errors
         min_len = min(len(component_types), len(component_ids), len(quantities))
         for i in range(min_len):
             if component_types[i] and component_ids[i] and quantities[i]:
-                batch_size += float(quantities[i])
+                quantity = float(quantities[i])
+
+                # Convert quantity to premake's unit
+                if component_types[i] == 'raw_material':
+                    material = RawMaterial.query.get(component_ids[i])
+                    if material:
+                        # Convert from material's unit to premake's unit
+                        converted_qty = convert_to_base_unit(quantity, material.unit, unit)
+                        batch_size += converted_qty
+                elif component_types[i] == 'premake':
+                    nested_premake = Product.query.filter_by(id=component_ids[i], is_premake=True).first()
+                    if nested_premake:
+                        # Convert from nested premake's unit to parent premake's unit
+                        converted_qty = convert_to_base_unit(quantity, nested_premake.unit, unit)
+                        batch_size += converted_qty
+                else:
+                    # For packaging and other types, no unit conversion needed
+                    batch_size += quantity
 
         # Default to 1 if no components
         if batch_size == 0:
@@ -291,13 +308,30 @@ def edit_premake(premake_id):
         component_ids = request.form.getlist('component_id[]')
         quantities = request.form.getlist('quantity[]')
 
-        # Auto-calculate batch_size as sum of all component quantities
+        # Auto-calculate batch_size as sum of all component quantities (converted to premake's unit)
         batch_size = 0
         # Use minimum length to avoid index errors
         min_len = min(len(component_types), len(component_ids), len(quantities))
         for i in range(min_len):
             if component_types[i] and component_ids[i] and quantities[i]:
-                batch_size += float(quantities[i])
+                quantity = float(quantities[i])
+
+                # Convert quantity to premake's unit
+                if component_types[i] == 'raw_material':
+                    material = RawMaterial.query.get(component_ids[i])
+                    if material:
+                        # Convert from material's unit to premake's unit
+                        converted_qty = convert_to_base_unit(quantity, material.unit, premake.unit)
+                        batch_size += converted_qty
+                elif component_types[i] == 'premake':
+                    nested_premake = Product.query.filter_by(id=component_ids[i], is_premake=True).first()
+                    if nested_premake:
+                        # Convert from nested premake's unit to parent premake's unit
+                        converted_qty = convert_to_base_unit(quantity, nested_premake.unit, premake.unit)
+                        batch_size += converted_qty
+                else:
+                    # For packaging and other types, no unit conversion needed
+                    batch_size += quantity
 
         # Default to 1 if no components
         if batch_size == 0:

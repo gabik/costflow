@@ -177,8 +177,8 @@
                     {% for item in premake_costs %}
                     <tr>
                         <td>{{ item.name }}</td>
-                        <td>{{ "%.2f"|format(item.quantity) }}</td>
-                        <td>{{ item.unit }}</td>
+                        <td>{{ "%.2f"|format(item.display_quantity if item.display_quantity is defined else item.quantity) }}</td>
+                        <td>{{ item.display_unit if item.display_unit is defined else item.unit }}</td>
                         <td>₪{{ "%.2f"|format(item.price_per_unit) }}</td>
                         <td>₪{{ "%.2f"|format(item.price_per_recipe) }}</td>
                         <td class="text-end fw-bold">₪{{ "%.2f"|format(item.price_per_product) }}</td>

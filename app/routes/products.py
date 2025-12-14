@@ -2,8 +2,8 @@ import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, current_app
-from ..models import db, Product, ProductComponent, RawMaterial, Packaging, Labor, Category, ProductionLog, StockLog, WeeklyProductSales
-from .utils import log_audit, calculate_prime_cost, calculate_premake_cost_per_unit, convert_to_base_unit, get_or_create_general_category, units_list, calculate_total_material_stock, calculate_premake_current_stock, get_primary_supplier_discounted_price
+from ..models import db, Product, ProductComponent, RawMaterial, Packaging, Labor, Category, ProductionLog, StockLog, WeeklyProductSales, StockAudit
+from .utils import log_audit, calculate_prime_cost, calculate_premake_cost_per_unit, convert_to_base_unit, get_or_create_general_category, units_list, calculate_total_material_stock, calculate_premake_current_stock, get_primary_supplier_discounted_price, format_quantity_with_unit
 
 products_blueprint = Blueprint('products', __name__)
 
@@ -353,10 +353,15 @@ def product_detail(product_id):
 
             components_list.append(comp_data)
 
+        # Apply dynamic unit conversion for display
+        display_quantity, display_unit = format_quantity_with_unit(component.quantity, getattr(premake, 'unit', 'unit'))
+
         premake_costs.append({
             'name': premake.name,
-            'quantity': component.quantity,
-            'unit': getattr(premake, 'unit', 'unit'),
+            'quantity': component.quantity,  # Keep original for calculations
+            'unit': getattr(premake, 'unit', 'unit'),  # Keep original unit
+            'display_quantity': display_quantity,  # Add display quantity
+            'display_unit': display_unit,  # Add display unit
             'batch_size': effective_batch_size,
             'price_per_unit': premake_unit_cost,
             'price_per_recipe': component.quantity * premake_unit_cost,
@@ -590,3 +595,59 @@ def edit_product(product_id):
         product_categories=product_categories,
         units=units_list # For raw material modal
     )
+
+
+@products_blueprint.route('/products/delete/<int:product_id>', methods=['POST'])
+def delete_product(product_id):
+    """Delete a product"""
+    from flask_babel import gettext as _
+    from flask import flash
+
+    product = Product.query.filter_by(id=product_id, is_product=True).first_or_404()
+
+    # Check if this product is used as a preproduct (component) in any other products
+    usage_as_component = ProductComponent.query.filter_by(
+        component_type='product',
+        component_id=product_id
+    ).count()
+
+    if usage_as_component > 0:
+        flash(_('Cannot delete: This product is used as a component in {} other product(s)').format(usage_as_component), 'error')
+        return redirect(url_for('products.products'))
+
+    # Check if there are production logs for this product
+    production_logs = ProductionLog.query.filter_by(product_id=product_id).count()
+
+    if production_logs > 0:
+        flash(_('Cannot delete: This product has {} production record(s). Consider marking it as inactive instead.').format(production_logs), 'error')
+        return redirect(url_for('products.products'))
+
+    # Check if there are weekly sales records for this product
+    weekly_sales = WeeklyProductSales.query.filter_by(product_id=product_id).count()
+
+    if weekly_sales > 0:
+        flash(_('Cannot delete: This product has {} weekly sales record(s)').format(weekly_sales), 'error')
+        return redirect(url_for('products.products'))
+
+    # If all checks pass, proceed with deletion
+    try:
+        # Delete components
+        ProductComponent.query.filter_by(product_id=product_id).delete()
+
+        # Delete stock logs
+        StockLog.query.filter_by(product_id=product_id).delete()
+
+        # Delete stock audits
+        StockAudit.query.filter_by(product_id=product_id).delete()
+
+        # Delete the product
+        db.session.delete(product)
+        log_audit("DELETE", "Product", product_id, f"Deleted product: {product.name}")
+
+        db.session.commit()
+        flash(_('Product deleted successfully'), 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(_('Error deleting product: {}').format(str(e)), 'error')
+
+    return redirect(url_for('products.products'))

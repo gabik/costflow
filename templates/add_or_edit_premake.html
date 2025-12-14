@@ -316,7 +316,7 @@
 
         let optionsHtml = '<option value="">{{ _("Select premake...") }}</option>';
         allPremakes.forEach(premake => {
-            optionsHtml += `<option value="${premake.id}" data-unit="${premake.unit}">${premake.name} (${premake.unit})</option>`;
+            optionsHtml += `<option value="${premake.id}" data-unit="${premake.unit}">${premake.name}</option>`;
         });
 
         const rowHtml = `
