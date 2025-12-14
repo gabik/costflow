@@ -269,7 +269,7 @@
                                            required
                                            style="width: 100px;">
                                 </td>
-                                <td>{{ "%.2f"|format(material.sheet_price) }} ₪</td>
+                                <td>{{ "%.2f"|format(material.sheet_price) if material.sheet_price else '0.00' }} ₪</td>
                                 <td class="db-price-cell">
                                     {% if material.db_price %}
                                         {% if material.price_differs %}
@@ -303,7 +303,7 @@
                                 <td><strong>{{ recipe.loss.name }}</strong></td>
                                 <td><small class="text-muted">{{ _('Loss') }}</small></td>
                                 <td><span class="badge bg-secondary">{{ _('Loss') }}</span></td>
-                                <td>{{ "%.3f"|format(recipe.loss.weight) }}</td>
+                                <td>{{ "%.3f"|format(recipe.loss.weight) if recipe.loss.weight else '0.000' }}</td>
                                 <td colspan="3" class="text-muted"><em>{{ _('No cost') }}</em></td>
                             </tr>
                             {% endif %}
@@ -318,13 +318,13 @@
                             <div class="card-body">
                                 <h6 class="card-title">{{ _('Weight and Cost Summary:') }}</h6>
                                 <ul class="list-unstyled mb-0">
-                                    <li><strong>{{ _('Gross Weight:') }}</strong> {{ "%.3f"|format(recipe.total_weight) }} {{ _('g') }}</li>
+                                    <li><strong>{{ _('Gross Weight:') }}</strong> {{ "%.3f"|format(recipe.total_weight) if recipe.total_weight else '0.000' }} {{ _('g') }}</li>
                                     {% if recipe.loss %}
-                                    <li><strong>{{ _('Loss:') }}</strong> {{ "%.3f"|format(recipe.loss.weight) }} {{ _('g') }}</li>
-                                    <li><strong>{{ _('Net Weight:') }}</strong> {{ "%.3f"|format(recipe.net_weight) }} {{ _('g') }}</li>
+                                    <li><strong>{{ _('Loss:') }}</strong> {{ "%.3f"|format(recipe.loss.weight) if recipe.loss.weight else '0.000' }} {{ _('g') }}</li>
+                                    <li><strong>{{ _('Net Weight:') }}</strong> {{ "%.3f"|format(recipe.net_weight) if recipe.net_weight else '0.000' }} {{ _('g') }}</li>
                                     {% endif %}
-                                    <li><strong>{{ _('Total Cost:') }}</strong> {{ "%.2f"|format(recipe.total_cost) }} ₪</li>
-                                    <li class="mt-2 text-primary"><strong>{{ _('Cost per 100g:') }}</strong> {{ "%.2f"|format(recipe.cost_100g) }} ₪</li>
+                                    <li><strong>{{ _('Total Cost:') }}</strong> {{ "%.2f"|format(recipe.total_cost) if recipe.total_cost else '0.00' }} ₪</li>
+                                    <li class="mt-2 text-primary"><strong>{{ _('Cost per 100g:') }}</strong> {{ "%.2f"|format(recipe.cost_100g) if recipe.cost_100g else '0.00' }} ₪</li>
                                 </ul>
                             </div>
                         </div>
@@ -357,7 +357,7 @@
                                     <li class="text-warning">
                                         <i class="bi bi-arrow-repeat"></i> <strong>{{ _('Quantity Changed:') }}</strong>
                                         {% for item in recipe.diff.changed %}
-                                        {{ item.material.name }} ({{ "%.1f"|format(item.old_quantity) }} → {{ "%.1f"|format(item.new_quantity) }}){% if not loop.last %}, {% endif %}
+                                        {{ item.material.name }} ({{ "%.1f"|format(item.old_quantity) if item.old_quantity else '0.0' }} → {{ "%.1f"|format(item.new_quantity) if item.new_quantity else '0.0' }}){% if not loop.last %}, {% endif %}
                                         {% endfor %}
                                     </li>
                                     {% endif %}
