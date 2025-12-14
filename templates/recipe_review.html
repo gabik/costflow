@@ -258,7 +258,7 @@
                                            name="weight_recipe{{ recipe_idx }}_mat{{ loop.index0 }}"
                                            class="form-control form-control-sm weight-input"
                                            value="{{ material.weight }}"
-                                           step="0.1"
+                                           step="0.001"
                                            min="0"
                                            required
                                            style="width: 100px;">
@@ -297,7 +297,7 @@
                                 <td><strong>{{ recipe.loss.name }}</strong></td>
                                 <td><small class="text-muted">{{ _('Loss') }}</small></td>
                                 <td><span class="badge bg-secondary">{{ _('Loss') }}</span></td>
-                                <td>{{ "%.1f"|format(recipe.loss.weight) }}</td>
+                                <td>{{ "%.3f"|format(recipe.loss.weight) }}</td>
                                 <td colspan="3" class="text-muted"><em>{{ _('No cost') }}</em></td>
                             </tr>
                             {% endif %}
@@ -312,10 +312,10 @@
                             <div class="card-body">
                                 <h6 class="card-title">{{ _('Weight and Cost Summary:') }}</h6>
                                 <ul class="list-unstyled mb-0">
-                                    <li><strong>{{ _('Gross Weight:') }}</strong> {{ "%.1f"|format(recipe.total_weight) }} {{ _('g') }}</li>
+                                    <li><strong>{{ _('Gross Weight:') }}</strong> {{ "%.3f"|format(recipe.total_weight) }} {{ _('g') }}</li>
                                     {% if recipe.loss %}
-                                    <li><strong>{{ _('Loss:') }}</strong> {{ "%.1f"|format(recipe.loss.weight) }} {{ _('g') }}</li>
-                                    <li><strong>{{ _('Net Weight:') }}</strong> {{ "%.1f"|format(recipe.net_weight) }} {{ _('g') }}</li>
+                                    <li><strong>{{ _('Loss:') }}</strong> {{ "%.3f"|format(recipe.loss.weight) }} {{ _('g') }}</li>
+                                    <li><strong>{{ _('Net Weight:') }}</strong> {{ "%.3f"|format(recipe.net_weight) }} {{ _('g') }}</li>
                                     {% endif %}
                                     <li><strong>{{ _('Total Cost:') }}</strong> {{ "%.2f"|format(recipe.total_cost) }} ₪</li>
                                     <li class="mt-2 text-primary"><strong>{{ _('Cost per 100g:') }}</strong> {{ "%.2f"|format(recipe.cost_100g) }} ₪</li>
