@@ -273,6 +273,7 @@ class Product(db.Model):
     is_product = db.Column(db.Boolean, default=True, nullable=False)
     is_premake = db.Column(db.Boolean, default=False, nullable=False)
     is_preproduct = db.Column(db.Boolean, default=False, nullable=False)  # Can be sold AND used as component
+    is_archived = db.Column(db.Boolean, default=False, nullable=False)  # Soft delete for products with history
     batch_size = db.Column(db.Float, nullable=True)  # From Premake model
     unit = db.Column(db.String(20), nullable=True)  # Unit of measurement ('kg', 'L', 'piece', etc.)
 
@@ -290,6 +291,7 @@ class Product(db.Model):
             'is_product': self.is_product,
             'is_premake': self.is_premake,
             'is_preproduct': self.is_preproduct,
+            'is_archived': self.is_archived,
             'batch_size': self.batch_size,
             'unit': self.unit
         }

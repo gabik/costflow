@@ -12,10 +12,16 @@ products_blueprint = Blueprint('products', __name__)
 # ----------------------------
 @products_blueprint.route('/products')
 def products():
+    # Check if we should show archived products
+    show_archived = request.args.get('show_archived') == 'true'
+
     # Show products that can be sold (is_product=True), including hybrids
-    products = Product.query.filter(
-        Product.is_product == True
-    ).all()
+    query = Product.query.filter(Product.is_product == True)
+
+    if not show_archived:
+        query = query.filter(Product.is_archived == False)
+
+    products = query.all()
 
     products_data = []
     for product in products:
@@ -53,7 +59,7 @@ def products():
             'can_produce': can_produce,
             'missing_materials': missing_materials
         })
-    return render_template('products.html', products_data=products_data)
+    return render_template('products.html', products_data=products_data, show_archived=show_archived)
 
 @products_blueprint.route('/products/add', methods=['GET', 'POST'])
 def add_product():
@@ -66,8 +72,14 @@ def add_product():
         else:
             category_id = int(category_id)
 
-        products_per_recipe = request.form['products_per_recipe']
-        selling_price_per_unit = request.form['selling_price_per_unit']
+        products_per_recipe = request.form.get('products_per_recipe', '').strip()
+        selling_price_per_unit = request.form.get('selling_price_per_unit', '').strip()
+
+        # Default values if empty
+        if not products_per_recipe:
+            products_per_recipe = '1'
+        if not selling_price_per_unit:
+            selling_price_per_unit = '0'
 
         # Products are always products (not premakes)
         is_product = True
@@ -82,11 +94,11 @@ def add_product():
                 filename = secure_filename(file.filename)
                 timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
                 filename = f"{timestamp}_{filename}"
-                
+
                 upload_folder = current_app.config['UPLOAD_FOLDER']
                 if not os.path.exists(upload_folder):
                     os.makedirs(upload_folder)
-                    
+
                 file.save(os.path.join(upload_folder, filename))
                 image_filename = filename
 
@@ -109,21 +121,21 @@ def add_product():
         raw_materials = request.form.getlist('raw_material[]')
         raw_material_quantities = request.form.getlist('raw_material_quantity[]')
         raw_material_units = request.form.getlist('raw_material_unit[]')
-        
+
         for i in range(len(raw_materials)):
             material_id = raw_materials[i]
             quantity = raw_material_quantities[i]
             selected_unit = raw_material_units[i] if i < len(raw_material_units) else None
-            
+
             if not material_id or not quantity or float(quantity) <= 0:
                 continue
-                
+
             material = RawMaterial.query.get(material_id)
             if not material:
                 continue
-                
+
             final_quantity = convert_to_base_unit(float(quantity), selected_unit, material.unit)
-            
+
             component = ProductComponent(
                 product_id=product.id,
                 component_type='raw_material',
@@ -418,18 +430,18 @@ def edit_product(product_id):
         # Don't change the is_product/is_premake flags - keep them as they were
         # But do update is_preproduct
         product.is_preproduct = 'is_preproduct' in request.form
-        
+
         if 'image' in request.files:
             file = request.files['image']
             if file and file.filename:
                 filename = secure_filename(file.filename)
                 timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
                 filename = f"{timestamp}_{filename}"
-                
+
                 upload_folder = current_app.config['UPLOAD_FOLDER']
                 if not os.path.exists(upload_folder):
                     os.makedirs(upload_folder)
-                    
+
                 file.save(os.path.join(upload_folder, filename))
                 product.image_filename = filename
 
@@ -440,21 +452,21 @@ def edit_product(product_id):
         raw_materials = request.form.getlist('raw_material[]')
         raw_material_quantities = request.form.getlist('raw_material_quantity[]')
         raw_material_units = request.form.getlist('raw_material_unit[]')
-        
+
         for i in range(len(raw_materials)):
             material_id = raw_materials[i]
             quantity = raw_material_quantities[i]
             selected_unit = raw_material_units[i] if i < len(raw_material_units) else None
-            
+
             if not material_id or not quantity or float(quantity) <= 0:
                 continue
-                
+
             material = RawMaterial.query.get(material_id)
             if not material:
                 continue
-                
+
             final_quantity = convert_to_base_unit(float(quantity), selected_unit, material.unit)
-            
+
             component = ProductComponent(
                 product_id=product.id,
                 component_type='raw_material',
@@ -599,7 +611,7 @@ def edit_product(product_id):
 
 @products_blueprint.route('/products/delete/<int:product_id>', methods=['POST'])
 def delete_product(product_id):
-    """Delete a product"""
+    """Delete or archive a product based on its history"""
     from flask_babel import gettext as _
     from flask import flash
 
@@ -612,21 +624,33 @@ def delete_product(product_id):
     ).count()
 
     if usage_as_component > 0:
-        flash(_('Cannot delete: This product is used as a component in {} other product(s)').format(usage_as_component), 'error')
+        # Archive the product instead of deleting
+        product.is_archived = True
+        db.session.commit()
+        log_audit("ARCHIVE", "Product", product_id, f"Archived product: {product.name} (used in {usage_as_component} products)")
+        flash(_('Product archived: It is used as a component in {} other product(s)').format(usage_as_component), 'warning')
         return redirect(url_for('products.products'))
 
     # Check if there are production logs for this product
     production_logs = ProductionLog.query.filter_by(product_id=product_id).count()
 
     if production_logs > 0:
-        flash(_('Cannot delete: This product has {} production record(s). Consider marking it as inactive instead.').format(production_logs), 'error')
+        # Archive the product instead of deleting
+        product.is_archived = True
+        db.session.commit()
+        log_audit("ARCHIVE", "Product", product_id, f"Archived product: {product.name} ({production_logs} production records)")
+        flash(_('Product archived: It has {} production record(s)').format(production_logs), 'warning')
         return redirect(url_for('products.products'))
 
     # Check if there are weekly sales records for this product
     weekly_sales = WeeklyProductSales.query.filter_by(product_id=product_id).count()
 
     if weekly_sales > 0:
-        flash(_('Cannot delete: This product has {} weekly sales record(s)').format(weekly_sales), 'error')
+        # Archive the product instead of deleting
+        product.is_archived = True
+        db.session.commit()
+        log_audit("ARCHIVE", "Product", product_id, f"Archived product: {product.name} ({weekly_sales} sales records)")
+        flash(_('Product archived: It has {} weekly sales record(s)').format(weekly_sales), 'warning')
         return redirect(url_for('products.products'))
 
     # If all checks pass, proceed with deletion
@@ -649,5 +673,52 @@ def delete_product(product_id):
     except Exception as e:
         db.session.rollback()
         flash(_('Error deleting product: {}').format(str(e)), 'error')
+
+    return redirect(url_for('products.products'))
+
+
+@products_blueprint.route('/products/restore/<int:product_id>', methods=['POST'])
+def restore_product(product_id):
+    """Restore an archived product"""
+    from flask_babel import gettext as _
+    from flask import flash
+
+    product = Product.query.filter_by(id=product_id, is_product=True, is_archived=True).first_or_404()
+
+    try:
+        product.is_archived = False
+        db.session.commit()
+        log_audit("RESTORE", "Product", product_id, f"Restored product: {product.name}")
+        flash(_('Product restored successfully'), 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(_('Error restoring product: {}').format(str(e)), 'error')
+
+    return redirect(url_for('products.products') + '?show_archived=true')
+
+
+@products_blueprint.route('/migrate_add_product_is_archived')
+def migrate_add_product_is_archived():
+    """Migration to add is_archived field to Product table"""
+    from flask_babel import gettext as _
+    from flask import flash
+    import sqlalchemy as sa
+
+    try:
+        # Check if column already exists
+        inspector = sa.inspect(db.engine)
+        columns = [c['name'] for c in inspector.get_columns('product')]
+
+        if 'is_archived' not in columns:
+            # Add the column
+            with db.engine.connect() as conn:
+                # Use FALSE for PostgreSQL compatibility
+                conn.execute(sa.text('ALTER TABLE product ADD COLUMN is_archived BOOLEAN DEFAULT FALSE'))
+                conn.commit()
+            flash(_('Migration completed: Added is_archived field to products'), 'success')
+        else:
+            flash(_('Migration skipped: is_archived field already exists'), 'info')
+    except Exception as e:
+        flash(_('Migration failed: {}').format(str(e)), 'error')
 
     return redirect(url_for('products.products'))
