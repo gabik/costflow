@@ -16,7 +16,7 @@
     <div class="col-md-6">
         <form method="GET" action="{{ url_for('reports.weekly_report') }}" class="d-flex gap-2 align-items-center">
             <label for="week_start" class="form-label mb-0 text-nowrap">{{ _('Select week:') }}</label>
-            <select name="week_start" id="week_start" class="form-select select2" onchange="this.form.submit()">
+            <select name="week_start" id="week_start" class="form-select select2">
                 {% for week in weeks %}
                 <option value="{{ week.week_start_date.strftime('%Y-%m-%d') }}" {% if week_start and week_start == week.week_start_date %}selected{% endif %}>
                     {{ _('Week') }} {{ week.week_start_date.strftime('%d/%m/%Y') }}
@@ -863,6 +863,11 @@ document.addEventListener('DOMContentLoaded', function() {
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Handle Select2 change event for week selector
+    $('#week_start').on('select2:select', function (e) {
+        this.form.submit();
     });
 });
 </script>
