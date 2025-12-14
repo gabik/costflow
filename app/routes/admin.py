@@ -1354,8 +1354,8 @@ def check_unit_fix():
                 <td>{i['id']}</td>
                 <td>{i['name']}</td>
                 <td>{i.get('unit', '?')}</td>
-                <td>₪{i.get('cost', '?')}</td>
-                <td>₪{i.get('price', '?')}</td>
+                <td>&#8362;{i.get('cost', '?')}</td>
+                <td>&#8362;{i.get('price', '?')}</td>
                 <td>{i.get('margin', '?')}%</td>
                 <td>{i.get('error', 'Margin out of range')}</td>
             </tr>
@@ -1378,8 +1378,8 @@ def check_unit_fix():
                 <td>{p['id']}</td>
                 <td>{p['name']}</td>
                 <td>{p['unit']}</td>
-                <td>₪{p['cost']}</td>
-                <td>₪{p['price']}</td>
+                <td>&#8362;{p['cost']}</td>
+                <td>&#8362;{p['price']}</td>
                 <td>{p['margin']}%</td>
             </tr>
             ''' for p in ok_products[:10]])}
