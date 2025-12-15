@@ -34,18 +34,41 @@
                     <label for="products_per_recipe" class="form-label">{{ _('Units per Recipe (per production batch)') }}</label>
                     <input type="number" id="products_per_recipe" name="products_per_recipe" class="form-control" step="1" value="{{ product.products_per_recipe if product else '' }}">
                 </div>
+                <!-- Product Type Selection -->
                 <div class="mb-4">
+                    <label class="form-label">{{ _('Product Type') }}</label>
+                    <div class="ms-3">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="product_type_selection" id="type_product" value="product"
+                                   {% if not product or (product and product.get_product_type() == 'product' and product.get_is_for_sale()) %}checked{% endif %}
+                                   onchange="updateProductTypeForm()">
+                            <label class="form-check-label" for="type_product">
+                                <strong>{{ _('Product') }}</strong> - {{ _('Regular product for sale') }}
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="product_type_selection" id="type_preproduct_sale" value="preproduct_sale"
+                                   {% if product and product.get_product_type() == 'preproduct' and product.get_is_for_sale() %}checked{% endif %}
+                                   onchange="updateProductTypeForm()">
+                            <label class="form-check-label" for="type_preproduct_sale">
+                                <strong>{{ _('Preproduct (for sale)') }}</strong> - {{ _('Can be sold and used as a component') }}
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="product_type_selection" id="type_preproduct_internal" value="preproduct_internal"
+                                   {% if product and product.get_product_type() == 'preproduct' and not product.get_is_for_sale() %}checked{% endif %}
+                                   onchange="updateProductTypeForm()">
+                            <label class="form-check-label" for="type_preproduct_internal">
+                                <strong>{{ _('Preproduct (internal use)') }}</strong> - {{ _('Used as component only, not sold directly') }}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selling Price (shown/hidden based on type) -->
+                <div class="mb-4" id="selling_price_container">
                     <label for="selling_price_per_unit" class="form-label">{{ _('Selling Price per Unit') }} (₪)</label>
                     <input type="number" id="selling_price_per_unit" name="selling_price_per_unit" class="form-control" step="0.01" value="{{ product.selling_price_per_unit if product else '' }}">
-                </div>
-                <div class="mb-4">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="is_preproduct" name="is_preproduct"
-                               {% if product and product.is_preproduct %}checked{% endif %}>
-                        <label class="form-check-label" for="is_preproduct">
-                            <strong>{{ _('Preproduct') }}</strong> - {{ _('Can be sold and also used as a component in other products') }}
-                        </label>
-                    </div>
                 </div>
             </div>
             <div class="col-md-4 text-center">
@@ -174,7 +197,19 @@
                 </div>
                 <div class="col-md-3">
                     <select name="preproduct_unit[]" class="form-select unit-select">
-                        <option value="{{ _('Unit') }}">{{ _('Unit') }}</option>
+                        {% if component.preproduct %}
+                            {% if component.preproduct.unit in ['kg', 'g'] %}
+                                <option value="kg" {% if component.preproduct.unit == 'kg' %}selected{% endif %}>kg</option>
+                                <option value="g" {% if component.preproduct.unit == 'g' %}selected{% endif %}>g</option>
+                            {% elif component.preproduct.unit in ['L', 'ml'] %}
+                                <option value="L" {% if component.preproduct.unit == 'L' %}selected{% endif %}>L</option>
+                                <option value="ml" {% if component.preproduct.unit == 'ml' %}selected{% endif %}>ml</option>
+                            {% else %}
+                                <option value="{{ component.preproduct.unit }}">{{ component.preproduct.unit }}</option>
+                            {% endif %}
+                        {% else %}
+                            <option value="{{ _('Unit') }}">{{ _('Unit') }}</option>
+                        {% endif %}
                     </select>
                 </div>
                 <div class="col-md-1">
@@ -200,7 +235,19 @@
                 </div>
                 <div class="col-md-3">
                     <select name="preproduct_unit[]" class="form-select unit-select">
-                        <option value="{{ _('Unit') }}">{{ _('Unit') }}</option>
+                        {% if component.preproduct %}
+                            {% if component.preproduct.unit in ['kg', 'g'] %}
+                                <option value="kg" {% if component.preproduct.unit == 'kg' %}selected{% endif %}>kg</option>
+                                <option value="g" {% if component.preproduct.unit == 'g' %}selected{% endif %}>g</option>
+                            {% elif component.preproduct.unit in ['L', 'ml'] %}
+                                <option value="L" {% if component.preproduct.unit == 'L' %}selected{% endif %}>L</option>
+                                <option value="ml" {% if component.preproduct.unit == 'ml' %}selected{% endif %}>ml</option>
+                            {% else %}
+                                <option value="{{ component.preproduct.unit }}">{{ component.preproduct.unit }}</option>
+                            {% endif %}
+                        {% else %}
+                            <option value="{{ _('Unit') }}">{{ _('Unit') }}</option>
+                        {% endif %}
                     </select>
                 </div>
                 <div class="col-md-1">
@@ -512,6 +559,22 @@
         }
     }
 
+    // Function to update form based on product type selection
+    function updateProductTypeForm() {
+        const selectedType = document.querySelector('input[name="product_type_selection"]:checked').value;
+        const sellingPriceContainer = document.getElementById('selling_price_container');
+        const sellingPriceInput = document.getElementById('selling_price_per_unit');
+
+        if (selectedType === 'preproduct_internal') {
+            // Hide selling price for internal-use preproducts
+            sellingPriceContainer.style.display = 'none';
+            sellingPriceInput.value = '';  // Clear the value
+        } else {
+            // Show selling price for products and sellable preproducts
+            sellingPriceContainer.style.display = 'block';
+        }
+    }
+
     let rawMaterialRowIndex = 0;
     let packagingRowIndex = 0;
 
@@ -761,7 +824,24 @@
         const selectedOption = selectElement.options[selectElement.selectedIndex];
         const baseUnit = selectedOption.getAttribute('data-unit') || '{{ _("Unit") }}';
 
-        unitSelect.innerHTML = `<option value="${baseUnit}">${baseUnit}</option>`;
+        // Clear existing options
+        unitSelect.innerHTML = '';
+
+        // Add unit options based on the preproduct's base unit
+        if (baseUnit === 'kg' || baseUnit === 'g') {
+            // Weight-based units - provide conversion options
+            unitSelect.innerHTML = '<option value="kg">kg</option><option value="g">g</option>';
+            // Set to base unit by default
+            unitSelect.value = baseUnit;
+        } else if (baseUnit === 'L' || baseUnit === 'ml') {
+            // Volume units - provide conversion options
+            unitSelect.innerHTML = '<option value="L">L</option><option value="ml">ml</option>';
+            // Set to base unit by default
+            unitSelect.value = baseUnit;
+        } else {
+            // Unit-based (unit, piece, etc.) - no conversion
+            unitSelect.innerHTML = `<option value="${baseUnit}">${baseUnit}</option>`;
+        }
 
         // Trigger cost recalculation
         if (typeof calculateTotalCost === 'function') {
@@ -803,7 +883,10 @@
             width: '100%',
             language: { noResults: () => "{{ _("No results found") }}" }
         });
-        
+
+        // Initialize product type form state
+        updateProductTypeForm();
+
         // Bind Select2 change event because native onchange doesn't always fire with Select2
         $(document.body).on('select2:select', '.select2', function(e) {
             if (this.name === 'raw_material[]') {

@@ -8,10 +8,16 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1 class="display-6 fw-bold">
                 {{ product.name }}
-                {% if product.is_preproduct %}
-                    <span class="badge bg-info ms-2" style="font-size: 0.4em;">
-                        <i class="bi bi-arrows-collapse-vertical"></i> {{ _('Preproduct') }}
-                    </span>
+                {% if product.get_product_type() == 'preproduct' %}
+                    {% if product.get_is_for_sale() %}
+                        <span class="badge bg-info ms-2" style="font-size: 0.4em;">
+                            <i class="bi bi-arrows-collapse-vertical"></i> {{ _('Preproduct') }}
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary ms-2" style="font-size: 0.4em;">
+                            <i class="bi bi-gear"></i> {{ _('Internal Use') }}
+                        </span>
+                    {% endif %}
                 {% endif %}
             </h1>
             <a href="{{ url_for('products.edit_product', product_id=product.id) }}" class="btn btn-outline-primary">
@@ -21,7 +27,7 @@
 
         <!-- Product Info Cards -->
         <div class="row g-3 mb-4">
-            <div class="col-md-3">
+            <div class="col-md-{% if product.get_is_for_sale() %}3{% else %}6{% endif %}">
                 <div class="card h-100">
                     <div class="card-body text-center">
                         <i class="bi bi-box text-primary mb-2" style="font-size: 2rem;"></i>
@@ -31,6 +37,7 @@
                     </div>
                 </div>
             </div>
+            {% if product.get_is_for_sale() %}
             <div class="col-md-3">
                 <div class="card h-100">
                     <div class="card-body text-center">
@@ -40,7 +47,8 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            {% endif %}
+            <div class="col-md-{% if product.get_is_for_sale() %}3{% else %}6{% endif %}">
                 <div class="card h-100">
                     <div class="card-body text-center">
                         <i class="bi bi-calculator text-warning mb-2" style="font-size: 2rem;"></i>
@@ -62,6 +70,7 @@
                     </div>
                 </div>
             </div>
+            {% if product.get_is_for_sale() %}
             <div class="col-md-3">
                 <div class="card h-100">
                     <div class="card-body text-center">
@@ -74,6 +83,7 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
         </div>
     </div>
 </div>

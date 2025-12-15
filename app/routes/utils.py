@@ -329,8 +329,10 @@ def calculate_prime_cost(product):
             if preproduct:
                 # Recursively calculate the prime cost of the preproduct
                 preproduct_unit_cost = calculate_prime_cost(preproduct)
-                # Component quantities are ALREADY in kg, no conversion needed
-                # Both component quantity and preproduct cost are per kg
+                # Component quantities are stored in their base units:
+                # - kg for weight-based preproducts (kg, g)
+                # - units for unit-based preproducts (unit, piece, etc.)
+                # The calculation works correctly for both types
                 total_cost += component.quantity * preproduct_unit_cost
 
     if hasattr(product, 'products_per_recipe') and product.products_per_recipe > 0:

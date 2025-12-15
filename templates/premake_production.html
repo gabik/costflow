@@ -55,8 +55,8 @@
                         <th>{{ _('Current Stock') }}</th>
                         <th>{{ _('Usage in this production') }}</th>
                         <th>{{ _('Stock after production') }}</th>
-                        <th>{{ _('Unit Cost') }}</th>
-                        <th>{{ _('Cost') }}</th>
+                        <th>{{ _('Cost per 100g') }}</th>
+                        <th>{{ _('Total Cost') }}</th>
                     </tr>
                 </thead>
                 <tbody id="components_usage_body">
@@ -274,7 +274,8 @@ function updateProductionDetails() {
                 // Single supplier case - show material name without supplier
                 const consumption = consumptionRows[0];
                 const tr = document.createElement('tr');
-                // Add discount indicator if applicable
+                // Add discount indicator if applicable - show cost per 100g
+                // Raw materials cost_per_unit is already per 100g from backend
                 let costDisplay = `${consumption.cost_per_unit.toFixed(2)} ₪`;
                 if (consumption.original_cost && consumption.cost_per_unit < consumption.original_cost) {
                     const discountPercent = Math.round((1 - consumption.cost_per_unit/consumption.original_cost) * 100);
@@ -307,7 +308,8 @@ function updateProductionDetails() {
                         nameDisplay += ' <span class="badge bg-danger ms-1">{{ _('Shortage') }}</span>';
                     }
 
-                    // Add discount indicator if applicable
+                    // Add discount indicator if applicable - show cost per 100g
+                    // Raw materials cost_per_unit is already per 100g from backend
                     let costDisplay = `${consumption.cost_per_unit.toFixed(2)} ₪`;
                     if (consumption.original_cost && consumption.cost_per_unit < consumption.original_cost) {
                         const discountPercent = Math.round((1 - consumption.cost_per_unit/consumption.original_cost) * 100);
@@ -354,14 +356,43 @@ function updateProductionDetails() {
                 nameDisplay += ' <span class="badge bg-danger ms-1">{{ _('Shortage') }}</span>';
             }
 
+            // Calculate cost per 100g for display
+            let costPer100gDisplay = '';
+            if (comp.type === 'Premake') {
+                // For premakes, comp.cost_per_unit is per kg, convert to per 100g
+                const costPer100g = comp.cost_per_unit / 10;  // Convert from per kg to per 100g
+                costPer100gDisplay = `${costPer100g.toFixed(2)} ₪`;
+            } else if (comp.type === 'Preproduct') {
+                // For preproducts, comp.cost_per_unit is per unit/piece
+                // If unit is kg/g, convert to per 100g for consistency
+                if (comp.unit && (comp.unit === 'kg' || comp.unit === 'g')) {
+                    let costPer100g;
+                    if (comp.unit === 'kg') {
+                        costPer100g = comp.cost_per_unit / 10;  // Convert from per kg to per 100g
+                    } else {  // unit is 'g'
+                        costPer100g = comp.cost_per_unit * 100;  // Convert from per g to per 100g
+                    }
+                    costPer100gDisplay = `${costPer100g.toFixed(2)} ₪`;
+                } else {
+                    // For piece/unit, show per unit
+                    costPer100gDisplay = `${comp.cost_per_unit.toFixed(2)} ₪ <small class="text-muted">/ ${comp.unit || 'unit'}</small>`;
+                }
+            } else if (comp.type === 'Packaging') {
+                // For packaging, show cost per unit
+                costPer100gDisplay = `${comp.cost_per_unit.toFixed(2)} ₪ <small class="text-muted">/ unit</small>`;
+            } else {
+                // For raw materials or others, show as is (already per 100g or appropriate unit)
+                costPer100gDisplay = `${comp.cost_per_unit.toFixed(2)} ₪`;
+            }
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${nameDisplay}</td>
-                <td>${comp.type === 'Raw Material' ? '{{ _("Raw Material") }}' : (comp.type === 'Packaging' ? '{{ _("Packaging") }}' : '{{ _("Premake") }}')}</td>
+                <td>${comp.type === 'Raw Material' ? '{{ _("Raw Material") }}' : (comp.type === 'Packaging' ? '{{ _("Packaging") }}' : (comp.type === 'Preproduct' ? '{{ _("Preproduct") }}' : '{{ _("Premake") }}'))}</td>
                 <td>${currentStockDisplay}</td>
                 <td class="fw-bold">${formatQuantityWithUnit(usage, comp.unit)}</td>
                 <td class="${!isUnlimited && stockAfter < 0 ? 'text-danger fw-bold' : ''}">${stockAfterDisplay}</td>
-                <td>${comp.cost_per_unit.toFixed(2)} ₪</td>
+                <td>${costPer100gDisplay}</td>
                 <td>${cost.toFixed(2)} ₪</td>
             `;
             tbody.appendChild(tr);

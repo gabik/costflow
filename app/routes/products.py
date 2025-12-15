@@ -78,13 +78,41 @@ def add_product():
         # Default values if empty
         if not products_per_recipe:
             products_per_recipe = '1'
+
+        # Get product type selection
+        product_type_selection = request.form.get('product_type_selection', 'product')
+
+        # Determine product type and sale status based on selection
+        if product_type_selection == 'product':
+            product_type = 'product'
+            is_for_sale = True
+            is_product = True
+            is_premake = False
+            is_preproduct = False
+        elif product_type_selection == 'preproduct_sale':
+            product_type = 'preproduct'
+            is_for_sale = True
+            is_product = True  # For backward compatibility
+            is_premake = False
+            is_preproduct = True
+        elif product_type_selection == 'preproduct_internal':
+            product_type = 'preproduct'
+            is_for_sale = False
+            is_product = True  # For backward compatibility
+            is_premake = False
+            is_preproduct = True
+            selling_price_per_unit = '0'  # No selling price for internal use
+        else:
+            # Default to product
+            product_type = 'product'
+            is_for_sale = True
+            is_product = True
+            is_premake = False
+            is_preproduct = False
+
         if not selling_price_per_unit:
             selling_price_per_unit = '0'
 
-        # Products are always products (not premakes)
-        is_product = True
-        is_premake = False
-        is_preproduct = 'is_preproduct' in request.form  # Check if checkbox is checked
         batch_size = None
 
         image_filename = None
@@ -109,9 +137,11 @@ def add_product():
             products_per_recipe=int(products_per_recipe),
             selling_price_per_unit=float(selling_price_per_unit),
             image_filename=image_filename,
-            is_product=is_product,
-            is_premake=is_premake,
-            is_preproduct=is_preproduct,
+            product_type=product_type,  # New field
+            is_for_sale=is_for_sale,    # New field
+            is_product=is_product,      # Keep for backward compatibility
+            is_premake=is_premake,       # Keep for backward compatibility
+            is_preproduct=is_preproduct, # Keep for backward compatibility
             batch_size=batch_size,
             unit='kg'  # Always use kg internally
         )
@@ -193,14 +223,37 @@ def add_product():
         # Process preproducts
         preproduct_ids = request.form.getlist('preproduct[]')
         preproduct_quantities = request.form.getlist('preproduct_quantity[]')
-        for preproduct_id, quantity in zip(preproduct_ids, preproduct_quantities):
+        preproduct_units = request.form.getlist('preproduct_unit[]')
+
+        for i in range(len(preproduct_ids)):
+            preproduct_id = preproduct_ids[i]
+            quantity = preproduct_quantities[i] if i < len(preproduct_quantities) else None
+            selected_unit = preproduct_units[i] if i < len(preproduct_units) else None
+
             if not preproduct_id or not quantity or float(quantity) <= 0:
                 continue
+
+            # Get the preproduct to check its base unit
+            preproduct = Product.query.get(preproduct_id)
+            if not preproduct or not preproduct.is_preproduct:
+                continue
+
+            # Determine the final quantity based on unit type
+            preproduct_base_unit = getattr(preproduct, 'unit', 'unit')
+
+            if preproduct_base_unit in ['kg', 'g']:
+                # Weight-based preproduct - convert to kg for storage
+                base_unit = 'kg'
+                final_quantity = convert_to_base_unit(float(quantity), selected_unit, base_unit)
+            else:
+                # Unit-based preproduct (unit, piece, etc.) - store as-is
+                final_quantity = float(quantity)
+
             component = ProductComponent(
                 product_id=product.id,
                 component_type='product',
                 component_id=preproduct_id,
-                quantity=float(quantity)
+                quantity=final_quantity
             )
             db.session.add(component)
 
@@ -489,11 +542,32 @@ def edit_product(product_id):
             product.category_id = int(category_id)
 
         product.products_per_recipe = int(request.form['products_per_recipe'])
-        product.selling_price_per_unit = float(request.form['selling_price_per_unit'])
 
-        # Don't change the is_product/is_premake flags - keep them as they were
-        # But do update is_preproduct
-        product.is_preproduct = 'is_preproduct' in request.form
+        # Get product type selection
+        product_type_selection = request.form.get('product_type_selection', 'product')
+
+        # Update product type and sale status based on selection
+        if product_type_selection == 'product':
+            product.product_type = 'product'
+            product.is_for_sale = True
+            product.is_product = True
+            product.is_premake = False
+            product.is_preproduct = False
+            product.selling_price_per_unit = float(request.form.get('selling_price_per_unit', 0))
+        elif product_type_selection == 'preproduct_sale':
+            product.product_type = 'preproduct'
+            product.is_for_sale = True
+            product.is_product = True  # For backward compatibility
+            product.is_premake = False
+            product.is_preproduct = True
+            product.selling_price_per_unit = float(request.form.get('selling_price_per_unit', 0))
+        elif product_type_selection == 'preproduct_internal':
+            product.product_type = 'preproduct'
+            product.is_for_sale = False
+            product.is_product = True  # For backward compatibility
+            product.is_premake = False
+            product.is_preproduct = True
+            product.selling_price_per_unit = 0  # No selling price for internal use
 
         if 'image' in request.files:
             file = request.files['image']
@@ -587,14 +661,37 @@ def edit_product(product_id):
         # Process preproducts
         preproduct_ids = request.form.getlist('preproduct[]')
         preproduct_quantities = request.form.getlist('preproduct_quantity[]')
-        for preproduct_id, quantity in zip(preproduct_ids, preproduct_quantities):
+        preproduct_units = request.form.getlist('preproduct_unit[]')
+
+        for i in range(len(preproduct_ids)):
+            preproduct_id = preproduct_ids[i]
+            quantity = preproduct_quantities[i] if i < len(preproduct_quantities) else None
+            selected_unit = preproduct_units[i] if i < len(preproduct_units) else None
+
             if not preproduct_id or not quantity or float(quantity) <= 0:
                 continue
+
+            # Get the preproduct to check its base unit
+            preproduct = Product.query.get(preproduct_id)
+            if not preproduct or not preproduct.is_preproduct:
+                continue
+
+            # Determine the final quantity based on unit type
+            preproduct_base_unit = getattr(preproduct, 'unit', 'unit')
+
+            if preproduct_base_unit in ['kg', 'g']:
+                # Weight-based preproduct - convert to kg for storage
+                base_unit = 'kg'
+                final_quantity = convert_to_base_unit(float(quantity), selected_unit, base_unit)
+            else:
+                # Unit-based preproduct (unit, piece, etc.) - store as-is
+                final_quantity = float(quantity)
+
             component = ProductComponent(
                 product_id=product.id,
                 component_type='product',
                 component_id=preproduct_id,
-                quantity=float(quantity)
+                quantity=final_quantity
             )
             db.session.add(component)
 

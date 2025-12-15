@@ -823,3 +823,171 @@ def migrate_fix_preproduct_units():
         return f"Migration failed: {e}", 500
 
 
+@admin_blueprint.route('/migrate_product_type_system', methods=['GET', 'POST'])
+def migrate_product_type_system():
+    """
+    Migrate from old boolean flags (is_product, is_premake, is_preproduct)
+    to new product type system (product_type enum and is_for_sale boolean)
+    """
+
+    if request.method == 'GET':
+        # Show migration status and confirmation page
+        products = Product.query.all()
+
+        # Count existing product types
+        stats = {
+            'total': len(products),
+            'products': 0,
+            'premakes': 0,
+            'preproducts': 0,
+            'already_migrated': 0
+        }
+
+        for p in products:
+            if p.product_type:  # Already has new field
+                stats['already_migrated'] += 1
+            elif p.is_premake:
+                stats['premakes'] += 1
+            elif p.is_preproduct:
+                stats['preproducts'] += 1
+            else:
+                stats['products'] += 1
+
+        return f'''
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>{_('Product Type System Migration')}</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                .stats {{ background: #f0f0f0; padding: 15px; margin: 20px 0; border-radius: 5px; }}
+                .warning {{ background: #fff3cd; padding: 10px; border-left: 5px solid #ffc107; margin: 20px 0; }}
+                button {{ background: #007bff; color: white; padding: 10px 20px; border: none; cursor: pointer; }}
+                button:hover {{ background: #0056b3; }}
+            </style>
+        </head>
+        <body>
+            <h1>{_('Product Type System Migration')}</h1>
+
+            <div class="stats">
+                <h3>{_('Current Database Status:')}</h3>
+                <ul>
+                    <li>{_('Total items')}: {stats['total']}</li>
+                    <li>{_('Regular products')}: {stats['products']}</li>
+                    <li>{_('Premakes')}: {stats['premakes']}</li>
+                    <li>{_('Preproducts')}: {stats['preproducts']}</li>
+                    <li>{_('Already migrated')}: {stats['already_migrated']}</li>
+                </ul>
+            </div>
+
+            <div class="warning">
+                <strong>{_('What will happen:')}</strong>
+                <ul>
+                    <li>{_('Products will be set to')} product_type='product', is_for_sale=True</li>
+                    <li>{_('Premakes will be set to')} product_type='premake', is_for_sale=False</li>
+                    <li>{_('Preproducts will be set to')} product_type='preproduct', is_for_sale=True {_('(you can change later)')}</li>
+                    <li>{_('New columns product_type and is_for_sale will be added if not present')}</li>
+                    <li>{_('Old boolean fields will be kept for backward compatibility')}</li>
+                </ul>
+            </div>
+
+            <form method="POST">
+                <button type="submit">{_('Run Migration')}</button>
+                <a href="/" style="margin-left: 20px;">{_('Cancel')}</a>
+            </form>
+        </body>
+        </html>
+        '''
+
+    # POST - Execute migration
+    try:
+        # First, check if columns exist and add them if not
+        # Check if product_type column exists
+        inspector = db.inspect(db.engine)
+        columns = [col['name'] for col in inspector.get_columns('product')]
+
+        if 'product_type' not in columns:
+            # Add product_type column
+            db.session.execute(text('''
+                ALTER TABLE product
+                ADD COLUMN product_type VARCHAR(20)
+            '''))
+            db.session.commit()
+            log_audit("MIGRATION", "System", None, "Added product_type column to Product table")
+
+        if 'is_for_sale' not in columns:
+            # Add is_for_sale column
+            db.session.execute(text('''
+                ALTER TABLE product
+                ADD COLUMN is_for_sale BOOLEAN
+            '''))
+            db.session.commit()
+            log_audit("MIGRATION", "System", None, "Added is_for_sale column to Product table")
+
+        # Now migrate the data
+        products = Product.query.all()
+        migrated_count = 0
+        skipped_count = 0
+
+        for product in products:
+            # Skip if already migrated
+            if product.product_type:
+                skipped_count += 1
+                continue
+
+            # Determine new values based on old flags
+            if product.is_premake:
+                product.product_type = 'premake'
+                product.is_for_sale = False
+            elif product.is_preproduct:
+                product.product_type = 'preproduct'
+                product.is_for_sale = True  # Default to True, user can change later
+            else:
+                product.product_type = 'product'
+                product.is_for_sale = True
+
+            migrated_count += 1
+
+        db.session.commit()
+
+        log_audit("MIGRATION_SUCCESS", "System", None,
+                 f"Successfully migrated {migrated_count} products to new type system")
+
+        return f'''
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>{_('Migration Complete')}</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                .success {{ background: #d4edda; padding: 15px; border-left: 5px solid #28a745; margin: 20px 0; }}
+            </style>
+        </head>
+        <body>
+            <h1>{_('Migration Complete')}</h1>
+
+            <div class="success">
+                <h3>{_('Success!')}</h3>
+                <p>{_('Migrated')} {migrated_count} {_('items to new product type system')}</p>
+                <p>{_('Skipped')} {skipped_count} {_('items (already migrated)')}</p>
+            </div>
+
+            <h3>{_('Next Steps:')}</h3>
+            <ul>
+                <li>{_('Review preproducts and mark which ones are not for sale')}</li>
+                <li>{_('Test product creation and editing with new system')}</li>
+                <li>{_('After confirming everything works, this migration endpoint can be removed')}</li>
+            </ul>
+
+            <a href="/">{_('Return to Dashboard')}</a>
+        </body>
+        </html>
+        '''
+
+    except Exception as e:
+        db.session.rollback()
+        log_audit("MIGRATION_ERROR", "System", None,
+                 f"Failed to migrate product type system: {str(e)}")
+        return f"Migration failed: {e}", 500
+
+

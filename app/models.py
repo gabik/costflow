@@ -269,7 +269,11 @@ class Product(db.Model):
     selling_price_per_unit = db.Column(db.Float, nullable=True)  # Made nullable for premakes
     image_filename = db.Column(db.String(255), nullable=True)
 
-    # Unified product/premake fields
+    # New product type system (Phase 1 - Add new fields)
+    product_type = db.Column(db.String(20), nullable=True)  # 'product', 'premake', 'preproduct'
+    is_for_sale = db.Column(db.Boolean, nullable=True)  # True for sellable items, False for internal use
+
+    # Legacy fields (kept for backward compatibility)
     is_product = db.Column(db.Boolean, default=True, nullable=False)
     is_premake = db.Column(db.Boolean, default=False, nullable=False)
     is_preproduct = db.Column(db.Boolean, default=False, nullable=False)  # Can be sold AND used as component
@@ -278,6 +282,25 @@ class Product(db.Model):
     unit = db.Column(db.String(20), nullable=True)  # Unit of measurement ('kg', 'L', 'piece', etc.)
 
     category = db.relationship('Category', backref='products')
+
+    def get_product_type(self):
+        """Get the effective product type, using new field if available, otherwise deriving from legacy fields"""
+        if self.product_type:
+            return self.product_type
+        # Derive from legacy fields
+        if self.is_premake:
+            return 'premake'
+        elif self.is_preproduct:
+            return 'preproduct'
+        else:
+            return 'product'
+
+    def get_is_for_sale(self):
+        """Get whether item is for sale, using new field if available, otherwise deriving from type"""
+        if self.is_for_sale is not None:
+            return self.is_for_sale
+        # Derive from product type
+        return self.get_product_type() != 'premake'  # Everything except premakes is for sale by default
 
     def to_dict(self):
         return {
@@ -293,7 +316,9 @@ class Product(db.Model):
             'is_preproduct': self.is_preproduct,
             'is_archived': self.is_archived,
             'batch_size': self.batch_size,
-            'unit': self.unit
+            'unit': self.unit,
+            'product_type': self.get_product_type(),
+            'is_for_sale': self.get_is_for_sale()
         }
 
 class ProductComponent(db.Model):

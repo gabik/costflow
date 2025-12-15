@@ -60,10 +60,16 @@
                             <i class="bi bi-archive"></i> {{ _('Archived') }}
                         </span>
                     {% endif %}
-                    {% if product.is_preproduct %}
-                        <span class="badge bg-info ms-2" title="{{ _('Preproduct - Can be sold and also used as a component') }}">
-                            <i class="bi bi-arrows-collapse-vertical"></i>
-                        </span>
+                    {% if product.get_product_type() == 'preproduct' %}
+                        {% if product.get_is_for_sale() %}
+                            <span class="badge bg-info ms-2" title="{{ _('Preproduct - Can be sold and used as a component') }}">
+                                <i class="bi bi-arrows-collapse-vertical"></i>
+                            </span>
+                        {% else %}
+                            <span class="badge bg-secondary ms-2" title="{{ _('Preproduct - Internal use only') }}">
+                                <i class="bi bi-gear"></i> {{ _('Internal') }}
+                            </span>
+                        {% endif %}
                     {% endif %}
                     {% if not item.can_produce and not product.is_archived %}
                         <span class="badge bg-danger ms-2"
@@ -95,16 +101,24 @@
                     {{ currency_symbol }}{{ "%.2f" | format(item.prime_cost) }}
                 </td>
                 <td>
-                    {{ currency_symbol }}{{ "%.2f" | format(product.selling_price_per_unit or 0) }}
+                    {% if product.get_is_for_sale() %}
+                        {{ currency_symbol }}{{ "%.2f" | format(product.selling_price_per_unit or 0) }}
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
                 </td>
                 <td>
-                    {% if (product.selling_price_per_unit or 0) > 0 %}
-                        {% set margin = ((product.selling_price_per_unit or 0) - item.prime_cost) / (product.selling_price_per_unit or 1) * 100 %}
-                        <span class="badge {{ 'bg-success' if margin > 20 else 'bg-warning text-dark' if margin > 0 else 'bg-danger' }}">
-                            {{ "%.1f" | format(margin) }}%
-                        </span>
+                    {% if product.get_is_for_sale() %}
+                        {% if (product.selling_price_per_unit or 0) > 0 %}
+                            {% set margin = ((product.selling_price_per_unit or 0) - item.prime_cost) / (product.selling_price_per_unit or 1) * 100 %}
+                            <span class="badge {{ 'bg-success' if margin > 20 else 'bg-warning text-dark' if margin > 0 else 'bg-danger' }}">
+                                {{ "%.1f" | format(margin) }}%
+                            </span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ _('N/A') }}</span>
+                        {% endif %}
                     {% else %}
-                        <span class="badge bg-secondary">{{ _('N/A') }}</span>
+                        <span class="text-muted">-</span>
                     {% endif %}
                 </td>
                 <td class="text-end">
