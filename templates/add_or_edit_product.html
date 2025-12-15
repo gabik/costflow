@@ -235,19 +235,8 @@
                 </div>
                 <div class="col-md-3">
                     <select name="preproduct_unit[]" class="form-select unit-select">
-                        {% if component.preproduct %}
-                            {% if component.preproduct.unit in ['kg', 'g'] %}
-                                <option value="kg" {% if component.preproduct.unit == 'kg' %}selected{% endif %}>kg</option>
-                                <option value="g" {% if component.preproduct.unit == 'g' %}selected{% endif %}>g</option>
-                            {% elif component.preproduct.unit in ['L', 'ml'] %}
-                                <option value="L" {% if component.preproduct.unit == 'L' %}selected{% endif %}>L</option>
-                                <option value="ml" {% if component.preproduct.unit == 'ml' %}selected{% endif %}>ml</option>
-                            {% else %}
-                                <option value="{{ component.preproduct.unit }}">{{ component.preproduct.unit }}</option>
-                            {% endif %}
-                        {% else %}
-                            <option value="{{ _('Unit') }}">{{ _('Unit') }}</option>
-                        {% endif %}
+                        <!-- Default unit option for empty row -->
+                        <option value="{{ _('Unit') }}">{{ _('Unit') }}</option>
                     </select>
                 </div>
                 <div class="col-md-1">
