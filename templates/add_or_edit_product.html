@@ -577,13 +577,24 @@
         allRawMaterials.forEach(material => {
             const selected = materialId == material.id ? 'selected' : '';
             const displayPrice = material.display_price || material.cost_per_unit || 0;
+            const basePrice = material.base_price || displayPrice;
             const priceSource = material.price_source || '{{ _("Average") }}';
+
+            let priceDisplay;
+            if (material.waste_percentage > 0) {
+                // Show strikethrough base price and effective price with waste indicator
+                priceDisplay = `₪<span style="text-decoration: line-through;">${basePrice.toFixed(2)}</span> ₪${displayPrice.toFixed(2)} (${material.waste_percentage.toFixed(1)}% {{ _('waste') }})`;
+            } else {
+                priceDisplay = `₪${displayPrice.toFixed(2)}`;
+            }
+
             optionsHtml += `<option value="${material.id}"
                                    data-unit="${material.unit}"
                                    data-cost="${displayPrice}"
                                    data-supplier="${priceSource}"
+                                   data-waste="${material.waste_percentage || 0}"
                                    ${selected}>
-                           ${material.name} - ₪${displayPrice.toFixed(2)} (${priceSource})
+                           ${material.name} - ${priceDisplay} (${priceSource})
                            </option>`;
         });
 

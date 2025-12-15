@@ -285,9 +285,11 @@ def add_product():
             primary_price = 0
             primary_supplier_name = "לא הוגדר ספק"
 
-        # Override the cost_per_unit with primary supplier's price
-        material_dict['cost_per_unit'] = primary_price
-        material_dict['display_price'] = primary_price
+        # Apply waste percentage adjustment for effective price
+        material_dict['base_price'] = primary_price  # Base price without waste
+        material_dict['cost_per_unit'] = primary_price * material.effective_cost_multiplier  # Effective price with waste
+        material_dict['display_price'] = primary_price * material.effective_cost_multiplier
+        material_dict['effective_cost_multiplier'] = material.effective_cost_multiplier
         material_dict['price_source'] = primary_supplier_name
 
         all_raw_materials.append(material_dict)
@@ -735,9 +737,11 @@ def edit_product(product_id):
             primary_price = 0
             primary_supplier_name = "לא הוגדר ספק"
 
-        # Override the cost_per_unit with primary supplier's price
-        material_dict['cost_per_unit'] = primary_price
-        material_dict['display_price'] = primary_price
+        # Apply waste percentage adjustment for effective price
+        material_dict['base_price'] = primary_price  # Base price without waste
+        material_dict['cost_per_unit'] = primary_price * material.effective_cost_multiplier  # Effective price with waste
+        material_dict['display_price'] = primary_price * material.effective_cost_multiplier
+        material_dict['effective_cost_multiplier'] = material.effective_cost_multiplier
         material_dict['price_source'] = primary_supplier_name
 
         all_raw_materials.append(material_dict)

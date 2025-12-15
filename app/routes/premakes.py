@@ -299,13 +299,17 @@ def add_premake():
                 price = primary_link.cost_per_unit
             else:
                 price = material.supplier_links[0].cost_per_unit
-        material.display_price = price
+        # Apply waste percentage adjustment to get effective price
+        material.base_price = price
+        material.display_price = price * material.effective_cost_multiplier
 
     # Convert to dicts for JSON serialization in template
     all_raw_materials = []
     for m in raw_materials:
         m_dict = m.to_dict()
-        m_dict['cost_per_unit'] = m.display_price  # Add for backward compatibility
+        m_dict['base_price'] = m.base_price  # Base price without waste
+        m_dict['cost_per_unit'] = m.display_price  # Effective price with waste
+        m_dict['effective_cost_multiplier'] = m.effective_cost_multiplier
         all_raw_materials.append(m_dict)
     all_premakes = [p.to_dict() for p in premakes]
 
@@ -429,13 +433,17 @@ def edit_premake(premake_id):
                 price = primary_link.cost_per_unit
             else:
                 price = material.supplier_links[0].cost_per_unit
-        material.display_price = price
+        # Apply waste percentage adjustment to get effective price
+        material.base_price = price
+        material.display_price = price * material.effective_cost_multiplier
 
     # Convert to dicts for JSON serialization in template
     all_raw_materials = []
     for m in raw_materials:
         m_dict = m.to_dict()
-        m_dict['cost_per_unit'] = m.display_price  # Add for backward compatibility
+        m_dict['base_price'] = m.base_price  # Base price without waste
+        m_dict['cost_per_unit'] = m.display_price  # Effective price with waste
+        m_dict['effective_cost_multiplier'] = m.effective_cost_multiplier
         all_raw_materials.append(m_dict)
     all_premakes = [p.to_dict() for p in premakes]
 

@@ -77,7 +77,14 @@
                                     <option value="">{{ _('Select raw material...') }}</option>
                                     {% for mat_opt in all_raw_materials %}
                                     <option value="{{ mat_opt.id }}" data-unit="{{ mat_opt.unit }}" {% if mat_opt.id == component.component_id %}selected{% endif %}>
-                                        {{ mat_opt.name }} ({{ mat_opt.unit }}) - {{ "%.2f"|format(mat_opt.display_price if mat_opt.display_price else 0) }} ₪
+                                        {{ mat_opt.name }} ({{ mat_opt.unit }}) -
+                                        {% if mat_opt.waste_percentage > 0 %}
+                                            <span class="text-muted text-decoration-line-through">{{ "%.2f"|format(mat_opt.base_price if mat_opt.base_price else 0) }}</span>
+                                            {{ "%.2f"|format(mat_opt.display_price if mat_opt.display_price else 0) }} ₪
+                                            ({{ mat_opt.waste_percentage|round(1) }}% {{ _('waste') }})
+                                        {% else %}
+                                            {{ "%.2f"|format(mat_opt.display_price if mat_opt.display_price else 0) }} ₪
+                                        {% endif %}
                                     </option>
                                     {% endfor %}
                                 </select>
@@ -122,7 +129,14 @@
                                 <option value="" disabled selected>{{ _('Select raw material...') }}</option>
                                 {% for mat_opt in all_raw_materials %}
                                 <option value="{{ mat_opt.id }}" data-unit="{{ mat_opt.unit }}">
-                                    {{ mat_opt.name }} ({{ mat_opt.unit }}) - {{ "%.2f"|format(mat_opt.display_price if mat_opt.display_price else 0) }} ₪
+                                    {{ mat_opt.name }} ({{ mat_opt.unit }}) -
+                                    {% if mat_opt.waste_percentage > 0 %}
+                                        <span class="text-muted text-decoration-line-through">{{ "%.2f"|format(mat_opt.base_price if mat_opt.base_price else 0) }}</span>
+                                        {{ "%.2f"|format(mat_opt.display_price if mat_opt.display_price else 0) }} ₪
+                                        ({{ mat_opt.waste_percentage|round(1) }}% {{ _('waste') }})
+                                    {% else %}
+                                        {{ "%.2f"|format(mat_opt.display_price if mat_opt.display_price else 0) }} ₪
+                                    {% endif %}
                                 </option>
                                 {% endfor %}
                             </select>
@@ -254,7 +268,14 @@
         let optionsHtml = '<option value="" disabled selected>{{ _("Select raw material...") }}</option>';
         allRawMaterials.forEach(material => {
             const selected = materialId == material.id ? 'selected' : '';
-            optionsHtml += `<option value="${material.id}" data-unit="${material.unit}" ${selected}>${material.name} (${material.unit}) - ${material.cost_per_unit} ₪</option>`;
+            let priceDisplay;
+            if (material.waste_percentage > 0) {
+                // Show strikethrough base price and effective price with waste indicator
+                priceDisplay = `<span style="text-decoration: line-through;">${(material.base_price || 0).toFixed(2)}</span> ${(material.cost_per_unit || 0).toFixed(2)} ₪ (${material.waste_percentage.toFixed(1)}% {{ _('waste') }})`;
+            } else {
+                priceDisplay = `${(material.cost_per_unit || 0).toFixed(2)} ₪`;
+            }
+            optionsHtml += `<option value="${material.id}" data-unit="${material.unit}" data-waste="${material.waste_percentage || 0}" ${selected}>${material.name} (${material.unit}) - ${priceDisplay}</option>`;
         });
 
         const rowHtml = `
