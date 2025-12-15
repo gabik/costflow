@@ -283,10 +283,11 @@ function updateProductionDetails() {
                 let usageDisplay = formatQuantityWithUnit(consumption.amount_to_consume, comp.unit);
                 let costTooltip = '';
                 if (comp.waste_percentage > 0) {
-                    const recipeQuantity = consumption.amount_to_consume / (1 + comp.waste_percentage / 100);
+                    // Recipe needs the original amount (comp.qty_per_batch * batches)
+                    const recipeNeeds = comp.qty_per_batch * batches;
                     usageDisplay = `<span data-bs-toggle="tooltip"
                                          data-bs-placement="top"
-                                         title="{{ _('Recipe needs') }}: ${formatQuantityWithUnit(recipeQuantity, comp.unit)} + ${comp.waste_percentage}% {{ _('waste') }} = ${formatQuantityWithUnit(consumption.amount_to_consume, comp.unit)}"
+                                         title="{{ _('Recipe needs') }}: ${formatQuantityWithUnit(recipeNeeds, comp.unit)}, {{ _('using') }} ${formatQuantityWithUnit(consumption.amount_to_consume, comp.unit)} ({{ _('includes') }} ${comp.waste_percentage}% {{ _('waste') }})"
                                          class="text-decoration-underline" style="text-decoration-style: dotted !important; cursor: help;">
                                          ${formatQuantityWithUnit(consumption.amount_to_consume, comp.unit)}
                                          <i class="bi bi-info-circle-fill text-warning small ms-1"></i>
@@ -339,10 +340,11 @@ function updateProductionDetails() {
                     let usageDisplay = formatQuantityWithUnit(consumption.amount_to_consume, comp.unit);
                     let costTooltip = '';
                     if (index === 0 && comp.waste_percentage > 0) {
-                        const recipeQuantity = consumption.amount_to_consume / (1 + comp.waste_percentage / 100);
+                        // Recipe needs the original amount (comp.qty_per_batch * batches)
+                        const recipeNeeds = comp.qty_per_batch * batches;
                         usageDisplay = `<span data-bs-toggle="tooltip"
                                              data-bs-placement="top"
-                                             title="{{ _('Recipe needs') }}: ${formatQuantityWithUnit(recipeQuantity, comp.unit)} + ${comp.waste_percentage}% {{ _('waste') }} = ${formatQuantityWithUnit(consumption.amount_to_consume, comp.unit)}"
+                                             title="{{ _('Recipe needs') }}: ${formatQuantityWithUnit(recipeNeeds, comp.unit)}, {{ _('using') }} ${formatQuantityWithUnit(consumption.amount_to_consume, comp.unit)} ({{ _('includes') }} ${comp.waste_percentage}% {{ _('waste') }})"
                                              class="text-decoration-underline" style="text-decoration-style: dotted !important; cursor: help;">
                                              ${formatQuantityWithUnit(consumption.amount_to_consume, comp.unit)}
                                              <i class="bi bi-info-circle-fill text-warning small ms-1"></i>
