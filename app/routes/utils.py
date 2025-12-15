@@ -176,9 +176,11 @@ def get_primary_supplier_discounted_price(material):
         first_link = material.supplier_links[0]
         base_price = apply_supplier_discount(first_link.cost_per_unit, first_link.supplier)
 
-    # Return base price WITHOUT waste adjustment
-    # Waste is handled by adjusting quantity, not price
-    return base_price
+    # Return base price WITH waste adjustment
+    # Waste affects BOTH price AND quantity:
+    # - Price: Higher effective cost due to waste (this function)
+    # - Quantity: More material needed from inventory (handled in deduct_material_stock)
+    return base_price * material.effective_cost_multiplier
 
 def log_audit(action, target_type, target_id=None, details=None):
     try:
