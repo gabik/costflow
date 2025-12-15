@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-12-15 14:59+0200\n"
+"POT-Creation-Date: 2025-12-15 15:46+0200\n"
 "PO-Revision-Date: 2024-12-14 21:06+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: he\n"
@@ -36,48 +36,48 @@ msgstr "אריזה לא נמצאה"
 msgid "Stock updated successfully"
 msgstr "המלאי עודכן בהצלחה"
 
-#: app/routes/products.py:794
+#: app/routes/products.py:897
 #, python-brace-format
 msgid "Product archived: It is used as a component in {} other product(s)"
 msgstr "המוצר הועבר לארכיון: הוא משמש כרכיב ב-{} מוצרים אחרים"
 
-#: app/routes/products.py:805
+#: app/routes/products.py:908
 #, python-brace-format
 msgid "Product archived: It has {} production record(s)"
 msgstr "המוצר הועבר לארכיון: יש לו {} רשומות ייצור"
 
-#: app/routes/products.py:816
+#: app/routes/products.py:919
 #, python-brace-format
 msgid "Product archived: It has {} weekly sales record(s)"
 msgstr "המוצר הועבר לארכיון: יש לו {} רשומות מכירות שבועיות"
 
-#: app/routes/products.py:835
+#: app/routes/products.py:938
 msgid "Product deleted successfully"
 msgstr "המוצר נמחק בהצלחה"
 
-#: app/routes/products.py:838
+#: app/routes/products.py:941
 #, python-brace-format
 msgid "Error deleting product: {}"
 msgstr "שגיאה במחיקת מוצר: {}"
 
-#: app/routes/products.py:855
+#: app/routes/products.py:958
 msgid "Product restored successfully"
 msgstr "המוצר שוחזר בהצלחה"
 
-#: app/routes/products.py:858
+#: app/routes/products.py:961
 #, python-brace-format
 msgid "Error restoring product: {}"
 msgstr "שגיאה בשחזור מוצר: {}"
 
-#: app/routes/products.py:881
+#: app/routes/products.py:984
 msgid "Migration completed: Added is_archived field to products"
 msgstr "המיגרציה הושלמה: נוסף שדה is_archived למוצרים"
 
-#: app/routes/products.py:883
+#: app/routes/products.py:986
 msgid "Migration skipped: is_archived field already exists"
 msgstr "המיגרציה דולגה: שדה is_archived כבר קיים"
 
-#: app/routes/products.py:885
+#: app/routes/products.py:988
 #, python-brace-format
 msgid "Migration failed: {}"
 msgstr "המיגרציה נכשלה: {}"
@@ -225,7 +225,7 @@ msgstr "הוסף"
 #: templates/add_or_edit_packaging.html:2 templates/base.html:69
 #: templates/close_week.html:96 templates/packaging.html:167
 #: templates/premake_production.html:391 templates/product_details.html:310
-#: templates/product_details.html:319 templates/production.html:406
+#: templates/product_details.html:319 templates/production.html:408
 #: templates/stock_audits.html:128 templates/supplier_materials.html:149
 msgid "Packaging"
 msgstr "אריזה"
@@ -471,8 +471,8 @@ msgid "Total Cost per Batch:"
 msgstr "סה\"כ עלות לאצ':"
 
 #: templates/add_or_edit_premake.html:211
-#: templates/add_or_edit_product.html:408 templates/production.html:65
-#: templates/recipe_review.html:330 templates/view_premake.html:107
+#: templates/add_or_edit_product.html:408 templates/recipe_review.html:330
+#: templates/view_premake.html:107
 msgid "Cost"
 msgstr "עלות"
 
@@ -708,8 +708,8 @@ msgstr "ממוצע"
 #: templates/add_or_edit_raw_material.html:2
 #: templates/premake_production.html:286 templates/premake_production.html:321
 #: templates/premake_production.html:391 templates/product_details.html:109
-#: templates/production.html:324 templates/production.html:361
-#: templates/production.html:402 templates/supplier_materials.html:74
+#: templates/production.html:325 templates/production.html:363
+#: templates/production.html:404 templates/supplier_materials.html:74
 #: templates/supplier_materials.html:232 templates/weekly_report.html:645
 msgid "Raw Material"
 msgstr "חומר גלם"
@@ -1223,7 +1223,7 @@ msgstr "שאריות הכנות"
 
 #: templates/close_week.html:62 templates/premake_production.html:80
 #: templates/premake_production.html:117 templates/premake_production.html:391
-#: templates/product_details.html:179 templates/production.html:408
+#: templates/product_details.html:179 templates/production.html:410
 #: templates/view_premake.html:12 templates/weekly_report.html:377
 msgid "Premake"
 msgstr "הכנה מקדימה"
@@ -1365,8 +1365,7 @@ msgstr "נמכר"
 msgid "Waste"
 msgstr "פחת"
 
-#: templates/index.html:202 templates/production.html:64
-#: templates/weekly_report.html:286
+#: templates/index.html:202 templates/weekly_report.html:286
 msgid "Unit Cost"
 msgstr "עלות יח'"
 
@@ -1981,15 +1980,15 @@ msgstr "צריכה בייצור זה"
 msgid "Stock after production"
 msgstr "מלאי לאחר ייצור"
 
-#: templates/premake_production.html:58
+#: templates/premake_production.html:58 templates/production.html:64
 #, fuzzy
 msgid "Cost per 100g"
 msgstr "עלות ל-100 ג׳:"
 
-#: templates/premake_production.html:59 templates/production.html:89
-#: templates/weekly_costs.html:23 templates/weekly_report.html:174
-#: templates/weekly_report.html:519 templates/weekly_report.html:558
-#: templates/weekly_report.html:824
+#: templates/premake_production.html:59 templates/production.html:65
+#: templates/production.html:89 templates/weekly_costs.html:23
+#: templates/weekly_report.html:174 templates/weekly_report.html:519
+#: templates/weekly_report.html:558 templates/weekly_report.html:824
 msgid "Total Cost"
 msgstr "סך עלות"
 
@@ -2033,16 +2032,16 @@ msgid "Edit Premake Production Quantity for"
 msgstr "עריכת כמות ייצור הכנה עבור"
 
 #: templates/premake_production.html:308 templates/premake_production.html:356
-#: templates/production.html:349 templates/production.html:396
+#: templates/production.html:350 templates/production.html:398
 msgid "Shortage"
 msgstr "חוסר"
 
 #: templates/premake_production.html:391 templates/product_details.html:14
-#: templates/product_details.html:262 templates/production.html:404
+#: templates/product_details.html:262 templates/production.html:406
 msgid "Preproduct"
 msgstr "מוצר מקדים"
 
-#: templates/premake_production.html:405 templates/production.html:426
+#: templates/premake_production.html:405 templates/production.html:467
 msgid "Total production cost"
 msgstr "סה\"כ עלות ייצור"
 
