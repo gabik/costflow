@@ -285,8 +285,12 @@ class Product(db.Model):
 
     def get_product_type(self):
         """Get the effective product type, using new field if available, otherwise deriving from legacy fields"""
-        if self.product_type:
-            return self.product_type
+        # Check if the new field exists and has a value
+        try:
+            if hasattr(self, 'product_type') and self.product_type:
+                return self.product_type
+        except:
+            pass
         # Derive from legacy fields
         if self.is_premake:
             return 'premake'
@@ -297,13 +301,17 @@ class Product(db.Model):
 
     def get_is_for_sale(self):
         """Get whether item is for sale, using new field if available, otherwise deriving from type"""
-        if self.is_for_sale is not None:
-            return self.is_for_sale
+        # Check if the new field exists and has a value
+        try:
+            if hasattr(self, 'is_for_sale') and self.is_for_sale is not None:
+                return self.is_for_sale
+        except:
+            pass
         # Derive from product type
         return self.get_product_type() != 'premake'  # Everything except premakes is for sale by default
 
     def to_dict(self):
-        return {
+        result = {
             'id': self.id,
             'name': self.name,
             'category_name': self.category.name if self.category else None,
@@ -316,10 +324,17 @@ class Product(db.Model):
             'is_preproduct': self.is_preproduct,
             'is_archived': self.is_archived,
             'batch_size': self.batch_size,
-            'unit': self.unit,
-            'product_type': self.get_product_type(),
-            'is_for_sale': self.get_is_for_sale()
+            'unit': self.unit
         }
+        # Add new fields if available
+        try:
+            result['product_type'] = self.get_product_type()
+            result['is_for_sale'] = self.get_is_for_sale()
+        except:
+            # If new fields don't exist yet, use defaults
+            result['product_type'] = 'product' if not self.is_premake else 'premake'
+            result['is_for_sale'] = not self.is_premake
+        return result
 
 class ProductComponent(db.Model):
     id = db.Column(db.Integer, primary_key=True)

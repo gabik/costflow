@@ -831,27 +831,56 @@ def migrate_product_type_system():
     """
 
     if request.method == 'GET':
+        # First check if columns exist to avoid SQLAlchemy errors
+        inspector = db.inspect(db.engine)
+        columns = [col['name'] for col in inspector.get_columns('product')]
+
+        needs_migration = 'product_type' not in columns or 'is_for_sale' not in columns
+
         # Show migration status and confirmation page
-        products = Product.query.all()
+        if needs_migration:
+            # Use raw SQL to avoid SQLAlchemy trying to select non-existent columns
+            result = db.session.execute(text('''
+                SELECT id, name, is_product, is_premake, is_preproduct
+                FROM product
+            '''))
+            products = result.fetchall()
 
-        # Count existing product types
-        stats = {
-            'total': len(products),
-            'products': 0,
-            'premakes': 0,
-            'preproducts': 0,
-            'already_migrated': 0
-        }
+            stats = {
+                'total': len(products),
+                'products': 0,
+                'premakes': 0,
+                'preproducts': 0,
+                'already_migrated': 0
+            }
 
-        for p in products:
-            if p.product_type:  # Already has new field
-                stats['already_migrated'] += 1
-            elif p.is_premake:
-                stats['premakes'] += 1
-            elif p.is_preproduct:
-                stats['preproducts'] += 1
-            else:
-                stats['products'] += 1
+            for row in products:
+                if row.is_premake:
+                    stats['premakes'] += 1
+                elif row.is_preproduct:
+                    stats['preproducts'] += 1
+                else:
+                    stats['products'] += 1
+        else:
+            # Columns exist, check if data is already migrated
+            result = db.session.execute(text('''
+                SELECT
+                    COUNT(*) as total,
+                    COUNT(CASE WHEN product_type IS NOT NULL THEN 1 END) as migrated,
+                    COUNT(CASE WHEN product_type IS NULL AND is_premake = TRUE THEN 1 END) as premakes,
+                    COUNT(CASE WHEN product_type IS NULL AND is_preproduct = TRUE THEN 1 END) as preproducts,
+                    COUNT(CASE WHEN product_type IS NULL AND is_premake = FALSE AND is_preproduct = FALSE THEN 1 END) as products
+                FROM product
+            '''))
+            row = result.fetchone()
+
+            stats = {
+                'total': row.total,
+                'products': row.products,
+                'premakes': row.premakes,
+                'preproducts': row.preproducts,
+                'already_migrated': row.migrated
+            }
 
         return f'''
         <!DOCTYPE html>
@@ -924,31 +953,48 @@ def migrate_product_type_system():
             db.session.commit()
             log_audit("MIGRATION", "System", None, "Added is_for_sale column to Product table")
 
-        # Now migrate the data
-        products = Product.query.all()
-        migrated_count = 0
-        skipped_count = 0
+        # Now migrate the data using raw SQL to avoid ORM issues
+        # Count items to be migrated
+        result = db.session.execute(text('''
+            SELECT COUNT(*) as count
+            FROM product
+            WHERE product_type IS NULL
+        '''))
+        to_migrate = result.fetchone().count
 
-        for product in products:
-            # Skip if already migrated
-            if product.product_type:
-                skipped_count += 1
-                continue
+        # Migrate premakes
+        result = db.session.execute(text('''
+            UPDATE product
+            SET product_type = 'premake', is_for_sale = FALSE
+            WHERE is_premake = TRUE AND product_type IS NULL
+        '''))
 
-            # Determine new values based on old flags
-            if product.is_premake:
-                product.product_type = 'premake'
-                product.is_for_sale = False
-            elif product.is_preproduct:
-                product.product_type = 'preproduct'
-                product.is_for_sale = True  # Default to True, user can change later
-            else:
-                product.product_type = 'product'
-                product.is_for_sale = True
+        # Migrate preproducts (default to for_sale=True, can be changed later)
+        result = db.session.execute(text('''
+            UPDATE product
+            SET product_type = 'preproduct', is_for_sale = TRUE
+            WHERE is_preproduct = TRUE AND product_type IS NULL
+        '''))
 
-            migrated_count += 1
+        # Migrate regular products
+        result = db.session.execute(text('''
+            UPDATE product
+            SET product_type = 'product', is_for_sale = TRUE
+            WHERE is_premake = FALSE AND is_preproduct = FALSE AND product_type IS NULL
+        '''))
 
         db.session.commit()
+
+        # Count items that were already migrated
+        result = db.session.execute(text('''
+            SELECT COUNT(*) as count
+            FROM product
+            WHERE product_type IS NOT NULL
+        '''))
+        total_migrated = result.fetchone().count
+
+        migrated_count = to_migrate
+        skipped_count = total_migrated - to_migrate
 
         log_audit("MIGRATION_SUCCESS", "System", None,
                  f"Successfully migrated {migrated_count} products to new type system")
