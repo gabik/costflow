@@ -260,7 +260,12 @@
                 <tbody>
                     {% for item in preproduct_costs %}
                     <tr>
-                        <td>{{ item.name }}</td>
+                        <td>{{ item.name }}
+                            <!-- Debug info -->
+                            <div class="text-muted small">
+                                Debug: price_per_unit={{ item.price_per_unit }}, qty={{ item.quantity }}
+                            </div>
+                        </td>
                         <td>{{ "%.2f"|format(item.quantity) }}</td>
                         <td>{{ item.unit }}</td>
                         <td>₪{{ "%.2f"|format(item.price_per_100g) }}</td>
