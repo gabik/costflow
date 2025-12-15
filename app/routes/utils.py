@@ -262,7 +262,8 @@ def calculate_premake_cost_per_unit(premake, visited=None, use_actual_costs=True
 
             if nested_premake:
                 # Recursive call for nested premakes with visited set
-                nested_cost_per_unit = calculate_premake_cost_per_unit(nested_premake, visited.copy(), use_actual_costs)
+                # Always use recipe-based costs for nested premakes (not production history)
+                nested_cost_per_unit = calculate_premake_cost_per_unit(nested_premake, visited.copy(), use_actual_costs=False)
                 # Component quantities are ALREADY in kg, no conversion needed
                 # Both component quantity and nested premake cost are per kg
                 premake_batch_cost += pm_comp.quantity * nested_cost_per_unit
@@ -319,7 +320,9 @@ def calculate_prime_cost(product):
 
             if premake:
                 # Use the recursive function to calculate premake cost
-                premake_unit_cost = calculate_premake_cost_per_unit(premake)
+                # IMPORTANT: Always use recipe-based costs (use_actual_costs=False) when premakes
+                # are components in other products to avoid using corrupted/outdated production costs
+                premake_unit_cost = calculate_premake_cost_per_unit(premake, use_actual_costs=False)
                 # Component quantities are ALREADY stored in kg, no conversion needed
                 # Just multiply directly - both are in kg baseline
                 total_cost += component.quantity * premake_unit_cost

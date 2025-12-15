@@ -68,7 +68,8 @@ def production():
                                 f"נדרש: {required_qty:.2f} {premake.unit}, זמין: {available_stock:.2f} {premake.unit}"
                             )
 
-                        premake_cost_per_unit = calculate_premake_cost_per_unit(premake)
+                        # Always use recipe-based costs for consistency (not production history)
+                        premake_cost_per_unit = calculate_premake_cost_per_unit(premake, use_actual_costs=False)
                         material_cost = premake_cost_per_unit * required_qty
                         total_production_cost += material_cost
 
@@ -228,7 +229,8 @@ def premake_production():
                     # Calculate nested premake cost
                     nested_premake = Product.query.filter_by(id=component.component_id, is_premake=True).first()
                     if nested_premake:
-                        nested_premake_cost_per_unit = calculate_premake_cost_per_unit(nested_premake)
+                        # Always use recipe-based costs for consistency (not production history)
+                        nested_premake_cost_per_unit = calculate_premake_cost_per_unit(nested_premake, use_actual_costs=False)
                         required_qty = component.quantity * quantity_batches
                         material_cost = nested_premake_cost_per_unit * required_qty
                         total_production_cost += material_cost

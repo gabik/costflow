@@ -61,7 +61,7 @@
                         <th>{{ _('Current Stock') }}</th>
                         <th>{{ _('Usage in this production') }}</th>
                         <th>{{ _('Stock after production') }}</th>
-                        <th>{{ _('Cost per 100g') }}</th>
+                        <th>{{ _('Cost per 100g/unit') }}</th>
                         <th>{{ _('Total Cost') }}</th>
                     </tr>
                 </thead>
@@ -410,41 +410,50 @@ function updateProductionDetails() {
                 typeDisplay = '{{ _("Premake") }}';
             }
 
-            // Special handling for preproducts with weight-based units
+            // Special handling for preproducts and cost display
             let costDisplay, actualCost;
-            if (comp.type === 'Preproduct' && comp.cost_per_100g !== null && comp.cost_per_100g !== undefined) {
-                // For weight-based preproducts, show cost per 100g
-                costDisplay = `${comp.cost_per_100g.toFixed(2)} ₪/100g`;
-
-                // Calculate actual cost based on usage in grams
-                let usageInGrams;
-                if (comp.unit === 'kg') {
-                    usageInGrams = usage * 1000;
-                } else if (comp.unit === 'g') {
-                    usageInGrams = usage;
-                } else {
-                    // For non-weight units, use regular calculation
-                    usageInGrams = null;
-                }
-
-                if (usageInGrams !== null) {
-                    actualCost = (usageInGrams / 100) * comp.cost_per_100g;
-                } else {
-                    actualCost = cost;  // Fallback to original calculation
-                }
-            } else {
-                // Calculate cost per 100g for display based on component type
-                if (comp.type === 'Premake') {
-                    // For premakes, comp.cost_per_unit is per kg, convert to per 100g
-                    const costPer100g = comp.cost_per_unit / 10;  // Convert from per kg to per 100g
+            if (comp.type === 'Preproduct') {
+                // Preproducts can be weight-based or unit-based
+                if (comp.unit === 'kg' || comp.unit === 'g') {
+                    // Weight-based preproduct - show cost per 100g
+                    let costPer100g;
+                    if (comp.cost_per_100g !== null && comp.cost_per_100g !== undefined) {
+                        costPer100g = comp.cost_per_100g;
+                    } else {
+                        // Convert from native unit to per 100g
+                        if (comp.unit === 'kg') {
+                            costPer100g = comp.cost_per_unit / 10;  // Convert from per kg to per 100g
+                        } else {  // unit is 'g'
+                            costPer100g = comp.cost_per_unit * 100;  // Convert from per g to per 100g
+                        }
+                    }
                     costDisplay = `${costPer100g.toFixed(2)} ₪`;
-                } else if (comp.type === 'Packaging') {
-                    // For packaging, show cost per unit
-                    costDisplay = `${comp.cost_per_unit.toFixed(2)} ₪ <small class="text-muted">/ unit</small>`;
+
+                    // Calculate actual cost based on usage in grams
+                    let usageInGrams;
+                    if (comp.unit === 'kg') {
+                        usageInGrams = usage * 1000;
+                    } else {
+                        usageInGrams = usage;
+                    }
+                    actualCost = (usageInGrams / 100) * costPer100g;
                 } else {
-                    // For raw materials or others, show as is (already per 100g from backend)
-                    costDisplay = `${comp.cost_per_unit.toFixed(2)} ₪`;
+                    // Unit-based preproduct (pieces, etc.) - show cost per unit
+                    costDisplay = `${comp.cost_per_unit.toFixed(2)} ₪ <small class="text-muted">/ ${comp.unit || 'unit'}</small>`;
+                    actualCost = cost;
                 }
+            } else if (comp.type === 'Premake') {
+                // For premakes, comp.cost_per_unit is per kg, convert to per 100g
+                const costPer100g = comp.cost_per_unit / 10;  // Convert from per kg to per 100g
+                costDisplay = `${costPer100g.toFixed(2)} ₪`;
+                actualCost = cost;
+            } else if (comp.type === 'Packaging') {
+                // For packaging, show cost per unit
+                costDisplay = `${comp.cost_per_unit.toFixed(2)} ₪ <small class="text-muted">/ unit</small>`;
+                actualCost = cost;
+            } else {
+                // For raw materials or others, show as is (already per 100g from backend)
+                costDisplay = `${comp.cost_per_unit.toFixed(2)} ₪`;
                 actualCost = cost;
             }
 
