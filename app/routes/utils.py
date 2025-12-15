@@ -744,8 +744,11 @@ def deduct_material_stock(material_id, quantity_needed):
             # Deduct what we can from this supplier
             to_deduct = min(available, remaining)
 
-            # Apply discount to cost
+            # Apply discount to cost AND waste adjustment
             discounted_cost_per_unit = apply_supplier_discount(link.cost_per_unit, link.supplier)
+            # Apply waste percentage adjustment to the cost
+            if material and material.waste_percentage > 0:
+                discounted_cost_per_unit = discounted_cost_per_unit * material.effective_cost_multiplier
 
             # Create stock log for deduction (negative add)
             stock_log = StockLog(
