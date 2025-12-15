@@ -324,10 +324,15 @@ def product_detail(product_id):
             price_per_100g = primary_price_discounted
             price_per_100g_original = primary_price_original
 
+        # Apply dynamic unit conversion for display
+        display_quantity, display_unit = format_quantity_with_unit(component.quantity, material.unit)
+
         raw_materials.append({
             'name': material.name,
             'quantity': component.quantity,
             'unit': material.unit,
+            'display_quantity': display_quantity,  # For dynamic display
+            'display_unit': display_unit,  # For dynamic display
             'price_per_unit': primary_price_discounted,  # Keep for calculations
             'price_per_unit_original': primary_price_original,  # Keep for calculations
             'price_per_100g': price_per_100g,  # For display

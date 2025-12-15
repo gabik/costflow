@@ -109,8 +109,8 @@
                     {% for component in raw_materials %}
                     <tr>
                         <td>{{ component.name }}</td>
-                        <td>{{ "%.2f"|format(component.quantity) }}</td>
-                        <td>{{ component.unit }}</td>
+                        <td>{{ "%.2f"|format(component.display_quantity if component.display_quantity is defined else component.quantity) }}</td>
+                        <td>{{ component.display_unit if component.display_unit is defined else component.unit }}</td>
                         <td>
                             {% if component.price_per_100g_original != component.price_per_100g %}
                             <span class="text-muted text-decoration-line-through">
