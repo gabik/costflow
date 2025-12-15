@@ -252,7 +252,7 @@
                         <th style="width: 40%;">{{ _('Preproduct') }}</th>
                         <th>{{ _('Quantity in Recipe') }}</th>
                         <th>{{ _('Unit') }}</th>
-                        <th>{{ _('Price per 100g') }}</th>
+                        <th>{{ _('Price') }}</th>
                         <th>{{ _('Cost per Recipe') }}</th>
                         <th class="text-end">{{ _('Cost per Product') }}</th>
                     </tr>
@@ -263,7 +263,13 @@
                         <td>{{ item.name }}</td>
                         <td>{{ "%.2f"|format(item.quantity) }}</td>
                         <td>{{ item.unit }}</td>
-                        <td>₪{{ "%.2f"|format(item.price_per_100g) }}</td>
+                        <td>
+                            {% if item.unit in ['kg', 'g'] %}
+                                ₪{{ "%.2f"|format(item.price_per_100g) }} <small class="text-muted">/ 100g</small>
+                            {% else %}
+                                ₪{{ "%.2f"|format(item.price_per_unit) }} <small class="text-muted">/ {{ item.unit }}</small>
+                            {% endif %}
+                        </td>
                         <td>₪{{ "{:.2f}".format(item.price_per_recipe) if item.price_per_recipe >= 0.01 else "{:.4f}".format(item.price_per_recipe) }}</td>
                         <td class="text-end fw-bold">₪{{ "{:.2f}".format(item.price_per_product) if item.price_per_product >= 0.01 else "{:.4f}".format(item.price_per_product) }}</td>
                     </tr>

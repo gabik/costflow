@@ -743,4 +743,83 @@ def migrate_reset_postgres_sequences():
         log_audit("MIGRATION_ERROR", "System", None, f"Sequence reset failed: {str(e)}")
         return f"Migration failed: {e}", 500
 
+@admin_blueprint.route('/migrate_fix_preproduct_units')
+def migrate_fix_preproduct_units():
+    """Fix preproduct units from kg/g to unit"""
+    try:
+        # Find all preproducts
+        preproducts = Product.query.filter_by(is_preproduct=True).all()
+
+        updated_count = 0
+        update_details = []
+
+        for preproduct in preproducts:
+            old_unit = preproduct.unit
+
+            # Preproducts should typically be in 'unit' not kg/g
+            if preproduct.unit in ['kg', 'g']:
+                preproduct.unit = 'unit'
+                updated_count += 1
+                update_details.append(f"'{preproduct.name}': {old_unit} → unit")
+            else:
+                update_details.append(f"'{preproduct.name}' already has unit: {preproduct.unit}")
+
+            # Ensure products_per_recipe is set
+            if not preproduct.products_per_recipe or preproduct.products_per_recipe == 0:
+                preproduct.products_per_recipe = 1
+                update_details.append(f"  - Set products_per_recipe to 1 for '{preproduct.name}'")
+
+        db.session.commit()
+
+        log_audit("MIGRATION", "System", None,
+                 f"Fixed preproduct units: Updated {updated_count} of {len(preproducts)} preproducts")
+
+        return f'''
+        <html>
+        <head>
+            <title>Preproduct Units Migration Complete</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 40px; }}
+                .success {{ color: green; font-weight: bold; }}
+                .info {{ background-color: #f0f8ff; padding: 10px; border-left: 3px solid #4CAF50; }}
+                .details {{ background: #f5f5f5; padding: 10px; margin: 10px 0; }}
+                pre {{ white-space: pre-wrap; }}
+            </style>
+        </head>
+        <body>
+            <h1 class="success">✓ Migration Completed Successfully!</h1>
+            <div class="info">
+                <p>Found {len(preproducts)} preproducts in the system.</p>
+                <p>Updated {updated_count} preproducts from kg/g to 'unit'.</p>
+            </div>
+
+            <div class="details">
+                <h3>Migration Details:</h3>
+                <pre>{chr(10).join(update_details)}</pre>
+            </div>
+
+            <p><strong>What changed:</strong></p>
+            <ul>
+                <li>Preproducts with unit 'kg' or 'g' have been changed to 'unit'</li>
+                <li>This means preproducts are now counted as pieces/units instead of weight</li>
+                <li>Any preproduct with missing products_per_recipe was set to 1</li>
+            </ul>
+
+            <p><strong>Next steps:</strong></p>
+            <ul>
+                <li>Verify that preproduct quantities in recipes are correct (should be number of units)</li>
+                <li>You can remove this migration endpoint from the code</li>
+            </ul>
+            <br>
+            <a href="/">Return to Dashboard</a>
+        </body>
+        </html>
+        '''
+
+    except Exception as e:
+        db.session.rollback()
+        log_audit("MIGRATION_ERROR", "System", None,
+                 f"Failed to fix preproduct units: {str(e)}")
+        return f"Migration failed: {e}", 500
+
 

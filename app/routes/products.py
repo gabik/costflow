@@ -440,21 +440,28 @@ def product_detail(product_id):
         # Calculate prime cost for the preproduct
         preproduct_unit_cost = calculate_prime_cost(preproduct)
 
-        # Convert preproduct cost to per 100g
-        preproduct_unit = getattr(preproduct, 'unit', 'kg')
+        # Handle different unit types
+        preproduct_unit = getattr(preproduct, 'unit', 'unit')
+
+        # For display purposes
         if preproduct_unit == 'kg':
-            price_per_100g = preproduct_unit_cost * 0.1  # 100g = 0.1kg
+            display_price = preproduct_unit_cost * 0.1  # Per 100g
+            display_price_label = 'price_per_100g'
         elif preproduct_unit == 'g':
-            price_per_100g = preproduct_unit_cost * 100  # price is per g, we want per 100g
+            display_price = preproduct_unit_cost * 100  # Per 100g
+            display_price_label = 'price_per_100g'
         else:
-            price_per_100g = preproduct_unit_cost  # Keep as is for other units
+            # For 'unit' or other non-weight units, show per unit
+            display_price = preproduct_unit_cost
+            display_price_label = 'price_per_unit'
 
         preproduct_costs.append({
             'name': preproduct.name,
             'quantity': component.quantity,
-            'unit': getattr(preproduct, 'unit', 'unit'),
-            'price_per_unit': preproduct_unit_cost,  # Keep for calculations
-            'price_per_100g': price_per_100g,  # For display
+            'unit': preproduct_unit,
+            'price_per_unit': preproduct_unit_cost,  # Actual cost per unit
+            'price_per_100g': display_price,  # For display (might be per unit if not weight)
+            'display_price_label': display_price_label,  # Label to use in template
             'price_per_recipe': component.quantity * preproduct_unit_cost,
             'price_per_product': (component.quantity * preproduct_unit_cost) / product.products_per_recipe if product.products_per_recipe > 0 else 0
         })
