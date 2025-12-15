@@ -294,6 +294,7 @@ def debug_fill_inventory():
     try:
         # Get all raw materials
         materials = RawMaterial.query.filter_by(is_deleted=False).all()
+        updated_count = 0
 
         for material in materials:
             # Skip unlimited materials
@@ -302,12 +303,12 @@ def debug_fill_inventory():
 
             # Get primary supplier or first available supplier
             supplier = None
-            for rms in material.suppliers:
+            for rms in material.supplier_links:
                 if rms.is_primary:
                     supplier = rms.supplier
                     break
-            if not supplier and material.suppliers:
-                supplier = material.suppliers[0].supplier
+            if not supplier and material.supplier_links:
+                supplier = material.supplier_links[0].supplier
 
             # Create stock log entry setting stock to 1000
             stock_entry = StockLog(
@@ -318,16 +319,17 @@ def debug_fill_inventory():
                 timestamp=datetime.now()
             )
             db.session.add(stock_entry)
+            updated_count += 1
 
         db.session.commit()
 
-        message = f"Successfully filled {len(materials)} raw materials with 1000 units each"
+        message = f"Successfully filled {updated_count} raw materials with 1000 units each"
         log_audit("DEBUG_FILL_INVENTORY", "System", details=message)
 
         return jsonify({
             'status': 'success',
             'message': message,
-            'materials_updated': len(materials)
+            'materials_updated': updated_count
         })
 
     except Exception as e:
