@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
-from flask import Blueprint, render_template, request, redirect, url_for, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, current_app, jsonify
 from ..models import db, Product, ProductComponent, RawMaterial, Packaging, Labor, Category, ProductionLog, StockLog, WeeklyProductSales, StockAudit
 from .utils import log_audit, calculate_prime_cost, calculate_premake_cost_per_unit, convert_to_base_unit, get_or_create_general_category, units_list, calculate_total_material_stock, calculate_premake_current_stock, get_primary_supplier_discounted_price, format_quantity_with_unit
 
@@ -496,6 +496,15 @@ def product_detail(product_id):
         # Handle different unit types
         preproduct_unit = getattr(preproduct, 'unit', 'unit')
 
+        # Apply display formatting based on unit type
+        if preproduct_unit in ['kg', 'g']:
+            # Weight-based - apply conversion for display
+            display_quantity, display_unit = format_quantity_with_unit(component.quantity, 'kg')
+        else:
+            # Unit-based - display as-is
+            display_quantity = component.quantity
+            display_unit = preproduct_unit
+
         # For display purposes
         if preproduct_unit == 'kg':
             display_price = preproduct_unit_cost * 0.1  # Per 100g
@@ -510,8 +519,10 @@ def product_detail(product_id):
 
         preproduct_costs.append({
             'name': preproduct.name,
-            'quantity': component.quantity,
-            'unit': preproduct_unit,
+            'quantity': component.quantity,  # Keep raw quantity for calculations
+            'unit': preproduct_unit,  # Keep original unit
+            'display_quantity': display_quantity,  # Add formatted quantity for display
+            'display_unit': display_unit,  # Add display unit
             'price_per_unit': preproduct_unit_cost,  # Actual cost per unit
             'price_per_100g': display_price,  # For display (might be per unit if not weight)
             'display_price_label': display_price_label,  # Label to use in template
@@ -770,6 +781,58 @@ def edit_product(product_id):
         product_categories=product_categories,
         units=units_list # For raw material modal
     )
+
+
+@products_blueprint.route('/migrate_preproduct_units')
+def migrate_preproduct_units():
+    """Migration to fix preproduct units - set unit='unit' for preproducts without weight-based units"""
+    from flask_babel import gettext as _
+
+    try:
+        # Find all preproducts
+        preproducts = Product.query.filter_by(is_preproduct=True).all()
+
+        fixed_count = 0
+        for preproduct in preproducts:
+            # Check if unit is not set or is set to a weight unit
+            current_unit = getattr(preproduct, 'unit', None)
+
+            # If no unit is set, or it's set to kg/g but shouldn't be (based on name/context)
+            # Default preproducts to 'unit' unless they're explicitly weight-based
+            if not current_unit or current_unit == '':
+                preproduct.unit = 'unit'
+                fixed_count += 1
+            elif current_unit in ['kg', 'g'] and preproduct.products_per_recipe and preproduct.products_per_recipe > 0:
+                # If it has products_per_recipe set, it's likely unit-based not weight-based
+                # But let's be conservative and not auto-change these
+                pass
+
+        db.session.commit()
+
+        # Now check all ProductComponents that reference preproducts
+        components = ProductComponent.query.filter_by(component_type='product').all()
+        component_info = []
+
+        for comp in components:
+            preproduct = Product.query.filter_by(id=comp.component_id, is_preproduct=True).first()
+            if preproduct:
+                component_info.append({
+                    'product_id': comp.product_id,
+                    'preproduct_name': preproduct.name,
+                    'preproduct_unit': getattr(preproduct, 'unit', 'not set'),
+                    'stored_quantity': comp.quantity,
+                    'preproduct_id': preproduct.id
+                })
+
+        return jsonify({
+            'success': True,
+            'preproducts_fixed': fixed_count,
+            'total_preproducts': len(preproducts),
+            'preproduct_components': component_info,
+            'message': f'Fixed {fixed_count} preproducts without units. Review the component list to verify quantities.'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @products_blueprint.route('/products/delete/<int:product_id>', methods=['POST'])
