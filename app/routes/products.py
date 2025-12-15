@@ -785,29 +785,23 @@ def edit_product(product_id):
 
 @products_blueprint.route('/migrate_preproduct_units')
 def migrate_preproduct_units():
-    """Migration to fix preproduct units - set unit='unit' for preproducts without weight-based units"""
+    """Migration to show and fix preproduct units"""
     from flask_babel import gettext as _
 
     try:
         # Find all preproducts
         preproducts = Product.query.filter_by(is_preproduct=True).all()
 
-        fixed_count = 0
+        preproduct_list = []
         for preproduct in preproducts:
-            # Check if unit is not set or is set to a weight unit
             current_unit = getattr(preproduct, 'unit', None)
-
-            # If no unit is set, or it's set to kg/g but shouldn't be (based on name/context)
-            # Default preproducts to 'unit' unless they're explicitly weight-based
-            if not current_unit or current_unit == '':
-                preproduct.unit = 'unit'
-                fixed_count += 1
-            elif current_unit in ['kg', 'g'] and preproduct.products_per_recipe and preproduct.products_per_recipe > 0:
-                # If it has products_per_recipe set, it's likely unit-based not weight-based
-                # But let's be conservative and not auto-change these
-                pass
-
-        db.session.commit()
+            preproduct_list.append({
+                'id': preproduct.id,
+                'name': preproduct.name,
+                'current_unit': current_unit if current_unit else 'NOT SET',
+                'products_per_recipe': preproduct.products_per_recipe,
+                'likely_should_be': 'unit' if preproduct.products_per_recipe > 0 else 'unknown'
+            })
 
         # Now check all ProductComponents that reference preproducts
         components = ProductComponent.query.filter_by(component_type='product').all()
@@ -816,20 +810,66 @@ def migrate_preproduct_units():
         for comp in components:
             preproduct = Product.query.filter_by(id=comp.component_id, is_preproduct=True).first()
             if preproduct:
+                parent_product = Product.query.get(comp.product_id)
                 component_info.append({
                     'product_id': comp.product_id,
+                    'product_name': parent_product.name if parent_product else 'Unknown',
+                    'preproduct_id': preproduct.id,
                     'preproduct_name': preproduct.name,
                     'preproduct_unit': getattr(preproduct, 'unit', 'not set'),
-                    'stored_quantity': comp.quantity,
-                    'preproduct_id': preproduct.id
+                    'stored_quantity': comp.quantity
                 })
 
         return jsonify({
             'success': True,
-            'preproducts_fixed': fixed_count,
             'total_preproducts': len(preproducts),
-            'preproduct_components': component_info,
-            'message': f'Fixed {fixed_count} preproducts without units. Review the component list to verify quantities.'
+            'preproducts': preproduct_list,
+            'preproduct_usage': component_info,
+            'message': 'Review the preproduct units below. Use /fix_preproduct_units/<id> to fix specific ones.'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@products_blueprint.route('/fix_preproduct_units/<int:preproduct_id>')
+def fix_preproduct_unit(preproduct_id):
+    """Fix a specific preproduct to use 'unit' instead of weight-based units"""
+    try:
+        preproduct = Product.query.filter_by(id=preproduct_id, is_preproduct=True).first()
+
+        if not preproduct:
+            return jsonify({'success': False, 'error': 'Preproduct not found'}), 404
+
+        old_unit = getattr(preproduct, 'unit', None)
+        preproduct.unit = 'unit'
+
+        # Also check if we need to adjust quantities in components
+        # If it was stored as kg and we're converting to units, the quantities might need adjustment
+        components = ProductComponent.query.filter_by(
+            component_type='product',
+            component_id=preproduct_id
+        ).all()
+
+        components_info = []
+        for comp in components:
+            parent = Product.query.get(comp.product_id)
+            components_info.append({
+                'product_id': comp.product_id,
+                'product_name': parent.name if parent else 'Unknown',
+                'current_quantity': comp.quantity,
+                'note': 'May need manual adjustment if was entered as kg'
+            })
+
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'preproduct_id': preproduct_id,
+            'preproduct_name': preproduct.name,
+            'old_unit': old_unit if old_unit else 'NOT SET',
+            'new_unit': 'unit',
+            'affected_products': components_info,
+            'message': f'Fixed {preproduct.name} to use "unit". Review affected products for quantity adjustments.'
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500

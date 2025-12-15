@@ -407,14 +407,43 @@ function updateProductionDetails() {
             } else {
                 typeDisplay = '{{ _("Premake") }}';
             }
+
+            // Special handling for preproducts with weight-based units
+            let costDisplay, actualCost;
+            if (comp.type === 'Preproduct' && comp.cost_per_100g !== null && comp.cost_per_100g !== undefined) {
+                // For weight-based preproducts, show cost per 100g
+                costDisplay = `${comp.cost_per_100g.toFixed(2)} ₪/100g`;
+
+                // Calculate actual cost based on usage in grams
+                let usageInGrams;
+                if (comp.unit === 'kg') {
+                    usageInGrams = usage * 1000;
+                } else if (comp.unit === 'g') {
+                    usageInGrams = usage;
+                } else {
+                    // For non-weight units, use regular calculation
+                    usageInGrams = null;
+                }
+
+                if (usageInGrams !== null) {
+                    actualCost = (usageInGrams / 100) * comp.cost_per_100g;
+                } else {
+                    actualCost = cost;  // Fallback to original calculation
+                }
+            } else {
+                // Regular display for other component types
+                costDisplay = `${comp.cost_per_unit.toFixed(2)} ₪`;
+                actualCost = cost;
+            }
+
             tr.innerHTML = `
                 <td>${nameDisplay}</td>
                 <td>${typeDisplay}</td>
                 <td>${currentStockDisplay}</td>
                 <td class="fw-bold">${formatQuantityWithUnit(usage, comp.unit)}</td>
                 <td class="${!isUnlimited && stockAfter < 0 ? 'text-danger fw-bold' : ''}">${stockAfterDisplay}</td>
-                <td>${comp.cost_per_unit.toFixed(2)} ₪</td>
-                <td>${cost.toFixed(2)} ₪</td>
+                <td>${costDisplay}</td>
+                <td>${actualCost.toFixed(2)} ₪</td>
             `;
             tbody.appendChild(tr);
         }
