@@ -94,6 +94,16 @@ def add_raw_material():
         stock = request.form.get('stock', 0) # Optional initial stock
         is_unlimited = request.form.get('is_unlimited') == 'on'  # Checkbox value
 
+        # Get waste percentage
+        has_waste = request.form.get('has_waste') == 'on'
+        waste_percentage = 0.0
+        if has_waste and not is_unlimited:
+            try:
+                waste_percentage = float(request.form.get('waste_percentage', 0))
+                waste_percentage = max(0, min(99, waste_percentage))  # Clamp to 0-99
+            except (ValueError, TypeError):
+                waste_percentage = 0.0
+
         # Get multiple suppliers
         supplier_ids = request.form.getlist('supplier_ids[]')
         supplier_costs = request.form.getlist('supplier_costs[]')
@@ -105,7 +115,13 @@ def add_raw_material():
 
         category = Category.query.get(category_id)
 
-        new_material = RawMaterial(name=name, category=category, unit=unit, is_unlimited=is_unlimited)
+        new_material = RawMaterial(
+            name=name,
+            category=category,
+            unit=unit,
+            is_unlimited=is_unlimited,
+            waste_percentage=waste_percentage
+        )
         db.session.add(new_material)
         db.session.flush() # Get ID for stock log
 
@@ -220,6 +236,20 @@ def edit_raw_material(material_id):
         material.unit = request.form['unit']
         is_unlimited = request.form.get('is_unlimited') == 'on'  # Checkbox value
         material.is_unlimited = is_unlimited
+
+        # Update waste percentage
+        if is_unlimited:
+            material.waste_percentage = 0  # Unlimited materials can't have waste
+        else:
+            has_waste = request.form.get('has_waste') == 'on'
+            if has_waste:
+                try:
+                    waste_percentage = float(request.form.get('waste_percentage', 0))
+                    material.waste_percentage = max(0, min(99, waste_percentage))
+                except (ValueError, TypeError):
+                    material.waste_percentage = 0
+            else:
+                material.waste_percentage = 0
 
         # Get alternative names from form (do this early for all materials)
         new_alternative_names = request.form.getlist('alternative_names[]')

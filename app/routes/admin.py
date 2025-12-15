@@ -340,6 +340,39 @@ def debug_fill_inventory():
         }), 500
 
 
+@admin_blueprint.route('/migrate_add_waste_percentage')
+def migrate_add_waste_percentage():
+    """Add waste_percentage column to raw_material table"""
+    from flask_babel import gettext as _
+    try:
+        # Check if column already exists
+        from sqlalchemy import inspect
+        inspector = inspect(db.engine)
+        columns = [col['name'] for col in inspector.get_columns('raw_material')]
+
+        if 'waste_percentage' in columns:
+            flash(_('Waste percentage column already exists'), 'info')
+            return redirect(url_for('admin.backup_db'))
+
+        # Add column with default value
+        with db.engine.connect() as conn:
+            # Use appropriate syntax based on database type
+            if 'postgresql' in db.engine.dialect.name:
+                conn.execute(text('ALTER TABLE raw_material ADD COLUMN waste_percentage FLOAT DEFAULT 0.0'))
+            else:  # SQLite and others
+                conn.execute(text('ALTER TABLE raw_material ADD COLUMN waste_percentage FLOAT DEFAULT 0.0'))
+            conn.commit()
+
+        flash(_('Successfully added waste percentage column'), 'success')
+        log_audit("MIGRATE", "Database", details="Added waste_percentage column to raw_material")
+
+    except Exception as e:
+        flash(_('Migration failed: {}').format(str(e)), 'error')
+        log_audit("MIGRATE_ERROR", "Database", details=f"Failed to add waste_percentage: {str(e)}")
+
+    return redirect(url_for('admin.backup_db'))
+
+
 @admin_blueprint.route('/audit_log')
 def audit_log():
     """Display audit log with optional filtering"""

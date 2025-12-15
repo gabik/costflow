@@ -70,6 +70,7 @@ class RawMaterial(db.Model):
     unit = db.Column(db.String(50), nullable=False)
     is_unlimited = db.Column(db.Boolean, default=False, nullable=False)  # Unlimited stock materials
     is_deleted = db.Column(db.Boolean, default=False, nullable=False)  # Soft delete flag
+    waste_percentage = db.Column(db.Float, default=0.0, nullable=False)  # 0-99% waste
 
     def get_cheapest_available_supplier(self, required_quantity):
         """Get the cheapest supplier with available stock for the required quantity"""
@@ -125,6 +126,13 @@ class RawMaterial(db.Model):
             return self.supplier_links[0].cost_per_unit
         return 0  # No suppliers
 
+    @property
+    def effective_cost_multiplier(self):
+        """Calculate cost multiplier based on waste percentage"""
+        if self.is_unlimited or self.waste_percentage <= 0:
+            return 1.0
+        return 1.0 / (1.0 - self.waste_percentage / 100.0)
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -133,6 +141,7 @@ class RawMaterial(db.Model):
             'unit': self.unit,
             'is_unlimited': self.is_unlimited,
             'is_deleted': self.is_deleted,
+            'waste_percentage': self.waste_percentage,
             'suppliers': [link.to_dict() for link in self.supplier_links] if hasattr(self, 'supplier_links') else []
         }
 

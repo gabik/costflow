@@ -122,16 +122,17 @@ def apply_supplier_discount(cost_per_unit, supplier):
 
 def get_material_discounted_price(material_id, supplier_id):
     """
-    Get discounted price for a material from a specific supplier.
+    Get discounted price for a material from a specific supplier,
+    adjusted for waste percentage.
 
     Args:
         material_id: RawMaterial ID
         supplier_id: Supplier ID
 
     Returns:
-        Discounted price per unit
+        Discounted price per unit adjusted for waste
     """
-    from ..models import RawMaterialSupplier
+    from ..models import RawMaterialSupplier, RawMaterial
 
     link = RawMaterialSupplier.query.filter_by(
         raw_material_id=material_id,
@@ -141,31 +142,42 @@ def get_material_discounted_price(material_id, supplier_id):
     if not link:
         return 0.0
 
-    return apply_supplier_discount(link.cost_per_unit, link.supplier)
+    base_price = apply_supplier_discount(link.cost_per_unit, link.supplier)
+
+    # Get material for waste adjustment
+    material = RawMaterial.query.get(material_id)
+    if material:
+        return base_price * material.effective_cost_multiplier
+
+    return base_price
 
 
 def get_primary_supplier_discounted_price(material):
     """
-    Get discounted price from primary supplier for a material.
+    Get discounted price from primary supplier for a material,
+    adjusted for waste percentage.
 
     Args:
         material: RawMaterial object
 
     Returns:
-        Discounted price from primary supplier, or first supplier if no primary
+        Discounted price from primary supplier adjusted for waste, or first supplier if no primary
     """
+    base_price = 0
+
     # Find primary supplier
     for link in material.supplier_links:
         if link.is_primary:
-            return apply_supplier_discount(link.cost_per_unit, link.supplier)
+            base_price = apply_supplier_discount(link.cost_per_unit, link.supplier)
+            break
 
     # Fallback to first supplier if no primary
-    if material.supplier_links:
+    if base_price == 0 and material.supplier_links:
         first_link = material.supplier_links[0]
-        return apply_supplier_discount(first_link.cost_per_unit, first_link.supplier)
+        base_price = apply_supplier_discount(first_link.cost_per_unit, first_link.supplier)
 
-    # If no suppliers at all (shouldn't happen), return 0
-    return 0
+    # Apply waste adjustment
+    return base_price * material.effective_cost_multiplier
 
 def log_audit(action, target_type, target_id=None, details=None):
     try:
@@ -692,6 +704,8 @@ def deduct_material_with_supplier_tracking(material_id, quantity):
 def deduct_material_stock(material_id, quantity_needed):
     """
     Deduct stock from suppliers using 'primary first, then others' strategy.
+    Adjusts for waste percentage - if recipe needs 5kg usable and material has 50% waste,
+    deducts 10kg from inventory.
     Returns list of (supplier_id, quantity_deducted, cost_per_unit, total_cost) tuples.
     Raises InsufficientStockError if not enough stock available.
     For unlimited materials, returns empty list (no deduction needed).
@@ -703,6 +717,11 @@ def deduct_material_stock(material_id, quantity_needed):
     if material and material.is_unlimited:
         # Unlimited materials don't need stock deduction
         return []
+
+    # Apply waste adjustment to quantity needed
+    # If recipe needs 5kg usable and material has 50% waste, we need to deduct 10kg
+    if material and material.waste_percentage > 0:
+        quantity_needed = quantity_needed / (1 - material.waste_percentage / 100)
 
     deductions = []
     remaining = quantity_needed

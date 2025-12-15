@@ -87,6 +87,7 @@
                 <th>{{ _('Category') }}</th>
                 <th>{{ _('Supplier') }}</th>
                 <th>{{ _('Unit') }}</th>
+                <th>{{ _('Waste %') }}</th>
                 <th>{{ _('Cost Per Unit') }}</th>
                 <th>{{ _('Current Stock') }}</th>
                 <th class="text-end">{{ _('Actions') }}</th>
@@ -138,25 +139,51 @@
                 </td>
                 <td>{{ material.unit }}</td>
                 <td>
+                    {% if material.waste_percentage > 0 %}
+                        <span class="badge bg-warning text-dark"
+                              title="{{ _('Effective cost: {}x base price').format((1/(1-material.waste_percentage/100))|round(2)) }}">
+                            {{ material.waste_percentage|round(1) }}%
+                        </span>
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
+                <td>
                     {% if material.stock_breakdown %}
                         {% set primary = material.stock_breakdown|selectattr('is_primary', 'equalto', True)|first %}
                         {% if primary %}
-                            {% if primary.discounted_cost_per_unit < primary.cost_per_unit %}
-                                <span class="text-muted text-decoration-line-through">{{ currency_symbol }}{{ "%.2f"|format(primary.cost_per_unit) }}</span>
-                                <strong class="text-success">{{ currency_symbol }}{{ "%.2f"|format(primary.discounted_cost_per_unit) }}</strong>
-                                <span class="badge bg-success ms-1">-{{ "%.1f"|format(primary.discount_percentage) }}%</span>
-                            {% else %}
-                                {{ currency_symbol }}{{ "%.2f"|format(primary.cost_per_unit) }}
-                            {% endif %}
+                            {% set base_cost = primary.discounted_cost_per_unit if primary.discounted_cost_per_unit < primary.cost_per_unit else primary.cost_per_unit %}
+                            {% set effective_cost = base_cost * material.effective_cost_multiplier %}
+                            <span {% if material.waste_percentage > 0 %}
+                                  title="{{ _('Base: {}{}').format(currency_symbol, '%.2f'|format(base_cost)) }} {{ _('(adjusted for {}%% waste)').format(material.waste_percentage|round(1)) }}"
+                                  {% endif %}>
+                                {% if primary.discounted_cost_per_unit < primary.cost_per_unit and material.waste_percentage == 0 %}
+                                    <span class="text-muted text-decoration-line-through">{{ currency_symbol }}{{ "%.2f"|format(primary.cost_per_unit) }}</span>
+                                {% endif %}
+                                <strong class="{% if material.waste_percentage > 0 %}text-primary{% elif primary.discounted_cost_per_unit < primary.cost_per_unit %}text-success{% endif %}">
+                                    {{ currency_symbol }}{{ "%.2f"|format(effective_cost) }}
+                                </strong>
+                                {% if primary.discounted_cost_per_unit < primary.cost_per_unit and material.waste_percentage == 0 %}
+                                    <span class="badge bg-success ms-1">-{{ "%.1f"|format(primary.discount_percentage) }}%</span>
+                                {% endif %}
+                            </span>
                         {% elif material.stock_breakdown[0] %}
                             {% set first = material.stock_breakdown[0] %}
-                            {% if first.discounted_cost_per_unit < first.cost_per_unit %}
-                                <span class="text-muted text-decoration-line-through">{{ currency_symbol }}{{ "%.2f"|format(first.cost_per_unit) }}</span>
-                                <strong class="text-success">{{ currency_symbol }}{{ "%.2f"|format(first.discounted_cost_per_unit) }}</strong>
-                                <span class="badge bg-success ms-1">-{{ "%.1f"|format(first.discount_percentage) }}%</span>
-                            {% else %}
-                                {{ currency_symbol }}{{ "%.2f"|format(first.cost_per_unit) }}
-                            {% endif %}
+                            {% set base_cost = first.discounted_cost_per_unit if first.discounted_cost_per_unit < first.cost_per_unit else first.cost_per_unit %}
+                            {% set effective_cost = base_cost * material.effective_cost_multiplier %}
+                            <span {% if material.waste_percentage > 0 %}
+                                  title="{{ _('Base: {}{}').format(currency_symbol, '%.2f'|format(base_cost)) }} {{ _('(adjusted for {}%% waste)').format(material.waste_percentage|round(1)) }}"
+                                  {% endif %}>
+                                {% if first.discounted_cost_per_unit < first.cost_per_unit and material.waste_percentage == 0 %}
+                                    <span class="text-muted text-decoration-line-through">{{ currency_symbol }}{{ "%.2f"|format(first.cost_per_unit) }}</span>
+                                {% endif %}
+                                <strong class="{% if material.waste_percentage > 0 %}text-primary{% elif first.discounted_cost_per_unit < first.cost_per_unit %}text-success{% endif %}">
+                                    {{ currency_symbol }}{{ "%.2f"|format(effective_cost) }}
+                                </strong>
+                                {% if first.discounted_cost_per_unit < first.cost_per_unit and material.waste_percentage == 0 %}
+                                    <span class="badge bg-success ms-1">-{{ "%.1f"|format(first.discount_percentage) }}%</span>
+                                {% endif %}
+                            </span>
                         {% else %}
                             <span class="text-muted">—</span>
                         {% endif %}

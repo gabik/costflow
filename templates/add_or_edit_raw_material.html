@@ -78,6 +78,37 @@
                         </div>
                     </div>
 
+                    <!-- Waste Percentage Section -->
+                    <div class="mb-4" id="wasteSection" style="{% if material and material.is_unlimited %}display: none;{% endif %}">
+                        <div class="form-check mb-2">
+                            <input type="checkbox" id="has_waste" name="has_waste"
+                                   class="form-check-input" onchange="toggleWasteInput()"
+                                   {% if material and material.waste_percentage > 0 %}checked{% endif %}>
+                            <label class="form-check-label" for="has_waste">
+                                <strong>{{ _('Material has waste') }}</strong>
+                            </label>
+                        </div>
+
+                        <div id="wastePercentageInput" style="display: {% if material and material.waste_percentage > 0 %}block{% else %}none{% endif %};">
+                            <label for="waste_percentage" class="form-label">
+                                {{ _('Waste Percentage') }} (%)
+                            </label>
+                            <div class="input-group">
+                                <input type="number" id="waste_percentage" name="waste_percentage"
+                                       class="form-control" min="0" max="99" step="0.1"
+                                       value="{{ material.waste_percentage if material else 0 }}"
+                                       placeholder="{{ _('e.g., 20 for 20%% waste') }}"
+                                       onchange="updateEffectiveCostHint()">
+                                <span class="input-group-text">%</span>
+                            </div>
+                            <div class="form-text">
+                                {{ _('Enter the percentage of material lost during processing (0-99%%)') }}
+                                <br>
+                                <span id="effectiveCostHint" class="text-info"></span>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Alternative Names Section -->
                     <div class="mb-4">
                         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -593,24 +624,31 @@
         const isUnlimited = document.getElementById('is_unlimited').checked;
         const suppliersSection = document.getElementById('suppliersSection');
         const initialStockSection = document.getElementById('initialStockSection');
+        const wasteSection = document.getElementById('wasteSection');
 
         if (isUnlimited) {
-            // Hide supplier and stock sections
+            // Hide supplier, stock, and waste sections
             suppliersSection.style.display = 'none';
             if (initialStockSection) {
                 initialStockSection.style.display = 'none';
             }
+            wasteSection.style.display = 'none';
+            // Reset waste values
+            document.getElementById('has_waste').checked = false;
+            document.getElementById('waste_percentage').value = 0;
+            document.getElementById('wastePercentageInput').style.display = 'none';
 
             // Remove required attribute from supplier fields to prevent validation errors
             document.querySelectorAll('.supplier-select, .supplier-cost').forEach(field => {
                 field.removeAttribute('required');
             });
         } else {
-            // Show supplier and stock sections
+            // Show supplier, stock, and waste sections
             suppliersSection.style.display = 'block';
             if (initialStockSection) {
                 initialStockSection.style.display = 'block';
             }
+            wasteSection.style.display = 'block';
 
             // Re-add required attribute only to visible supplier fields
             document.querySelectorAll('.supplier-select, .supplier-cost').forEach(field => {
@@ -622,9 +660,33 @@
         }
     }
 
+    function toggleWasteInput() {
+        const hasWaste = document.getElementById('has_waste').checked;
+        const wasteInput = document.getElementById('wastePercentageInput');
+        wasteInput.style.display = hasWaste ? 'block' : 'none';
+        if (!hasWaste) {
+            document.getElementById('waste_percentage').value = 0;
+        }
+        updateEffectiveCostHint();
+    }
+
+    function updateEffectiveCostHint() {
+        const wastePercentage = parseFloat(document.getElementById('waste_percentage').value) || 0;
+        const hint = document.getElementById('effectiveCostHint');
+        if (wastePercentage > 0 && wastePercentage < 100) {
+            const multiplier = 1 / (1 - wastePercentage / 100);
+            hint.textContent = `{{ _('Effective cost will be') }} ${multiplier.toFixed(2)}x {{ _('the base price') }}`;
+        } else {
+            hint.textContent = '';
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize unlimited mode visibility on page load
         toggleUnlimitedMode();
+
+        // Initialize waste hint on page load
+        updateEffectiveCostHint();
 
         // Handle category modal
         const addCategoryModal = document.getElementById('addCategoryModal');
