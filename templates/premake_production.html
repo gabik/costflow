@@ -213,7 +213,6 @@ function formatQuantityWithUnit(quantity, unit) {
 }
 
 function fetchRecipeData(premakeId) {
-    console.log('Fetching recipe for premake:', premakeId);
     const batches = parseFloat(document.getElementById('quantity_produced').value) || 1;
     fetch(`/api/premake_recipe/${premakeId}?quantity=${batches}&t=${Date.now()}`)  // Add cache busting
         .then(response => {
@@ -221,7 +220,6 @@ function fetchRecipeData(premakeId) {
             return response.json();
         })
         .then(data => {
-            console.log('API Response:', data);  // DEBUG: Show API response
             currentRecipe = data;
             currentRecipe.fetched_quantity = batches;
 

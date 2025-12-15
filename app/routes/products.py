@@ -308,7 +308,7 @@ def add_product():
     all_premakes = []
     for p in Product.query.filter_by(is_premake=True).all():
         premake_dict = p.to_dict()
-        premake_dict['cost_per_unit'] = calculate_premake_cost_per_unit(p)
+        premake_dict['cost_per_unit'] = calculate_premake_cost_per_unit(p, use_actual_costs=False)
         all_premakes.append(premake_dict)
 
     # Enhanced preproducts data with cost_per_unit
@@ -420,7 +420,7 @@ def product_detail(product_id):
             continue
 
         # Calculate cost per unit of premake using utility function
-        premake_unit_cost = calculate_premake_cost_per_unit(premake)
+        premake_unit_cost = calculate_premake_cost_per_unit(premake, use_actual_costs=False)
 
         # Get effective batch size
         effective_batch_size = premake.batch_size if hasattr(premake, 'batch_size') and premake.batch_size and premake.batch_size > 0 else 1
@@ -755,7 +755,7 @@ def edit_product(product_id):
     all_premakes = []
     for p in Product.query.filter_by(is_premake=True).all():
         premake_dict = p.to_dict()
-        premake_dict['cost_per_unit'] = calculate_premake_cost_per_unit(p)
+        premake_dict['cost_per_unit'] = calculate_premake_cost_per_unit(p, use_actual_costs=False)
         all_premakes.append(premake_dict)
 
     # Enhanced preproducts data with cost_per_unit
@@ -781,98 +781,6 @@ def edit_product(product_id):
         product_categories=product_categories,
         units=units_list # For raw material modal
     )
-
-
-@products_blueprint.route('/migrate_preproduct_units')
-def migrate_preproduct_units():
-    """Migration to show and fix preproduct units"""
-    from flask_babel import gettext as _
-
-    try:
-        # Find all preproducts
-        preproducts = Product.query.filter_by(is_preproduct=True).all()
-
-        preproduct_list = []
-        for preproduct in preproducts:
-            current_unit = getattr(preproduct, 'unit', None)
-            preproduct_list.append({
-                'id': preproduct.id,
-                'name': preproduct.name,
-                'current_unit': current_unit if current_unit else 'NOT SET',
-                'products_per_recipe': preproduct.products_per_recipe,
-                'likely_should_be': 'unit' if preproduct.products_per_recipe > 0 else 'unknown'
-            })
-
-        # Now check all ProductComponents that reference preproducts
-        components = ProductComponent.query.filter_by(component_type='product').all()
-        component_info = []
-
-        for comp in components:
-            preproduct = Product.query.filter_by(id=comp.component_id, is_preproduct=True).first()
-            if preproduct:
-                parent_product = Product.query.get(comp.product_id)
-                component_info.append({
-                    'product_id': comp.product_id,
-                    'product_name': parent_product.name if parent_product else 'Unknown',
-                    'preproduct_id': preproduct.id,
-                    'preproduct_name': preproduct.name,
-                    'preproduct_unit': getattr(preproduct, 'unit', 'not set'),
-                    'stored_quantity': comp.quantity
-                })
-
-        return jsonify({
-            'success': True,
-            'total_preproducts': len(preproducts),
-            'preproducts': preproduct_list,
-            'preproduct_usage': component_info,
-            'message': 'Review the preproduct units below. Use /fix_preproduct_units/<id> to fix specific ones.'
-        })
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@products_blueprint.route('/fix_preproduct_units/<int:preproduct_id>')
-def fix_preproduct_unit(preproduct_id):
-    """Fix a specific preproduct to use 'unit' instead of weight-based units"""
-    try:
-        preproduct = Product.query.filter_by(id=preproduct_id, is_preproduct=True).first()
-
-        if not preproduct:
-            return jsonify({'success': False, 'error': 'Preproduct not found'}), 404
-
-        old_unit = getattr(preproduct, 'unit', None)
-        preproduct.unit = 'unit'
-
-        # Also check if we need to adjust quantities in components
-        # If it was stored as kg and we're converting to units, the quantities might need adjustment
-        components = ProductComponent.query.filter_by(
-            component_type='product',
-            component_id=preproduct_id
-        ).all()
-
-        components_info = []
-        for comp in components:
-            parent = Product.query.get(comp.product_id)
-            components_info.append({
-                'product_id': comp.product_id,
-                'product_name': parent.name if parent else 'Unknown',
-                'current_quantity': comp.quantity,
-                'note': 'May need manual adjustment if was entered as kg'
-            })
-
-        db.session.commit()
-
-        return jsonify({
-            'success': True,
-            'preproduct_id': preproduct_id,
-            'preproduct_name': preproduct.name,
-            'old_unit': old_unit if old_unit else 'NOT SET',
-            'new_unit': 'unit',
-            'affected_products': components_info,
-            'message': f'Fixed {preproduct.name} to use "unit". Review affected products for quantity adjustments.'
-        })
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @products_blueprint.route('/products/delete/<int:product_id>', methods=['POST'])
@@ -961,30 +869,3 @@ def restore_product(product_id):
         flash(_('Error restoring product: {}').format(str(e)), 'error')
 
     return redirect(url_for('products.products') + '?show_archived=true')
-
-
-@products_blueprint.route('/migrate_add_product_is_archived')
-def migrate_add_product_is_archived():
-    """Migration to add is_archived field to Product table"""
-    from flask_babel import gettext as _
-    from flask import flash
-    import sqlalchemy as sa
-
-    try:
-        # Check if column already exists
-        inspector = sa.inspect(db.engine)
-        columns = [c['name'] for c in inspector.get_columns('product')]
-
-        if 'is_archived' not in columns:
-            # Add the column
-            with db.engine.connect() as conn:
-                # Use FALSE for PostgreSQL compatibility
-                conn.execute(sa.text('ALTER TABLE product ADD COLUMN is_archived BOOLEAN DEFAULT FALSE'))
-                conn.commit()
-            flash(_('Migration completed: Added is_archived field to products'), 'success')
-        else:
-            flash(_('Migration skipped: is_archived field already exists'), 'info')
-    except Exception as e:
-        flash(_('Migration failed: {}').format(str(e)), 'error')
-
-    return redirect(url_for('products.products'))

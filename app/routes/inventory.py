@@ -124,7 +124,6 @@ def upload_inventory():
                     })
                     
             except Exception as e:
-                print(f"Error processing Excel: {e}")
                 return f"Error processing file: {e}", 400
 
     return render_template('upload_inventory.html', review_data=review_data)

@@ -68,13 +68,10 @@ return render_template('page.html', title=_('My Page'))
   - Commit message types: Feat, Fix, Chore, Refactor, Docs
   - Keep CLAUDE.md updated with the latest changes (if needed, new feature, modified model, etc..)
 
-### Migration Handling
-- **Local dev has no database** - empty SQLite file only
-- **Production database**: PostgreSQL (use PostgreSQL-compatible SQL syntax)
-- **All migrations must use HTTP endpoints** for remote execution
-- **Migration pattern**: Create endpoint at `/migrate_[feature_name]`, user will confirm when done
-- **Cleanup**: Remove migration endpoints after user confirms completion
-- **Important**: Use `FALSE`/`TRUE` for boolean defaults in PostgreSQL (not 0/1)
+### Database Notes
+- **Local dev**: SQLite for development
+- **Production database**: PostgreSQL
+- **Important**: Use `FALSE`/`TRUE` for boolean values in PostgreSQL (not 0/1)
 
 ## Project Overview
 

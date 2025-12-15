@@ -209,7 +209,6 @@ $(document).ready(function() {
 });
 
 function fetchRecipeData(productId) {
-    console.log('Fetching recipe for product:', productId);
     const inputValue = parseFloat(document.getElementById('quantity_produced').value) || 1;
     const modeUnits = document.getElementById('mode_units').checked;
 
@@ -227,7 +226,6 @@ function fetchRecipeData(productId) {
             return response.json();
         })
         .then(data => {
-            console.log('API Response:', data);  // DEBUG: Show API response
             currentRecipe = data;
             currentRecipe.fetched_quantity = batches; // Track what quantity this data is for
             updateProductionDetails();

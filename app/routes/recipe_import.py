@@ -936,10 +936,8 @@ def select_sheet():
     except Exception as e:
         import traceback
         error_details = traceback.format_exc()
-        print(f"ERROR IN RECIPE REVIEW: {str(e)}")
-        print(f"TRACEBACK: {error_details}")
         flash(f'שגיאה בעיבוד הגיליון: {str(e)}', 'error')
-        # Return error page with details for debugging
+        # Return error page with details
         return f"""
         <h1>Error in Recipe Review</h1>
         <pre>{error_details}</pre>
