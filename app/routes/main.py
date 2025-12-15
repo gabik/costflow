@@ -563,28 +563,51 @@ def get_product_recipe(product_id):
                 })
 
         elif comp.component_type == 'premake':
-            premake = comp.premake
-            if premake:
-                stock = calculate_premake_current_stock(premake.id)
+            # Check if this is actually a preproduct stored with wrong component_type
+            maybe_preproduct = Product.query.filter_by(id=comp.component_id, is_preproduct=True).first()
+            if maybe_preproduct:
+                # Handle as preproduct
+                stock = calculate_premake_current_stock(maybe_preproduct.id)
                 needed_quantity = comp.quantity * quantity_produced
 
-                # Calculate cost per unit for premake with discounts
-                from .utils import calculate_premake_cost_per_unit
-                cost_per_unit = calculate_premake_cost_per_unit(premake)
+                # Calculate prime cost for preproduct
+                from .utils import calculate_prime_cost
+                cost_per_unit = calculate_prime_cost(maybe_preproduct)
 
                 components_data.append({
-                    'type': 'Premake',
-                    'name': premake.name,
+                    'type': 'Preproduct',
+                    'name': maybe_preproduct.name,
                     'qty_per_batch': comp.quantity,
-                    'unit': premake.unit,
+                    'unit': maybe_preproduct.unit or 'piece',
                     'current_stock': safe_float(stock),
                     'cost_per_unit': cost_per_unit,
                     'is_deficit': needed_quantity > stock
                 })
+            else:
+                # Handle as regular premake
+                premake = comp.premake
+                if premake:
+                    stock = calculate_premake_current_stock(premake.id)
+                    needed_quantity = comp.quantity * quantity_produced
+
+                    # Calculate cost per unit for premake with discounts
+                    from .utils import calculate_premake_cost_per_unit
+                    cost_per_unit = calculate_premake_cost_per_unit(premake)
+
+                    components_data.append({
+                        'type': 'Premake',
+                        'name': premake.name,
+                        'qty_per_batch': comp.quantity,
+                        'unit': premake.unit,
+                        'current_stock': safe_float(stock),
+                        'cost_per_unit': cost_per_unit,
+                        'is_deficit': needed_quantity > stock
+                    })
 
         elif comp.component_type == 'product':
             # Handle preproducts (products used as components)
-            preproduct = comp.preproduct
+            # Note: preproduct relationship might not exist, query directly
+            preproduct = Product.query.filter_by(id=comp.component_id, is_preproduct=True).first()
             if preproduct:
                 # Calculate stock using production logs
                 stock = calculate_premake_current_stock(preproduct.id)

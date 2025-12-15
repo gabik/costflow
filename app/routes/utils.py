@@ -277,19 +277,8 @@ def calculate_prime_cost(product):
     Includes recursive calculation for Premakes and Preproducts.
     Works with both old Premake model and new unified Product model.
     """
-    # Debug logging for preproducts
-    if hasattr(product, 'is_preproduct') and product.is_preproduct:
-        print(f"\n=== DEBUG: Calculating prime cost for preproduct: {product.name} ===")
-        print(f"  - products_per_recipe: {product.products_per_recipe if hasattr(product, 'products_per_recipe') else 'N/A'}")
-        print(f"  - unit: {product.unit if hasattr(product, 'unit') else 'N/A'}")
-        print(f"  - batch_size: {product.batch_size if hasattr(product, 'batch_size') else 'N/A'}")
-        print(f"  - components count: {len(product.components) if hasattr(product, 'components') else 0}")
-
     total_cost = 0
     for component in product.components:
-        # Debug component details for preproducts
-        if hasattr(product, 'is_preproduct') and product.is_preproduct:
-            print(f"  - Processing component: type={component.component_type}, quantity={component.quantity}, component_id={component.component_id}")
 
         if component.component_type == 'raw_material' and component.material:
             # Use primary supplier DISCOUNTED price
@@ -305,16 +294,10 @@ def calculate_prime_cost(product):
                 )
                 component_cost = quantity_in_material_unit * primary_price
                 total_cost += component_cost
-                # Debug for preproducts
-                if hasattr(product, 'is_preproduct') and product.is_preproduct:
-                    print(f"    - Raw material {component.material.name}: {quantity_in_material_unit} {component.material.unit} * {primary_price} = {component_cost}")
             else:
                 # Both are in kg, multiply directly
                 component_cost = component.quantity * primary_price
                 total_cost += component_cost
-                # Debug for preproducts
-                if hasattr(product, 'is_preproduct') and product.is_preproduct:
-                    print(f"    - Raw material {component.material.name}: {component.quantity} kg * {primary_price} = {component_cost}")
         elif component.component_type == 'packaging' and component.packaging:
             # EXCLUDED FROM PRIME COST - Packaging is only a cost when sold
             pass  # total_cost += component.quantity * component.packaging.price_per_unit
@@ -349,23 +332,9 @@ def calculate_prime_cost(product):
                 # Component quantities are ALREADY in kg, no conversion needed
                 # Both component quantity and preproduct cost are per kg
                 total_cost += component.quantity * preproduct_unit_cost
-                # Debug for preproduct component
-                if hasattr(product, 'is_preproduct') and product.is_preproduct:
-                    print(f"    - Added preproduct component cost: {component.quantity} * {preproduct_unit_cost} = {component.quantity * preproduct_unit_cost}")
-
-    # Debug final calculation
-    if hasattr(product, 'is_preproduct') and product.is_preproduct:
-        print(f"  - Total cost before division: {total_cost}")
-        print(f"  - Will divide by products_per_recipe: {product.products_per_recipe if hasattr(product, 'products_per_recipe') else 'N/A'}")
 
     if hasattr(product, 'products_per_recipe') and product.products_per_recipe > 0:
-        result = total_cost / product.products_per_recipe
-        if hasattr(product, 'is_preproduct') and product.is_preproduct:
-            print(f"  - Final cost per unit: {result}")
-        return result
-
-    if hasattr(product, 'is_preproduct') and product.is_preproduct:
-        print(f"  - WARNING: Returning 0 because products_per_recipe is not valid")
+        return total_cost / product.products_per_recipe
     return 0
 
 def calculate_cogs_with_packaging(product):

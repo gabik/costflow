@@ -419,23 +419,21 @@ def product_detail(product_id):
 
     # Retrieve preproduct costs
     preproduct_costs = []
-    print(f"\n=== PRODUCT DETAILS: Checking preproduct components for product {product.name} (ID: {product_id}) ===")
 
-    for component in ProductComponent.query.filter_by(product_id=product_id, component_type='product'):
-        print(f"  Found preproduct component: component_id={component.component_id}, quantity={component.quantity}")
-
-        # Get preproduct from Product model
+    # Look for preproducts in both 'product' AND 'premake' component types
+    # (Some preproducts might be incorrectly stored as premake components)
+    for component in ProductComponent.query.filter_by(product_id=product_id).filter(
+        ProductComponent.component_type.in_(['product', 'premake'])
+    ):
+        # Get preproduct from Product model - check if it's a preproduct
         preproduct = Product.query.filter_by(id=component.component_id, is_preproduct=True).first()
 
         if not preproduct:
-            print(f"    WARNING: No preproduct found with id={component.component_id} and is_preproduct=True")
+            # Not a preproduct, skip
             continue
-
-        print(f"    Preproduct found: {preproduct.name}, products_per_recipe={preproduct.products_per_recipe}")
 
         # Calculate prime cost for the preproduct
         preproduct_unit_cost = calculate_prime_cost(preproduct)
-        print(f"    Calculated preproduct_unit_cost: {preproduct_unit_cost}")
 
         # Convert preproduct cost to per 100g
         preproduct_unit = getattr(preproduct, 'unit', 'kg')
