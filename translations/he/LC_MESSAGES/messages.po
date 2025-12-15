@@ -564,28 +564,24 @@ msgid "Product"
 msgstr "מוצר"
 
 #: templates/add_or_edit_product.html:46
-#, fuzzy
 msgid "Regular product for sale"
-msgstr "שווי ייצור כולל"
+msgstr "מוצר רגיל למכירה"
 
 #: templates/add_or_edit_product.html:54
-#, fuzzy
 msgid "Preproduct (for sale)"
-msgstr "מוצרים מקדימים"
+msgstr "מוצר מקדים (למכירה)"
 
 #: templates/add_or_edit_product.html:54
-#, fuzzy
 msgid "Can be sold and used as a component"
-msgstr "מוצר מקדים - ניתן למכירה וגם לשימוש כרכיב"
+msgstr "ניתן למכירה וגם לשימוש כרכיב"
 
 #: templates/add_or_edit_product.html:62
-#, fuzzy
 msgid "Preproduct (internal use)"
-msgstr "מוצרים מקדימים"
+msgstr "מוצר מקדים (שימוש פנימי)"
 
 #: templates/add_or_edit_product.html:62
 msgid "Used as component only, not sold directly"
-msgstr ""
+msgstr "לשימוש כרכיב בלבד, לא למכירה ישירה"
 
 #: templates/add_or_edit_product.html:70 templates/product_details.html:45
 msgid "Selling Price per Unit"
@@ -2104,7 +2100,7 @@ msgstr "פרטי מוצר"
 
 #: templates/product_details.html:18
 msgid "Internal Use"
-msgstr ""
+msgstr "שימוש פנימי"
 
 # Missing product_details.html translations
 #: templates/product_details.html:34
@@ -2337,14 +2333,12 @@ msgid "Preproduct - Can be sold and used as a component"
 msgstr "מוצר מקדים - ניתן למכירה וגם לשימוש כרכיב"
 
 #: templates/products.html:69
-#, fuzzy
 msgid "Preproduct - Internal use only"
-msgstr "מוצר מקדים - ניתן למכירה וגם לשימוש כרכיב"
+msgstr "מוצר מקדים - לשימוש פנימי בלבד"
 
 #: templates/products.html:70
-#, fuzzy
 msgid "Internal"
-msgstr "שם הסופר"
+msgstr "פנימי"
 
 #: templates/products.html:77
 msgid "Missing raw materials:"
