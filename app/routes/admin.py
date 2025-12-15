@@ -287,6 +287,57 @@ def restore_db():
         return f"Restore failed: {str(e)}", 500
 
 
+@admin_blueprint.route('/migrate_debug_fill_inventory')
+def debug_fill_inventory():
+    """Debug endpoint to fill all raw materials with 1000 units of stock"""
+    from flask_babel import gettext as _
+    try:
+        # Get all raw materials
+        materials = RawMaterial.query.filter_by(is_deleted=False).all()
+
+        for material in materials:
+            # Skip unlimited materials
+            if material.is_unlimited:
+                continue
+
+            # Get primary supplier or first available supplier
+            supplier = None
+            for rms in material.suppliers:
+                if rms.is_primary:
+                    supplier = rms.supplier
+                    break
+            if not supplier and material.suppliers:
+                supplier = material.suppliers[0].supplier
+
+            # Create stock log entry setting stock to 1000
+            stock_entry = StockLog(
+                raw_material_id=material.id,
+                supplier_id=supplier.id if supplier else None,
+                action_type='set',
+                quantity=1000.0,
+                timestamp=datetime.now()
+            )
+            db.session.add(stock_entry)
+
+        db.session.commit()
+
+        message = f"Successfully filled {len(materials)} raw materials with 1000 units each"
+        log_audit("DEBUG_FILL_INVENTORY", "System", details=message)
+
+        return jsonify({
+            'status': 'success',
+            'message': message,
+            'materials_updated': len(materials)
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
 @admin_blueprint.route('/audit_log')
 def audit_log():
     """Display audit log with optional filtering"""
