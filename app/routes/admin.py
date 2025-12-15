@@ -102,6 +102,41 @@ def backup_db():
     )
 
 
+@admin_blueprint.route('/admin/reset_db', methods=['POST'])
+def reset_db():
+    """
+    Full system reset - drops all tables and recreates them.
+    WARNING: This will delete ALL data in the system!
+    """
+    from flask_babel import gettext as _
+    try:
+        # Log the reset action before dropping tables
+        log_audit("RESET_INITIATED", "System", None, "Database reset initiated")
+
+        # Drop all tables
+        db.drop_all()
+
+        # Recreate all tables
+        db.create_all()
+
+        # Re-seed essential data
+        from ..models import Category
+        default_category = Category(name="כללי", type='raw_material')
+        db.session.add(default_category)
+
+        # Create audit log entry for the reset
+        log_audit("RESET_COMPLETE", "System", None, "Database was fully reset")
+
+        db.session.commit()
+
+        flash(_("System has been reset successfully"), 'success')
+        return redirect(url_for('main.index'))
+    except Exception as e:
+        db.session.rollback()
+        flash(_("Error resetting database: {}").format(str(e)), 'error')
+        return redirect(url_for('admin.audit_log'))
+
+
 @admin_blueprint.route('/admin/restore', methods=['GET', 'POST'])
 def restore_db():
     if request.method == 'GET':

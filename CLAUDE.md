@@ -214,6 +214,7 @@ docker run -p 8080:8080 costflow
 - Multi-supplier pricing: System uses actual supplier prices during production
 - Production tracking: Each batch stores its actual cost based on suppliers used
 - Weekly reports: Use weighted average of actual production costs, not estimates
+- **Premake Cost Calculation**: When premakes are used as components in products or other premakes, the system ALWAYS calculates costs from the current recipe (not production history) to ensure accuracy and consistency
 
 ### Stock Management
 - StockLog tracks all inventory changes with timestamps and supplier information
