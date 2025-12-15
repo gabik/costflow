@@ -279,17 +279,38 @@ function updateProductionDetails() {
                     const discountPercent = Math.round((1 - consumption.cost_per_unit/consumption.original_cost) * 100);
                     costDisplay = `<span class="text-decoration-line-through text-muted">${consumption.original_cost.toFixed(2)} ₪</span> <strong class="text-success">${consumption.cost_per_unit.toFixed(2)} ₪</strong> <span class="badge bg-success">-${discountPercent}%</span>`;
                 }
+                // Check if material has waste percentage for tooltips
+                let usageDisplay = formatQuantityWithUnit(consumption.amount_to_consume, comp.unit);
+                let costTooltip = '';
+                if (comp.waste_percentage > 0) {
+                    const recipeQuantity = consumption.amount_to_consume / (1 + comp.waste_percentage / 100);
+                    usageDisplay = `<span data-bs-toggle="tooltip"
+                                         data-bs-placement="top"
+                                         title="{{ _('Recipe needs') }}: ${formatQuantityWithUnit(recipeQuantity, comp.unit)} + ${comp.waste_percentage}% {{ _('waste') }} = ${formatQuantityWithUnit(consumption.amount_to_consume, comp.unit)}"
+                                         class="text-decoration-underline" style="text-decoration-style: dotted !important; cursor: help;">
+                                         ${formatQuantityWithUnit(consumption.amount_to_consume, comp.unit)}
+                                         <i class="bi bi-info-circle-fill text-warning small ms-1"></i>
+                                    </span>`;
+                    costTooltip = `data-bs-toggle="tooltip" data-bs-placement="top" title="{{ _('Includes') }} ${comp.waste_percentage}% {{ _('waste adjustment') }}"`;
+                }
+
                 tr.innerHTML = `
                     <td>${comp.name}</td>
                     <td>{{ _('Raw Material') }}</td>
                     <td>${formatQuantityWithUnit(consumption.stock_available, comp.unit)}</td>
-                    <td class="fw-bold">${formatQuantityWithUnit(consumption.amount_to_consume, comp.unit)}</td>
+                    <td class="fw-bold">${usageDisplay}</td>
                     <td class="${consumption.remaining_after < 0 ? 'text-danger fw-bold' : ''}">${formatQuantityWithUnit(consumption.remaining_after, comp.unit)}</td>
-                    <td>${costDisplay}</td>
+                    <td ${costTooltip}>${costDisplay}</td>
                     <td>${consumption.total_cost.toFixed(2)} ₪</td>
                 `;
                 tbody.appendChild(tr);
                 totalRecipeCost += consumption.total_cost;
+
+                // Initialize tooltips for newly added elements
+                setTimeout(() => {
+                    const tooltipElements = tr.querySelectorAll('[data-bs-toggle="tooltip"]');
+                    tooltipElements.forEach(el => new bootstrap.Tooltip(el));
+                }, 100);
             } else {
                 // Multiple suppliers or deficit case - show separate rows
                 consumptionRows.forEach((consumption, index) => {
@@ -314,17 +335,38 @@ function updateProductionDetails() {
                         costDisplay = `<span class="text-decoration-line-through text-muted">${consumption.original_cost.toFixed(2)} ₪</span> <strong class="text-success">${consumption.cost_per_unit.toFixed(2)} ₪</strong> <span class="badge bg-success">-${discountPercent}%</span>`;
                     }
 
+                    // Check if material has waste percentage for tooltips (only show on first row)
+                    let usageDisplay = formatQuantityWithUnit(consumption.amount_to_consume, comp.unit);
+                    let costTooltip = '';
+                    if (index === 0 && comp.waste_percentage > 0) {
+                        const recipeQuantity = consumption.amount_to_consume / (1 + comp.waste_percentage / 100);
+                        usageDisplay = `<span data-bs-toggle="tooltip"
+                                             data-bs-placement="top"
+                                             title="{{ _('Recipe needs') }}: ${formatQuantityWithUnit(recipeQuantity, comp.unit)} + ${comp.waste_percentage}% {{ _('waste') }} = ${formatQuantityWithUnit(consumption.amount_to_consume, comp.unit)}"
+                                             class="text-decoration-underline" style="text-decoration-style: dotted !important; cursor: help;">
+                                             ${formatQuantityWithUnit(consumption.amount_to_consume, comp.unit)}
+                                             <i class="bi bi-info-circle-fill text-warning small ms-1"></i>
+                                        </span>`;
+                        costTooltip = `data-bs-toggle="tooltip" data-bs-placement="top" title="{{ _('Includes') }} ${comp.waste_percentage}% {{ _('waste adjustment') }}"`;
+                    }
+
                     tr.innerHTML = `
                         <td>${nameDisplay}</td>
                         <td>${index === 0 ? '{{ _("Raw Material") }}' : ''}</td>
                         <td>${formatQuantityWithUnit(consumption.stock_available, comp.unit)}</td>
-                        <td class="fw-bold">${formatQuantityWithUnit(consumption.amount_to_consume, comp.unit)}</td>
+                        <td class="fw-bold">${usageDisplay}</td>
                         <td class="${consumption.remaining_after < 0 ? 'text-danger fw-bold' : ''}">${formatQuantityWithUnit(consumption.remaining_after, comp.unit)}</td>
-                        <td>${costDisplay}</td>
+                        <td ${costTooltip}>${costDisplay}</td>
                         <td>${consumption.total_cost.toFixed(2)} ₪</td>
                     `;
                     tbody.appendChild(tr);
                     totalRecipeCost += consumption.total_cost;
+
+                    // Initialize tooltips for newly added elements
+                    setTimeout(() => {
+                        const tooltipElements = tr.querySelectorAll('[data-bs-toggle="tooltip"]');
+                        tooltipElements.forEach(el => new bootstrap.Tooltip(el));
+                    }, 100);
                 });
             }
         } else {

@@ -154,14 +154,14 @@ def get_material_discounted_price(material_id, supplier_id):
 
 def get_primary_supplier_discounted_price(material):
     """
-    Get discounted price from primary supplier for a material,
-    adjusted for waste percentage.
+    Get discounted price from primary supplier for a material.
+    NOTE: Does NOT apply waste adjustment - waste is handled via quantity adjustment.
 
     Args:
         material: RawMaterial object
 
     Returns:
-        Discounted price from primary supplier adjusted for waste, or first supplier if no primary
+        Discounted price from primary supplier (without waste adjustment)
     """
     base_price = 0
 
@@ -176,8 +176,9 @@ def get_primary_supplier_discounted_price(material):
         first_link = material.supplier_links[0]
         base_price = apply_supplier_discount(first_link.cost_per_unit, first_link.supplier)
 
-    # Apply waste adjustment
-    return base_price * material.effective_cost_multiplier
+    # Return base price WITHOUT waste adjustment
+    # Waste is handled by adjusting quantity, not price
+    return base_price
 
 def log_audit(action, target_type, target_id=None, details=None):
     try:
@@ -744,11 +745,8 @@ def deduct_material_stock(material_id, quantity_needed):
             # Deduct what we can from this supplier
             to_deduct = min(available, remaining)
 
-            # Apply discount to cost AND waste adjustment
+            # Apply discount to cost (waste is already handled via quantity adjustment)
             discounted_cost_per_unit = apply_supplier_discount(link.cost_per_unit, link.supplier)
-            # Apply waste percentage adjustment to the cost
-            if material and material.waste_percentage > 0:
-                discounted_cost_per_unit = discounted_cost_per_unit * material.effective_cost_multiplier
 
             # Create stock log for deduction (negative add)
             stock_log = StockLog(

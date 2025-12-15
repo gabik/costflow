@@ -441,7 +441,8 @@ def get_product_recipe(product_id):
                         'suppliers': [],
                         'consumption_breakdown': [],
                         'show_multiple_rows': False,
-                        'is_unlimited': True
+                        'is_unlimited': True,
+                        'waste_percentage': material.waste_percentage  # Add waste percentage for tooltips
                     })
                     continue  # Skip to next component
 
@@ -588,7 +589,8 @@ def get_product_recipe(product_id):
                     'suppliers': supplier_info,  # Keep for backward compatibility
                     'consumption_breakdown': consumption_breakdown,
                     'show_multiple_rows': show_multiple_rows,
-                    'is_unlimited': False  # Normal material with suppliers
+                    'is_unlimited': False,  # Normal material with suppliers
+                    'waste_percentage': material.waste_percentage  # Add waste percentage for tooltips
                 })
 
         elif comp.component_type == 'premake':
