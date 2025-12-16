@@ -245,6 +245,8 @@ def calculate_premake_cost_per_unit(premake, visited=None, use_actual_costs=True
         if pm_comp.component_type == 'raw_material' and pm_comp.material:
             # Use primary supplier DISCOUNTED price
             primary_price = get_primary_supplier_discounted_price(pm_comp.material)
+            # Apply waste adjustment for theoretical cost calculation (display purposes)
+            primary_price = primary_price * pm_comp.material.effective_cost_multiplier
             # Component quantities are stored in kg baseline, material prices are per their unit
             # Only convert if material unit differs from kg
             if pm_comp.material.unit != 'kg':
@@ -299,6 +301,8 @@ def calculate_prime_cost(product):
         if component.component_type == 'raw_material' and component.material:
             # Use primary supplier DISCOUNTED price
             primary_price = get_primary_supplier_discounted_price(component.material)
+            # Apply waste adjustment for theoretical cost calculation (display purposes)
+            primary_price = primary_price * component.material.effective_cost_multiplier
             # Component quantities are stored in kg baseline, material prices are per their unit
             # Only convert if material unit differs from kg
             if component.material.unit != 'kg':
@@ -1317,6 +1321,8 @@ def calculate_standard_unit_cost(product):
                 else:
                     # Get primary supplier discounted price
                     price = get_primary_supplier_discounted_price(component.material)
+                    # Apply waste adjustment for theoretical cost calculation (display purposes)
+                    price = price * component.material.effective_cost_multiplier
                     comp_cost = component.quantity * price
             else:
                 comp_cost = 0
