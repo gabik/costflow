@@ -570,7 +570,10 @@ def get_cheapest_supplier_for_material(material_id, required_quantity):
     """
     Returns supplier info for the cheapest available supplier with enough stock.
     """
-    from ..models import RawMaterialSupplier
+    from ..models import RawMaterialSupplier, RawMaterial
+
+    # Get material to access waste percentage
+    material = RawMaterial.query.get(material_id)
 
     suppliers_with_stock = []
     supplier_links = RawMaterialSupplier.query.filter_by(raw_material_id=material_id).all()
@@ -578,12 +581,15 @@ def get_cheapest_supplier_for_material(material_id, required_quantity):
     for link in supplier_links:
         stock = calculate_supplier_stock(material_id, link.supplier_id)
         if stock > 0:
-            # Apply discount to cost
+            # Apply discount to cost (without waste - to be added separately)
             discounted_price = apply_supplier_discount(link.cost_per_unit, link.supplier)
+            # Apply waste adjustment
+            if material:
+                discounted_price = discounted_price * material.effective_cost_multiplier
             suppliers_with_stock.append({
                 'supplier_id': link.supplier_id,
                 'supplier': link.supplier,
-                'cost_per_unit': discounted_price,  # Use discounted price
+                'cost_per_unit': discounted_price,  # Use discounted price with waste
                 'available_stock': stock,
                 'is_primary': link.is_primary
             })
@@ -626,7 +632,10 @@ def consume_material_cheapest_first(material_id, required_qty):
     """
     Plan material consumption using cheapest-first strategy.
     """
-    from ..models import RawMaterialSupplier
+    from ..models import RawMaterialSupplier, RawMaterial
+
+    # Get material to access waste percentage
+    material = RawMaterial.query.get(material_id)
 
     supplier_links = RawMaterialSupplier.query.filter_by(raw_material_id=material_id).all()
 
@@ -634,13 +643,16 @@ def consume_material_cheapest_first(material_id, required_qty):
     for link in supplier_links:
         stock = calculate_supplier_stock(material_id, link.supplier_id)
         if stock > 0:
-            # Apply discount to cost
+            # Apply discount to cost (without waste - to be added separately)
             discounted_price = apply_supplier_discount(link.cost_per_unit, link.supplier)
+            # Apply waste adjustment
+            if material:
+                discounted_price = discounted_price * material.effective_cost_multiplier
             suppliers_with_stock.append({
                 'supplier_id': link.supplier_id,
                 'supplier_name': link.supplier.name,
                 'material_id': material_id,
-                'cost_per_unit': discounted_price,  # Use discounted price
+                'cost_per_unit': discounted_price,  # Use discounted price with waste
                 'available_stock': stock
             })
 
@@ -747,8 +759,9 @@ def deduct_material_stock(material_id, quantity_needed):
             # Deduct what we can from this supplier
             to_deduct = min(available, remaining)
 
-            # Apply discount to cost (waste is already handled via quantity adjustment)
-            discounted_cost_per_unit = apply_supplier_discount(link.cost_per_unit, link.supplier)
+            # Apply discount AND waste adjustment to cost
+            # Both quantity AND price are affected by waste
+            discounted_cost_per_unit = apply_supplier_discount(link.cost_per_unit, link.supplier) * material.effective_cost_multiplier
 
             # Create stock log for deduction (negative add)
             stock_log = StockLog(
