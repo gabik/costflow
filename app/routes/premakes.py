@@ -91,14 +91,22 @@ def view_premake(premake_id):
             if comp_original_price == 0 and comp.material.supplier_links:
                 comp_original_price = comp.material.supplier_links[0].cost_per_unit
             comp_discounted_price = get_primary_supplier_discounted_price(comp.material)
-            comp_cost = comp.quantity * comp_discounted_price
+            
+            # Calculate gross quantity (including waste)
+            gross_quantity = comp.quantity * comp.material.effective_cost_multiplier
+            
+            comp_cost = gross_quantity * comp_discounted_price
             comp_name = comp.material.name
             comp_unit = comp.material.unit
+            
+            # Use gross quantity for display
+            display_qty_value = gross_quantity
         elif comp.component_type == 'packaging' and comp.packaging:
             comp_original_price = comp_discounted_price = comp.packaging.price_per_unit
             comp_cost = comp.quantity * comp.packaging.price_per_unit
             comp_name = comp.packaging.name
             comp_unit = "units"
+            display_qty_value = comp.quantity
         elif comp.component_type == 'premake' and comp.premake:
             # Calculate nested premake cost recursively with discounts
             nested_cost_per_unit = 0
@@ -126,13 +134,15 @@ def view_premake(premake_id):
             comp_cost = comp.quantity * nested_cost_per_unit
             comp_name = comp.premake.name + " (הכנה מקדימה)"
             comp_unit = comp.premake.unit
+            display_qty_value = comp.quantity
 
         cost_per_batch += comp_cost
         # Format quantity with appropriate units for display
-        display_quantity, display_unit = format_quantity_with_unit(comp.quantity, comp_unit)
+        display_quantity, display_unit = format_quantity_with_unit(display_qty_value, comp_unit)
         component_costs.append({
             'name': comp_name,
-            'quantity': comp.quantity,  # Keep original for calculations
+            'quantity': comp.quantity,  # Keep original for calculations/reference
+            'gross_quantity': display_qty_value if comp.component_type == 'raw_material' else comp.quantity,
             'display_quantity': display_quantity,
             'unit': comp_unit,  # Keep original unit
             'display_unit': display_unit,

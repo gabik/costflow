@@ -379,12 +379,16 @@ def product_detail(product_id):
             price_per_100g = primary_price_discounted
             price_per_100g_original = primary_price_original
 
+        # Calculate gross quantity (including waste)
+        gross_quantity = component.quantity * material.effective_cost_multiplier
+
         # Apply dynamic unit conversion for display
-        display_quantity, display_unit = format_quantity_with_unit(component.quantity, material.unit)
+        display_quantity, display_unit = format_quantity_with_unit(gross_quantity, material.unit)
 
         raw_materials.append({
             'name': material.name,
             'quantity': component.quantity,
+            'gross_quantity': gross_quantity,
             'unit': material.unit,
             'display_quantity': display_quantity,  # For dynamic display
             'display_unit': display_unit,  # For dynamic display
@@ -392,8 +396,9 @@ def product_detail(product_id):
             'price_per_unit_original': primary_price_original,  # Keep for calculations
             'price_per_100g': price_per_100g,  # For display
             'price_per_100g_original': price_per_100g_original,  # For display
-            'price_per_recipe': component.quantity * primary_price_discounted,
-            'price_per_product': (component.quantity * primary_price_discounted) / product.products_per_recipe if product.products_per_recipe > 0 else 0
+            'price_per_recipe': gross_quantity * primary_price_discounted,
+            'price_per_product': (gross_quantity * primary_price_discounted) / product.products_per_recipe if product.products_per_recipe > 0 else 0,
+            'waste_percentage': material.waste_percentage
         })
 
     # Retrieve packaging costs
