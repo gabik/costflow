@@ -33,6 +33,9 @@ def production():
         # Deduct materials for production and calculate costs
         try:
             for component in product.components:
+                # Debug logging
+                print(f"DEBUG: Processing component type: {component.component_type}, ID: {component.component_id}")
+
                 if component.component_type == 'raw_material':
                     required_qty = component.quantity * quantity_produced
                     # Get deduction details with costs
@@ -84,6 +87,53 @@ def production():
                     # The calculate_premake_current_stock() function already
                     # subtracts consumption from ProductionLogs.
 
+                elif component.component_type == 'product':
+                    # Handle preproduct components
+                    preproduct = Product.query.filter_by(id=component.component_id, is_preproduct=True).first()
+                    if preproduct:
+                        required_qty = component.quantity * quantity_produced
+
+                        # Debug logging
+                        print(f"DEBUG: Preproduct {preproduct.name}")
+                        print(f"  - Unit: {preproduct.unit}")
+                        print(f"  - Component quantity: {component.quantity}")
+                        print(f"  - Quantity produced: {quantity_produced}")
+                        print(f"  - Required qty: {required_qty}")
+
+                        # Check stock availability
+                        from .utils import calculate_premake_current_stock
+                        available_stock = calculate_premake_current_stock(preproduct.id)
+                        print(f"  - Available stock: {available_stock}")
+
+                        if available_stock < required_qty:
+                            raise InsufficientStockError(
+                                f"אין מספיק מלאי עבור {preproduct.name}. "
+                                f"נדרש: {required_qty:.2f} {preproduct.unit}, זמין: {available_stock:.2f} {preproduct.unit}"
+                            )
+
+                        # Calculate cost
+                        from .utils import calculate_prime_cost
+                        preproduct_cost_per_unit = calculate_prime_cost(preproduct)
+                        material_cost = preproduct_cost_per_unit * required_qty
+                        total_production_cost += material_cost
+
+                        print(f"  - Cost per unit: {preproduct_cost_per_unit}")
+                        print(f"  - Total cost: {material_cost}")
+
+                        # Initialize preproducts list if not exists
+                        if 'preproducts' not in cost_details:
+                            cost_details['preproducts'] = []
+
+                        cost_details['preproducts'].append({
+                            'name': preproduct.name,
+                            'qty': required_qty,
+                            'unit': preproduct.unit,
+                            'cost': material_cost
+                        })
+
+                        # Note: Like premakes, preproduct consumption is tracked via ProductionLog
+                        # No StockLog entry needed here to avoid double-counting
+
                 elif component.component_type == 'packaging' and component.packaging:
                     # Calculate packaging cost and deduct stock
                     required_qty = component.quantity * quantity_produced
@@ -113,6 +163,13 @@ def production():
             # Calculate cost per unit
             units_produced = quantity_produced * product.products_per_recipe
             cost_per_unit = total_production_cost / units_produced if units_produced > 0 else 0
+
+            # Debug logging for cost breakdown
+            print(f"\nDEBUG: Production Cost Summary for {product.name}")
+            print(f"  - Total production cost: {total_production_cost:.2f}")
+            print(f"  - Units produced: {units_produced}")
+            print(f"  - Cost per unit: {cost_per_unit:.2f}")
+            print(f"  - Cost details: {json.dumps(cost_details, indent=2)}")
 
             # Create production log WITH COST INFORMATION
             production_log = ProductionLog(
