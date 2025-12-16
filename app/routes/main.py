@@ -8,7 +8,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, curren
 from sqlalchemy import func, extract, and_, text
 from sqlalchemy.orm import joinedload
 from ..models import db, RawMaterial, Labor, Packaging, Product, ProductComponent, Category, StockLog, ProductionLog, WeeklyLaborCost, WeeklyLaborEntry, WeeklyProductSales, StockAudit, AuditLog, PackagingSupplier
-from .utils import units_list, get_or_create_general_category, convert_to_base_unit, log_audit, calculate_prime_cost, calculate_premake_current_stock, calculate_premake_stock_at_date, calculate_total_material_stock, calculate_supplier_stock, apply_supplier_discount, calculate_total_packaging_stock
+from .utils import units_list, get_or_create_general_category, convert_to_base_unit, log_audit, calculate_prime_cost, calculate_premake_current_stock, calculate_premake_stock_at_date, calculate_total_material_stock, calculate_supplier_stock, apply_supplier_discount, calculate_total_packaging_stock, safe_float, convert_cost_to_display_unit
 from .raw_materials import calculate_raw_material_current_stock
 
 main_blueprint = Blueprint('main', __name__)
@@ -392,22 +392,7 @@ def stock_audits():
 
 @main_blueprint.route('/api/product_recipe/<int:product_id>')
 def get_product_recipe(product_id):
-    """Helper to convert infinity to None for JSON serialization"""
-    def safe_float(value):
-        import math
-        if math.isinf(value):
-            return None
-        return value
-
-    def convert_to_cost_per_100g(cost, unit):
-        """Convert cost from native unit to cost per 100g/100ml"""
-        if unit == 'kg' or unit == 'L':
-            return cost / 10  # 1kg = 1000g, so per 100g = per kg / 10
-        elif unit == 'g' or unit == 'ml':
-            return cost * 100  # Convert from per g to per 100g
-        else:
-            return cost  # For other units (pieces, etc.), keep as is
-
+    """API endpoint to get product recipe with consumption breakdown"""
     product = Product.query.get_or_404(product_id)
 
     # Get quantity being produced (if provided)
@@ -478,8 +463,8 @@ def get_product_recipe(product_id):
                         discounted_cost = apply_supplier_discount(link.cost_per_unit, link.supplier)
 
                         # Convert to cost per 100g for display
-                        cost_per_100g = convert_to_cost_per_100g(discounted_cost, material.unit)
-                        original_cost_per_100g = convert_to_cost_per_100g(link.cost_per_unit, material.unit)
+                        cost_per_100g = convert_cost_to_display_unit(discounted_cost, material.unit)
+                        original_cost_per_100g = convert_cost_to_display_unit(link.cost_per_unit, material.unit)
 
                         consumption_breakdown.append({
                             'supplier_id': link.supplier_id,
@@ -500,8 +485,8 @@ def get_product_recipe(product_id):
                         discounted_cost = apply_supplier_discount(link.cost_per_unit, link.supplier)
 
                         # Convert to cost per 100g for display
-                        cost_per_100g = convert_to_cost_per_100g(discounted_cost, material.unit)
-                        original_cost_per_100g = convert_to_cost_per_100g(link.cost_per_unit, material.unit)
+                        cost_per_100g = convert_cost_to_display_unit(discounted_cost, material.unit)
+                        original_cost_per_100g = convert_cost_to_display_unit(link.cost_per_unit, material.unit)
 
                         consumption_breakdown.append({
                             'supplier_id': link.supplier_id,
@@ -540,8 +525,8 @@ def get_product_recipe(product_id):
                             discounted_cost = apply_supplier_discount(primary_link.cost_per_unit, primary_link.supplier)
 
                             # Convert to cost per 100g for display
-                            cost_per_100g = convert_to_cost_per_100g(discounted_cost, material.unit)
-                            original_cost_per_100g = convert_to_cost_per_100g(primary_link.cost_per_unit, material.unit)
+                            cost_per_100g = convert_cost_to_display_unit(discounted_cost, material.unit)
+                            original_cost_per_100g = convert_cost_to_display_unit(primary_link.cost_per_unit, material.unit)
 
                             consumption_breakdown.insert(0, {
                                 'supplier_id': primary_link.supplier_id,
@@ -576,7 +561,7 @@ def get_product_recipe(product_id):
                 primary_discounted_price = get_primary_supplier_discounted_price(material)
 
                 # Convert to cost per 100g for display
-                primary_cost_per_100g = convert_to_cost_per_100g(primary_discounted_price, material.unit)
+                primary_cost_per_100g = convert_cost_to_display_unit(primary_discounted_price, material.unit)
 
                 components_data.append({
                     'type': 'Raw Material',
@@ -704,21 +689,6 @@ def get_product_recipe(product_id):
 @main_blueprint.route('/api/premake_recipe/<int:premake_id>')
 def get_premake_recipe(premake_id):
     """API endpoint to get premake recipe with consumption breakdown"""
-    def safe_float(value):
-        import math
-        if math.isinf(value):
-            return None
-        return value
-
-    def convert_to_cost_per_100g(cost, unit):
-        """Convert cost from native unit to cost per 100g/100ml"""
-        if unit == 'kg' or unit == 'L':
-            return cost / 10  # 1kg = 1000g, so per 100g = per kg / 10
-        elif unit == 'g' or unit == 'ml':
-            return cost * 100  # Convert from per g to per 100g
-        else:
-            return cost  # For other units (pieces, etc.), keep as is
-
     premake = Product.query.filter_by(id=premake_id, is_premake=True).first_or_404()
 
     # Get quantity being produced (if provided)
@@ -742,7 +712,7 @@ def get_premake_recipe(premake_id):
                     supplier_price = get_primary_supplier_discounted_price(material)
 
                     # Convert to cost per 100g for display
-                    cost_per_100g = convert_to_cost_per_100g(supplier_price, material.unit)
+                    cost_per_100g = convert_cost_to_display_unit(supplier_price, material.unit)
 
                     components_data.append({
                         'type': 'Raw Material',
@@ -789,8 +759,8 @@ def get_premake_recipe(premake_id):
                         discounted_cost = apply_supplier_discount(link.cost_per_unit, link.supplier)
 
                         # Convert to cost per 100g for display
-                        cost_per_100g = convert_to_cost_per_100g(discounted_cost, material.unit)
-                        original_cost_per_100g = convert_to_cost_per_100g(link.cost_per_unit, material.unit)
+                        cost_per_100g = convert_cost_to_display_unit(discounted_cost, material.unit)
+                        original_cost_per_100g = convert_cost_to_display_unit(link.cost_per_unit, material.unit)
 
                         consumption_breakdown.append({
                             'supplier_id': link.supplier_id,
@@ -810,8 +780,8 @@ def get_premake_recipe(premake_id):
                         discounted_cost = apply_supplier_discount(link.cost_per_unit, link.supplier)
 
                         # Convert to cost per 100g for display
-                        cost_per_100g = convert_to_cost_per_100g(discounted_cost, material.unit)
-                        original_cost_per_100g = convert_to_cost_per_100g(link.cost_per_unit, material.unit)
+                        cost_per_100g = convert_cost_to_display_unit(discounted_cost, material.unit)
+                        original_cost_per_100g = convert_cost_to_display_unit(link.cost_per_unit, material.unit)
 
                         consumption_breakdown.append({
                             'supplier_id': link.supplier_id,
@@ -847,8 +817,8 @@ def get_premake_recipe(premake_id):
                             discounted_cost = apply_supplier_discount(primary_link.cost_per_unit, primary_link.supplier)
 
                             # Convert to cost per 100g for display
-                            cost_per_100g = convert_to_cost_per_100g(discounted_cost, material.unit)
-                            original_cost_per_100g = convert_to_cost_per_100g(primary_link.cost_per_unit, material.unit)
+                            cost_per_100g = convert_cost_to_display_unit(discounted_cost, material.unit)
+                            original_cost_per_100g = convert_cost_to_display_unit(primary_link.cost_per_unit, material.unit)
 
                             consumption_breakdown.insert(0, {
                                 'supplier_id': primary_link.supplier_id,
@@ -872,7 +842,7 @@ def get_premake_recipe(premake_id):
                 primary_discounted_price = get_primary_supplier_discounted_price(material)
 
                 # Convert to cost per 100g for display
-                primary_cost_per_100g = convert_to_cost_per_100g(primary_discounted_price, material.unit)
+                primary_cost_per_100g = convert_cost_to_display_unit(primary_discounted_price, material.unit)
 
                 components_data.append({
                     'type': 'Raw Material',

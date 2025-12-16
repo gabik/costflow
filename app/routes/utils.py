@@ -1387,3 +1387,98 @@ def calculate_standard_unit_cost(product):
         cost_per_standard = 0
 
     return cost_per_standard, total_cost, net_quantity, unit_label
+
+def safe_float(value):
+    """Convert infinity to None for JSON serialization"""
+    import math
+    if math.isinf(value):
+        return None
+    return value
+
+def convert_cost_to_display_unit(cost, unit):
+    """Convert cost from native unit to cost per 100g/100ml for display
+
+    Args:
+        cost: The cost value to convert
+        unit: The unit of the material (kg, g, L, ml, etc.)
+
+    Returns:
+        The cost converted to per 100g/100ml for weight/volume units,
+        or unchanged for other units (pieces, etc.)
+    """
+    if unit == 'kg' or unit == 'L':
+        return cost / 10  # 1kg = 1000g, so per 100g = per kg / 10
+    elif unit == 'g' or unit == 'ml':
+        return cost * 100  # Convert from per g to per 100g
+    else:
+        return cost  # For other units (pieces, etc.), keep as is
+
+def calculate_consumption_breakdown(supplier_links, material, remaining_to_consume, needed_quantity):
+    """Calculate consumption breakdown for material across suppliers
+
+    Args:
+        supplier_links: List of supplier links for the material
+        material: The RawMaterial object
+        remaining_to_consume: Amount of material needed
+        needed_quantity: Total quantity needed (for deficit detection)
+
+    Returns:
+        Tuple of (consumption_breakdown list, remaining_to_consume)
+    """
+    import math
+    consumption_breakdown = []
+
+    for link in supplier_links:
+        supplier_stock = calculate_supplier_stock(material.id, link.supplier_id)
+
+        if remaining_to_consume > 0 and supplier_stock > 0:
+            if math.isinf(supplier_stock):
+                amount_to_consume = remaining_to_consume
+            else:
+                amount_to_consume = min(supplier_stock, remaining_to_consume)
+            remaining_to_consume -= amount_to_consume
+
+            # Apply supplier discount to the cost
+            discounted_cost = apply_supplier_discount(link.cost_per_unit, link.supplier)
+
+            # Convert to cost per 100g for display
+            cost_per_100g = convert_cost_to_display_unit(discounted_cost, material.unit)
+            original_cost_per_100g = convert_cost_to_display_unit(link.cost_per_unit, material.unit)
+
+            consumption_breakdown.append({
+                'supplier_id': link.supplier_id,
+                'supplier_name': link.supplier.name,
+                'is_primary': link.is_primary,
+                'stock_available': safe_float(supplier_stock),
+                'amount_to_consume': amount_to_consume,
+                'remaining_after': safe_float(supplier_stock - amount_to_consume),
+                'cost_per_unit': cost_per_100g,  # Now this is cost per 100g for display
+                'original_cost': original_cost_per_100g,  # Original price per 100g for comparison
+                'discounted_cost_per_unit': discounted_cost,  # Keep original for total calculation
+                'total_cost': amount_to_consume * discounted_cost,  # Use original discounted_cost for total
+                'is_deficit': False
+            })
+        elif link.is_primary and supplier_stock == 0 and remaining_to_consume == needed_quantity:
+            # Primary has no stock and nothing consumed yet - include for display
+            # Apply supplier discount to the cost
+            discounted_cost = apply_supplier_discount(link.cost_per_unit, link.supplier)
+
+            # Convert to cost per 100g for display
+            cost_per_100g = convert_cost_to_display_unit(discounted_cost, material.unit)
+            original_cost_per_100g = convert_cost_to_display_unit(link.cost_per_unit, material.unit)
+
+            consumption_breakdown.append({
+                'supplier_id': link.supplier_id,
+                'supplier_name': link.supplier.name,
+                'is_primary': True,
+                'stock_available': 0,
+                'amount_to_consume': 0,
+                'remaining_after': 0,
+                'cost_per_unit': cost_per_100g,  # Now this is cost per 100g for display
+                'original_cost': original_cost_per_100g,  # Original price per 100g for comparison
+                'discounted_cost_per_unit': discounted_cost,  # Keep original for total calculation
+                'total_cost': 0,
+                'is_deficit': False
+            })
+
+    return consumption_breakdown, remaining_to_consume
