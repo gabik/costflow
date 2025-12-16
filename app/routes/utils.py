@@ -243,23 +243,23 @@ def calculate_premake_cost_per_unit(premake, visited=None, use_actual_costs=True
 
     for pm_comp in premake.components:
         if pm_comp.component_type == 'raw_material' and pm_comp.material:
-            # Use primary supplier DISCOUNTED price
+            # Use primary supplier DISCOUNTED price (WITHOUT waste adjustment)
             primary_price = get_primary_supplier_discounted_price(pm_comp.material)
-            # Apply waste adjustment for theoretical cost calculation (display purposes)
-            primary_price = primary_price * pm_comp.material.effective_cost_multiplier
+            # Apply waste to QUANTITY, not price!
+            actual_quantity_needed = pm_comp.quantity * pm_comp.material.effective_cost_multiplier
             # Component quantities are stored in kg baseline, material prices are per their unit
             # Only convert if material unit differs from kg
             if pm_comp.material.unit != 'kg':
                 # Convert kg to material's unit for cost calculation
                 quantity_in_material_unit = convert_to_base_unit(
-                    pm_comp.quantity,
+                    actual_quantity_needed,  # Use waste-adjusted quantity
                     'kg',  # Component is stored in kg
                     pm_comp.material.unit  # Convert to material's unit for pricing
                 )
                 premake_batch_cost += quantity_in_material_unit * primary_price
             else:
                 # Both are in kg, multiply directly
-                premake_batch_cost += pm_comp.quantity * primary_price
+                premake_batch_cost += actual_quantity_needed * primary_price
             calculated_batch_size += pm_comp.quantity
         elif pm_comp.component_type == 'packaging' and pm_comp.packaging:
             premake_batch_cost += pm_comp.quantity * pm_comp.packaging.price_per_unit
@@ -299,16 +299,16 @@ def calculate_prime_cost(product):
     for component in product.components:
 
         if component.component_type == 'raw_material' and component.material:
-            # Use primary supplier DISCOUNTED price
+            # Use primary supplier DISCOUNTED price (WITHOUT waste adjustment)
             primary_price = get_primary_supplier_discounted_price(component.material)
-            # Apply waste adjustment for theoretical cost calculation (display purposes)
-            primary_price = primary_price * component.material.effective_cost_multiplier
+            # Apply waste to QUANTITY, not price!
+            actual_quantity_needed = component.quantity * component.material.effective_cost_multiplier
             # Component quantities are stored in kg baseline, material prices are per their unit
             # Only convert if material unit differs from kg
             if component.material.unit != 'kg':
                 # Convert kg to material's unit for cost calculation
                 quantity_in_material_unit = convert_to_base_unit(
-                    component.quantity,
+                    actual_quantity_needed,  # Use waste-adjusted quantity
                     'kg',  # Component is stored in kg
                     component.material.unit  # Convert to material's unit for pricing
                 )
@@ -316,7 +316,7 @@ def calculate_prime_cost(product):
                 total_cost += component_cost
             else:
                 # Both are in kg, multiply directly
-                component_cost = component.quantity * primary_price
+                component_cost = actual_quantity_needed * primary_price
                 total_cost += component_cost
         elif component.component_type == 'packaging' and component.packaging:
             # EXCLUDED FROM PRIME COST - Packaging is only a cost when sold
@@ -1319,11 +1319,11 @@ def calculate_standard_unit_cost(product):
                 if component.material.is_unlimited:
                     comp_cost = 0
                 else:
-                    # Get primary supplier discounted price
+                    # Get primary supplier discounted price (WITHOUT waste adjustment)
                     price = get_primary_supplier_discounted_price(component.material)
-                    # Apply waste adjustment for theoretical cost calculation (display purposes)
-                    price = price * component.material.effective_cost_multiplier
-                    comp_cost = component.quantity * price
+                    # Apply waste to QUANTITY, not price!
+                    actual_quantity_needed = component.quantity * component.material.effective_cost_multiplier
+                    comp_cost = actual_quantity_needed * price
             else:
                 comp_cost = 0
         elif component.component_type == 'premake':
