@@ -418,8 +418,8 @@ def get_product_recipe(product_id):
         if comp.component_type == 'raw_material':
             material = comp.material
             if material:
-                # Calculate total needed for this production
-                needed_quantity = comp.quantity * quantity_produced
+                # Calculate total needed for this production (with waste adjustment)
+                needed_quantity = comp.quantity * quantity_produced * material.effective_cost_multiplier
 
                 # Use total stock across all suppliers
                 stock = calculate_total_material_stock(material.id)
@@ -729,8 +729,8 @@ def get_premake_recipe(premake_id):
         if comp.component_type == 'raw_material':
             material = comp.material
             if material:
-                # Calculate total needed for this production
-                needed_quantity = comp.quantity * quantity_produced
+                # Calculate total needed for this production (with waste adjustment)
+                needed_quantity = comp.quantity * quantity_produced * material.effective_cost_multiplier
 
                 # Use total stock across all suppliers
                 stock = calculate_total_material_stock(material.id)
