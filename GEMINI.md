@@ -80,6 +80,41 @@ python run.py
 - **Models**: Use `app/models.py`. Prefer specific models for complex relationships (e.g., `RawMaterialSupplier` for M:N with extra fields).
 - **Boolean fields**: Use `TRUE`/`FALSE` (PostgreSQL compatibility).
 
+## Mandatory Output Protocols
+
+**Every task completion MUST include the following sections:**
+
+### 1. Git Commit Message
+Provide a ready-to-use git commit message.
+```bash
+git add .
+git commit -m "<Type>: <Summary>"
+```
+
+### 2. Test Plan
+A concrete list of steps to verify the changes.
+*   **Step 1**: ...
+*   **Step 2**: ...
+*   **What to check**: Specific values or behaviors to observe.
+
+### 3. Change Summary
+*   **Change**: Brief description of what was done.
+*   **Issue (if applicable)**: What was broken/missing.
+*   **Root Cause**: Why it was broken.
+*   **Fix**: How it was resolved.
+
+### 4. Data Migration (If Applicable)
+If the database schema or data structure changed:
+*   **Explain**: What changed and why.
+*   **Action**: Provide the command to run the migration endpoint or script.
+*   **Code**: If a new migration endpoint was created, point to it.
+
+### 5. Translation Update
+If any UI text was added or modified:
+*   **Action**: Confirm that all new strings are wrapped in `_()`.
+*   **Translations**: Provide the Hebrew and English translations for any new keys.
+*   **Commands**: Remind to run the extract/update/compile commands.
+
 ## Key Features
 - **Recipe Costing**: Recursive calculation for products and premakes.
 - **Inventory**: Multi-supplier stock tracking, "First-in" logic (Primary supplier -> Secondary).
