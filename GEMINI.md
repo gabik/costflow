@@ -53,6 +53,12 @@ python run.py
 - The app uses `db.create_all()` in `run.py` to initialize the database if it doesn't exist.
 - **Migrations**: Currently handled via explicit migration endpoints or scripts (e.g., `/migrate_[feature]`), rather than strict Alembic revisions. Check `CLAUDE.md` for specific migration notes.
 
+### 4. Remote Production Environment (Strict Constraint)
+- **NO LOCAL VERIFICATION**: The environment is strictly remote/production.
+- **NO CURL/LOCALHOST**: Do not attempt to `curl localhost` or inspect a local database.
+- **Remote Testing Only**: All verification must be done by the user on the deployed environment.
+- **Migration Protocol**: Always create a migration endpoint and instruct the user to visit it. Do not try to run it yourself.
+
 ## Critical Conventions
 
 ### ⚠️ Localization (Strict Requirement)

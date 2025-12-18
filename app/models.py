@@ -351,6 +351,7 @@ class ProductComponent(db.Model):
     component_type = db.Column(db.String(20), nullable=False)  # 'raw_material', 'packaging', 'premake', 'product', 'loss'
     component_id = db.Column(db.Integer, nullable=False)
     quantity = db.Column(db.Float, nullable=False)
+    description = db.Column(db.String(255), nullable=True)  # Description for loss/waste or notes
 
     product = db.relationship('Product', backref='components')
 
@@ -383,7 +384,8 @@ class ProductComponent(db.Model):
             'id': self.id,
             'component_type': self.component_type,
             'component_id': self.component_id,
-            'quantity': self.quantity
+            'quantity': self.quantity,
+            'description': self.description
         }
 
 class Category(db.Model):
