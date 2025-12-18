@@ -574,13 +574,27 @@ def product_detail(product_id):
             'price_per_product': (component.quantity * preproduct_unit_cost) / product.products_per_recipe if product.products_per_recipe > 0 else 0
         })
 
+    # Retrieve Loss/Waste components
+    loss_costs = []
+    from flask_babel import gettext as _
+    for component in ProductComponent.query.filter_by(product_id=product_id, component_type='loss'):
+        loss_costs.append({
+            'name': component.description if component.description else _('Loss / Waste'),
+            'quantity': abs(component.quantity),
+            'unit': 'unit' if not hasattr(product, 'unit') or not product.unit else product.unit, # Default to product unit
+            'price_per_unit': 0,
+            'price_per_recipe': 0,
+            'price_per_product': 0
+        })
+
     return render_template(
         'product_details.html',
         product=product,
         raw_materials=raw_materials,
         packaging_costs=packaging_costs,
         premake_costs=premake_costs,
-        preproduct_costs=preproduct_costs
+        preproduct_costs=preproduct_costs,
+        loss_costs=loss_costs
     )
 
 

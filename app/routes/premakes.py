@@ -135,6 +135,13 @@ def view_premake(premake_id):
             comp_name = comp.premake.name + " (הכנה מקדימה)"
             comp_unit = comp.premake.unit
             display_qty_value = comp.quantity
+        elif comp.component_type == 'loss':
+            comp_name = comp.description if comp.description else _('Loss / Waste')
+            display_qty_value = abs(comp.quantity)
+            comp_unit = premake.unit
+            comp_cost = 0
+            comp_original_price = 0
+            comp_discounted_price = 0
 
         cost_per_batch += comp_cost
         # Format quantity with appropriate units for display
