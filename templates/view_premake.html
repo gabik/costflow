@@ -151,6 +151,43 @@
 </div>
 {% endif %}
 
+<!-- Loss / Waste -->
+{% if loss_costs %}
+<div class="card mb-3">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 d-flex align-items-center text-danger">
+            <i class="bi bi-trash text-danger me-2"></i>
+            {{ _('Loss / Waste') }}
+            <span class="badge bg-danger ms-auto">{{ loss_costs|length }} {{ _('items') }}</span>
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">{{ _('Description') }}</th>
+                        <th>{{ _('Quantity') }}</th>
+                        <th>{{ _('Unit') }}</th>
+                        <th class="text-end">{{ _('Impact') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in loss_costs %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.display_quantity }}</td>
+                        <td>{{ item.display_unit }}</td>
+                        <td class="text-end text-muted">{{ _('Reduces Yield') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- Cost Summary -->
 <div class="card border-warning">
     <div class="card-header bg-warning text-dark">

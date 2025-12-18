@@ -71,6 +71,7 @@ def view_premake(premake_id):
     # Calculate cost breakdown
     cost_per_batch = 0
     component_costs = []
+    loss_costs = []
 
     for comp in premake.components:
         comp_cost = 0
@@ -139,9 +140,16 @@ def view_premake(premake_id):
             comp_name = comp.description if comp.description else _('Loss / Waste')
             display_qty_value = abs(comp.quantity)
             comp_unit = premake.unit
-            comp_cost = 0
-            comp_original_price = 0
-            comp_discounted_price = 0
+            
+            display_quantity, display_unit = format_quantity_with_unit(display_qty_value, comp_unit)
+            loss_costs.append({
+                'name': comp_name,
+                'quantity': comp.quantity,
+                'display_quantity': display_quantity,
+                'unit': comp_unit,
+                'display_unit': display_unit
+            })
+            continue
 
         cost_per_batch += comp_cost
         # Format quantity with appropriate units for display
@@ -205,7 +213,7 @@ def view_premake(premake_id):
         premake.display_current_stock = premake.current_stock
         premake.display_stock_unit = premake.unit
 
-    return render_template('view_premake.html', premake=premake, component_costs=component_costs)
+    return render_template('view_premake.html', premake=premake, component_costs=component_costs, loss_costs=loss_costs)
 
 @premakes_blueprint.route('/premakes/add', methods=['GET', 'POST'])
 def add_premake():
