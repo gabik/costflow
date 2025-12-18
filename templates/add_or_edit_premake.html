@@ -212,6 +212,58 @@
             </div>
         </div>
 
+        <!-- Loss / Waste Section -->
+        <div class="card mb-3">
+            <div class="card-header bg-light text-danger">
+                {{ _('Loss / Waste') }}
+                <button type="button" class="btn btn-sm btn-danger float-end" onclick="addLossRow()">
+                    <i class="bi bi-plus-lg"></i> {{ _('Add') }}
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="loss_container">
+                    <div class="alert alert-warning py-2 mb-3" style="font-size: 0.9em;">
+                        <i class="bi bi-info-circle me-2"></i>
+                        {{ _('Loss reduces the final weight of the batch but does NOT reduce the total cost, effectively increasing the cost per unit.') }}
+                    </div>
+                    {% set loss_components = [] %}
+                    {% if premake %}
+                        {% for component in premake.components %}
+                            {% if component.component_type == 'loss' %}
+                                {% set _ = loss_components.append(component) %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+
+                    {% for component in loss_components %}
+                        <div class="row g-2 mb-2 align-items-center loss-row">
+                            <div class="col-md-6">
+                                <input type="text" class="form-control" value="{{ _('Loss / Waste') }}" disabled>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="input-group">
+                                    {# Display positive value for negative stored quantity #}
+                                    <input type="number" step="0.001" name="loss_quantity[]" class="form-control" placeholder="{{ _('Quantity') }}" value="{{ "%.3f"|format(component.quantity|abs) }}" required>
+                                    <select name="loss_unit[]" class="form-select unit-selector" style="max-width: 80px;">
+                                        <option value="kg" selected>kg</option> {# Default to kg for stored losses #}
+                                        <option value="g">g</option>
+                                        <option value="L">L</option>
+                                        <option value="ml">ml</option>
+                                        <option value="%">%</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-1">
+                                <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
         <!-- Cost Summary Section -->
         <div class="card bg-light mt-4 mb-4">
             <div class="card-body">

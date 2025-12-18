@@ -220,7 +220,7 @@ def add_premake():
         units = request.form.getlist('unit[]')  # Get selected units from form
 
         # Auto-calculate batch_size as sum of all component quantities (converted to premake's unit)
-        batch_size = 0
+        gross_batch_size = 0
         # Use minimum length to avoid index errors
         min_len = min(len(component_types), len(component_ids), len(quantities))
         for i in range(min_len):
@@ -233,19 +233,42 @@ def add_premake():
                     if material:
                         # Convert from material's unit to premake's unit
                         converted_qty = convert_to_base_unit(quantity, material.unit, unit)
-                        batch_size += converted_qty
+                        gross_batch_size += converted_qty
                 elif component_types[i] == 'premake':
                     nested_premake = Product.query.filter_by(id=component_ids[i], is_premake=True).first()
                     if nested_premake:
                         # Convert from nested premake's unit to parent premake's unit
                         converted_qty = convert_to_base_unit(quantity, nested_premake.unit, unit)
-                        batch_size += converted_qty
+                        gross_batch_size += converted_qty
                 else:
                     # For packaging and other types, no unit conversion needed
-                    batch_size += quantity
+                    gross_batch_size += quantity
 
-        # Default to 1 if no components
-        if batch_size == 0:
+        # Calculate Loss
+        loss_quantities = request.form.getlist('loss_quantity[]')
+        loss_units = request.form.getlist('loss_unit[]')
+        total_loss = 0
+
+        for i in range(len(loss_quantities)):
+            if loss_quantities[i]:
+                loss_qty = float(loss_quantities[i])
+                loss_u = loss_units[i] if i < len(loss_units) else 'kg'
+
+                if loss_u == '%':
+                    # Percentage of gross batch size
+                    current_loss = gross_batch_size * (loss_qty / 100.0)
+                else:
+                    # Fixed quantity, convert to premake's unit
+                    # Assuming loss unit matches premake's unit type (weight/volume)
+                    current_loss = convert_to_base_unit(loss_qty, loss_u, unit)
+                
+                total_loss += current_loss
+
+        # Net batch size
+        batch_size = max(0, gross_batch_size - total_loss)
+
+        # Default to 1 if no components (and no loss logic applied)
+        if batch_size == 0 and gross_batch_size == 0:
             batch_size = 1
 
         # Create new premake (as Product with is_premake=True)
@@ -262,7 +285,7 @@ def add_premake():
         db.session.add(new_premake)
         db.session.flush()
 
-        # Add components (already retrieved above for batch_size calculation)
+        # Add components (already retrieved above)
         for i in range(len(component_types)):
             if component_types[i] and component_ids[i] and quantities[i]:
                 quantity = float(quantities[i])
@@ -284,6 +307,38 @@ def add_premake():
                     component_type=component_types[i],
                     component_id=int(component_ids[i]),
                     quantity=quantity
+                )
+                db.session.add(component)
+
+        # Add Loss Components
+        for i in range(len(loss_quantities)):
+            if loss_quantities[i]:
+                loss_qty = float(loss_quantities[i])
+                loss_u = loss_units[i] if i < len(loss_units) else 'kg'
+                
+                # Determine absolute loss quantity to store (in kg/L base unit)
+                if loss_u == '%':
+                    # Percentage of GROSS weight (converted to kg)
+                    # We need gross weight in KG for storage
+                    # Re-calculate gross weight in KG
+                    gross_weight_kg = 0
+                    # ... iterate components again? Or just use gross_batch_size and convert to kg?
+                    # gross_batch_size is in 'unit'. Convert 'unit' to 'kg'.
+                    # This assumes 'unit' is a weight/volume unit.
+                    
+                    # Better: calculate loss in 'unit', then convert to 'kg' for storage.
+                    loss_in_product_unit = gross_batch_size * (loss_qty / 100.0)
+                    stored_quantity = convert_to_base_unit(loss_in_product_unit, unit, 'kg')
+                else:
+                    # Fixed quantity. Convert 'loss_u' to 'kg'.
+                    stored_quantity = convert_to_base_unit(loss_qty, loss_u, 'kg')
+
+                # Store as negative
+                component = ProductComponent(
+                    product_id=new_premake.id,
+                    component_type='loss',
+                    component_id=0,
+                    quantity=-stored_quantity
                 )
                 db.session.add(component)
 
@@ -355,7 +410,7 @@ def edit_premake(premake_id):
         units = request.form.getlist('unit[]')  # Get selected units from form
 
         # Auto-calculate batch_size as sum of all component quantities (converted to premake's unit)
-        batch_size = 0
+        gross_batch_size = 0
         # Use minimum length to avoid index errors
         min_len = min(len(component_types), len(component_ids), len(quantities))
         for i in range(min_len):
@@ -368,19 +423,41 @@ def edit_premake(premake_id):
                     if material:
                         # Convert from material's unit to premake's unit
                         converted_qty = convert_to_base_unit(quantity, material.unit, premake.unit)
-                        batch_size += converted_qty
+                        gross_batch_size += converted_qty
                 elif component_types[i] == 'premake':
                     nested_premake = Product.query.filter_by(id=component_ids[i], is_premake=True).first()
                     if nested_premake:
                         # Convert from nested premake's unit to parent premake's unit
                         converted_qty = convert_to_base_unit(quantity, nested_premake.unit, premake.unit)
-                        batch_size += converted_qty
+                        gross_batch_size += converted_qty
                 else:
                     # For packaging and other types, no unit conversion needed
-                    batch_size += quantity
+                    gross_batch_size += quantity
+
+        # Calculate Loss
+        loss_quantities = request.form.getlist('loss_quantity[]')
+        loss_units = request.form.getlist('loss_unit[]')
+        total_loss = 0
+
+        for i in range(len(loss_quantities)):
+            if loss_quantities[i]:
+                loss_qty = float(loss_quantities[i])
+                loss_u = loss_units[i] if i < len(loss_units) else 'kg'
+
+                if loss_u == '%':
+                    # Percentage of gross batch size
+                    current_loss = gross_batch_size * (loss_qty / 100.0)
+                else:
+                    # Fixed quantity, convert to premake's unit
+                    current_loss = convert_to_base_unit(loss_qty, loss_u, premake.unit)
+                
+                total_loss += current_loss
+
+        # Net batch size
+        batch_size = max(0, gross_batch_size - total_loss)
 
         # Default to 1 if no components
-        if batch_size == 0:
+        if batch_size == 0 and gross_batch_size == 0:
             batch_size = 1
 
         premake.batch_size = batch_size
@@ -414,6 +491,30 @@ def edit_premake(premake_id):
                     component_type=component_types[i],
                     component_id=int(component_ids[i]),
                     quantity=quantity
+                )
+                db.session.add(component)
+
+        # Add Loss Components
+        for i in range(len(loss_quantities)):
+            if loss_quantities[i]:
+                loss_qty = float(loss_quantities[i])
+                loss_u = loss_units[i] if i < len(loss_units) else 'kg'
+                
+                # Determine absolute loss quantity to store (in kg/L base unit)
+                if loss_u == '%':
+                    # Percentage of GROSS weight (converted to kg)
+                    loss_in_product_unit = gross_batch_size * (loss_qty / 100.0)
+                    stored_quantity = convert_to_base_unit(loss_in_product_unit, premake.unit, 'kg')
+                else:
+                    # Fixed quantity. Convert 'loss_u' to 'kg'.
+                    stored_quantity = convert_to_base_unit(loss_qty, loss_u, 'kg')
+
+                # Store as negative
+                component = ProductComponent(
+                    product_id=premake.id,
+                    component_type='loss',
+                    component_id=0,
+                    quantity=-stored_quantity
                 )
                 db.session.add(component)
 

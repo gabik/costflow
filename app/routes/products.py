@@ -257,6 +257,40 @@ def add_product():
             )
             db.session.add(component)
 
+        # Process Loss/Waste
+        loss_quantities = request.form.getlist('loss_quantity[]')
+        loss_units = request.form.getlist('loss_unit[]')
+        
+        # Parse products_per_recipe for percentage calculation
+        try:
+            recipe_yield = float(products_per_recipe)
+        except (ValueError, TypeError):
+            recipe_yield = 1.0
+
+        for i in range(len(loss_quantities)):
+            if loss_quantities[i]:
+                try:
+                    loss_qty = float(loss_quantities[i])
+                    loss_u = loss_units[i] if i < len(loss_units) else 'unit'
+                    
+                    if loss_u == '%':
+                        # Percentage of yield
+                        final_loss = recipe_yield * (loss_qty / 100.0)
+                    else:
+                        # Fixed unit amount
+                        final_loss = loss_qty
+                        
+                    # Save as negative quantity
+                    component = ProductComponent(
+                        product_id=product.id,
+                        component_type='loss',
+                        component_id=0,
+                        quantity=-final_loss
+                    )
+                    db.session.add(component)
+                except (ValueError, TypeError):
+                    continue
+
         db.session.commit()  # Save all components
         return redirect(url_for('products.products'))
 
@@ -712,6 +746,37 @@ def edit_product(product_id):
                 quantity=final_quantity
             )
             db.session.add(component)
+
+        # Process Loss/Waste
+        loss_quantities = request.form.getlist('loss_quantity[]')
+        loss_units = request.form.getlist('loss_unit[]')
+        
+        # Get yield for percentage calculation
+        recipe_yield = product.products_per_recipe or 1.0
+
+        for i in range(len(loss_quantities)):
+            if loss_quantities[i]:
+                try:
+                    loss_qty = float(loss_quantities[i])
+                    loss_u = loss_units[i] if i < len(loss_units) else 'unit'
+                    
+                    if loss_u == '%':
+                        # Percentage of yield
+                        final_loss = recipe_yield * (loss_qty / 100.0)
+                    else:
+                        # Fixed unit amount
+                        final_loss = loss_qty
+                        
+                    # Save as negative quantity
+                    component = ProductComponent(
+                        product_id=product.id,
+                        component_type='loss',
+                        component_id=0,
+                        quantity=-final_loss
+                    )
+                    db.session.add(component)
+                except (ValueError, TypeError):
+                    continue
 
         log_audit("UPDATE", "Product", product.id, f"Updated product {product.name}")
         db.session.commit()

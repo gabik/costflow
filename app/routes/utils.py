@@ -296,7 +296,13 @@ def calculate_prime_cost(product):
     Works with both old Premake model and new unified Product model.
     """
     total_cost = 0
+    loss_quantity = 0  # Track loss (stored as negative values)
+
     for component in product.components:
+
+        if component.component_type == 'loss':
+            loss_quantity += component.quantity
+            continue
 
         if component.component_type == 'raw_material' and component.material:
             # Use primary supplier DISCOUNTED price (WITHOUT waste adjustment)
@@ -358,7 +364,9 @@ def calculate_prime_cost(product):
                 total_cost += component.quantity * preproduct_unit_cost
 
     if hasattr(product, 'products_per_recipe') and product.products_per_recipe > 0:
-        return total_cost / product.products_per_recipe
+        # Effective yield = theoretical yield - loss (loss is negative)
+        effective_yield = max(0.001, product.products_per_recipe + loss_quantity)
+        return total_cost / effective_yield
     return 0
 
 def calculate_cogs_with_packaging(product):

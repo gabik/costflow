@@ -395,6 +395,47 @@
             <i class="bi bi-plus-lg me-2"></i>{{ _('Add Packaging') }}
         </button>
 
+        <!-- Loss / Waste Section -->
+        <h4 class="mb-3 fw-bold text-danger">{{ _('Loss / Waste') }}</h4>
+        <div id="loss-container" class="mb-4">
+            <div class="alert alert-warning py-2 mb-3" style="font-size: 0.9em;">
+                <i class="bi bi-info-circle me-2"></i>
+                {{ _('Loss reduces the final yield (units per recipe) but does NOT reduce the total cost, effectively increasing the cost per unit.') }}
+            </div>
+            {% set loss_components = [] %}
+            {% if product %}
+                {% for component in product.components %}
+                    {% if component.component_type == 'loss' %}
+                        {% set _ = loss_components.append(component) %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+
+            {% for component in loss_components %}
+            <div class="row g-2 mb-2 align-items-center loss-row">
+                <div class="col-md-5">
+                    <input type="text" class="form-control" value="{{ _('Loss / Waste') }}" disabled>
+                </div>
+                <div class="col-md-3">
+                    {# Display positive value for negative stored quantity #}
+                    <input type="number" name="loss_quantity[]" class="form-control" placeholder="{{ _('Quantity') }}" step="0.001" value="{{ "%.3f"|format(component.quantity|abs) }}" required>
+                </div>
+                <div class="col-md-3">
+                    <select name="loss_unit[]" class="form-select unit-select">
+                        <option value="unit" selected>{{ _('Units') }}</option>
+                        <option value="%">%</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)"><i class="bi bi-x-lg"></i></button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <button type="button" class="btn btn-outline-danger mb-4" onclick="addLossRow()">
+            <i class="bi bi-plus-lg me-2"></i>{{ _('Add Loss') }}
+        </button>
+
         <!-- Cost Summary Section -->
         <div class="card bg-light mt-4 mb-4">
             <div class="card-body">
@@ -688,6 +729,35 @@
             width: '100%',
             language: { noResults: () => "{{ _("No results found") }}" }
         });
+    }
+
+    function addLossRow() {
+        const container = document.getElementById('loss-container');
+        
+        const rowHtml = `
+            <div class="row g-2 mb-2 align-items-center loss-row">
+                <div class="col-md-5">
+                    <input type="text" class="form-control" value="{{ _('Loss / Waste') }}" disabled>
+                </div>
+                <div class="col-md-3">
+                    <input type="number" name="loss_quantity[]" class="form-control" placeholder="{{ _('Quantity') }}" step="0.001" required>
+                </div>
+                <div class="col-md-3">
+                    <select name="loss_unit[]" class="form-select unit-select">
+                        <option value="unit">{{ _('Units') }}</option>
+                        <option value="%">%</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)"><i class="bi bi-x-lg"></i></button>
+                </div>
+            </div>`;
+
+        const template = document.createElement('div');
+        template.innerHTML = rowHtml.trim();
+        const rowElement = template.firstChild;
+
+        container.appendChild(rowElement);
     }
 
     // Function to add a new premake row dynamically
@@ -1036,6 +1106,26 @@
                 }
             });
 
+            // Calculate Effective Yield after Loss
+            let totalLoss = 0;
+            document.querySelectorAll('.loss-row').forEach(row => {
+                const quantityInput = row.querySelector('input[name="loss_quantity[]"]');
+                const unitSelect = row.querySelector('select[name="loss_unit[]"]');
+
+                if (quantityInput && quantityInput.value) {
+                    const quantity = parseFloat(quantityInput.value) || 0;
+                    const unit = unitSelect ? unitSelect.value : 'unit';
+
+                    if (unit === '%') {
+                        totalLoss += productsPerRecipe * (quantity / 100);
+                    } else {
+                        totalLoss += quantity;
+                    }
+                }
+            });
+
+            const effectiveYield = Math.max(0.001, productsPerRecipe - totalLoss);
+
             // Update display
             const totalMaterialsCostEl = document.getElementById('total-materials-cost');
             const costPerUnitEl = document.getElementById('cost-per-unit');
@@ -1045,7 +1135,7 @@
                 totalMaterialsCostEl.textContent = `₪${totalCost.toFixed(2)}`;
             }
             if (costPerUnitEl) {
-                const costPerUnit = totalCost / productsPerRecipe;
+                const costPerUnit = totalCost / effectiveYield;
                 costPerUnitEl.textContent = `₪${costPerUnit.toFixed(2)}`;
             }
             // Update unit label (for products it's always "per Unit")
@@ -1060,7 +1150,8 @@
                 e.target.name === 'premake_quantity[]' ||
                 e.target.name === 'preproduct_quantity[]' ||
                 e.target.name === 'packaging_quantity[]' ||
-                e.target.name === 'products_per_recipe') {
+                e.target.name === 'products_per_recipe' ||
+                e.target.name === 'loss_quantity[]' || e.target.name === 'loss_unit[]') {
                 calculateTotalCost();
             }
         });
