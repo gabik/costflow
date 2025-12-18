@@ -238,7 +238,7 @@
                     {% for component in loss_components %}
                         <div class="row g-2 mb-2 align-items-center loss-row">
                             <div class="col-md-6">
-                                <input type="text" class="form-control" value="{{ _('Loss / Waste') }}" disabled>
+                                <input type="text" name="loss_description[]" class="form-control" placeholder="{{ _('Description (e.g., Water Vapor)') }}" value="{{ component.description or '' }}">
                             </div>
                             <div class="col-md-5">
                                 <div class="input-group">
@@ -376,7 +376,7 @@
         const rowHtml = `
             <div class="row g-2 mb-2 align-items-center loss-row">
                 <div class="col-md-6">
-                    <input type="text" class="form-control" value="{{ _('Loss / Waste') }}" disabled>
+                    <input type="text" name="loss_description[]" class="form-control" placeholder="{{ _('Description (e.g., Water Vapor)') }}">
                 </div>
                 <div class="col-md-5">
                     <div class="input-group">

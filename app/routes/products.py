@@ -260,6 +260,7 @@ def add_product():
         # Process Loss/Waste
         loss_quantities = request.form.getlist('loss_quantity[]')
         loss_units = request.form.getlist('loss_unit[]')
+        loss_descriptions = request.form.getlist('loss_description[]')
         
         # Parse products_per_recipe for percentage calculation
         try:
@@ -272,6 +273,7 @@ def add_product():
                 try:
                     loss_qty = float(loss_quantities[i])
                     loss_u = loss_units[i] if i < len(loss_units) else 'unit'
+                    loss_desc = loss_descriptions[i] if i < len(loss_descriptions) else None
                     
                     if loss_u == '%':
                         # Percentage of yield
@@ -285,7 +287,8 @@ def add_product():
                         product_id=product.id,
                         component_type='loss',
                         component_id=0,
-                        quantity=-final_loss
+                        quantity=-final_loss,
+                        description=loss_desc
                     )
                     db.session.add(component)
                 except (ValueError, TypeError):
@@ -750,6 +753,7 @@ def edit_product(product_id):
         # Process Loss/Waste
         loss_quantities = request.form.getlist('loss_quantity[]')
         loss_units = request.form.getlist('loss_unit[]')
+        loss_descriptions = request.form.getlist('loss_description[]')
         
         # Get yield for percentage calculation
         recipe_yield = product.products_per_recipe or 1.0
@@ -759,6 +763,7 @@ def edit_product(product_id):
                 try:
                     loss_qty = float(loss_quantities[i])
                     loss_u = loss_units[i] if i < len(loss_units) else 'unit'
+                    loss_desc = loss_descriptions[i] if i < len(loss_descriptions) else None
                     
                     if loss_u == '%':
                         # Percentage of yield
@@ -772,7 +777,8 @@ def edit_product(product_id):
                         product_id=product.id,
                         component_type='loss',
                         component_id=0,
-                        quantity=-final_loss
+                        quantity=-final_loss,
+                        description=loss_desc
                     )
                     db.session.add(component)
                 except (ValueError, TypeError):

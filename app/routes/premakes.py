@@ -247,6 +247,7 @@ def add_premake():
         # Calculate Loss
         loss_quantities = request.form.getlist('loss_quantity[]')
         loss_units = request.form.getlist('loss_unit[]')
+        loss_descriptions = request.form.getlist('loss_description[]')
         total_loss = 0
 
         for i in range(len(loss_quantities)):
@@ -315,6 +316,7 @@ def add_premake():
             if loss_quantities[i]:
                 loss_qty = float(loss_quantities[i])
                 loss_u = loss_units[i] if i < len(loss_units) else 'kg'
+                loss_desc = loss_descriptions[i] if i < len(loss_descriptions) else None
                 
                 # Determine absolute loss quantity to store (in kg/L base unit)
                 if loss_u == '%':
@@ -338,7 +340,8 @@ def add_premake():
                     product_id=new_premake.id,
                     component_type='loss',
                     component_id=0,
-                    quantity=-stored_quantity
+                    quantity=-stored_quantity,
+                    description=loss_desc
                 )
                 db.session.add(component)
 
@@ -437,6 +440,7 @@ def edit_premake(premake_id):
         # Calculate Loss
         loss_quantities = request.form.getlist('loss_quantity[]')
         loss_units = request.form.getlist('loss_unit[]')
+        loss_descriptions = request.form.getlist('loss_description[]')
         total_loss = 0
 
         for i in range(len(loss_quantities)):
@@ -499,6 +503,7 @@ def edit_premake(premake_id):
             if loss_quantities[i]:
                 loss_qty = float(loss_quantities[i])
                 loss_u = loss_units[i] if i < len(loss_units) else 'kg'
+                loss_desc = loss_descriptions[i] if i < len(loss_descriptions) else None
                 
                 # Determine absolute loss quantity to store (in kg/L base unit)
                 if loss_u == '%':
@@ -514,7 +519,8 @@ def edit_premake(premake_id):
                     product_id=premake.id,
                     component_type='loss',
                     component_id=0,
-                    quantity=-stored_quantity
+                    quantity=-stored_quantity,
+                    description=loss_desc
                 )
                 db.session.add(component)
 

@@ -340,27 +340,6 @@ def debug_fill_inventory():
         }), 500
     
 
-@admin_blueprint.route('/migrate_add_component_description')
-def migrate_add_component_description():
-    """Migration: Add description column to product_component table"""
-    try:
-        # Check if column exists (naive check by trying to select it)
-        try:
-            db.session.execute(text("SELECT description FROM product_component LIMIT 1"))
-            return jsonify({'status': 'skipped', 'message': 'Column description already exists'})
-        except Exception:
-            db.session.rollback()
-
-        # Add the column
-        with db.engine.connect() as conn:
-            conn.execute(text("ALTER TABLE product_component ADD COLUMN description VARCHAR(255)"))
-            conn.commit()
-        
-        log_audit("MIGRATION", "System", details="Added description column to product_component table")
-        return jsonify({'status': 'success', 'message': 'Added description column to product_component'})
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)}), 500
-
 @admin_blueprint.route('/audit_log')
 def audit_log():
     """Display audit log with optional filtering"""

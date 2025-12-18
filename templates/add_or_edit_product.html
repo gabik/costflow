@@ -414,7 +414,7 @@
             {% for component in loss_components %}
             <div class="row g-2 mb-2 align-items-center loss-row">
                 <div class="col-md-5">
-                    <input type="text" class="form-control" value="{{ _('Loss / Waste') }}" disabled>
+                    <input type="text" name="loss_description[]" class="form-control" placeholder="{{ _('Description (e.g., Broken Units)') }}" value="{{ component.description or '' }}">
                 </div>
                 <div class="col-md-3">
                     {# Display positive value for negative stored quantity #}
@@ -737,7 +737,7 @@
         const rowHtml = `
             <div class="row g-2 mb-2 align-items-center loss-row">
                 <div class="col-md-5">
-                    <input type="text" class="form-control" value="{{ _('Loss / Waste') }}" disabled>
+                    <input type="text" name="loss_description[]" class="form-control" placeholder="{{ _('Description (e.g., Broken Units)') }}">
                 </div>
                 <div class="col-md-3">
                     <input type="number" name="loss_quantity[]" class="form-control" placeholder="{{ _('Quantity') }}" step="0.001" required>
