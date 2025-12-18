@@ -370,6 +370,40 @@
         });
     }
 
+    function addLossRow() {
+        const container = document.getElementById('loss_container');
+        
+        const rowHtml = `
+            <div class="row g-2 mb-2 align-items-center loss-row">
+                <div class="col-md-6">
+                    <input type="text" class="form-control" value="{{ _('Loss / Waste') }}" disabled>
+                </div>
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <input type="number" step="0.001" name="loss_quantity[]" class="form-control" placeholder="{{ _('Quantity') }}" required>
+                        <select name="loss_unit[]" class="form-select unit-selector" style="max-width: 80px;">
+                            <option value="kg">kg</option>
+                            <option value="g">g</option>
+                            <option value="L">L</option>
+                            <option value="ml">ml</option>
+                            <option value="%">%</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-outline-danger" onclick="removeRow(this)">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>`;
+
+        const template = document.createElement('div');
+        template.innerHTML = rowHtml.trim();
+        const rowElement = template.firstChild;
+
+        container.appendChild(rowElement);
+    }
+
     function removeRow(button) {
         button.closest('.row').remove();
     }
@@ -513,7 +547,7 @@
 
     // Function to calculate total weight/volume of the batch
     function calculateTotalWeight() {
-        let totalWeight = 0;
+        let grossWeight = 0;
 
         // Sum raw material weights
         document.querySelectorAll('.raw-material-row').forEach(row => {
@@ -532,7 +566,7 @@
                     weightInKg = quantity / 1000;
                 }
 
-                totalWeight += weightInKg;
+                grossWeight += weightInKg;
             }
         });
 
@@ -542,11 +576,31 @@
             if (quantityInput && quantityInput.value) {
                 const quantity = parseFloat(quantityInput.value) || 0;
                 // Premake quantities are already in their base units
-                totalWeight += quantity;
+                grossWeight += quantity;
             }
         });
 
-        return totalWeight;
+        // Calculate Loss
+        let totalLoss = 0;
+        document.querySelectorAll('.loss-row').forEach(row => {
+            const quantityInput = row.querySelector('input[name="loss_quantity[]"]');
+            const unitSelect = row.querySelector('.unit-selector');
+
+            if (quantityInput && quantityInput.value) {
+                const quantity = parseFloat(quantityInput.value) || 0;
+                const selectedUnit = unitSelect ? unitSelect.value : 'kg';
+
+                if (selectedUnit === '%') {
+                    totalLoss += grossWeight * (quantity / 100);
+                } else if (selectedUnit === 'g' || selectedUnit === 'ml') {
+                    totalLoss += quantity / 1000;
+                } else {
+                    totalLoss += quantity;
+                }
+            }
+        });
+
+        return Math.max(0, grossWeight - totalLoss);
     }
 
     // Function to calculate total cost and cost per unit
@@ -676,7 +730,8 @@
 
         // Attach event listeners for cost calculation
         document.addEventListener('input', function(e) {
-            if (e.target.name === 'quantity[]' || e.target.name === 'unit[]' || e.target.id === 'unit') {
+            if (e.target.name === 'quantity[]' || e.target.name === 'unit[]' || e.target.id === 'unit' ||
+                e.target.name === 'loss_quantity[]' || e.target.name === 'loss_unit[]') {
                 calculateTotalCost();
             }
         });
