@@ -15,6 +15,9 @@
             <button class="btn btn-warning text-dark" data-bs-toggle="modal" data-bs-target="#restoreDbModal">
                 <i class="bi bi-upload me-2"></i> {{ _('Restore from Backup') }}
             </button>
+            <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#resetTransactionsModal">
+                <i class="bi bi-clock-history me-2"></i> {{ _('Reset History Only') }}
+            </button>
             <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#resetDbModal">
                 <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ _('Full System Reset') }}
             </button>
@@ -87,6 +90,35 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
                     <button type="submit" class="btn btn-warning">{{ _('Restore Data') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Transactions Modal -->
+<div class="modal fade" id="resetTransactionsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('admin.reset_transactions') }}">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">{{ _('Warning: Reset History Only') }}</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="fw-bold">{{ _('This will clear all history but keep your setup.') }}</p>
+                    <ul>
+                        <li>{{ _('Clears all inventory stock levels (sets to 0)') }}</li>
+                        <li>{{ _('Clears all production history') }}</li>
+                        <li>{{ _('Clears all weekly sales and labor records') }}</li>
+                        <li>{{ _('Clears all activity logs') }}</li>
+                    </ul>
+                    <p class="text-success fw-bold">{{ _('Master data (Materials, Recipes, Suppliers, Labor) will be kept.') }}</p>
+                    <p>{{ _('Are you sure you want to proceed?') }}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
+                    <button type="submit" class="btn btn-danger">{{ _('Yes, clear history') }}</button>
                 </div>
             </form>
         </div>

@@ -137,6 +137,44 @@ def reset_db():
         return redirect(url_for('admin.audit_log'))
 
 
+@admin_blueprint.route('/admin/reset_transactions', methods=['POST'])
+def reset_transactions():
+    """
+    Clears all transactional data (logs, stock, weeks) but keeps master data (materials, recipes).
+    """
+    from flask_babel import gettext as _
+    try:
+        # Log the action
+        log_audit("RESET_TRANSACTIONS_INITIATED", "System", None, "Transaction reset initiated")
+
+        # 1. Clear Weekly Data (Reverse dependency order)
+        WeeklyLaborEntry.query.delete()
+        WeeklyProductSales.query.delete()
+        WeeklyLaborCost.query.delete()
+        
+        # 2. Clear Production and Stock
+        # ProductionLog has no foreign key dependencies preventing deletion usually, 
+        # but StockAudit depends on StockLog sometimes.
+        ProductionLog.query.delete()
+        StockAudit.query.delete()
+        StockLog.query.delete()
+        
+        # 3. Clear Audit Logs (Last)
+        AuditLog.query.delete()
+        
+        db.session.commit()
+        
+        # Create a fresh log entry after clearing
+        log_audit("RESET_TRANSACTIONS_COMPLETE", "System", None, "All transactional data was cleared (Master data preserved)")
+
+        flash(_("All logs, stock, and weekly data have been cleared. Materials and recipes were kept."), 'success')
+        return redirect(url_for('admin.audit_log'))
+    except Exception as e:
+        db.session.rollback()
+        flash(_("Error resetting transactions: {}").format(str(e)), 'error')
+        return redirect(url_for('admin.audit_log'))
+
+
 @admin_blueprint.route('/admin/restore', methods=['GET', 'POST'])
 def restore_db():
     if request.method == 'GET':
