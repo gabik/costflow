@@ -4,3 +4,4 @@ Flask-SQLAlchemy
 flask-babel==4.0.0
 pandas
 openpyxl
+pillow==11.3.0

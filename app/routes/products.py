@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from PIL import Image
 from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, current_app, jsonify
 from ..models import db, Product, ProductComponent, RawMaterial, Packaging, Labor, Category, ProductionLog, StockLog, WeeklyProductSales, StockAudit
@@ -127,7 +128,26 @@ def add_product():
                 if not os.path.exists(upload_folder):
                     os.makedirs(upload_folder)
 
-                file.save(os.path.join(upload_folder, filename))
+                filepath = os.path.join(upload_folder, filename)
+                try:
+                    # Process and resize image
+                    img = Image.open(file)
+                    
+                    # Convert to RGB if necessary (e.g. RGBA)
+                    if img.mode in ('RGBA', 'P'):
+                        img = img.convert('RGB')
+                        
+                    # Resize to max 1024x1024
+                    img.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
+                    
+                    # Save optimized
+                    img.save(filepath, quality=85, optimize=True)
+                except Exception as e:
+                    # Fallback if image processing fails
+                    print(f"Image resize failed: {e}")
+                    file.seek(0)
+                    file.save(filepath)
+
                 image_filename = filename
 
         # Create a new Product entry
@@ -649,7 +669,26 @@ def edit_product(product_id):
                 if not os.path.exists(upload_folder):
                     os.makedirs(upload_folder)
 
-                file.save(os.path.join(upload_folder, filename))
+                filepath = os.path.join(upload_folder, filename)
+                try:
+                    # Process and resize image
+                    img = Image.open(file)
+                    
+                    # Convert to RGB if necessary (e.g. RGBA)
+                    if img.mode in ('RGBA', 'P'):
+                        img = img.convert('RGB')
+                        
+                    # Resize to max 1024x1024
+                    img.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
+                    
+                    # Save optimized
+                    img.save(filepath, quality=85, optimize=True)
+                except Exception as e:
+                    # Fallback if image processing fails
+                    print(f"Image resize failed: {e}")
+                    file.seek(0)
+                    file.save(filepath)
+
                 product.image_filename = filename
 
         # Clear existing components
