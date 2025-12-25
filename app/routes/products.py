@@ -972,10 +972,11 @@ def edit_product(product_id):
 
     # Prepopulate fields for editing
     # --- GET Request Optimization: Bulk Fetch ---
+    from ..models import RawMaterialSupplier, PackagingSupplier
     
     # 1. Fetch All Raw Materials + Suppliers (Bulk query)
     all_materials_query = RawMaterial.query.filter_by(is_deleted=False).options(
-        joinedload(RawMaterial.supplier_links).joinedload('supplier')
+        joinedload(RawMaterial.supplier_links).joinedload(RawMaterialSupplier.supplier)
     ).all()
     
     all_raw_materials = []
@@ -1016,7 +1017,7 @@ def edit_product(product_id):
         })
 
     # 2. Fetch Packaging
-    all_packaging_query = Packaging.query.options(joinedload(Packaging.supplier_links).joinedload('supplier')).all()
+    all_packaging_query = Packaging.query.options(joinedload(Packaging.supplier_links).joinedload(PackagingSupplier.supplier)).all()
     all_packaging = []
     for pkg in all_packaging_query:
         price = 0
