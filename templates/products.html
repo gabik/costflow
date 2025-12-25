@@ -141,7 +141,7 @@
                             <i class="bi bi-eye"></i>
                         </a>
                         {% if not product.is_archived %}
-                            <a href="{{ url_for('products.edit_product_new', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('Edit') }}">
+                            <a href="{{ url_for('products.edit_product', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('Edit') }}">
                                 <i class="bi bi-pencil"></i>
                             </a>
                             <form action="{{ url_for('products.delete_product', product_id=product.id) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ _('Are you sure? This will archive the product if it has history, or delete it permanently if not.') }}');">
@@ -192,9 +192,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Sort Logic
-    headers.forEach((header, index) => {
+    headers.forEach((header) => {
         header.addEventListener('click', () => {
             const type = header.dataset.sort;
+            const columnIndex = header.cellIndex; // Get actual column index
             const rows = Array.from(tbody.querySelectorAll('tr.product-row'));
             const isAsc = !header.classList.contains('asc');
             
@@ -212,8 +213,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if(icon) icon.className = isAsc ? 'bi bi-sort-down text-primary' : 'bi bi-sort-up text-primary';
 
             rows.sort((a, b) => {
-                const aCell = a.children[index];
-                const bCell = b.children[index];
+                const aCell = a.children[columnIndex];
+                const bCell = b.children[columnIndex];
                 
                 // Prefer data-value attribute, fallback to innerText
                 const aRaw = aCell.dataset.value || aCell.innerText.trim();
@@ -222,15 +223,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 let aVal, bVal;
 
                 if (type === 'number' || type === 'currency' || type === 'percent') {
-                    // Force numeric
                     aVal = parseFloat(aRaw);
                     bVal = parseFloat(bRaw);
                     
-                    // Handle NaNs (treat as lowest or 0)
-                    if (isNaN(aVal)) aVal = -Infinity;
-                    if (isNaN(bVal)) bVal = -Infinity;
+                    if (isNaN(aVal)) aVal = isAsc ? Infinity : -Infinity;
+                    if (isNaN(bVal)) bVal = isAsc ? Infinity : -Infinity;
                 } else {
-                    // String comparison
                     aVal = aRaw.toLowerCase();
                     bVal = bRaw.toLowerCase();
                 }
