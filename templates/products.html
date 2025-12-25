@@ -63,7 +63,7 @@
                         </div>
                     {% endif %}
                 </td>
-                <td class="fw-medium">
+                <td class="fw-medium" data-value="{{ product.name }}">
                     {{ product.name }}
                     {% if product.is_archived %}
                         <span class="badge bg-secondary ms-2" title="{{ _('Archived product') }}">
@@ -89,38 +89,42 @@
                         </span>
                     {% endif %}
                 </td>
-                <td>
-                    {% set recipe_weight = namespace(value=0) %}
-                    {% for component in product.components %}
-                        {% if component.component_type == 'raw_material' %}
-                            {% set recipe_weight.value = recipe_weight.value + component.quantity %}
-                        {% elif component.component_type == 'premake' %}
-                            {% set recipe_weight.value = recipe_weight.value + component.quantity %}
-                        {% endif %}
-                    {% endfor %}
+                {# Calculate recipe weight for sorting #}
+                {% set recipe_weight = namespace(value=0) %}
+                {% for component in product.components %}
+                    {% if component.component_type == 'raw_material' %}
+                        {% set recipe_weight.value = recipe_weight.value + component.quantity %}
+                    {% elif component.component_type == 'premake' %}
+                        {% set recipe_weight.value = recipe_weight.value + component.quantity %}
+                    {% endif %}
+                {% endfor %}
+                <td data-value="{{ recipe_weight.value }}">
                     {{ "%.2f"|format(recipe_weight.value) }}
                 </td>
-                <td>
+                <td data-value="{{ (recipe_weight.value / product.products_per_recipe) if product.products_per_recipe > 0 else 0 }}">
                     {% if product.products_per_recipe > 0 %}
                         {{ "%.2f"|format(recipe_weight.value / product.products_per_recipe) }}
                     {% else %}
                         -
                     {% endif %}
                 </td>
-                <td>
+                <td data-value="{{ item.prime_cost }}">
                     {{ currency_symbol }}{{ "%.2f" | format(item.prime_cost) }}
                 </td>
-                <td>
+                <td data-value="{{ product.selling_price_per_unit or 0 }}">
                     {% if product.get_is_for_sale() %}
                         {{ currency_symbol }}{{ "%.2f" | format(product.selling_price_per_unit or 0) }}
                     {% else %}
                         <span class="text-muted">-</span>
                     {% endif %}
                 </td>
-                <td>
+                {% set margin = -9999 %}
+                {% if product.get_is_for_sale() and (product.selling_price_per_unit or 0) > 0 %}
+                    {% set margin = ((product.selling_price_per_unit or 0) - item.prime_cost) / (product.selling_price_per_unit or 1) * 100 %}
+                {% endif %}
+                <td data-value="{{ margin }}">
                     {% if product.get_is_for_sale() %}
                         {% if (product.selling_price_per_unit or 0) > 0 %}
-                            {% set margin = ((product.selling_price_per_unit or 0) - item.prime_cost) / (product.selling_price_per_unit or 1) * 100 %}
                             <span class="badge {{ 'bg-success' if margin > 20 else 'bg-warning text-dark' if margin > 0 else 'bg-danger' }}">
                                 {{ "%.1f" | format(margin) }}%
                             </span>
@@ -180,8 +184,9 @@ document.addEventListener('DOMContentLoaded', function() {
         rows.forEach(row => {
             const nameCell = row.querySelector('td:nth-child(2)'); // Name is 2nd column
             if (nameCell) {
-                const text = nameCell.textContent.toLowerCase();
-                row.style.display = text.includes(term) ? '' : 'none';
+                // Use data-value if available, else text content
+                const val = nameCell.dataset.value || nameCell.textContent;
+                row.style.display = val.toLowerCase().includes(term) ? '' : 'none';
             }
         });
     });
@@ -207,25 +212,27 @@ document.addEventListener('DOMContentLoaded', function() {
             if(icon) icon.className = isAsc ? 'bi bi-sort-down text-primary' : 'bi bi-sort-up text-primary';
 
             rows.sort((a, b) => {
-                const aCell = a.children[index].innerText.trim();
-                const bCell = b.children[index].innerText.trim();
+                const aCell = a.children[index];
+                const bCell = b.children[index];
+                
+                // Prefer data-value attribute, fallback to innerText
+                const aRaw = aCell.dataset.value || aCell.innerText.trim();
+                const bRaw = bCell.dataset.value || bCell.innerText.trim();
                 
                 let aVal, bVal;
 
-                if (type === 'number') {
-                    aVal = parseFloat(aCell.replace(/,/g, '')) || 0;
-                    bVal = parseFloat(bCell.replace(/,/g, '')) || 0;
-                } else if (type === 'currency') {
-                    // Remove currency symbol and commas
-                    aVal = parseFloat(aCell.replace(/[^0-9.-]+/g, '')) || 0;
-                    bVal = parseFloat(bCell.replace(/[^0-9.-]+/g, '')) || 0;
-                } else if (type === 'percent') {
-                    aVal = parseFloat(aCell.replace('%', '')) || 0;
-                    bVal = parseFloat(bCell.replace('%', '')) || 0;
+                if (type === 'number' || type === 'currency' || type === 'percent') {
+                    // Force numeric
+                    aVal = parseFloat(aRaw);
+                    bVal = parseFloat(bRaw);
+                    
+                    // Handle NaNs (treat as lowest or 0)
+                    if (isNaN(aVal)) aVal = -Infinity;
+                    if (isNaN(bVal)) bVal = -Infinity;
                 } else {
-                    // Default string
-                    aVal = aCell.toLowerCase();
-                    bVal = bCell.toLowerCase();
+                    // String comparison
+                    aVal = aRaw.toLowerCase();
+                    bVal = bRaw.toLowerCase();
                 }
 
                 if (aVal < bVal) return isAsc ? -1 : 1;
