@@ -25,25 +25,35 @@
     </div>
 </div>
 
+<!-- Search and Filter Bar -->
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="input-group">
+            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+            <input type="text" id="productSearchInput" class="form-control border-start-0" placeholder="{{ _('Search by product name...') }}">
+        </div>
+    </div>
+</div>
+
 <div class="card shadow-sm">
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0" id="productsTable">
             <thead class="table-light">
             <tr>
-                <th style="width: 80px;">{{ _('Image') }}</th>
-                <th>{{ _('Product Name') }}</th>
-                <th>{{ _('Recipe Weight') }}</th>
-                <th>{{ _('Unit Weight') }}</th>
-                <th>{{ _('Production Cost per Unit') }}</th>
-                <th>{{ _('Selling Price') }}</th>
-                <th>{{ _('Gross Profit') }}</th>
-                <th class="text-end">{{ _('Actions') }}</th>
+                <th style="width: 80px;" class="no-sort">{{ _('Image') }}</th>
+                <th class="sortable" style="cursor: pointer;" data-sort="name">{{ _('Product Name') }} <i class="bi bi-arrow-down-up text-muted small"></i></th>
+                <th class="sortable" style="cursor: pointer;" data-sort="number">{{ _('Recipe Weight') }} <i class="bi bi-arrow-down-up text-muted small"></i></th>
+                <th class="sortable" style="cursor: pointer;" data-sort="number">{{ _('Unit Weight') }} <i class="bi bi-arrow-down-up text-muted small"></i></th>
+                <th class="sortable" style="cursor: pointer;" data-sort="currency">{{ _('Production Cost per Unit') }} <i class="bi bi-arrow-down-up text-muted small"></i></th>
+                <th class="sortable" style="cursor: pointer;" data-sort="currency">{{ _('Selling Price') }} <i class="bi bi-arrow-down-up text-muted small"></i></th>
+                <th class="sortable" style="cursor: pointer;" data-sort="percent">{{ _('Gross Profit') }} <i class="bi bi-arrow-down-up text-muted small"></i></th>
+                <th class="text-end no-sort">{{ _('Actions') }}</th>
             </tr>
             </thead>
-            <tbody>
+            <tbody id="productsTableBody">
             {% for item in products_data %}
             {% set product = item.product %}
-            <tr>
+            <tr class="product-row">
                 <td>
                     {% if product.image_filename %}
                         <img src="{{ url_for('main.serve_image', filename=product.image_filename) }}" class="rounded" style="width: 50px; height: 50px; object-fit: cover;" alt="{{ product.name }}">
@@ -154,4 +164,79 @@
         </table>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const table = document.getElementById('productsTable');
+    const tbody = document.getElementById('productsTableBody');
+    const searchInput = document.getElementById('productSearchInput');
+    const headers = table.querySelectorAll('th.sortable');
+
+    // Filter Logic
+    searchInput.addEventListener('keyup', function(e) {
+        const term = e.target.value.toLowerCase();
+        const rows = tbody.querySelectorAll('tr.product-row');
+
+        rows.forEach(row => {
+            const nameCell = row.querySelector('td:nth-child(2)'); // Name is 2nd column
+            if (nameCell) {
+                const text = nameCell.textContent.toLowerCase();
+                row.style.display = text.includes(term) ? '' : 'none';
+            }
+        });
+    });
+
+    // Sort Logic
+    headers.forEach((header, index) => {
+        header.addEventListener('click', () => {
+            const type = header.dataset.sort;
+            const rows = Array.from(tbody.querySelectorAll('tr.product-row'));
+            const isAsc = !header.classList.contains('asc');
+            
+            // Reset other headers
+            headers.forEach(h => {
+                h.classList.remove('asc', 'desc');
+                const icon = h.querySelector('i');
+                if(icon) icon.className = 'bi bi-arrow-down-up text-muted small';
+            });
+
+            // Set current header
+            header.classList.toggle('asc', isAsc);
+            header.classList.toggle('desc', !isAsc);
+            const icon = header.querySelector('i');
+            if(icon) icon.className = isAsc ? 'bi bi-sort-down text-primary' : 'bi bi-sort-up text-primary';
+
+            rows.sort((a, b) => {
+                const aCell = a.children[index].innerText.trim();
+                const bCell = b.children[index].innerText.trim();
+                
+                let aVal, bVal;
+
+                if (type === 'number') {
+                    aVal = parseFloat(aCell.replace(/,/g, '')) || 0;
+                    bVal = parseFloat(bCell.replace(/,/g, '')) || 0;
+                } else if (type === 'currency') {
+                    // Remove currency symbol and commas
+                    aVal = parseFloat(aCell.replace(/[^0-9.-]+/g, '')) || 0;
+                    bVal = parseFloat(bCell.replace(/[^0-9.-]+/g, '')) || 0;
+                } else if (type === 'percent') {
+                    aVal = parseFloat(aCell.replace('%', '')) || 0;
+                    bVal = parseFloat(bCell.replace('%', '')) || 0;
+                } else {
+                    // Default string
+                    aVal = aCell.toLowerCase();
+                    bVal = bCell.toLowerCase();
+                }
+
+                if (aVal < bVal) return isAsc ? -1 : 1;
+                if (aVal > bVal) return isAsc ? 1 : -1;
+                return 0;
+            });
+
+            // Reorder rows
+            rows.forEach(row => tbody.appendChild(row));
+        });
+    });
+});
+</script>
 {% endblock %}
