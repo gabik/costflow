@@ -70,7 +70,12 @@ def products_debug():
     Measures execution time of key steps and captures SQL queries.
     """
     import time
-    from flask_sqlalchemy import get_debug_queries
+    try:
+        # Try newer Flask-SQLAlchemy location
+        from flask_sqlalchemy.record_queries import get_recorded_queries
+    except ImportError:
+        # Fallback for older versions or direct import issues
+        from flask_sqlalchemy import get_debug_queries as get_recorded_queries
     
     # Enable query recording for this request
     current_app.config['SQLALCHEMY_RECORD_QUERIES'] = True
@@ -130,7 +135,8 @@ def products_debug():
     })
     
     # Capture queries and analyze tables
-    queries = get_debug_queries()
+    # Use the imported function (either get_recorded_queries or alias)
+    queries = get_recorded_queries()
     for q in queries:
         sql_lower = q.statement.lower()
         # Basic table detection
