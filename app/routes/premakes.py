@@ -60,6 +60,98 @@ def premakes():
 
     return render_template('premakes.html', premakes=premakes)
 
+@premakes_blueprint.route('/premakes_new')
+def premakes_new():
+    """Optimized list of all premakes (Products with is_premake=True)"""
+    from collections import defaultdict
+    from sqlalchemy import text
+    
+    premakes = Product.query.filter_by(is_premake=True).all()
+
+    # --- Optimization: Bulk Fetch Stock ---
+    # Fetch all stock logs for products/premakes (where raw_material_id is NULL)
+    stock_rows = db.session.execute(text(
+        "SELECT product_id, action_type, quantity, supplier_id FROM stock_log WHERE product_id IS NOT NULL AND raw_material_id IS NULL ORDER BY timestamp ASC"
+    )).fetchall()
+    
+    temp_stock = defaultdict(lambda: defaultdict(float))
+    for row in stock_rows:
+        pid, action, qty, sid = row[0], row[1], row[2], row[3]
+        if action == 'set':
+            temp_stock[pid][sid] = qty
+        else:
+            temp_stock[pid][sid] += qty
+            
+    stock_map = {}
+    for pid, suppliers in temp_stock.items():
+        stock_map[pid] = sum(qty for qty in suppliers.values())
+        
+    # Subtract production consumption (Premakes used in Products)
+    # This requires summing up usage from ProductionLogs where the product used this premake
+    # Complex query to get (premake_id, total_used)
+    # We can do this via an aggregation query on ProductionLog joined with ProductComponent
+    
+    usage_rows = db.session.execute(text("""
+        SELECT pc.component_id, SUM(pl.quantity_produced * pc.quantity) as total_used
+        FROM production_log pl
+        JOIN product_component pc ON pl.product_id = pc.product_id
+        WHERE pc.component_type = 'premake'
+        GROUP BY pc.component_id
+    """)).fetchall()
+    
+    usage_map = {row[0]: row[1] for row in usage_rows}
+
+    # Calculate current stock and costs for each premake
+    for premake in premakes:
+        # Stock = (Logs Total) - (Usage in Production)
+        log_total = stock_map.get(premake.id, 0)
+        prod_usage = usage_map.get(premake.id, 0)
+        premake.current_stock = max(0, log_total - prod_usage)
+
+        # Calculate cost per unit using the comprehensive utility function
+        # Note: calculate_premake_cost_per_unit is still somewhat heavy (recursive), 
+        # but for a list of premakes it's usually acceptable compared to N+1 stock queries.
+        # Further optimization could involve bulk-fetching cost components.
+        premake.cost_per_unit = calculate_premake_cost_per_unit(premake, use_actual_costs=False)  # Use estimated costs for list view
+
+        # Calculate cost per batch
+        premake.cost_per_batch = premake.cost_per_unit * premake.batch_size if premake.batch_size > 0 else 0
+
+        # Format batch size for display with appropriate units
+        premake.display_batch_size, premake.display_unit = format_quantity_with_unit(premake.batch_size, premake.unit)
+
+        # Get appropriate display unit based on premake's unit and batch size
+        display_unit, unit_label = get_appropriate_price_unit(premake.unit, premake.batch_size)
+
+        # Store display unit info for template
+        premake.price_display_unit = display_unit
+        premake.price_unit_label = unit_label
+
+        # Calculate costs for different display units (for toggle functionality)
+        # These are used by the JavaScript toggle in the template
+        if premake.unit in ['kg', 'g']:
+            # Calculate both per 100g and per kg
+            if premake.unit == 'kg':
+                premake.cost_per_100g = (premake.cost_per_unit / 10) if premake.cost_per_unit else 0
+                premake.cost_per_kg = premake.cost_per_unit if premake.cost_per_unit else 0
+            else:  # g
+                premake.cost_per_100g = (premake.cost_per_unit * 100) if premake.cost_per_unit else 0
+                premake.cost_per_kg = (premake.cost_per_unit * 1000) if premake.cost_per_unit else 0
+        elif premake.unit in ['L', 'ml']:
+            # Calculate both per 100ml and per L
+            if premake.unit == 'L':
+                premake.cost_per_100g = (premake.cost_per_unit / 10) if premake.cost_per_unit else 0  # per 100ml
+                premake.cost_per_kg = premake.cost_per_unit if premake.cost_per_unit else 0  # per L
+            else:  # ml
+                premake.cost_per_100g = (premake.cost_per_unit * 100) if premake.cost_per_unit else 0  # per 100ml
+                premake.cost_per_kg = (premake.cost_per_unit * 1000) if premake.cost_per_unit else 0  # per L
+        else:
+            # For piece/unit, just show per unit
+            premake.cost_per_100g = premake.cost_per_unit if premake.cost_per_unit else 0
+            premake.cost_per_kg = premake.cost_per_unit if premake.cost_per_unit else 0
+
+    return render_template('premakes.html', premakes=premakes)
+
 @premakes_blueprint.route('/premakes/view/<int:premake_id>')
 def view_premake(premake_id):
     """View premake details"""
