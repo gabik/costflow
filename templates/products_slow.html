@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Products') }} - CostFlow{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="display-6 fw-bold text-primary">{{ _('Products') }}</h1>
+            <p class="text-secondary">{{ _('Manage products, recipes, and costs.') }}</p>
+        </div>
+        <div>
+            {% if show_archived %}
+                <a href="{{ url_for('products.products') }}" class="btn btn-secondary me-2">
+                    <i class="bi bi-eye me-2"></i> {{ _('Show Active') }}
+                </a>
+            {% else %}
+                <a href="{{ url_for('products.products', show_archived='true') }}" class="btn btn-secondary me-2">
+                    <i class="bi bi-archive me-2"></i> {{ _('Show Archived') }}
+                </a>
+            {% endif %}
+            <a href="{{ url_for('products.add_product') }}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i> {{ _('Add New Product') }}
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+            <tr>
+                <th style="width: 80px;">{{ _('Image') }}</th>
+                <th>{{ _('Product Name') }}</th>
+                <th>{{ _('Recipe Weight') }}</th>
+                <th>{{ _('Unit Weight') }}</th>
+                <th>{{ _('Production Cost per Unit') }}</th>
+                <th>{{ _('Selling Price') }}</th>
+                <th>{{ _('Gross Profit') }}</th>
+                <th class="text-end">{{ _('Actions') }}</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in products_data %}
+            {% set product = item.product %}
+            <tr>
+                <td>
+                    {% if product.image_filename %}
+                        <img src="{{ url_for('main.serve_image', filename=product.image_filename) }}" class="rounded" style="width: 50px; height: 50px; object-fit: cover;" alt="{{ product.name }}">
+                    {% else %}
+                        <div class="bg-light rounded d-flex align-items-center justify-content-center text-muted border" style="width: 50px; height: 50px;">
+                            <i class="bi bi-cup-hot"></i>
+                        </div>
+                    {% endif %}
+                </td>
+                <td class="fw-medium">
+                    {{ product.name }}
+                    {% if product.is_archived %}
+                        <span class="badge bg-secondary ms-2" title="{{ _('Archived product') }}">
+                            <i class="bi bi-archive"></i> {{ _('Archived') }}
+                        </span>
+                    {% endif %}
+                    {% if product.get_product_type() == 'preproduct' %}
+                        {% if product.get_is_for_sale() %}
+                            <span class="badge bg-info ms-2" title="{{ _('Preproduct - Can be sold and used as a component') }}">
+                                <i class="bi bi-arrows-collapse-vertical"></i>
+                            </span>
+                        {% else %}
+                            <span class="badge bg-secondary ms-2" title="{{ _('Preproduct - Internal use only') }}">
+                                <i class="bi bi-gear"></i> {{ _('Internal') }}
+                            </span>
+                        {% endif %}
+                    {% endif %}
+                    {% if not item.can_produce and not product.is_archived %}
+                        <span class="badge bg-danger ms-2"
+                              data-bs-toggle="tooltip"
+                              title="{{ _('Missing raw materials:') }} {% for mat in item.missing_materials %}{{ mat.name }} ({{ '%.2f'|format(mat.available) }}/{{ '%.2f'|format(mat.required) }}){% if not loop.last %}, {% endif %}{% endfor %}">
+                            <i class="bi bi-exclamation-triangle"></i> {{ _('Stock shortage') }}
+                        </span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% set recipe_weight = namespace(value=0) %}
+                    {% for component in product.components %}
+                        {% if component.component_type == 'raw_material' %}
+                            {% set recipe_weight.value = recipe_weight.value + component.quantity %}
+                        {% elif component.component_type == 'premake' %}
+                            {% set recipe_weight.value = recipe_weight.value + component.quantity %}
+                        {% endif %}
+                    {% endfor %}
+                    {{ "%.2f"|format(recipe_weight.value) }}
+                </td>
+                <td>
+                    {% if product.products_per_recipe > 0 %}
+                        {{ "%.2f"|format(recipe_weight.value / product.products_per_recipe) }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    {{ currency_symbol }}{{ "%.2f" | format(item.prime_cost) }}
+                </td>
+                <td>
+                    {% if product.get_is_for_sale() %}
+                        {{ currency_symbol }}{{ "%.2f" | format(product.selling_price_per_unit or 0) }}
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if product.get_is_for_sale() %}
+                        {% if (product.selling_price_per_unit or 0) > 0 %}
+                            {% set margin = ((product.selling_price_per_unit or 0) - item.prime_cost) / (product.selling_price_per_unit or 1) * 100 %}
+                            <span class="badge {{ 'bg-success' if margin > 20 else 'bg-warning text-dark' if margin > 0 else 'bg-danger' }}">
+                                {{ "%.1f" | format(margin) }}%
+                            </span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ _('N/A') }}</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    <div class="btn-group">
+                        <a href="{{ url_for('products.product_detail', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('View Details') }}">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        {% if not product.is_archived %}
+                            <a href="{{ url_for('products.edit_product', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('Edit') }}">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form action="{{ url_for('products.delete_product', product_id=product.id) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ _('Are you sure? This will archive the product if it has history, or delete it permanently if not.') }}');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ _('Delete/Archive') }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        {% else %}
+                            <form action="{{ url_for('products.restore_product', product_id=product.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-success" title="{{ _('Restore') }}">
+                                    <i class="bi bi-arrow-counterclockwise"></i> {{ _('Restore') }}
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="text-center py-4 text-muted">{{ _('No products found in system.') }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
