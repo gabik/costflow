@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, current_app
 from flask_babel import gettext as _
 from ..models import db, Product, ProductComponent, StockLog, Category, RawMaterial, Packaging, AuditLog, ProductionLog
 from .utils import get_or_create_general_category, log_audit, calculate_premake_current_stock, get_primary_supplier_discounted_price, calculate_premake_cost_per_unit, format_quantity_with_unit, convert_to_base_unit, get_appropriate_price_unit, calculate_standard_unit_cost
