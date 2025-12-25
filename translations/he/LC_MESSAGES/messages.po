@@ -4509,3 +4509,5 @@ msgstr "פחת לפי קטגוריה"
 #~ msgid "Migration skipped: is_archived field already exists"
 #~ msgstr "המיגרציה דולגה: שדה is_archived כבר קיים"
 
+msgid "Search by product name..."
+msgstr "חיפוש לפי שם מוצר..."
