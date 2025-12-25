@@ -60,6 +60,105 @@ def premakes():
 
     return render_template('premakes.html', premakes=premakes)
 
+@premakes_blueprint.route('/premakes/debug')
+def premakes_debug():
+    """
+    Debug route to analyze performance of the premakes page.
+    """
+    import time
+    from collections import defaultdict
+    from sqlalchemy import text
+    try:
+        from flask_sqlalchemy.record_queries import get_recorded_queries
+    except ImportError:
+        from flask_sqlalchemy import get_debug_queries as get_recorded_queries
+    
+    current_app.config['SQLALCHEMY_RECORD_QUERIES'] = True
+    
+    debug_info = {
+        'steps': [],
+        'total_time': 0,
+        'queries': [],
+        'table_stats': defaultdict(int)
+    }
+    
+    start_total = time.time()
+    
+    # 1. Fetch Premakes
+    step_start = time.time()
+    premakes = Product.query.filter_by(is_premake=True).all()
+    step_end = time.time()
+    debug_info['steps'].append({
+        'name': 'Fetch Premakes',
+        'time': (step_end - step_start) * 1000,
+        'count': len(premakes)
+    })
+    
+    # 2. Process Loop (This is the suspected bottleneck)
+    step_start = time.time()
+    
+    # We will simulate the exact logic of /premakes_new here to see where it breaks
+    stock_rows = db.session.execute(text(
+        "SELECT product_id, action_type, quantity, supplier_id FROM stock_log WHERE product_id IS NOT NULL AND raw_material_id IS NULL ORDER BY timestamp ASC"
+    )).fetchall()
+    
+    temp_stock = defaultdict(lambda: defaultdict(float))
+    for row in stock_rows:
+        pid, action, qty, sid = row[0], row[1], row[2], row[3]
+        if action == 'set':
+            temp_stock[pid][sid] = qty
+        else:
+            temp_stock[pid][sid] += qty
+            
+    usage_rows = db.session.execute(text("""
+        SELECT pc.component_id, SUM(pl.quantity_produced * pc.quantity) as total_used
+        FROM production_log pl
+        JOIN product_component pc ON pl.product_id = pc.product_id
+        WHERE pc.component_type = 'premake'
+        GROUP BY pc.component_id
+    """)).fetchall()
+    
+    usage_map = {row[0]: row[1] for row in usage_rows}
+    
+    # Cost calculation loop
+    cost_calc_time = 0
+    for premake in premakes:
+        t0 = time.time()
+        # This is the recursive heavy function
+        calculate_premake_cost_per_unit(premake, use_actual_costs=False)
+        t1 = time.time()
+        cost_calc_time += (t1 - t0)
+        
+    step_end = time.time()
+    debug_info['steps'].append({
+        'name': 'Process & Cost Calculation',
+        'time': (step_end - step_start) * 1000,
+        'details': f"Cost Calc Only: {cost_calc_time*1000:.2f}ms"
+    })
+    
+    # Capture queries
+    queries = get_recorded_queries()
+    for q in queries:
+        sql_lower = q.statement.lower()
+        for table in ['product', 'raw_material', 'stock_log', 'production_log', 'product_component', 'raw_material_supplier']:
+            if f'from {table}' in sql_lower or f'join {table}' in sql_lower:
+                debug_info['table_stats'][table] += 1
+        
+        debug_info['queries'].append({
+            'sql': q.statement, 
+            'parameters': q.parameters, 
+            'duration': q.duration, 
+            'context': q.context
+        })
+        
+    debug_info['query_count'] = len(queries)
+    debug_info['total_query_time'] = sum(q['duration'] for q in debug_info['queries']) * 1000
+    
+    end_total = time.time()
+    debug_info['total_time'] = (end_total - start_total) * 1000
+    
+    return render_template('premakes_debug.html', debug_info=debug_info)
+
 @premakes_blueprint.route('/premakes_new')
 def premakes_new():
     """Optimized list of all premakes (Products with is_premake=True)"""

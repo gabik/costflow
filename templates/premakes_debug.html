@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Premakes Performance Debug{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Premakes Page Performance Analysis</h1>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Summary</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Total Execution Time:</strong> {{ "%.2f"|format(debug_info.total_time) }} ms</p>
+                    <p><strong>Total Queries:</strong> {{ debug_info.query_count }}</p>
+                    <p><strong>Total Query Time:</strong> {{ "%.2f"|format(debug_info.total_query_time) }} ms</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">Step Breakdown & Table Stats</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Execution Steps</h6>
+                            <ul class="list-group list-group-flush mb-3">
+                                {% for step in debug_info.steps %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                    <div>
+                                        <strong>{{ step.name }}</strong>
+                                        {% if step.details %}
+                                        <br><small class="text-muted">{{ step.details }}</small>
+                                        {% endif %}
+                                    </div>
+                                    <span class="badge bg-primary rounded-pill">{{ "%.2f"|format(step.time) }} ms</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Queries per Table</h6>
+                            <ul class="list-group list-group-flush">
+                                {% for table, count in debug_info.table_stats.items()|sort(attribute='1', reverse=True) %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                    <code>{{ table }}</code>
+                                    <span class="badge bg-secondary rounded-pill">{{ count }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="card-title mb-0">SQL Query Log ({{ debug_info.query_count }} Queries)</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive" style="max_height: 600px; overflow-y: auto;">
+                <table class="table table-striped table-hover mb-0 table-sm">
+                    <thead class="table-dark sticky-top">
+                        <tr>
+                            <th style="width: 50px;">#</th>
+                            <th style="width: 100px;">Time (ms)</th>
+                            <th>Query</th>
+                            <th>Context</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for query in debug_info.queries %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td class="{{ 'text-danger fw-bold' if query.duration * 1000 > 10 else '' }}">
+                                {{ "%.2f"|format(query.duration * 1000) }}
+                            </td>
+                            <td>
+                                <code class="text-break">{{ query.sql }}</code>
+                                {% if query.parameters %}
+                                <br>
+                                <small class="text-muted">Params: {{ query.parameters }}</small>
+                                {% endif %}
+                            </td>
+                            <td><small>{{ query.context }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
