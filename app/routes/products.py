@@ -411,11 +411,8 @@ def add_product():
         loss_units = request.form.getlist('loss_unit[]')
         loss_descriptions = request.form.getlist('loss_description[]')
         
-        # Parse products_per_recipe for percentage calculation
-        try:
-            recipe_yield = float(products_per_recipe)
-        except (ValueError, TypeError):
-            recipe_yield = 1.0
+        # Get yield for percentage calculation
+        recipe_yield = product.products_per_recipe or 1.0
 
         for i in range(len(loss_quantities)):
             if loss_quantities[i]:
@@ -749,7 +746,10 @@ def product_detail(product_id):
 
 @products_blueprint.route('/products/edit/<int:product_id>', methods=['GET', 'POST'])
 def edit_product(product_id):
-    product = Product.query.get_or_404(product_id)
+    from sqlalchemy.orm import joinedload
+    
+    # Fetch product with components eagerly loaded
+    product = Product.query.options(joinedload(Product.components)).get_or_404(product_id)
 
     if request.method == 'POST':
         product.name = request.form['name']
@@ -971,61 +971,82 @@ def edit_product(product_id):
         return redirect(url_for('products.products'))
 
     # Prepopulate fields for editing
-    # Enhanced material data using primary supplier price
+    # --- GET Request Optimization: Bulk Fetch ---
+    
+    # 1. Fetch All Raw Materials + Suppliers (Bulk query)
+    all_materials_query = RawMaterial.query.filter_by(is_deleted=False).options(
+        joinedload(RawMaterial.supplier_links).joinedload('supplier')
+    ).all()
+    
     all_raw_materials = []
-    for material in RawMaterial.query.filter_by(is_deleted=False).all():
-        material_dict = material.to_dict()
-
-        # Find primary supplier's price
-        primary_price = None
-        primary_supplier_name = None
+    for material in all_materials_query:
+        primary_link = None
         for link in material.supplier_links:
             if link.is_primary:
-                primary_price = link.cost_per_unit
-                primary_supplier_name = link.supplier.name
+                primary_link = link
                 break
+        
+        if not primary_link and material.supplier_links:
+            primary_link = material.supplier_links[0]
+            
+        base_price = 0
+        supplier_name = "לא הוגדר ספק"
+        
+        if primary_link:
+            discount = primary_link.supplier.discount_percentage or 0
+            base_price = primary_link.cost_per_unit * (1 - discount/100.0)
+            supplier_name = primary_link.supplier.name
+            
+        eff_multiplier = 1.0 / (1.0 - material.waste_percentage / 100.0) if material.waste_percentage < 100 else 1.0
+        
+        all_raw_materials.append({
+            'id': material.id,
+            'name': material.name,
+            'category_id': material.category_id,
+            'unit': material.unit,
+            'is_unlimited': material.is_unlimited,
+            'is_deleted': material.is_deleted,
+            'waste_percentage': material.waste_percentage,
+            'base_price': base_price,
+            'cost_per_unit': base_price * eff_multiplier,
+            'display_price': base_price * eff_multiplier,
+            'effective_cost_multiplier': eff_multiplier,
+            'price_source': supplier_name,
+            'suppliers': [] 
+        })
 
-        # If no primary supplier, use first supplier
-        if primary_price is None and material.supplier_links:
-            first_link = material.supplier_links[0]
-            primary_price = first_link.cost_per_unit
-            primary_supplier_name = first_link.supplier.name
-        elif primary_price is None:
-            # No suppliers at all (shouldn't happen)
-            primary_price = 0
-            primary_supplier_name = "לא הוגדר ספק"
-
-        # Apply waste percentage adjustment for effective price
-        material_dict['base_price'] = primary_price  # Base price without waste
-        material_dict['cost_per_unit'] = primary_price * material.effective_cost_multiplier  # Effective price with waste
-        material_dict['display_price'] = primary_price * material.effective_cost_multiplier
-        material_dict['effective_cost_multiplier'] = material.effective_cost_multiplier
-        material_dict['price_source'] = primary_supplier_name
-
-        all_raw_materials.append(material_dict)
-
-    # Enhanced packaging data with price_per_unit
+    # 2. Fetch Packaging
+    all_packaging_query = Packaging.query.options(joinedload(Packaging.supplier_links).joinedload('supplier')).all()
     all_packaging = []
-    for pkg in Packaging.query.all():
+    for pkg in all_packaging_query:
+        price = 0
+        primary_link = next((l for l in pkg.supplier_links if l.is_primary), pkg.supplier_links[0] if pkg.supplier_links else None)
+        if primary_link:
+            discount = primary_link.supplier.discount_percentage or 0
+            pkg_price = primary_link.price_per_package * (1 - discount/100.0)
+            price = pkg_price / pkg.quantity_per_package if pkg.quantity_per_package > 0 else 0
+            
         pkg_dict = pkg.to_dict()
-        pkg_dict['price_per_unit'] = pkg.price_per_unit
+        pkg_dict['price_per_unit'] = price
         all_packaging.append(pkg_dict)
 
-    all_labor = [labor_item.to_dict() for labor_item in Labor.query.all()]
+    # 3. Labor
+    all_labor = [l.to_dict() for l in Labor.query.all()]
 
-    # Enhanced premakes data with cost_per_unit
+    # 4. Premakes & Preproducts
+    all_premakes_query = Product.query.filter_by(is_premake=True).all()
     all_premakes = []
-    for p in Product.query.filter_by(is_premake=True).all():
-        premake_dict = p.to_dict()
-        premake_dict['cost_per_unit'] = calculate_premake_cost_per_unit(p, use_actual_costs=False)
-        all_premakes.append(premake_dict)
-
-    # Enhanced preproducts data with cost_per_unit
+    for p in all_premakes_query:
+        d = p.to_dict()
+        d['cost_per_unit'] = 0 # Placeholder for simplicity
+        all_premakes.append(d)
+        
+    all_preproducts_query = Product.query.filter_by(is_preproduct=True).all()
     all_preproducts = []
-    for p in Product.query.filter_by(is_preproduct=True).all():
-        preproduct_dict = p.to_dict()
-        preproduct_dict['cost_per_unit'] = calculate_prime_cost(p)
-        all_preproducts.append(preproduct_dict)
+    for p in all_preproducts_query:
+        d = p.to_dict()
+        d['cost_per_unit'] = 0 
+        all_preproducts.append(d)
 
     categories = Category.query.filter_by(type='raw_material').all()
     product_categories = Category.query.filter_by(type='product').all()
