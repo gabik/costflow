@@ -12,8 +12,8 @@ products_blueprint = Blueprint('products', __name__)
 # ----------------------------
 # Products Management
 # ----------------------------
-@products_blueprint.route('/products_slow')
-def products_slow():
+@products_blueprint.route('/products')
+def products():
     # Check if we should show archived products
     show_archived = request.args.get('show_archived') == 'true'
 
@@ -61,134 +61,97 @@ def products_slow():
             'can_produce': can_produce,
             'missing_materials': missing_materials
         })
-    return render_template('products_slow.html', products_data=products_data, show_archived=show_archived)
+    return render_template('products.html', products_data=products_data, show_archived=show_archived)
 
-
-@products_blueprint.route('/products')
-def products():
-    # Check if we should show archived products
+@products_blueprint.route('/products/debug')
+def products_debug():
+    """
+    Debug route to analyze performance of the products page.
+    Measures execution time of key steps and captures SQL queries.
+    """
+    import time
+    from flask_sqlalchemy import get_debug_queries
+    
+    # Enable query recording for this request
+    current_app.config['SQLALCHEMY_RECORD_QUERIES'] = True
+    
+    debug_info = {
+        'steps': [],
+        'total_time': 0,
+        'queries': [],
+        'table_stats': defaultdict(int)
+    }
+    
+    start_total = time.time()
+    
+    # Step 1: Fetch Products
+    step_start = time.time()
     show_archived = request.args.get('show_archived') == 'true'
-
-    # Show products that can be sold (is_product=True), including hybrids
     query = Product.query.filter(Product.is_product == True)
-
     if not show_archived:
         query = query.filter(Product.is_archived == False)
-
     products = query.all()
-
-    # --- Optimization: Bulk Fetch using Raw SQL ---
-    # Instead of calling calculate_total_material_stock repeatedly, 
-    # we pre-calculate stock for ALL relevant materials in one go.
+    step_end = time.time()
+    debug_info['steps'].append({
+        'name': 'Fetch Products (Initial)',
+        'time': (step_end - step_start) * 1000,
+        'count': len(products)
+    })
     
-    # 1. Fetch all material stocks in one complex query
-    # This approximates the logic of calculate_total_material_stock but in bulk
-    raw_material_stock_cache = {}
+    # Step 2: Calculate Costs & Availability (The Slow Part)
+    step_start = time.time()
     
-    # We need to sum up all 'add' transactions and handle 'set' transactions
-    # This is complex to do purely in SQL for all items at once without window functions 
-    # (which might be heavy), so we'll fetch all relevant StockLogs and process in memory.
-    # This is much faster than thousands of DB roundtrips.
+    # Track sub-steps
+    cost_calc_time = 0
+    stock_check_time = 0
     
-    # Get all component IDs first to filter the query
-    material_ids = set()
-    premake_ids = set()
-    for p in products:
-        for c in p.components:
-            if c.component_type == 'raw_material':
-                material_ids.add(c.component_id)
-            elif c.component_type == 'premake':
-                premake_ids.add(c.component_id)
-                
-    # Fetch stock logs for these materials
-    # We fetch only what we need
-    if material_ids:
-        material_logs = StockLog.query.filter(
-            StockLog.raw_material_id.in_(material_ids)
-        ).order_by(StockLog.timestamp).all()
-        
-        # Process logs in memory
-        # logic: track stock per (material_id, supplier_id)
-        mat_stock_map = defaultdict(lambda: defaultdict(float))
-        
-        for log in material_logs:
-            # key: (material_id, supplier_id)
-            # If log.supplier_id is None, treat as global/legacy
-            if log.action_type == 'set':
-                mat_stock_map[log.raw_material_id][log.supplier_id] = log.quantity
-            elif log.action_type == 'add':
-                mat_stock_map[log.raw_material_id][log.supplier_id] += log.quantity
-                
-        # Sum up for total stock
-        for mid, suppliers in mat_stock_map.items():
-            raw_material_stock_cache[mid] = sum(qty for qty in suppliers.values())
-
-    # 2. Fetch premake stocks
-    premake_stock_cache = {}
-    
-    # Similar logic for premakes
-    # Note: calculate_premake_current_stock also subtracts production usage
-    # This is harder to bulk optimize perfectly without rewriting the logic entirely.
-    # For now, we will use memoization (cache) as implemented in the first step,
-    # because premake calculation is very complex (involves ProductionLogs).
-    
-    def get_cached_premake_stock(premake_id):
-        if premake_id not in premake_stock_cache:
-            premake_stock_cache[premake_id] = calculate_premake_current_stock(premake_id)
-        return premake_stock_cache[premake_id]
-
-    products_data = []
     for product in products:
-        cost = calculate_prime_cost(product)
+        t0 = time.time()
+        # calculate_prime_cost triggers many queries
+        calculate_prime_cost(product)
+        t1 = time.time()
+        cost_calc_time += (t1 - t0)
 
-        # Check if we can produce at least one batch
-        can_produce = True
-        missing_materials = []
-
+        # calculate_total_material_stock triggers many queries
         for component in product.components:
             if component.component_type == 'raw_material':
-                # Use our bulk-loaded cache
-                # If not in cache (e.g. no logs ever), stock is 0
-                available = raw_material_stock_cache.get(component.component_id, 0)
-                
-                # Check if unlimited
-                # We need to check unlimited status efficiently.
-                # Accessing component.material checks the DB.
-                # Optimization: Check stock first. If 0, then check if unlimited.
-                # If stock > 0, we don't care if it's unlimited, we have stock.
-                required = component.quantity
-                
-                if available < required:
-                    # Only now do we hit the DB to check if it's unlimited
-                    if component.material and component.material.is_unlimited:
-                        available = float('inf')
-                    
-                    if available < required:
-                        can_produce = False
-                        missing_materials.append({
-                            'name': component.material.name if component.material else f"Material {component.component_id}",
-                            'required': required,
-                            'available': available
-                        })
-                        
+                calculate_total_material_stock(component.component_id)
             elif component.component_type == 'premake':
-                available = get_cached_premake_stock(component.component_id)
-                required = component.quantity
-                if available < required:
-                    can_produce = False
-                    missing_materials.append({
-                        'name': component.premake.name if component.premake else f'Premake {component.component_id}',
-                        'required': required,
-                        'available': available
-                    })
-
-        products_data.append({
-            'product': product,
-            'prime_cost': cost,
-            'can_produce': can_produce,
-            'missing_materials': missing_materials
+                calculate_premake_current_stock(component.component_id)
+        
+        t2 = time.time()
+        stock_check_time += (t2 - t1)
+        
+    step_end = time.time()
+    debug_info['steps'].append({
+        'name': 'Full Loop Processing',
+        'time': (step_end - step_start) * 1000,
+        'details': f"Avg per product: {((step_end-step_start)/len(products))*1000 if products else 0:.2f}ms"
+    })
+    
+    # Capture queries and analyze tables
+    queries = get_debug_queries()
+    for q in queries:
+        sql_lower = q.statement.lower()
+        # Basic table detection
+        for table in ['product', 'raw_material', 'stock_log', 'production_log', 'category', 'supplier', 'product_component', 'weekly_product_sales']:
+            if f'from {table}' in sql_lower or f'join {table}' in sql_lower or f'into {table}' in sql_lower:
+                debug_info['table_stats'][table] += 1
+        
+        debug_info['queries'].append({
+            'sql': q.statement, 
+            'parameters': q.parameters, 
+            'duration': q.duration, 
+            'context': q.context
         })
-    return render_template('products.html', products_data=products_data, show_archived=show_archived)
+        
+    debug_info['query_count'] = len(queries)
+    debug_info['total_query_time'] = sum(q['duration'] for q in debug_info['queries']) * 1000
+    
+    end_total = time.time()
+    debug_info['total_time'] = (end_total - start_total) * 1000
+    
+    return render_template('products_debug.html', debug_info=debug_info)
 
 @products_blueprint.route('/products/add', methods=['GET', 'POST'])
 def add_product():
