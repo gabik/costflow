@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from collections import defaultdict
 from PIL import Image
 from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, current_app, jsonify
