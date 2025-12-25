@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Optimized Page Build Analysis{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">App-Side Join Performance Analysis</h1>
+    
+    <div class="alert alert-info">
+        <strong>Strategy:</strong> Fetch all data in bulk (Raw SQL/ORM) first, then link and calculate in Python.
+    </div>
+
+    <!-- Timing Summary -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="card-title mb-0">Execution Breakdown</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>Stage</th>
+                                <th>Action</th>
+                                <th>Items Fetched</th>
+                                <th>Time (ms)</th>
+                                <th style="width: 50%;">Query / Note</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in logs %}
+                            <tr>
+                                <td><span class="badge bg-{{ log.color }}">{{ log.stage }}</span></td>
+                                <td><strong>{{ log.name }}</strong></td>
+                                <td>{{ log.count }}</td>
+                                <td class="{{ 'text-danger fw-bold' if log.duration > 50 else '' }}">
+                                    {{ "%.2f"|format(log.duration) }}
+                                </td>
+                                <td>
+                                    {% if log.sql %}
+                                    <small><code class="text-break">{{ log.sql }}</code></small>
+                                    {% else %}
+                                    <small class="text-muted">{{ log.note }}</small>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            <tr class="table-dark fw-bold">
+                                <td colspan="3" class="text-end">Total Page Generation Time:</td>
+                                <td colspan="2">{{ "%.2f"|format(total_time) }} ms</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Preview -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+            <h5 class="card-title mb-0">Resulting View Data (First 10 Products)</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-hover table-sm">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Calculated Cost</th>
+                        <th>Can Produce?</th>
+                        <th>Missing Ingredients</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in products[:10] %}
+                    <tr>
+                        <td>{{ p.name }}</td>
+                        <td>{{ currency_symbol }}{{ "%.2f"|format(p.cost) }}</td>
+                        <td>
+                            {% if p.can_produce %}
+                            <span class="badge bg-success">Yes</span>
+                            {% else %}
+                            <span class="badge bg-danger">No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% for m in p.missing %}
+                            <div class="text-danger small">
+                                {{ m.name }}: {{ "%.2f"|format(m.available) }} / {{ "%.2f"|format(m.required) }}
+                            </div>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if products|length > 10 %}
+            <p class="text-muted text-center mt-2">... and {{ products|length - 10 }} more products.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

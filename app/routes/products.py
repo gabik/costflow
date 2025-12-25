@@ -159,6 +159,201 @@ def products_debug():
     
     return render_template('products_debug.html', debug_info=debug_info)
 
+@products_blueprint.route('/products/optimized_debug')
+def products_optimized_debug():
+    """
+    Experimental route to demonstrate 'App-Side Join' performance.
+    Fetches all data in bulk queries and links them in Python.
+    """
+    import time
+    from sqlalchemy.orm import joinedload
+    from sqlalchemy import text
+    
+    logs = []
+    start_time = time.time()
+    
+    def track(stage, name, func, sql=None):
+        t0 = time.time()
+        res = func()
+        t1 = time.time()
+        duration = (t1 - t0) * 1000
+        count = len(res) if isinstance(res, list) else 0
+        logs.append({
+            'stage': stage,
+            'name': name,
+            'count': count,
+            'duration': duration,
+            'sql': sql,
+            'color': 'primary' if stage == 'DB' else 'warning',
+            'note': None
+        })
+        return res
+
+    # --- 1. Fetch ALL Products (DB) ---
+    # We need all of them to handle recursive premake lookups easily
+    products_all = track('DB', 'Fetch All Products', 
+        lambda: Product.query.all(), 
+        sql="SELECT * FROM product"
+    )
+    # Convert to map for O(1) access
+    product_map = {p.id: p for p in products_all}
+
+    # --- 2. Fetch All Components (DB) ---
+    # One query to get every ingredient link
+    components_all = track('DB', 'Fetch All Components',
+        lambda: ProductComponent.query.all(),
+        sql="SELECT * FROM product_component"
+    )
+    # Group by product_id in Python
+    t0 = time.time()
+    product_components_map = defaultdict(list)
+    for c in components_all:
+        product_components_map[c.product_id].append(c)
+    logs.append({'stage': 'APP', 'name': 'Map Components', 'count': len(components_all), 'duration': (time.time()-t0)*1000, 'note': 'Group list by product_id'})
+
+    # --- 3. Fetch All Materials (DB) ---
+    materials_all = track('DB', 'Fetch All Materials',
+        lambda: RawMaterial.query.all(),
+        sql="SELECT * FROM raw_material"
+    )
+    material_map = {m.id: m for m in materials_all}
+
+    # --- 4. Fetch Material Prices (DB) ---
+    # Join with Supplier to get discount info
+    def fetch_prices():
+        from ..models import RawMaterialSupplier
+        return RawMaterialSupplier.query.options(joinedload(RawMaterialSupplier.supplier)).all()
+    
+    prices_all = track('DB', 'Fetch Prices', 
+        fetch_prices, 
+        sql="SELECT * FROM raw_material_supplier LEFT JOIN supplier ..."
+    )
+    
+    # Calculate effective price map in Python
+    t0 = time.time()
+    price_map = {} # material_id -> cost_per_unit
+    
+    # Group by material
+    mat_prices = defaultdict(list)
+    for rms in prices_all:
+        mat_prices[rms.raw_material_id].append(rms)
+        
+    for mid, links in mat_prices.items():
+        # Logic: Primary first, then first available
+        selected = next((l for l in links if l.is_primary), links[0] if links else None)
+        if selected:
+            # Apply supplier discount
+            discount = selected.supplier.discount_percentage or 0
+            base_price = selected.cost_per_unit * (1 - discount/100.0)
+            # Note: We do NOT multiply by waste here. Waste increases QUANTITY needed, not unit price.
+            price_map[mid] = base_price
+        else:
+            price_map[mid] = 0
+    
+    logs.append({'stage': 'APP', 'name': 'Calculate Best Prices', 'count': len(price_map), 'duration': (time.time()-t0)*1000, 'note': 'Select primary supplier & apply discount'})
+
+    # --- 5. Fetch Stock Levels (DB - Raw SQL) ---
+    # Aggregating thousands of stock logs is faster in SQL than ORM
+    def fetch_stock():
+        # Simplified bulk fetch: Get all logs and process in python to handle 'set' logic accurately
+        return db.session.execute(text("SELECT raw_material_id, action_type, quantity, supplier_id FROM stock_log WHERE raw_material_id IS NOT NULL ORDER BY timestamp ASC")).fetchall()
+
+    stock_logs_all = track('DB', 'Fetch Stock Logs', fetch_stock, sql="SELECT ... FROM stock_log WHERE raw_material_id IS NOT NULL ORDER BY timestamp ASC")
+
+    # Calculate Stock in Python
+    t0 = time.time()
+    stock_map = {} # material_id -> total_quantity
+    temp_stock = defaultdict(lambda: defaultdict(float))
+    
+    for row in stock_logs_all:
+        mid, action, qty, sid = row[0], row[1], row[2], row[3]
+        if action == 'set':
+            temp_stock[mid][sid] = qty
+        else:
+            temp_stock[mid][sid] += qty
+            
+    for mid, suppliers in temp_stock.items():
+        stock_map[mid] = sum(qty for qty in suppliers.values())
+        
+    logs.append({'stage': 'APP', 'name': 'Process Stock History', 'count': len(stock_logs_all), 'duration': (time.time()-t0)*1000, 'note': 'Replay log history for accurate stock'})
+
+    # --- 6. Build View Models (APP) ---
+    # Iterating products and calculating cost/stock using dictionaries
+    t0_build = time.time()
+    view_models = []
+    
+    # Filter visible products
+    visible_products = [p for p in products_all if p.is_product and (not p.is_archived)]
+    
+    for p in visible_products:
+        # A. Calculate Cost (In-Memory Recursive)
+        def calc_cost(pid, visited=None):
+            if visited is None: visited = set()
+            if pid in visited: return 0
+            visited.add(pid)
+            
+            total = 0
+            comps = product_components_map.get(pid, [])
+            
+            for c in comps:
+                if c.component_type == 'raw_material':
+                    price = price_map.get(c.component_id, 0)
+                    mat = material_map.get(c.component_id)
+                    waste = mat.waste_percentage if mat else 0
+                    # Cost Formula: (Quantity / (1-Waste)) * Price
+                    eff_qty = c.quantity / (1 - waste/100.0) if waste < 100 else c.quantity
+                    total += eff_qty * price
+                elif c.component_type == 'premake':
+                    # Recursive for premakes
+                    u_cost = calc_cost(c.component_id, visited)
+                    total += c.quantity * u_cost
+            
+            prod = product_map.get(pid)
+            yield_amt = prod.products_per_recipe if prod and prod.products_per_recipe else 1
+            return total / yield_amt
+
+        cost = calc_cost(p.id)
+        
+        # B. Check Stock (In-Memory)
+        can_produce = True
+        missing = []
+        
+        for c in product_components_map.get(p.id, []):
+            if c.component_type == 'raw_material':
+                avail = stock_map.get(c.component_id, 0)
+                # Check unlimited
+                mat = material_map.get(c.component_id)
+                if mat and mat.is_unlimited:
+                    avail = float('inf')
+                
+                if avail < c.quantity:
+                    can_produce = False
+                    missing.append({
+                        'name': mat.name if mat else str(c.component_id), 
+                        'available': avail, 
+                        'required': c.quantity
+                    })
+            # Premake stock check skipped for simplicity in this debug view (requires production log parsing)
+            
+        view_models.append({
+            'name': p.name,
+            'cost': cost,
+            'can_produce': can_produce,
+            'missing': missing
+        })
+        
+    logs.append({
+        'stage': 'APP', 
+        'name': 'Build View Models', 
+        'count': len(view_models), 
+        'duration': (time.time()-t0_build)*1000, 
+        'note': 'Calculate Cost & Stock using dict lookups (No DB)'
+    })
+    
+    total_time = (time.time() - start_time) * 1000
+    
+    return render_template('products_optimized_debug.html', logs=logs, products=view_models, total_time=total_time)
+
 @products_blueprint.route('/products/add', methods=['GET', 'POST'])
 def add_product():
     if request.method == 'POST':
