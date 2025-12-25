@@ -156,9 +156,6 @@ def products_debug():
     
     end_total = time.time()
     debug_info['total_time'] = (end_total - start_total) * 1000
-    
-    return render_template('products_debug.html', debug_info=debug_info)
-
 @products_blueprint.route('/products/optimized_debug')
 def products_optimized_debug():
     """
@@ -256,24 +253,45 @@ def products_optimized_debug():
     # Aggregating thousands of stock logs is faster in SQL than ORM
     def fetch_stock():
         # Simplified bulk fetch: Get all logs and process in python to handle 'set' logic accurately
-        return db.session.execute(text("SELECT raw_material_id, action_type, quantity, supplier_id FROM stock_log WHERE raw_material_id IS NOT NULL ORDER BY timestamp ASC")).fetchall()
+        return db.session.execute(text("SELECT raw_material_id, action_type, quantity, supplier_id, product_id FROM stock_log WHERE raw_material_id IS NOT NULL OR product_id IS NOT NULL ORDER BY timestamp ASC")).fetchall()
 
-    stock_logs_all = track('DB', 'Fetch Stock Logs', fetch_stock, sql="SELECT ... FROM stock_log WHERE raw_material_id IS NOT NULL ORDER BY timestamp ASC")
+    stock_logs_all = track('DB', 'Fetch Stock Logs', fetch_stock, sql="SELECT ... FROM stock_log ... ORDER BY timestamp ASC")
 
     # Calculate Stock in Python
     t0 = time.time()
     stock_map = {} # material_id -> total_quantity
-    temp_stock = defaultdict(lambda: defaultdict(float))
+    premake_stock_map = {} # product_id -> total_quantity
+    
+    temp_stock = defaultdict(lambda: defaultdict(float)) # material/premake -> supplier -> qty
+    
+    # Also need production logs for premake consumption
+    production_logs_all = ProductionLog.query.all() # Fetch all production logs
+    
+    # This is still a simplified stock calc for debug purposes
+    # For real world, we need full logic.
+    # Re-implementing full stock logic here is complex. 
+    # For now we reuse the debug logic which is "good enough" for materials but skips premake consumption.
     
     for row in stock_logs_all:
-        mid, action, qty, sid = row[0], row[1], row[2], row[3]
+        mid, action, qty, sid, pid = row[0], row[1], row[2], row[3], row[4]
+        target_id = mid if mid else pid
+        is_product = pid is not None
+        
+        # Key needs to differentiate product/material to avoid collision if IDs overlap (though they are different tables)
+        # But here we store in different maps or use a prefix key
+        key = f"M{mid}" if mid else f"P{pid}"
+        
         if action == 'set':
-            temp_stock[mid][sid] = qty
+            temp_stock[key][sid] = qty
         else:
-            temp_stock[mid][sid] += qty
+            temp_stock[key][sid] += qty
             
-    for mid, suppliers in temp_stock.items():
-        stock_map[mid] = sum(qty for qty in suppliers.values())
+    for key, suppliers in temp_stock.items():
+        total = sum(qty for qty in suppliers.values())
+        if key.startswith('M'):
+            stock_map[int(key[1:])] = total
+        else:
+            premake_stock_map[int(key[1:])] = total
         
     logs.append({'stage': 'APP', 'name': 'Process Stock History', 'count': len(stock_logs_all), 'duration': (time.time()-t0)*1000, 'note': 'Replay log history for accurate stock'})
 
@@ -285,33 +303,46 @@ def products_optimized_debug():
     # Filter visible products
     visible_products = [p for p in products_all if p.is_product and (not p.is_archived)]
     
-    for p in visible_products:
-        # A. Calculate Cost (In-Memory Recursive)
-        def calc_cost(pid, visited=None):
-            if visited is None: visited = set()
-            if pid in visited: return 0
-            visited.add(pid)
-            
-            total = 0
-            comps = product_components_map.get(pid, [])
-            
-            for c in comps:
-                if c.component_type == 'raw_material':
-                    price = price_map.get(c.component_id, 0)
-                    mat = material_map.get(c.component_id)
-                    waste = mat.waste_percentage if mat else 0
-                    # Cost Formula: (Quantity / (1-Waste)) * Price
-                    eff_qty = c.quantity / (1 - waste/100.0) if waste < 100 else c.quantity
-                    total += eff_qty * price
-                elif c.component_type == 'premake':
-                    # Recursive for premakes
-                    u_cost = calc_cost(c.component_id, visited)
-                    total += c.quantity * u_cost
-            
-            prod = product_map.get(pid)
-            yield_amt = prod.products_per_recipe if prod and prod.products_per_recipe else 1
-            return total / yield_amt
+    # Pre-calculate premake costs
+    premake_cost_cache = {}
+    
+    def calc_cost(pid, visited=None):
+        if visited is None: visited = set()
+        if pid in visited: return 0
+        if pid in premake_cost_cache: return premake_cost_cache[pid]
+        
+        visited.add(pid)
+        
+        total = 0
+        comps = product_components_map.get(pid, [])
+        
+        for c in comps:
+            if c.component_type == 'raw_material':
+                price = price_map.get(c.component_id, 0)
+                mat = material_map.get(c.component_id)
+                waste = mat.waste_percentage if mat else 0
+                # Cost Formula: (Quantity / (1-Waste)) * Price
+                eff_qty = c.quantity / (1 - waste/100.0) if waste < 100 else c.quantity
+                total += eff_qty * price
+            elif c.component_type == 'premake':
+                # Recursive for premakes
+                u_cost = calc_cost(c.component_id, visited)
+                total += c.quantity * u_cost
+        
+        prod = product_map.get(pid)
+        if not prod: return 0
+        
+        batch_size = prod.batch_size if prod.batch_size else 1
+        # For regular products, yield is products_per_recipe
+        # For premakes, it's batch_size
+        yield_amt = prod.products_per_recipe if prod.is_product else batch_size
+        if not yield_amt: yield_amt = 1
+        
+        unit_cost = total / yield_amt
+        premake_cost_cache[pid] = unit_cost
+        return unit_cost
 
+    for p in visible_products:
         cost = calc_cost(p.id)
         
         # B. Check Stock (In-Memory)
@@ -353,6 +384,187 @@ def products_optimized_debug():
     total_time = (time.time() - start_time) * 1000
     
     return render_template('products_optimized_debug.html', logs=logs, products=view_models, total_time=total_time)
+
+@products_blueprint.route('/products_new')
+def products_new():
+    """
+    Optimized products page using app-side joins and bulk fetching.
+    """
+    from sqlalchemy.orm import joinedload
+    from sqlalchemy import text
+    from collections import defaultdict
+
+    # 1. Fetch Basic Data (Filtered)
+    show_archived = request.args.get('show_archived') == 'true'
+    
+    # Use joinedload to fetch components in the same query (SOLVES N+1 for components list)
+    query = Product.query.options(joinedload(Product.components))
+    query = query.filter(Product.is_product == True)
+    if not show_archived:
+        query = query.filter(Product.is_archived == False)
+    
+    products = query.all()
+    
+    # 2. Bulk Fetch Dependencies (Materials, Prices, Stock)
+    # We fetch ALL materials/prices because filtering by "used" ones might be more expensive/complex logic
+    # and the dataset size for materials is usually manageable (hundreds, not millions).
+    
+    # A. Materials Map
+    all_materials = RawMaterial.query.all()
+    material_map = {m.id: m for m in all_materials}
+    
+    # B. Prices Map (Primary Supplier)
+    from ..models import RawMaterialSupplier
+    all_prices = RawMaterialSupplier.query.options(joinedload(RawMaterialSupplier.supplier)).all()
+    
+    # Calculate effective base price (discounted) for each material
+    price_map = {} 
+    mat_prices = defaultdict(list)
+    for rms in all_prices:
+        mat_prices[rms.raw_material_id].append(rms)
+        
+    for mid, links in mat_prices.items():
+        # Primary first, else first available
+        selected = next((l for l in links if l.is_primary), links[0] if links else None)
+        if selected:
+            discount = selected.supplier.discount_percentage or 0
+            # Base price (before waste)
+            price_map[mid] = selected.cost_per_unit * (1 - discount/100.0)
+        else:
+            price_map[mid] = 0
+            
+    # C. Stock Map (Raw SQL for speed)
+    # We need to account for SET and ADD actions
+    # Note: This ignores 'Production' consumption of premakes for now, as that requires parsing ProductionLog
+    # For Raw Materials, this is accurate (they aren't "produced", only bought/consumed via logs)
+    stock_rows = db.session.execute(text(
+        "SELECT raw_material_id, action_type, quantity, supplier_id FROM stock_log WHERE raw_material_id IS NOT NULL ORDER BY timestamp ASC"
+    )).fetchall()
+    
+    temp_stock = defaultdict(lambda: defaultdict(float))
+    for row in stock_rows:
+        mid, action, qty, sid = row[0], row[1], row[2], row[3]
+        if action == 'set':
+            temp_stock[mid][sid] = qty
+        else:
+            temp_stock[mid][sid] += qty
+            
+    stock_map = {}
+    for mid, suppliers in temp_stock.items():
+        stock_map[mid] = sum(qty for qty in suppliers.values())
+
+    # D. Premake Stock (Complex)
+    # Ideally we'd optimize this too, but it's harder. 
+    # For now, we'll use memoization on the existing function to avoid re-calculating same premake
+    premake_stock_cache = {}
+    def get_premake_stock(pid):
+        if pid not in premake_stock_cache:
+            premake_stock_cache[pid] = calculate_premake_current_stock(pid)
+        return premake_stock_cache[pid]
+
+    # E. Premake Cost Map (Recursive Cost)
+    # We need a map of ALL products (including premakes) to calculate costs recursively
+    # We already fetched 'products' (visible ones), but we might need invisible premakes.
+    # Ideally, we should fetch ALL products with is_premake=True as well.
+    all_premakes = Product.query.filter_by(is_premake=True).options(joinedload(Product.components)).all()
+    # Merge into a master map for lookup
+    all_product_map = {p.id: p for p in products}
+    for p in all_premakes:
+        all_product_map[p.id] = p
+        
+    cost_cache = {}
+    
+    def get_unit_cost(pid, visited=None):
+        if visited is None: visited = set()
+        if pid in visited: return 0
+        if pid in cost_cache: return cost_cache[pid]
+        
+        visited.add(pid)
+        prod = all_product_map.get(pid)
+        
+        # If we missed fetching it (rare edge case), fallback or return 0
+        if not prod: return 0
+        
+        total_cost = 0
+        for comp in prod.components:
+            if comp.component_type == 'raw_material':
+                # Price * Quantity * WasteFactor
+                mat = material_map.get(comp.component_id)
+                base_price = price_map.get(comp.component_id, 0)
+                if mat:
+                    waste = mat.waste_percentage
+                    eff_qty = comp.quantity / (1 - waste/100.0) if waste < 100 else comp.quantity
+                    total_cost += eff_qty * base_price
+            elif comp.component_type == 'premake':
+                # Recursive
+                u_cost = get_unit_cost(comp.component_id, visited)
+                total_cost += comp.quantity * u_cost
+            elif comp.component_type == 'packaging':
+                # Packaging excluded from prime cost usually, but let's check utils logic
+                # calculate_prime_cost excludes packaging. We follow that.
+                pass
+                
+        # Divide by yield
+        # If it's a premake, use batch_size. If product, use products_per_recipe.
+        if prod.is_premake:
+            batch_sz = prod.batch_size if prod.batch_size else 1
+            final_cost = total_cost / batch_sz
+        else:
+            yield_amt = prod.products_per_recipe if prod.products_per_recipe else 1
+            final_cost = total_cost / yield_amt
+            
+        cost_cache[pid] = final_cost
+        return final_cost
+
+    # 3. Assemble Data
+    products_data = []
+    
+    for product in products:
+        # Calculate Cost
+        prime_cost = get_unit_cost(product.id)
+        
+        # Check Stock
+        can_produce = True
+        missing_materials = []
+        
+        for component in product.components:
+            if component.component_type == 'raw_material':
+                available = stock_map.get(component.component_id, 0)
+                required = component.quantity
+                
+                # Check unlimited
+                mat = material_map.get(component.component_id)
+                if mat and mat.is_unlimited:
+                    available = float('inf')
+                
+                if available < required:
+                    can_produce = False
+                    missing_materials.append({
+                        'name': mat.name if mat else f"Material {component.component_id}",
+                        'required': required,
+                        'available': available
+                    })
+            elif component.component_type == 'premake':
+                available = get_premake_stock(component.component_id)
+                required = component.quantity
+                if available < required:
+                    can_produce = False
+                    # Name lookup needs premake object
+                    premake_obj = all_product_map.get(component.component_id)
+                    missing_materials.append({
+                        'name': premake_obj.name if premake_obj else f'Premake {component.component_id}',
+                        'required': required,
+                        'available': available
+                    })
+
+        products_data.append({
+            'product': product,
+            'prime_cost': prime_cost,
+            'can_produce': can_produce,
+            'missing_materials': missing_materials
+        })
+
+    return render_template('products.html', products_data=products_data, show_archived=show_archived)
 
 @products_blueprint.route('/products/add', methods=['GET', 'POST'])
 def add_product():
