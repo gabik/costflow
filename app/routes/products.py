@@ -99,6 +99,50 @@ def products():
         all_product_map[p.id] = p
         
     cost_cache = {}
+    weight_cache = {}
+
+    def get_recipe_weight(pid, visited=None):
+        """Recursively calculate the total weight of a product's recipe in kg/L"""
+        if visited is None: visited = set()
+        if pid in visited: return 0
+        if pid in weight_cache: return weight_cache[pid]
+        
+        visited.add(pid)
+        prod = all_product_map.get(pid)
+        if not prod: return 0
+        
+        total_weight = 0
+        for comp in prod.components:
+            # Raw materials and premakes are stored in kg/L base units
+            if comp.component_type == 'raw_material':
+                total_weight += comp.quantity
+            elif comp.component_type == 'premake':
+                # Premake component quantity is already in kg/L (converted on save)
+                total_weight += comp.quantity
+            elif comp.component_type == 'product':
+                # Preproduct logic
+                # If the preproduct itself is unit-based, we need to convert units to weight
+                # If it's weight based (kg/g), component.quantity is already weight
+                
+                child_prod = all_product_map.get(comp.component_id)
+                if child_prod:
+                    child_unit = getattr(child_prod, 'unit', 'unit')
+                    if child_unit in ['kg', 'g', 'L', 'ml']:
+                        # Weight based - stored as kg/L
+                        total_weight += comp.quantity
+                    else:
+                        # Unit based - stored as count
+                        # We need the weight of one unit
+                        child_recipe_weight = get_recipe_weight(comp.component_id, visited)
+                        child_yield = child_prod.products_per_recipe if child_prod.products_per_recipe else 1
+                        child_unit_weight = child_recipe_weight / child_yield
+                        total_weight += comp.quantity * child_unit_weight
+            elif comp.component_type == 'loss':
+                # Loss is negative weight
+                total_weight += comp.quantity
+                
+        weight_cache[pid] = total_weight
+        return total_weight
     
     def get_unit_cost(pid, visited=None):
         if visited is None: visited = set()
@@ -119,8 +163,23 @@ def products():
                 base_price = price_map.get(comp.component_id, 0)
                 if mat:
                     waste = mat.waste_percentage
-                    eff_qty = comp.quantity / (1 - waste/100.0) if waste < 100 else comp.quantity
-                    total_cost += eff_qty * base_price
+                    # Quantity is in kg/L. Price is in Supplier Unit.
+                    # We must convert Quantity to Supplier Unit.
+                    
+                    # 1. Calculate effective quantity needed (in base kg/L) due to waste
+                    eff_qty_base = comp.quantity / (1 - waste/100.0) if waste < 100 else comp.quantity
+                    
+                    # 2. Convert base kg/L to material's unit (which price corresponds to)                   
+                    if mat.unit == 'g':
+                        qty_in_price_unit = eff_qty_base * 1000
+                    elif mat.unit == 'ml':
+                        qty_in_price_unit = eff_qty_base * 1000
+                    elif mat.unit in ['kg', 'L', 'unit', 'piece']:
+                        qty_in_price_unit = eff_qty_base
+                    else:
+                        qty_in_price_unit = eff_qty_base # Fallback
+                        
+                    total_cost += qty_in_price_unit * base_price
             elif comp.component_type in ['premake', 'product']:
                 # Recursive for both premakes and preproducts
                 u_cost = get_unit_cost(comp.component_id, visited)
@@ -150,6 +209,10 @@ def products():
     for product in products:
         # Calculate Cost
         prime_cost = get_unit_cost(product.id)
+        
+        # Calculate Weight
+        recipe_weight = get_recipe_weight(product.id)
+        unit_weight = recipe_weight / product.products_per_recipe if product.products_per_recipe else 0
         
         # Check Stock
         can_produce = True
@@ -187,6 +250,8 @@ def products():
         products_data.append({
             'product': product,
             'prime_cost': prime_cost,
+            'recipe_weight': recipe_weight,
+            'unit_weight': unit_weight,
             'can_produce': can_produce,
             'missing_materials': missing_materials
         })

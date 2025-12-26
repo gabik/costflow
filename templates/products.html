@@ -89,21 +89,12 @@
                         </span>
                     {% endif %}
                 </td>
-                {# Calculate recipe weight for sorting #}
-                {% set recipe_weight = namespace(value=0) %}
-                {% for component in product.components %}
-                    {% if component.component_type == 'raw_material' %}
-                        {% set recipe_weight.value = recipe_weight.value + component.quantity %}
-                    {% elif component.component_type == 'premake' %}
-                        {% set recipe_weight.value = recipe_weight.value + component.quantity %}
-                    {% endif %}
-                {% endfor %}
-                <td data-value="{{ recipe_weight.value }}">
-                    {{ "%.2f"|format(recipe_weight.value) }}
+                <td data-value="{{ item.recipe_weight }}">
+                    {{ "%.2f"|format(item.recipe_weight) }}
                 </td>
-                <td data-value="{{ (recipe_weight.value / product.products_per_recipe) if product.products_per_recipe > 0 else 0 }}">
+                <td data-value="{{ item.unit_weight }}">
                     {% if product.products_per_recipe > 0 %}
-                        {{ "%.2f"|format(recipe_weight.value / product.products_per_recipe) }}
+                        {{ "%.2f"|format(item.unit_weight) }}
                     {% else %}
                         -
                     {% endif %}
