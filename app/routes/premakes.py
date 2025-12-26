@@ -1,7 +1,13 @@
+import os
 from datetime import datetime
+from collections import defaultdict
+from PIL import Image
+from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, current_app
 from flask_babel import gettext as _
-from ..models import db, Product, ProductComponent, StockLog, Category, RawMaterial, Packaging, AuditLog, ProductionLog
+from sqlalchemy.orm import joinedload
+from sqlalchemy import text
+from ..models import db, Product, ProductComponent, StockLog, Category, RawMaterial, Packaging, AuditLog, ProductionLog, RawMaterialSupplier
 from .utils import get_or_create_general_category, log_audit, calculate_premake_current_stock, get_primary_supplier_discounted_price, calculate_premake_cost_per_unit, format_quantity_with_unit, convert_to_base_unit, get_appropriate_price_unit, calculate_standard_unit_cost
 
 premakes_blueprint = Blueprint('premakes', __name__)
@@ -12,161 +18,8 @@ premakes_blueprint = Blueprint('premakes', __name__)
 
 @premakes_blueprint.route('/premakes')
 def premakes():
-    """List all premakes (Products with is_premake=True)"""
-    premakes = Product.query.filter_by(is_premake=True).all()
-
-    # Calculate current stock and costs for each premake
-    for premake in premakes:
-        premake.current_stock = calculate_premake_current_stock(premake.id)
-
-        # Calculate cost per unit using the comprehensive utility function
-        premake.cost_per_unit = calculate_premake_cost_per_unit(premake, use_actual_costs=False)  # Use estimated costs for list view
-
-        # Calculate cost per batch
-        premake.cost_per_batch = premake.cost_per_unit * premake.batch_size if premake.batch_size > 0 else 0
-
-        # Format batch size for display with appropriate units
-        premake.display_batch_size, premake.display_unit = format_quantity_with_unit(premake.batch_size, premake.unit)
-
-        # Get appropriate display unit based on premake's unit and batch size
-        display_unit, unit_label = get_appropriate_price_unit(premake.unit, premake.batch_size)
-
-        # Store display unit info for template
-        premake.price_display_unit = display_unit
-        premake.price_unit_label = unit_label
-
-        # Calculate costs for different display units (for toggle functionality)
-        # These are used by the JavaScript toggle in the template
-        if premake.unit in ['kg', 'g']:
-            # Calculate both per 100g and per kg
-            if premake.unit == 'kg':
-                premake.cost_per_100g = (premake.cost_per_unit / 10) if premake.cost_per_unit else 0
-                premake.cost_per_kg = premake.cost_per_unit if premake.cost_per_unit else 0
-            else:  # g
-                premake.cost_per_100g = (premake.cost_per_unit * 100) if premake.cost_per_unit else 0
-                premake.cost_per_kg = (premake.cost_per_unit * 1000) if premake.cost_per_unit else 0
-        elif premake.unit in ['L', 'ml']:
-            # Calculate both per 100ml and per L
-            if premake.unit == 'L':
-                premake.cost_per_100g = (premake.cost_per_unit / 10) if premake.cost_per_unit else 0  # per 100ml
-                premake.cost_per_kg = premake.cost_per_unit if premake.cost_per_unit else 0  # per L
-            else:  # ml
-                premake.cost_per_100g = (premake.cost_per_unit * 100) if premake.cost_per_unit else 0  # per 100ml
-                premake.cost_per_kg = (premake.cost_per_unit * 1000) if premake.cost_per_unit else 0  # per L
-        else:
-            # For piece/unit, just show per unit
-            premake.cost_per_100g = premake.cost_per_unit if premake.cost_per_unit else 0
-            premake.cost_per_kg = premake.cost_per_unit if premake.cost_per_unit else 0
-
-    return render_template('premakes.html', premakes=premakes)
-
-@premakes_blueprint.route('/premakes/debug')
-def premakes_debug():
-    """
-    Debug route to analyze performance of the premakes page.
-    """
-    import time
-    from collections import defaultdict
-    from sqlalchemy import text
-    try:
-        from flask_sqlalchemy.record_queries import get_recorded_queries
-    except ImportError:
-        from flask_sqlalchemy import get_debug_queries as get_recorded_queries
-    
-    current_app.config['SQLALCHEMY_RECORD_QUERIES'] = True
-    
-    debug_info = {
-        'steps': [],
-        'total_time': 0,
-        'queries': [],
-        'table_stats': defaultdict(int)
-    }
-    
-    start_total = time.time()
-    
-    # 1. Fetch Premakes
-    step_start = time.time()
-    premakes = Product.query.filter_by(is_premake=True).all()
-    step_end = time.time()
-    debug_info['steps'].append({
-        'name': 'Fetch Premakes',
-        'time': (step_end - step_start) * 1000,
-        'count': len(premakes)
-    })
-    
-    # 2. Process Loop (This is the suspected bottleneck)
-    step_start = time.time()
-    
-    # We will simulate the exact logic of /premakes_new here to see where it breaks
-    stock_rows = db.session.execute(text(
-        "SELECT product_id, action_type, quantity, supplier_id FROM stock_log WHERE product_id IS NOT NULL AND raw_material_id IS NULL ORDER BY timestamp ASC"
-    )).fetchall()
-    
-    temp_stock = defaultdict(lambda: defaultdict(float))
-    for row in stock_rows:
-        pid, action, qty, sid = row[0], row[1], row[2], row[3]
-        if action == 'set':
-            temp_stock[pid][sid] = qty
-        else:
-            temp_stock[pid][sid] += qty
-            
-    usage_rows = db.session.execute(text("""
-        SELECT pc.component_id, SUM(pl.quantity_produced * pc.quantity) as total_used
-        FROM production_log pl
-        JOIN product_component pc ON pl.product_id = pc.product_id
-        WHERE pc.component_type = 'premake'
-        GROUP BY pc.component_id
-    """)).fetchall()
-    
-    usage_map = {row[0]: row[1] for row in usage_rows}
-    
-    # Cost calculation loop
-    cost_calc_time = 0
-    for premake in premakes:
-        t0 = time.time()
-        # This is the recursive heavy function
-        calculate_premake_cost_per_unit(premake, use_actual_costs=False)
-        t1 = time.time()
-        cost_calc_time += (t1 - t0)
-        
-    step_end = time.time()
-    debug_info['steps'].append({
-        'name': 'Process & Cost Calculation',
-        'time': (step_end - step_start) * 1000,
-        'details': f"Cost Calc Only: {cost_calc_time*1000:.2f}ms"
-    })
-    
-    # Capture queries
-    queries = get_recorded_queries()
-    for q in queries:
-        sql_lower = q.statement.lower()
-        for table in ['product', 'raw_material', 'stock_log', 'production_log', 'product_component', 'raw_material_supplier']:
-            if f'from {table}' in sql_lower or f'join {table}' in sql_lower:
-                debug_info['table_stats'][table] += 1
-        
-        debug_info['queries'].append({
-            'sql': q.statement, 
-            'parameters': q.parameters, 
-            'duration': q.duration, 
-            'context': q.context
-        })
-        
-    debug_info['query_count'] = len(queries)
-    debug_info['total_query_time'] = sum(q['duration'] for q in debug_info['queries']) * 1000
-    
-    end_total = time.time()
-    debug_info['total_time'] = (end_total - start_total) * 1000
-    
-    return render_template('premakes_debug.html', debug_info=debug_info)
-
-@premakes_blueprint.route('/premakes_new')
-def premakes_new():
     """Optimized list of all premakes using app-side joins and bulk fetching"""
-    from collections import defaultdict
-    from sqlalchemy import text
-    from sqlalchemy.orm import joinedload
-    from ..models import RawMaterialSupplier
-
+    
     # 1. Fetch All Premakes
     premakes = Product.query.filter_by(is_premake=True).all()
     premake_map = {p.id: p for p in premakes}
@@ -204,20 +57,15 @@ def premakes_new():
     # 4. Bulk Fetch Material Waste Factors (for effective cost)
     all_materials = RawMaterial.query.all()
     material_waste_map = {m.id: m.waste_percentage for m in all_materials}
-    material_unit_map = {m.id: m.unit for m in all_materials} # Needed for unit conversion if we wanted to be super precise
 
     # 5. Bulk Fetch Stock (Raw SQL)
     # Fetch all stock logs for products/premakes
     stock_rows = db.session.execute(text(
-        "SELECT product_id, action_type, quantity, supplier_id FROM stock_log WHERE product_id IS NOT NULL AND raw_material_id IS NULL"
+        "SELECT product_id, action_type, quantity, supplier_id FROM stock_log WHERE product_id IS NOT NULL AND raw_material_id IS NULL ORDER BY timestamp ASC"
     )).fetchall()
     
     stock_map = defaultdict(float) # premake_id -> total_log_quantity
     
-    # Process logs in memory (handle set vs add)
-    # Since we need to handle SET per supplier logic if it exists (though usually premakes don't have suppliers)
-    # We'll stick to simple aggregation logic: SET resets, ADD adds.
-    # Group by (premake_id, supplier_id) to correctly apply SET logic per stream
     temp_stock = defaultdict(lambda: defaultdict(float))
     
     for row in stock_rows:
@@ -271,13 +119,7 @@ def premakes_new():
                 total_batch_cost += c.quantity * unit_cost
                 
             elif c.component_type == 'packaging':
-                # Packaging cost logic (usually excluded from prime cost, but check specific business logic)
-                # In this system, packaging is often excluded from 'prime cost' but included in 'batch cost'.
-                # For consistency with `calculate_premake_cost_per_unit`, let's check:
-                # The util function ADDS packaging cost.
-                # We need to fetch packaging prices too.
-                # Optimization: For now, assume 0 or small impact, or fetch if needed.
-                # To be exact:
+                # Packaging logic if needed - assume 0 for prime cost consistency or fetch if required
                 pass 
 
         premake = premake_map.get(pid)
@@ -300,7 +142,7 @@ def premakes_new():
         premake.cost_per_unit = get_premake_cost(premake.id)
         premake.cost_per_batch = premake.cost_per_unit * (premake.batch_size or 0)
         
-        # Display Formatting (same as before)
+        # Display Formatting
         premake.display_batch_size, premake.display_unit = format_quantity_with_unit(premake.batch_size, premake.unit)
         display_unit, unit_label = get_appropriate_price_unit(premake.unit, premake.batch_size)
         premake.price_display_unit = display_unit

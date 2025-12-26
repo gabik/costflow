@@ -4514,3 +4514,9 @@ msgstr "חיפוש לפי שם מוצר..."
 
 msgid "Search by premake name..."
 msgstr "חיפוש לפי שם הכנה..."
+
+msgid "Add New Premake"
+msgstr "הוסף הכנה חדשה"
+
+msgid "Manage intermediate recipes and stock."
+msgstr "ניהול מתכוני ביניים ומלאי."
