@@ -87,14 +87,15 @@ def products():
             premake_stock_cache[pid] = calculate_premake_current_stock(pid)
         return premake_stock_cache[pid]
 
-    # E. Premake Cost Map (Recursive Cost)
-    # We need a map of ALL products (including premakes) to calculate costs recursively
-    # We already fetched 'products' (visible ones), but we might need invisible premakes.
-    # Ideally, we should fetch ALL products with is_premake=True as well.
-    all_premakes = Product.query.filter_by(is_premake=True).options(joinedload(Product.components)).all()
-    # Merge into a master map for lookup
+    # E. Product & Premake Master Map (Recursive Cost)
+    # We need a map of ALL items that can be components (premakes AND preproducts)
+    component_products = Product.query.filter(
+        (Product.is_premake == True) | (Product.is_preproduct == True)
+    ).options(joinedload(Product.components)).all()
+    
+    # Merge visible products and component products into a master map for lookup
     all_product_map = {p.id: p for p in products}
-    for p in all_premakes:
+    for p in component_products:
         all_product_map[p.id] = p
         
     cost_cache = {}
@@ -107,36 +108,38 @@ def products():
         visited.add(pid)
         prod = all_product_map.get(pid)
         
-        # If we missed fetching it (rare edge case), fallback or return 0
         if not prod: return 0
         
         total_cost = 0
+        loss_quantity = 0 # Track loss weight/units
+        
         for comp in prod.components:
             if comp.component_type == 'raw_material':
-                # Price * Quantity * WasteFactor
                 mat = material_map.get(comp.component_id)
                 base_price = price_map.get(comp.component_id, 0)
                 if mat:
                     waste = mat.waste_percentage
                     eff_qty = comp.quantity / (1 - waste/100.0) if waste < 100 else comp.quantity
                     total_cost += eff_qty * base_price
-            elif comp.component_type == 'premake':
-                # Recursive
+            elif comp.component_type in ['premake', 'product']:
+                # Recursive for both premakes and preproducts
                 u_cost = get_unit_cost(comp.component_id, visited)
                 total_cost += comp.quantity * u_cost
+            elif comp.component_type == 'loss':
+                # Loss has negative quantity, decreases effective yield
+                loss_quantity += comp.quantity
             elif comp.component_type == 'packaging':
-                # Packaging excluded from prime cost usually, but let's check utils logic
-                # calculate_prime_cost excludes packaging. We follow that.
                 pass
                 
-        # Divide by yield
-        # If it's a premake, use batch_size. If product, use products_per_recipe.
+        # Divide by yield (net of loss)
         if prod.is_premake:
             batch_sz = prod.batch_size if prod.batch_size else 1
-            final_cost = total_cost / batch_sz
+            effective_yield = max(0.001, batch_sz + loss_quantity)
+            final_cost = total_cost / effective_yield
         else:
             yield_amt = prod.products_per_recipe if prod.products_per_recipe else 1
-            final_cost = total_cost / yield_amt
+            effective_yield = max(0.001, yield_amt + loss_quantity)
+            final_cost = total_cost / effective_yield
             
         cost_cache[pid] = final_cost
         return final_cost
@@ -157,7 +160,6 @@ def products():
                 available = stock_map.get(component.component_id, 0)
                 required = component.quantity
                 
-                # Check unlimited
                 mat = material_map.get(component.component_id)
                 if mat and mat.is_unlimited:
                     available = float('inf')
@@ -169,15 +171,15 @@ def products():
                         'required': required,
                         'available': available
                     })
-            elif component.component_type == 'premake':
+            elif component.component_type in ['premake', 'product']:
+                # Check stock for both premakes and preproduct components
                 available = get_premake_stock(component.component_id)
                 required = component.quantity
                 if available < required:
                     can_produce = False
-                    # Name lookup needs premake object
                     premake_obj = all_product_map.get(component.component_id)
                     missing_materials.append({
-                        'name': premake_obj.name if premake_obj else f'Premake {component.component_id}',
+                        'name': premake_obj.name if premake_obj else f'Component {component.component_id}',
                         'required': required,
                         'available': available
                     })
