@@ -4511,3 +4511,6 @@ msgstr "פחת לפי קטגוריה"
 
 msgid "Search by product name..."
 msgstr "חיפוש לפי שם מוצר..."
+
+msgid "Search by premake name..."
+msgstr "חיפוש לפי שם הכנה..."

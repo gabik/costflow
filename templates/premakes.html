@@ -6,88 +6,67 @@
     <div class="col-12 d-flex justify-content-between align-items-center">
         <div>
             <h1 class="display-6 fw-bold text-primary">{{ _('Premakes') }}</h1>
-            <p class="text-secondary">{{ _('Manage base recipes and premakes.') }}</p>
+            <p class="text-secondary">{{ _('Manage intermediate recipes and stock.') }}</p>
         </div>
-        <a href="{{ url_for('premakes.add_premake') }}" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-2"></i> {{ _('Add Premake') }}
-        </a>
+        <div>
+            <a href="{{ url_for('premakes.add_premake') }}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i> {{ _('Add New Premake') }}
+            </a>
+        </div>
     </div>
 </div>
 
-<!-- Search and Filter -->
-<div class="card shadow-sm mb-4 bg-light border-0">
-    <div class="card-body">
-        <div class="row g-3">
-            <div class="col-md-8">
-                <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                    <input type="text" id="searchInput" class="form-control border-start-0" placeholder="{{ _('Search premake...') }}">
-                </div>
-            </div>
-            <div class="col-md-4">
-                <select id="categoryFilter" class="form-select">
-                    <option value="all">{{ _('All Categories') }}</option>
-                    <!-- Options populated by JS -->
-                </select>
-            </div>
+<!-- Search and Filter Bar -->
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="input-group">
+            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+            <input type="text" id="premakeSearchInput" class="form-control border-start-0" placeholder="{{ _('Search by premake name...') }}">
         </div>
     </div>
 </div>
 
 <div class="card shadow-sm">
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0" id="premakesTable">
             <thead class="table-light">
             <tr>
-                <th>{{ _('Name') }}</th>
-                <th>{{ _('Category') }}</th>
-                <th>{{ _('Batch Quantity') }}</th>
-                <th>{{ _('Unit') }}</th>
-                <th class="text-end">{{ _('Price per Batch') }}</th>
-                <th class="text-end">
-                    <div class="d-flex align-items-center justify-content-end">
-                        <span class="me-2">{{ _('Price per') }}</span>
-                        <div class="btn-group btn-group-sm" role="group">
-                            <input type="radio" class="btn-check" name="priceUnit" id="price100g" value="100g" checked autocomplete="off">
-                            <label class="btn btn-outline-primary" for="price100g">100g</label>
-                            <input type="radio" class="btn-check" name="priceUnit" id="price1kg" value="1kg" autocomplete="off">
-                            <label class="btn btn-outline-primary" for="price1kg">1kg</label>
-                        </div>
-                    </div>
-                </th>
-                <th class="text-end">{{ _('Actions') }}</th>
+                <th class="sortable" style="cursor: pointer;" data-sort="name">{{ _('Premake Name') }} <i class="bi bi-arrow-down-up text-muted small"></i></th>
+                <th class="sortable" style="cursor: pointer;" data-sort="number">{{ _('Batch Size') }} <i class="bi bi-arrow-down-up text-muted small"></i></th>
+                <th class="sortable" style="cursor: pointer;" data-sort="number">{{ _('Current Stock') }} <i class="bi bi-arrow-down-up text-muted small"></i></th>
+                <th class="sortable" style="cursor: pointer;" data-sort="currency">{{ _('Cost per Batch') }} <i class="bi bi-arrow-down-up text-muted small"></i></th>
+                <th class="sortable" style="cursor: pointer;" data-sort="currency">{{ _('Cost per Unit') }} <i class="bi bi-arrow-down-up text-muted small"></i></th>
+                <th class="text-end no-sort">{{ _('Actions') }}</th>
             </tr>
             </thead>
-            <tbody>
+            <tbody id="premakesTableBody">
             {% for premake in premakes %}
-            <tr class="premake-row" data-category="{{ premake.category.name if premake.category else _('No Category') }}">
-                <td class="fw-medium premake-name">{{ premake.name }}</td>
-                <td><span class="badge bg-light text-dark border">{{ premake.category.name if premake.category else _('No Category') }}</span></td>
-                <td>{{ "%.2f"|format(premake.display_batch_size) }}</td>
-                <td>{{ premake.display_unit }}</td>
-                <td class="text-end">₪{{ "%.2f"|format(premake.cost_per_batch) }}</td>
-                <td class="text-end price-cell"
-                    data-price-100g="{{ "%.2f"|format(premake.cost_per_100g) }}"
-                    data-price-kg="{{ "%.2f"|format(premake.cost_per_kg) }}"
-                    data-unit="{{ premake.unit }}">
-                    <span class="price-display">
-                        {% if premake.unit in ['g', 'kg', 'ml', 'L'] %}
-                            ₪{{ "%.2f"|format(premake.cost_per_100g) }}
-                        {% else %}
-                            ₪{{ "%.2f"|format(premake.cost_per_100g) }}
-                        {% endif %}
-                    </span>
-                    <span class="unit-display">
-                        {% if premake.unit in ['g', 'kg'] %}
-                            /100g
-                        {% elif premake.unit in ['ml', 'L'] %}
-                            /100ml
-                        {% elif premake.unit == 'piece' %}
-                            /{{ _('piece') }}
-                        {% else %}
-                            /{{ _('unit') }}
-                        {% endif %}
-                    </span>
+            <tr class="premake-row">
+                <td class="fw-medium" data-value="{{ premake.name }}">
+                    {{ premake.name }}
+                </td>
+                <td data-value="{{ premake.batch_size }}">
+                    {{ "%.2f"|format(premake.display_batch_size) }} {{ premake.display_unit }}
+                </td>
+                <td data-value="{{ premake.current_stock }}">
+                    {% if premake.current_stock > 0 %}
+                        <span class="badge bg-success">
+                            {{ "%.2f"|format(premake.current_stock) }} {{ premake.unit }}
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary">0 {{ premake.unit }}</span>
+                    {% endif %}
+                </td>
+                <td data-value="{{ premake.cost_per_batch }}">
+                    {{ currency_symbol }}{{ "%.2f"|format(premake.cost_per_batch) }}
+                </td>
+                <td data-value="{{ premake.cost_per_unit }}">
+                    <div class="price-container">
+                        <span class="price-value" data-kg="{{ "%.2f"|format(premake.cost_per_kg) }}" data-100g="{{ "%.2f"|format(premake.cost_per_100g) }}">
+                            {{ currency_symbol }}{{ "%.2f"|format(premake.cost_per_unit) }}
+                        </span>
+                        <small class="text-muted unit-label">/ {{ premake.unit }}</small>
+                    </div>
                 </td>
                 <td class="text-end">
                     <div class="btn-group">
@@ -97,6 +76,13 @@
                         <a href="{{ url_for('premakes.edit_premake', premake_id=premake.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('Edit') }}">
                             <i class="bi bi-pencil"></i>
                         </a>
+                        <button type="button" class="btn btn-sm btn-outline-primary" 
+                                data-bs-toggle="modal" data-bs-target="#updateStockModal"
+                                data-premake-id="{{ premake.id }}"
+                                data-premake-name="{{ premake.name }}"
+                                title="{{ _('Update Stock') }}">
+                            <i class="bi bi-box-seam"></i>
+                        </button>
                         <form action="{{ url_for('premakes.delete_premake', premake_id=premake.id) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ _('Are you sure you want to delete this premake?') }}');">
                             <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ _('Delete') }}">
                                 <i class="bi bi-trash"></i>
@@ -107,106 +93,131 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="7" class="text-center py-4 text-muted">{{ _('No premakes found.') }}</td>
+                <td colspan="6" class="text-center py-4 text-muted">{{ _('No premakes found.') }}</td>
             </tr>
             {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
-{% endblock %}
 
-{% block scripts %}
+<!-- Update Stock Modal -->
+<div class="modal fade" id="updateStockModal" tabindex="-1" aria-labelledby="updateStockModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('premakes.update_premake_stock') }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateStockModalLabel">{{ _('Update Stock') }} - <span id="modalPremakeName"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="premake_id" id="modalPremakeId">
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">{{ _('Quantity') }}</label>
+                        <input type="number" step="0.01" class="form-control" name="quantity" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ _('Action') }}</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="action_type" value="add" id="actionAdd" checked>
+                            <label class="form-check-label" for="actionAdd">{{ _('Add to current stock') }}</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="action_type" value="set" id="actionSet">
+                            <label class="form-check-label" for="actionSet">{{ _('Set absolute stock level') }}</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ _('Update') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Search and Filter Logic
-        const searchInput = document.getElementById('searchInput');
-        const categoryFilter = document.getElementById('categoryFilter');
-        const rows = document.querySelectorAll('.premake-row');
+document.addEventListener('DOMContentLoaded', function() {
+    const table = document.getElementById('premakesTable');
+    const tbody = document.getElementById('premakesTableBody');
+    const searchInput = document.getElementById('premakeSearchInput');
+    const headers = table.querySelectorAll('th.sortable');
 
-        // Extract unique categories
-        const categories = new Set();
+    // Filter Logic
+    searchInput.addEventListener('keyup', function(e) {
+        const term = e.target.value.toLowerCase();
+        const rows = tbody.querySelectorAll('tr.premake-row');
+
         rows.forEach(row => {
-            categories.add(row.getAttribute('data-category'));
+            const nameCell = row.querySelector('td:nth-child(1)');
+            if (nameCell) {
+                const val = nameCell.dataset.value || nameCell.textContent;
+                row.style.display = val.toLowerCase().includes(term) ? '' : 'none';
+            }
         });
-
-        // Populate category dropdown
-        categories.forEach(category => {
-            const option = document.createElement('option');
-            option.value = category;
-            option.textContent = category;
-            categoryFilter.appendChild(option);
-        });
-
-        function filterTable() {
-            const searchTerm = searchInput.value.toLowerCase();
-            const selectedCategory = categoryFilter.value;
-
-            rows.forEach(row => {
-                const name = row.querySelector('.premake-name').textContent.toLowerCase();
-                const category = row.getAttribute('data-category');
-
-                const matchesSearch = name.includes(searchTerm);
-                const matchesCategory = selectedCategory === 'all' || category === selectedCategory;
-
-                if (matchesSearch && matchesCategory) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        }
-
-        searchInput.addEventListener('keyup', filterTable);
-        categoryFilter.addEventListener('change', filterTable);
-
-        // Price toggle functionality
-        const price100gRadio = document.getElementById('price100g');
-        const price1kgRadio = document.getElementById('price1kg');
-
-        function updatePriceDisplay() {
-            const show100g = price100gRadio.checked;
-            const priceCells = document.querySelectorAll('.price-cell');
-
-            priceCells.forEach(cell => {
-                const priceDisplay = cell.querySelector('.price-display');
-                const unitDisplay = cell.querySelector('.unit-display');
-                const unit = cell.getAttribute('data-unit');
-
-                if (show100g) {
-                    // Show per 100g/100ml
-                    const price100g = cell.getAttribute('data-price-100g');
-                    priceDisplay.textContent = '₪' + price100g;
-
-                    if (unit === 'g' || unit === 'kg') {
-                        unitDisplay.textContent = '/100g';
-                    } else if (unit === 'ml' || unit === 'L') {
-                        unitDisplay.textContent = '/100ml';
-                    } else if (unit === 'piece') {
-                        unitDisplay.textContent = '/' + "{{ _('piece') }}";
-                    } else {
-                        unitDisplay.textContent = '/' + "{{ _('unit') }}";
-                    }
-                } else {
-                    // Show per kg/L
-                    const priceKg = cell.getAttribute('data-price-kg');
-                    priceDisplay.textContent = '₪' + priceKg;
-
-                    if (unit === 'g' || unit === 'kg') {
-                        unitDisplay.textContent = '/kg';
-                    } else if (unit === 'ml' || unit === 'L') {
-                        unitDisplay.textContent = '/L';
-                    } else if (unit === 'piece') {
-                        unitDisplay.textContent = '/' + "{{ _('piece') }}";
-                    } else {
-                        unitDisplay.textContent = '/' + "{{ _('unit') }}";
-                    }
-                }
-            });
-        }
-
-        price100gRadio.addEventListener('change', updatePriceDisplay);
-        price1kgRadio.addEventListener('change', updatePriceDisplay);
     });
+
+    // Sort Logic
+    headers.forEach((header) => {
+        header.addEventListener('click', () => {
+            const type = header.dataset.sort;
+            const columnIndex = header.cellIndex;
+            const rows = Array.from(tbody.querySelectorAll('tr.premake-row'));
+            const isAsc = !header.classList.contains('asc');
+            
+            headers.forEach(h => {
+                h.classList.remove('asc', 'desc');
+                const icon = h.querySelector('i');
+                if(icon) icon.className = 'bi bi-arrow-down-up text-muted small';
+            });
+
+            header.classList.toggle('asc', isAsc);
+            header.classList.toggle('desc', !isAsc);
+            const icon = header.querySelector('i');
+            if(icon) icon.className = isAsc ? 'bi bi-sort-down text-primary' : 'bi bi-sort-up text-primary';
+
+            rows.sort((a, b) => {
+                const aCell = a.children[columnIndex];
+                const bCell = b.children[columnIndex];
+                const aRaw = aCell.dataset.value || aCell.innerText.trim();
+                const bRaw = bCell.dataset.value || bCell.innerText.trim();
+                
+                let aVal, bVal;
+                if (type === 'number' || type === 'currency') {
+                    aVal = parseFloat(aRaw);
+                    bVal = parseFloat(bRaw);
+                    if (isNaN(aVal)) aVal = isAsc ? Infinity : -Infinity;
+                    if (isNaN(bVal)) bVal = isAsc ? Infinity : -Infinity;
+                } else {
+                    aVal = aRaw.toLowerCase();
+                    bVal = bRaw.toLowerCase();
+                }
+
+                if (aVal < bVal) return isAsc ? -1 : 1;
+                if (aVal > bVal) return isAsc ? 1 : -1;
+                return 0;
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
+        });
+    });
+
+    // Modal Logic
+    const updateStockModal = document.getElementById('updateStockModal');
+    if (updateStockModal) {
+        updateStockModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const premakeId = button.getAttribute('data-premake-id');
+            const premakeName = button.getAttribute('data-premake-name');
+            
+            const modalTitle = updateStockModal.querySelector('#modalPremakeName');
+            const modalInputId = updateStockModal.querySelector('#modalPremakeId');
+            
+            modalTitle.textContent = premakeName;
+            modalInputId.value = premakeId;
+        });
+    }
+});
 </script>
 {% endblock %}
