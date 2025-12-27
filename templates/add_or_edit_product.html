@@ -888,11 +888,12 @@
     }
 
     function handlePreproductChange(selectElement) {
-        const row = selectElement.closest('.row');
+        const row = selectElement.closest('.preproduct-row');
         const unitSelect = row.querySelector('.unit-select');
 
         const selectedOption = selectElement.options[selectElement.selectedIndex];
-        const baseUnit = selectedOption.getAttribute('data-unit') || '{{ _("Unit") }}';
+        // Use 'unit' as fallback instead of localized string to ensure logic consistency
+        const baseUnit = selectedOption.getAttribute('data-unit') || 'unit';
 
         // Clear existing options
         unitSelect.innerHTML = '';
@@ -901,7 +902,7 @@
         if (baseUnit === 'kg' || baseUnit === 'g') {
             // Weight-based units - provide conversion options
             unitSelect.innerHTML = '<option value="kg">kg</option><option value="g">g</option>';
-            // Set to base unit by default
+            // Set to base unit by default (or kg if generic)
             unitSelect.value = baseUnit;
         } else if (baseUnit === 'L' || baseUnit === 'ml') {
             // Volume units - provide conversion options
@@ -909,14 +910,12 @@
             // Set to base unit by default
             unitSelect.value = baseUnit;
         } else {
-            // Unit-based (unit, piece, etc.) - no conversion
+            // Unit-based (unit, piece, etc.) - no conversion, just the base unit
             unitSelect.innerHTML = `<option value="${baseUnit}">${baseUnit}</option>`;
+            unitSelect.value = baseUnit;
         }
-
-        // Trigger cost recalculation
-        if (typeof calculateTotalCost === 'function') {
-            calculateTotalCost();
-        }
+        
+        calculateTotalCost();
     }
 
     function updateUnitOptions(selectElement, baseUnit, selectedUnit = null) {
