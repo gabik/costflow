@@ -49,6 +49,9 @@ def products():
         mat_prices[rms.raw_material_id].append(rms)
         
     for mid, links in mat_prices.items():
+        # Sort links by ID to ensure deterministic fallback if no primary exists
+        links.sort(key=lambda x: x.id)
+        
         # Primary first, else first available
         selected = next((l for l in links if l.is_primary), links[0] if links else None)
         if selected:
@@ -113,6 +116,10 @@ def products():
         
         total_weight = 0
         for comp in prod.components:
+            # Explicitly ignore packaging in weight calculation
+            if comp.component_type == 'packaging':
+                continue
+
             # Raw materials
             if comp.component_type == 'raw_material':
                 mat = material_map.get(comp.component_id)
@@ -1237,83 +1244,3 @@ def restore_product(product_id):
 
     return redirect(url_for('products.products') + '?show_archived=true')
 
-@products_blueprint.route('/products/debug_170')
-def debug_170():
-    from sqlalchemy.orm import joinedload
-    from collections import defaultdict
-    from ..models import RawMaterialSupplier
-
-    # 1. Fetch ALL products/premakes to ensure map is complete for recursion
-    products = Product.query.options(joinedload(Product.components)).all()
-    all_product_map = {p.id: p for p in products}
-    
-    # 2. Materials & Prices
-    all_materials = RawMaterial.query.all()
-    material_map = {m.id: m for m in all_materials}
-    
-    # ... (prices code remains same) ...
-
-    log = []
-
-    def get_recipe_weight(pid, visited=None):
-        if visited is None: visited = set()
-        visited.add(pid)
-        prod = all_product_map.get(pid)
-        
-        total_weight = 0
-        log.append(f"Calculating Weight for {pid} ({prod.name})")
-        
-        for comp in prod.components:
-            if comp.component_type == 'packaging':
-                log.append(f"  - Packaging {comp.component_id}: IGNORED")
-                continue
-
-            if comp.component_type == 'raw_material':
-                mat = material_map.get(comp.component_id)
-                if mat and mat.unit in ['kg', 'g', 'L', 'ml']:
-                    log.append(f"  + Material {comp.component_id}: {comp.quantity}kg")
-                    total_weight += comp.quantity
-                else:
-                    log.append(f"  + Material {comp.component_id} (Unit: {mat.unit if mat else '?'}) IGNORED in weight calc")
-                    
-            elif comp.component_type == 'premake':
-                child = all_product_map.get(comp.component_id)
-                log.append(f"  + Premake {comp.component_id} ({child.name if child else '?'}) Qty: {comp.quantity}")
-                
-                if child:
-                    child_unit = getattr(child, 'unit', 'kg')
-                    if child_unit in ['piece', 'unit', 'units']:
-                        child_batch_w = get_recipe_weight(comp.component_id, visited)
-                        child_yield = child.batch_size if child.batch_size and child.batch_size > 0 else 1
-                        child_unit_w = child_batch_w / child_yield
-                        contrib = comp.quantity * child_unit_w
-                        total_weight += contrib
-                        log.append(f"    -> Premake Unit Calc: BatchW={child_batch_w:.4f} / BatchSize={child_yield} = {child_unit_w:.4f}/unit. Total={contrib:.4f}")
-                    else:
-                        total_weight += comp.quantity
-                        log.append(f"    -> Added directly (weight unit): {comp.quantity}")
-
-            elif comp.component_type == 'product':
-                child = all_product_map.get(comp.component_id)
-                log.append(f"  + Preproduct {comp.component_id} ({child.name if child else '?'}) Qty: {comp.quantity}")
-                
-                if child:
-                    child_unit = getattr(child, 'unit', 'unit')
-                    if child_unit in ['kg', 'g', 'L', 'ml']:
-                        total_weight += comp.quantity
-                        log.append(f"    -> Added directly (weight unit): {comp.quantity}")
-                    else:
-                        child_w = get_recipe_weight(comp.component_id, visited)
-                        yield_amt = child.products_per_recipe if child.products_per_recipe else 1
-                        unit_w = child_w / yield_amt
-                        contrib = comp.quantity * unit_w
-                        total_weight += contrib
-                        log.append(f"    -> Unit Calc: ChildTotal={child_w:.4f} / Yield={yield_amt} = {unit_w:.4f}/unit. Total contrib={contrib:.4f}")
-                        
-        log.append(f"= Total Weight {pid}: {total_weight:.4f}")
-        return total_weight
-
-    weight_168 = get_recipe_weight(168)
-    weight_170 = get_recipe_weight(170)
-    
-    return "<br>".join(log)
