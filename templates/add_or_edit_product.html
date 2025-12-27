@@ -914,22 +914,28 @@
         // Clear existing options
         unitSelect.innerHTML = '';
 
-        // Add unit options based on the preproduct's base unit
-        if (baseUnit === 'kg' || baseUnit === 'g') {
-            // Weight-based units - provide conversion options
-            unitSelect.innerHTML = '<option value="kg">kg</option><option value="g">g</option>';
-            // Set to base unit by default (or kg if generic)
-            unitSelect.value = baseUnit;
-        } else if (baseUnit === 'L' || baseUnit === 'ml') {
-            // Volume units - provide conversion options
-            unitSelect.innerHTML = '<option value="L">L</option><option value="ml">ml</option>';
-            // Set to base unit by default
-            unitSelect.value = baseUnit;
-        } else {
-            // Unit-based (unit, piece, etc.) - no conversion, just the base unit
-            unitSelect.innerHTML = `<option value="${baseUnit}">${baseUnit}</option>`;
-            unitSelect.value = baseUnit;
+        // Always add the base unit first
+        const option = document.createElement('option');
+        option.value = baseUnit;
+        option.text = baseUnit;
+        unitSelect.add(option);
+
+        // Add standard conversions if applicable
+        if (['kg', 'g'].includes(baseUnit)) {
+            if (baseUnit !== 'kg') unitSelect.innerHTML += '<option value="kg">kg</option>';
+            if (baseUnit !== 'g') unitSelect.innerHTML += '<option value="g">g</option>';
+        } else if (['L', 'ml'].includes(baseUnit)) {
+            if (baseUnit !== 'L') unitSelect.innerHTML += '<option value="L">L</option>';
+            if (baseUnit !== 'ml') unitSelect.innerHTML += '<option value="ml">ml</option>';
         }
+        
+        // Always allow 'unit'/'piece' if it's different from base
+        if (!['unit', 'piece', 'units'].includes(baseUnit)) {
+             unitSelect.innerHTML += '<option value="unit">{{ _("Unit") }}</option>';
+        }
+        
+        // Select base unit by default
+        unitSelect.value = baseUnit;
         
         calculateTotalCost();
     }
