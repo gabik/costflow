@@ -113,24 +113,31 @@ def products():
         
         total_weight = 0
         for comp in prod.components:
-            # Raw materials and premakes are stored in kg/L base units
+            # Raw materials
             if comp.component_type == 'raw_material':
-                total_weight += comp.quantity
+                mat = material_map.get(comp.component_id)
+                if mat and mat.unit in ['kg', 'g', 'L', 'ml']:
+                    # It's a weight/volume unit, safe to add quantity (stored as base kg/L)
+                    total_weight += comp.quantity
+                else:
+                    # It's a unit/piece. We don't know the weight, so we ignore it 
+                    # to prevent "12 pieces" becoming "12kg".
+                    pass
+                    
             elif comp.component_type == 'premake':
                 # Premakes are products with is_premake=True.
-                # If the premake unit is 'unit'/'piece', we treat it like a preproduct (qty * unit_weight)
-                # Otherwise (kg/g/L), the quantity IS the weight.
-                
                 child = all_product_map.get(comp.component_id)
-                if child and getattr(child, 'unit', 'kg') in ['piece', 'unit', 'units']:
-                    # It's a unit-based premake. Calculate its unit weight.
-                    child_batch_weight = get_recipe_weight(comp.component_id, visited)
-                    child_yield = child.batch_size if child.batch_size and child.batch_size > 0 else 1
-                    child_unit_weight = child_batch_weight / child_yield
-                    total_weight += comp.quantity * child_unit_weight
-                else:
-                    # It's a weight-based premake (quantity is already in kg)
-                    total_weight += comp.quantity
+                if child:
+                    child_unit = getattr(child, 'unit', 'kg')
+                    if child_unit in ['piece', 'unit', 'units']:
+                        # Unit-based premake. Calculate its unit weight.
+                        child_batch_weight = get_recipe_weight(comp.component_id, visited)
+                        child_yield = child.batch_size if child.batch_size and child.batch_size > 0 else 1
+                        child_unit_weight = child_batch_weight / child_yield
+                        total_weight += comp.quantity * child_unit_weight
+                    else:
+                        # Weight-based premake (quantity is already in kg)
+                        total_weight += comp.quantity
                     
             elif comp.component_type == 'product':
                 # Preproduct logic
@@ -138,20 +145,12 @@ def products():
                 if child_prod:
                     child_unit = getattr(child_prod, 'unit', 'unit')
                     if child_unit in ['kg', 'g', 'L', 'ml']:
-                        # Weight based - stored as kg/L
                         total_weight += comp.quantity
                     else:
-                        # Unit based - stored as count (e.g. 12 buns)
-                        # We need the weight of one unit of the child product
-                        
-                        # Recursive call to get the child's total recipe weight
+                        # Unit based - convert using child recipe weight
                         child_recipe_weight = get_recipe_weight(comp.component_id, visited)
-                        
-                        # Calculate weight per unit for the child
                         child_yield = child_prod.products_per_recipe if child_prod.products_per_recipe and child_prod.products_per_recipe > 0 else 1
                         child_unit_weight = child_recipe_weight / child_yield
-                        
-                        # Add total weight contribution: (12 buns) * (0.1kg per bun) = 1.2kg
                         total_weight += comp.quantity * child_unit_weight
                         
             elif comp.component_type == 'loss':
@@ -1278,8 +1277,30 @@ def debug_170():
         
         for comp in prod.components:
             if comp.component_type == 'raw_material':
-                log.append(f"  + Material {comp.component_id}: {comp.quantity}kg")
-                total_weight += comp.quantity
+                mat = material_map.get(comp.component_id)
+                if mat and mat.unit in ['kg', 'g', 'L', 'ml']:
+                    log.append(f"  + Material {comp.component_id}: {comp.quantity}kg")
+                    total_weight += comp.quantity
+                else:
+                    log.append(f"  + Material {comp.component_id} (Unit: {mat.unit if mat else '?'}) IGNORED in weight calc")
+                    
+            elif comp.component_type == 'premake':
+                child = all_product_map.get(comp.component_id)
+                log.append(f"  + Premake {comp.component_id} ({child.name if child else '?'}) Qty: {comp.quantity}")
+                
+                if child:
+                    child_unit = getattr(child, 'unit', 'kg')
+                    if child_unit in ['piece', 'unit', 'units']:
+                        child_batch_w = get_recipe_weight(comp.component_id, visited)
+                        child_yield = child.batch_size if child.batch_size and child.batch_size > 0 else 1
+                        child_unit_w = child_batch_w / child_yield
+                        contrib = comp.quantity * child_unit_w
+                        total_weight += contrib
+                        log.append(f"    -> Premake Unit Calc: BatchW={child_batch_w:.4f} / BatchSize={child_yield} = {child_unit_w:.4f}/unit. Total={contrib:.4f}")
+                    else:
+                        total_weight += comp.quantity
+                        log.append(f"    -> Added directly (weight unit): {comp.quantity}")
+
             elif comp.component_type == 'product':
                 child = all_product_map.get(comp.component_id)
                 log.append(f"  + Preproduct {comp.component_id} ({child.name if child else '?'}) Qty: {comp.quantity}")
