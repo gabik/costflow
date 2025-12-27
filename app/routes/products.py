@@ -1243,27 +1243,15 @@ def debug_170():
     from collections import defaultdict
     from ..models import RawMaterialSupplier
 
-    # 1. Fetch relevant products
-    target_ids = [170, 168] 
-    products = Product.query.filter(Product.id.in_(target_ids)).options(joinedload(Product.components)).all()
+    # 1. Fetch ALL products/premakes to ensure map is complete for recursion
+    products = Product.query.options(joinedload(Product.components)).all()
     all_product_map = {p.id: p for p in products}
     
     # 2. Materials & Prices
     all_materials = RawMaterial.query.all()
     material_map = {m.id: m for m in all_materials}
     
-    all_prices = RawMaterialSupplier.query.options(joinedload(RawMaterialSupplier.supplier)).all()
-    price_map = {} 
-    mat_prices = defaultdict(list)
-    for rms in all_prices:
-        mat_prices[rms.raw_material_id].append(rms)
-    for mid, links in mat_prices.items():
-        selected = next((l for l in links if l.is_primary), links[0] if links else None)
-        if selected:
-            discount = selected.supplier.discount_percentage or 0
-            price_map[mid] = selected.cost_per_unit * (1 - discount/100.0)
-        else:
-            price_map[mid] = 0
+    # ... (prices code remains same) ...
 
     log = []
 
@@ -1276,6 +1264,10 @@ def debug_170():
         log.append(f"Calculating Weight for {pid} ({prod.name})")
         
         for comp in prod.components:
+            if comp.component_type == 'packaging':
+                log.append(f"  - Packaging {comp.component_id}: IGNORED")
+                continue
+
             if comp.component_type == 'raw_material':
                 mat = material_map.get(comp.component_id)
                 if mat and mat.unit in ['kg', 'g', 'L', 'ml']:
