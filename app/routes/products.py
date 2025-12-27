@@ -1236,7 +1236,9 @@ def restore_product(product_id):
         db.session.rollback()
         flash(_('Error restoring product: {}').format(str(e)), 'error')
 
-    return redirect(url_for('products.products') + '?show_archived=true')@products_blueprint.route('/products/debug_170')
+    return redirect(url_for('products.products') + '?show_archived=true')
+
+@products_blueprint.route('/products/debug_170')
 def debug_170():
     from sqlalchemy.orm import joinedload
     from collections import defaultdict
