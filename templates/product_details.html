@@ -298,6 +298,92 @@
 </div>
 {% endif %}
 
+<!-- Packaging -->
+{% if packaging_costs %}
+<div class="card mb-3">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 d-flex align-items-center">
+            <i class="bi bi-box-seam text-secondary me-2"></i>
+            {{ _('Packaging') }}
+            <span class="badge bg-secondary ms-auto">{{ packaging_costs|length }} {{ _('items') }}</span>
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">{{ _('Packaging') }}</th>
+                        <th>{{ _('Quantity') }}</th>
+                        <th>{{ _('Price per Packaging Unit') }}</th>
+                        <th>{{ _('Cost per Recipe') }}</th>
+                        <th class="text-end">{{ _('Cost per Product') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in packaging_costs %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>{{ "%.2f"|format(item.quantity) }}</td>
+                        <td>₪{{ "%.2f"|format(item.price_per_unit) }}</td>
+                        <td>₪{{ "{:.2f}".format(item.price_per_recipe) if item.price_per_recipe >= 0.01 else "{:.4f}".format(item.price_per_recipe) }}</td>
+                        <td class="text-end fw-bold">₪{{ "{:.2f}".format(item.price_per_product) if item.price_per_product >= 0.01 else "{:.4f}".format(item.price_per_product) }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="table-light">
+                        <td colspan="4" class="text-end fw-bold">{{ _('Total Packaging:') }}</td>
+                        <td class="text-end fw-bold">
+                            {% set packaging_total = namespace(value=0) %}
+                            {% for item in packaging_costs %}
+                                {% set packaging_total.value = packaging_total.value + item.price_per_product %}
+                            {% endfor %}
+                            ₪{{ "%.2f"|format(packaging_total.value) }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Loss / Waste -->
+{% if loss_costs %}
+<div class="card mb-3">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 d-flex align-items-center text-danger">
+            <i class="bi bi-trash text-danger me-2"></i>
+            {{ _('Loss / Waste') }}
+            <span class="badge bg-danger ms-auto">{{ loss_costs|length }} {{ _('items') }}</span>
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">{{ _('Description') }}</th>
+                        <th>{{ _('Quantity') }}</th>
+                        <th>{{ _('Unit') }}</th>
+                        <th class="text-end">{{ _('Impact') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in loss_costs %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>{{ "%.2f"|format(item.quantity) }}</td>
+                        <td>{{ item.unit }}</td>
+                        <td class="text-end text-muted">{{ _('Reduces Yield') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- Cost Summary -->
 <div class="card border-primary">
     <div class="card-header bg-primary text-white">
@@ -326,6 +412,12 @@
                         <tr>
                             <td>{{ _('Preproducts:') }}</td>
                             <td class="text-end">₪{{ "%.2f"|format(preproduct_total.value if preproduct_total is defined else 0) }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if packaging_costs %}
+                        <tr class="text-muted">
+                            <td>{{ _('Packaging (Excluded from Production Cost):') }}</td>
+                            <td class="text-end">₪{{ "%.2f"|format(packaging_total.value if packaging_total is defined else 0) }}</td>
                         </tr>
                         {% endif %}
                         <tr class="table-primary fw-bold">
