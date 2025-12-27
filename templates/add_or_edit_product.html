@@ -843,14 +843,15 @@
         }
     }
 
-    function addPreproductRow(preproductId = '', quantity = '', unit = '{{ _("Unit") }}') {
+    function addPreproductRow(preproductId = '', quantity = '', unit = '') {
         const container = document.getElementById('preproducts-container');
         const allPreproducts = {{ all_preproducts | default([]) | tojson | safe }};
 
         let optionsHtml = '<option value="" disabled selected>{{ _("Select preproduct...") }}</option>';
         allPreproducts.forEach(preproduct => {
             const selected = preproductId == preproduct.id ? 'selected' : '';
-            const productUnit = preproduct.unit || '{{ _("Unit") }}';
+            // Use 'unit' as fallback instead of localized string for logic
+            const productUnit = preproduct.unit || 'unit';
             optionsHtml += `<option value="${preproduct.id}" data-unit="${productUnit}" data-cost="${preproduct.cost_per_unit || 0}" ${selected}>${preproduct.name}</option>`;
         });
 
@@ -866,7 +867,7 @@
                 </div>
                 <div class="col-md-3">
                     <select name="preproduct_unit[]" class="form-select unit-select">
-                        <option value="${unit}">${unit}</option>
+                        <!-- Options populated by JS -->
                     </select>
                 </div>
                 <div class="col-md-1">
@@ -885,6 +886,21 @@
             width: '100%',
             language: { noResults: () => "{{ _("No results found") }}" }
         });
+        
+        // Initialize unit options for the new row
+        const newSelect = rowElement.querySelector('select[name="preproduct[]"]');
+        if (newSelect && newSelect.value) {
+            handlePreproductChange(newSelect);
+            // If a specific unit was passed (e.g. from edit mode), try to select it
+            if (unit) {
+                const unitSelect = rowElement.querySelector('.unit-select');
+                if (unitSelect) unitSelect.value = unit;
+            }
+        } else {
+             // Initialize default 'unit' option if nothing selected
+             const unitSelect = rowElement.querySelector('.unit-select');
+             if (unitSelect) unitSelect.innerHTML = '<option value="unit">{{ _("Unit") }}</option>';
+        }
     }
 
     function handlePreproductChange(selectElement) {
