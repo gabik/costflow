@@ -215,10 +215,12 @@ def products():
                 
         # Divide by yield (net of loss)
         if prod.is_premake:
+            # Matches utils.py calculate_premake_cost_per_unit behavior (ignores loss)
             batch_sz = prod.batch_size if prod.batch_size else 1
-            effective_yield = max(0.001, batch_sz + loss_quantity)
+            effective_yield = max(0.001, batch_sz) # No loss adjustment for premakes to match legacy
             final_cost = total_cost / effective_yield
         else:
+            # Matches utils.py calculate_prime_cost behavior (applies loss)
             yield_amt = prod.products_per_recipe if prod.products_per_recipe else 1
             effective_yield = max(0.001, yield_amt + loss_quantity)
             final_cost = total_cost / effective_yield
