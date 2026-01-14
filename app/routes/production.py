@@ -16,6 +16,10 @@ def production():
         production_mode = request.form.get('production_mode', 'batches')
         quantity_input = float(request.form['quantity_produced'])
 
+        # Parse user-provided timestamp
+        timestamp_str = request.form.get('timestamp')
+        timestamp = datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S') if timestamp_str else datetime.utcnow()
+
         product = Product.query.get_or_404(product_id)
 
         # Convert quantity to batches based on production mode
@@ -177,7 +181,8 @@ def production():
                 quantity_produced=quantity_produced,
                 total_cost=total_production_cost,
                 cost_per_unit=cost_per_unit,
-                cost_details=json.dumps(cost_details)
+                cost_details=json.dumps(cost_details),
+                timestamp=timestamp
             )
             db.session.add(production_log)
 
@@ -251,6 +256,10 @@ def premake_production():
         premake_id = request.form['premake_id']
         # quantity_produced from form is now in BATCHES
         quantity_batches = float(request.form['quantity_produced'])
+
+        # Parse user-provided timestamp
+        timestamp_str = request.form.get('timestamp')
+        timestamp = datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S') if timestamp_str else datetime.utcnow()
 
         # Get premake from unified Product model
         premake = Product.query.filter_by(id=premake_id, is_premake=True).first()
@@ -341,7 +350,8 @@ def premake_production():
                 quantity_produced=quantity_batches,
                 total_cost=total_production_cost,
                 cost_per_unit=cost_per_unit,
-                cost_details=json.dumps(cost_details)
+                cost_details=json.dumps(cost_details),
+                timestamp=timestamp
             )
             db.session.add(production_log)
             db.session.flush()
