@@ -1,0 +1,416 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Daily Production') }} - {% if item_type == 'premake' %}{{ _('Premakes') }}{% else %}{{ _('Products') }}{% endif %}{% endblock %}
+{% block content %}
+
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="display-6 fw-bold text-primary">
+                <i class="bi bi-calendar-day me-2"></i>
+                {% if item_type == 'premake' %}
+                    {{ _('Daily Production - Premakes') }}
+                {% else %}
+                    {{ _('Daily Production - Products') }}
+                {% endif %}
+            </h1>
+            <p class="text-secondary">{{ _('Enter quantities for all items you want to produce today') }}</p>
+        </div>
+        <div>
+            {% if item_type == 'premake' %}
+                <a href="{{ url_for('production.premake_production') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>{{ _('Back to Single Entry') }}
+                </a>
+            {% else %}
+                <a href="{{ url_for('production.production') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>{{ _('Back to Single Entry') }}
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Timestamp Section -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-4">
+                <label for="timestamp" class="form-label fw-bold">
+                    <i class="bi bi-clock me-2"></i>{{ _('Production Timestamp') }}
+                </label>
+                <input type="datetime-local" id="timestamp" class="form-control" value="{{ current_time }}">
+                <div class="form-text">{{ _('This timestamp will apply to all items') }}</div>
+            </div>
+            <div class="col-md-8 text-end">
+                <div id="summary-stats" class="d-none">
+                    <span class="badge bg-primary fs-6 me-2">
+                        <span id="items-count">0</span> {{ _('items selected') }}
+                    </span>
+                    <span class="badge bg-success fs-6">
+                        {{ _('Total') }}: ₪<span id="total-cost">0.00</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Items by Category -->
+{% if categories %}
+<div class="accordion" id="categoriesAccordion">
+    {% for category in categories %}
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="heading-{{ category.id or 'uncategorized' }}">
+            <button class="accordion-button {% if loop.index > 1 %}collapsed{% endif %}" type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#collapse-{{ category.id or 'uncategorized' }}"
+                    aria-expanded="{{ 'true' if loop.index == 1 else 'false' }}"
+                    aria-controls="collapse-{{ category.id or 'uncategorized' }}">
+                <span class="fw-bold">{{ category.name }}</span>
+                <span class="badge bg-secondary ms-2">{{ category.items|length }}</span>
+            </button>
+        </h2>
+        <div id="collapse-{{ category.id or 'uncategorized' }}"
+             class="accordion-collapse collapse {% if loop.index == 1 %}show{% endif %}"
+             aria-labelledby="heading-{{ category.id or 'uncategorized' }}"
+             data-bs-parent="#categoriesAccordion">
+            <div class="accordion-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 40%">{{ _('Name') }}</th>
+                            <th style="width: 20%">{{ _('Quantity') }}</th>
+                            <th style="width: 20%">{{ _('Stock Status') }}</th>
+                            <th style="width: 20%">{{ _('Info') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in category.items %}
+                        <tr class="item-row {% if not item.has_stock %}table-danger{% endif %}"
+                            data-item-id="{{ item.id }}"
+                            data-has-stock="{{ item.has_stock|lower }}">
+                            <td class="fw-medium">
+                                {{ item.name }}
+                                {% if not item.has_stock %}
+                                <span class="badge bg-danger ms-2"
+                                      data-bs-toggle="tooltip"
+                                      title="{{ _('Missing:') }} {% for m in item.missing_components %}{{ m.name }}{% if not loop.last %}, {% endif %}{% endfor %}">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="input-group input-group-sm">
+                                    <input type="number"
+                                           class="form-control quantity-input"
+                                           data-item-id="{{ item.id }}"
+                                           data-item-name="{{ item.name }}"
+                                           {% if item_type == 'premake' %}
+                                           data-batch-size="{{ item.batch_size or 1 }}"
+                                           data-unit="{{ item.unit }}"
+                                           {% else %}
+                                           data-products-per-recipe="{{ item.products_per_recipe }}"
+                                           {% endif %}
+                                           min="0"
+                                           step="0.5"
+                                           value="0"
+                                           placeholder="0"
+                                           {% if not item.has_stock %}disabled{% endif %}>
+                                    <span class="input-group-text">
+                                        {% if item_type == 'premake' %}
+                                            {{ _('batches') }}
+                                        {% else %}
+                                            {{ _('batches') }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="stock-status">
+                                {% if item.has_stock %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle me-1"></i>{{ _('Stock OK') }}
+                                </span>
+                                {% else %}
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-x-circle me-1"></i>{{ _('Insufficient') }}
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item_type == 'premake' and item.batch_size %}
+                                <small class="text-muted">
+                                    {{ _('Batch') }}: {{ '%.2f'|format(item.batch_size) }} {{ item.unit }}
+                                </small>
+                                {% elif item_type == 'product' and item.products_per_recipe %}
+                                <small class="text-muted">
+                                    {{ _('Recipe') }}: {{ item.products_per_recipe }} {{ _('units') }}
+                                </small>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>
+    {% if item_type == 'premake' %}
+        {{ _('No premakes found. Create some premakes first.') }}
+    {% else %}
+        {{ _('No products found. Create some products first.') }}
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Submit Section (Sticky Footer) -->
+<div class="card shadow-lg mt-4 sticky-bottom" style="bottom: 20px; position: sticky;">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <div id="submit-summary">
+                    <span class="text-muted">{{ _('Select items to produce by entering quantities above') }}</span>
+                </div>
+            </div>
+            <div class="col-md-6 text-end">
+                <button type="button" class="btn btn-outline-secondary me-2" onclick="clearAllQuantities()">
+                    <i class="bi bi-x-circle me-2"></i>{{ _('Clear All') }}
+                </button>
+                <button type="button" id="submit-btn" class="btn btn-primary btn-lg" onclick="submitProduction()" disabled>
+                    <i class="bi bi-check-circle me-2"></i>{{ _('Submit All Production') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="errorModalLabel">
+                    <i class="bi bi-exclamation-triangle me-2"></i>{{ _('Production Error') }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="errorModalBody">
+                <!-- Error details will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Close') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="successModalLabel">
+                    <i class="bi bi-check-circle me-2"></i>{{ _('Production Completed') }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="successModalBody">
+                <!-- Success details will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" onclick="redirectToLog()">{{ _('View Production Log') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const itemType = '{{ item_type }}';
+const apiEndpoint = '{{ api_endpoint }}';
+
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Add event listeners to quantity inputs
+    document.querySelectorAll('.quantity-input').forEach(input => {
+        input.addEventListener('input', updateSummary);
+        input.addEventListener('change', updateSummary);
+    });
+});
+
+function updateSummary() {
+    const inputs = document.querySelectorAll('.quantity-input');
+    let selectedCount = 0;
+    let hasBlockedItems = false;
+
+    inputs.forEach(input => {
+        const qty = parseFloat(input.value) || 0;
+        if (qty > 0) {
+            selectedCount++;
+            const row = input.closest('.item-row');
+            if (row && row.dataset.hasStock === 'false') {
+                hasBlockedItems = true;
+            }
+        }
+    });
+
+    // Update summary stats
+    const statsDiv = document.getElementById('summary-stats');
+    const itemsCountSpan = document.getElementById('items-count');
+    const submitBtn = document.getElementById('submit-btn');
+    const submitSummary = document.getElementById('submit-summary');
+
+    if (selectedCount > 0) {
+        statsDiv.classList.remove('d-none');
+        itemsCountSpan.textContent = selectedCount;
+        submitBtn.disabled = hasBlockedItems;
+
+        if (hasBlockedItems) {
+            submitSummary.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-triangle me-2"></i>{{ _("Cannot submit: some selected items have insufficient stock") }}</span>';
+        } else {
+            submitSummary.innerHTML = `<span class="text-success"><i class="bi bi-check-circle me-2"></i>${selectedCount} {{ _("items ready to produce") }}</span>`;
+        }
+    } else {
+        statsDiv.classList.add('d-none');
+        submitBtn.disabled = true;
+        submitSummary.innerHTML = '<span class="text-muted">{{ _("Select items to produce by entering quantities above") }}</span>';
+    }
+}
+
+function clearAllQuantities() {
+    document.querySelectorAll('.quantity-input').forEach(input => {
+        input.value = 0;
+    });
+    updateSummary();
+}
+
+function collectProductionData() {
+    const items = [];
+    const timestamp = document.getElementById('timestamp').value;
+
+    document.querySelectorAll('.quantity-input').forEach(input => {
+        const qty = parseFloat(input.value) || 0;
+        if (qty > 0) {
+            items.push({
+                id: parseInt(input.dataset.itemId),
+                quantity: qty
+            });
+        }
+    });
+
+    return {
+        timestamp: timestamp,
+        items: items
+    };
+}
+
+async function submitProduction() {
+    const submitBtn = document.getElementById('submit-btn');
+    const originalText = submitBtn.innerHTML;
+
+    // Show loading state
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>{{ _("Processing...") }}';
+
+    const data = collectProductionData();
+
+    if (data.items.length === 0) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+        return;
+    }
+
+    try {
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Show success modal
+            const successBody = document.getElementById('successModalBody');
+            let detailsHtml = `<p>{{ _("Successfully logged production for") }} <strong>${result.count}</strong> {{ _("items") }}.</p>`;
+
+            if (result.results && result.results.length > 0) {
+                detailsHtml += '<ul class="list-group list-group-flush">';
+                result.results.forEach(item => {
+                    if (itemType === 'premake') {
+                        detailsHtml += `<li class="list-group-item d-flex justify-content-between">
+                            <span>${item.name}</span>
+                            <span class="badge bg-primary">${item.quantity_batches} {{ _("batches") }} (${item.quantity_units?.toFixed(2) || '?'} kg)</span>
+                        </li>`;
+                    } else {
+                        detailsHtml += `<li class="list-group-item d-flex justify-content-between">
+                            <span>${item.name}</span>
+                            <span class="badge bg-primary">${item.quantity} {{ _("batches") }} (${item.units} {{ _("units") }})</span>
+                        </li>`;
+                    }
+                });
+                detailsHtml += '</ul>';
+            }
+
+            successBody.innerHTML = detailsHtml;
+            const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+            successModal.show();
+
+        } else {
+            // Show error modal
+            const errorBody = document.getElementById('errorModalBody');
+            let errorHtml = `<p class="text-danger"><strong>${result.error}</strong></p>`;
+
+            if (result.validation_errors && result.validation_errors.length > 0) {
+                errorHtml += '<p>{{ _("The following items have issues:") }}</p>';
+                errorHtml += '<ul class="list-group list-group-flush">';
+                result.validation_errors.forEach(err => {
+                    errorHtml += `<li class="list-group-item list-group-item-danger">
+                        <strong>${err.name}</strong>: ${err.error}
+                        ${err.missing ? `<br><small class="text-muted">{{ _("Missing") }}: ${err.missing}</small>` : ''}
+                    </li>`;
+                });
+                errorHtml += '</ul>';
+            }
+
+            errorBody.innerHTML = errorHtml;
+            const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+            errorModal.show();
+
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+
+    } catch (error) {
+        console.error('Error:', error);
+        const errorBody = document.getElementById('errorModalBody');
+        errorBody.innerHTML = `<p class="text-danger">{{ _("An unexpected error occurred. Please try again.") }}</p><p><small>${error.message}</small></p>`;
+        const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+        errorModal.show();
+
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
+}
+
+function redirectToLog() {
+    {% if item_type == 'premake' %}
+    window.location.href = "{{ url_for('production.premake_production') }}";
+    {% else %}
+    window.location.href = "{{ url_for('production.production') }}";
+    {% endif %}
+}
+</script>
+{% endblock %}

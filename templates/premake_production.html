@@ -1,7 +1,12 @@
 {% extends "base.html" %}
 {% block title %}{{ _('Premake Production Log') }}{% endblock %}
 {% block content %}
-<h1>{{ _('Premake Production Log') }}</h1>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>{{ _('Premake Production Log') }}</h1>
+    <a href="{{ url_for('production.daily_premake_production') }}" class="btn btn-outline-primary">
+        <i class="bi bi-calendar-day me-2"></i>{{ _('Daily Production') }}
+    </a>
+</div>
 
 {% if error %}
 <div class="alert alert-danger alert-dismissible fade show" role="alert">

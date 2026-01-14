@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-12-15 23:18+0200\n"
+"POT-Creation-Date: 2026-01-14 16:24+0200\n"
 "PO-Revision-Date: 2024-12-14 21:06+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: he\n"
@@ -28,25 +28,23 @@ msgstr "המוצר שוחזר בהצלחה"
 msgid "Error resetting database: {}"
 msgstr "שגיאה בשחזור מוצר: {}"
 
-#: app/routes/admin.py:354
-msgid "Waste percentage column already exists"
-msgstr "עמודת אחוז הפחת כבר קיימת"
+#: app/routes/admin.py:170
+msgid ""
+"All logs, stock, and weekly data have been cleared. Materials and recipes"
+" were kept."
+msgstr ""
 
-#: app/routes/admin.py:366
-msgid "Successfully added waste percentage column"
-msgstr "עמודת אחוז הפחת נוספה בהצלחה"
-
-#: app/routes/admin.py:370
-#, python-brace-format
-msgid "Migration failed: {}"
-msgstr "המיגרציה נכשלה: {}"
+#: app/routes/admin.py:174
+#, fuzzy, python-brace-format
+msgid "Error resetting transactions: {}"
+msgstr "שגיאה בשחזור מוצר: {}"
 
 #: app/routes/packaging.py:300
 msgid "Missing required fields"
 msgstr "שדות חובה חסרים"
 
 #: app/routes/packaging.py:304 app/routes/packaging.py:397
-#: app/routes/utils.py:821
+#: app/routes/utils.py:846
 msgid "Packaging not found"
 msgstr "אריזה לא נמצאה"
 
@@ -54,41 +52,97 @@ msgstr "אריזה לא נמצאה"
 msgid "Stock updated successfully"
 msgstr "המלאי עודכן בהצלחה"
 
-#: app/routes/products.py:809
+#: app/routes/premakes.py:249 app/routes/products.py:820
+#: templates/add_or_edit_premake.html:218
+#: templates/add_or_edit_product.html:399 templates/product_details.html:356
+#: templates/view_premake.html:160
+#, fuzzy
+msgid "Loss / Waste"
+msgstr "סה\"כ פחת"
+
+#: app/routes/production.py:532
+msgid "Invalid request data"
+msgstr ""
+
+#: app/routes/production.py:544
+#, fuzzy
+msgid "No items to produce"
+msgstr "סה\"כ יחידות לייצור:"
+
+#: app/routes/production.py:549
+msgid "No items with quantity > 0"
+msgstr ""
+
+#: app/routes/production.py:563
+#, fuzzy
+msgid "Item not found"
+msgstr "לא נמצאו קטגוריות."
+
+#: app/routes/production.py:573
+#, fuzzy
+msgid "Insufficient stock"
+msgstr "הגדר כמות"
+
+#: app/routes/production.py:580
+#, fuzzy
+msgid "Stock validation failed"
+msgstr "המיגרציה נכשלה: {}"
+
+#: app/routes/production.py:603
+#, fuzzy
+msgid "Production logged successfully"
+msgstr "המוצר נמחק בהצלחה"
+
+#: app/routes/production.py:619
+#, fuzzy, python-format
+msgid "Production failed: %(error)s"
+msgstr "יומן ייצור"
+
+#: app/routes/production.py:657 app/routes/production.py:681
+#: app/routes/production.py:779
+#, python-format
+msgid ""
+"Insufficient stock for %(name)s. Required: %(required).2f %(unit)s, "
+"Available: %(available).2f %(unit)s"
+msgstr ""
+"אין מספיק מלאי עבור %(name)s. נדרש: %(required).2f %(unit)s, זמין: "
+"%(available).2f %(unit)s"
+
+#: app/routes/products.py:1181
 #, python-brace-format
 msgid "Product archived: It is used as a component in {} other product(s)"
 msgstr "המוצר הועבר לארכיון: הוא משמש כרכיב ב-{} מוצרים אחרים"
 
-#: app/routes/products.py:820
+#: app/routes/products.py:1192
 #, python-brace-format
 msgid "Product archived: It has {} production record(s)"
 msgstr "המוצר הועבר לארכיון: יש לו {} רשומות ייצור"
 
-#: app/routes/products.py:831
+#: app/routes/products.py:1203
 #, python-brace-format
 msgid "Product archived: It has {} weekly sales record(s)"
 msgstr "המוצר הועבר לארכיון: יש לו {} רשומות מכירות שבועיות"
 
-#: app/routes/products.py:850
+#: app/routes/products.py:1222
 msgid "Product deleted successfully"
 msgstr "המוצר נמחק בהצלחה"
 
-#: app/routes/products.py:853
+#: app/routes/products.py:1225
 #, python-brace-format
 msgid "Error deleting product: {}"
 msgstr "שגיאה במחיקת מוצר: {}"
 
-#: app/routes/products.py:870
+#: app/routes/products.py:1242
 msgid "Product restored successfully"
 msgstr "המוצר שוחזר בהצלחה"
 
-#: app/routes/products.py:873
+#: app/routes/products.py:1245
 #, python-brace-format
 msgid "Error restoring product: {}"
 msgstr "שגיאה בשחזור מוצר: {}"
 
-#: app/routes/recipe_import.py:372 app/routes/utils.py:1174
-#: app/routes/utils.py:1224 templates/add_or_edit_premake.html:444
+#: app/routes/recipe_import.py:372 app/routes/utils.py:1199
+#: app/routes/utils.py:1249 templates/add_or_edit_premake.html:530
 #: templates/recipe_review.html:330
 #, fuzzy
 msgid "per 100g"
@@ -133,7 +187,7 @@ msgstr "חומר גלם לא נמצא או מיפוי לא תקין"
 msgid "Missing material: {}"
 msgstr "חומר חסר: {}"
 
-#: app/routes/utils.py:832 app/routes/utils.py:893
+#: app/routes/utils.py:857 app/routes/utils.py:918
 #, python-format
 msgid ""
 "Insufficient packaging stock for %(name)s. Required: %(required).2f, "
@@ -142,30 +196,30 @@ msgstr ""
 "מלאי אריזה לא מספיק עבור %(name)s. נדרש: %(required).2f, זמין: "
 "%(available).2f"
 
-#: app/routes/utils.py:1168 app/routes/utils.py:1172 app/routes/utils.py:1228
-#: templates/add_or_edit_premake.html:225
-#: templates/add_or_edit_premake.html:432
-#: templates/add_or_edit_premake.html:438
-#: templates/add_or_edit_premake.html:442
+#: app/routes/utils.py:1193 app/routes/utils.py:1197 app/routes/utils.py:1253
+#: templates/add_or_edit_premake.html:277
+#: templates/add_or_edit_premake.html:518
+#: templates/add_or_edit_premake.html:524
+#: templates/add_or_edit_premake.html:528
 #, fuzzy
 msgid "per kg"
 msgstr "ל-"
 
-#: app/routes/utils.py:1176 app/routes/utils.py:1180 app/routes/utils.py:1230
-#: templates/add_or_edit_premake.html:447
-#: templates/add_or_edit_premake.html:451
+#: app/routes/utils.py:1201 app/routes/utils.py:1205 app/routes/utils.py:1255
+#: templates/add_or_edit_premake.html:533
+#: templates/add_or_edit_premake.html:537
 #, fuzzy
 msgid "per L"
 msgstr "ל-"
 
-#: app/routes/utils.py:1182 app/routes/utils.py:1226
-#: templates/add_or_edit_premake.html:453
+#: app/routes/utils.py:1207 app/routes/utils.py:1251
+#: templates/add_or_edit_premake.html:539
 #, fuzzy
 msgid "per 100ml"
 msgstr "עלות ל-100 ג׳:"
 
-#: app/routes/utils.py:1184 app/routes/utils.py:1232
-#: templates/add_or_edit_premake.html:456
+#: app/routes/utils.py:1209 app/routes/utils.py:1257
+#: templates/add_or_edit_premake.html:542
 #, fuzzy
 msgid "per unit"
 msgstr "מחיר ליחידה"
@@ -197,13 +251,13 @@ msgstr "עלות כוללת לשעה (₪)"
 msgid "Including base salary and employer costs."
 msgstr "כולל שכר יסוד ועלויות מעביד."
 
-#: templates/add_or_edit_labor.html:30 templates/add_or_edit_product.html:420
+#: templates/add_or_edit_labor.html:30 templates/add_or_edit_product.html:461
 #: templates/add_or_edit_raw_material.html:189 templates/categories.html:85
-#: templates/premake_production.html:131 templates/production.html:138
+#: templates/premake_production.html:136 templates/production.html:143
 msgid "Save Changes"
 msgstr "שמור שינויים"
 
-#: templates/add_or_edit_labor.html:31 templates/add_or_edit_product.html:422
+#: templates/add_or_edit_labor.html:31 templates/add_or_edit_product.html:463
 #: templates/add_or_edit_raw_material.html:191
 msgid "Cancel and Return"
 msgstr "ביטול וחזרה"
@@ -212,14 +266,15 @@ msgstr "ביטול וחזרה"
 #: templates/add_or_edit_raw_material.html:2
 #: templates/add_or_edit_supplier.html:2 templates/add_or_edit_supplier.html:10
 #: templates/add_or_edit_supplier.html:13 templates/labor.html:66
-#: templates/packaging.html:103 templates/premake_production.html:95
-#: templates/premakes.html:97 templates/production.html:106
-#: templates/products.html:130 templates/suppliers.html:61
+#: templates/packaging.html:103 templates/premake_production.html:100
+#: templates/premakes.html:76 templates/production.html:111
+#: templates/products.html:135 templates/suppliers.html:61
 msgid "Edit"
 msgstr "עדכן"
 
 #: templates/add_or_edit_packaging.html:2 templates/add_or_edit_premake.html:58
 #: templates/add_or_edit_premake.html:171
+#: templates/add_or_edit_premake.html:220
 #: templates/add_or_edit_raw_material.html:2
 #: templates/add_or_edit_supplier.html:2 templates/add_or_edit_supplier.html:10
 #: templates/add_or_edit_supplier.html:13
@@ -227,10 +282,10 @@ msgstr "עדכן"
 msgid "Add"
 msgstr "הוסף"
 
-#: templates/add_or_edit_packaging.html:2 templates/base.html:69
+#: templates/add_or_edit_packaging.html:2 templates/base.html:72
 #: templates/close_week.html:96 templates/packaging.html:167
-#: templates/premake_production.html:389 templates/product_details.html:310
-#: templates/product_details.html:319 templates/production.html:406
+#: templates/premake_production.html:438 templates/product_details.html:307
+#: templates/product_details.html:316 templates/production.html:455
 #: templates/stock_audits.html:128 templates/supplier_materials.html:149
 msgid "Packaging"
 msgstr "אריזה"
@@ -240,12 +295,12 @@ msgid "Edit Packaging"
 msgstr "עריכת אריזה"
 
 #: templates/add_or_edit_packaging.html:33
-#: templates/add_or_edit_product.html:510
+#: templates/add_or_edit_product.html:551
 msgid "Add New Packaging"
 msgstr "הוספת אריזה חדשה"
 
 #: templates/add_or_edit_packaging.html:44
-#: templates/add_or_edit_product.html:515 templates/weekly_report.html:514
+#: templates/add_or_edit_product.html:556 templates/weekly_report.html:514
 msgid "Packaging Name"
 msgstr "שם אריזה"
 
@@ -345,16 +400,17 @@ msgid "Enter initial stock quantity"
 msgstr "הזן כמות מלאי התחלתית"
 
 #: templates/add_or_edit_packaging.html:172
-#: templates/add_or_edit_premake.html:237
-#: templates/add_or_edit_product.html:477
-#: templates/add_or_edit_product.html:528
+#: templates/add_or_edit_premake.html:289
+#: templates/add_or_edit_product.html:518
+#: templates/add_or_edit_product.html:569
 #: templates/add_or_edit_raw_material.html:216
 #: templates/add_or_edit_raw_material.html:251
 #: templates/add_or_edit_raw_material.html:308
-#: templates/add_or_edit_supplier.html:103 templates/audit_log.html:88
-#: templates/audit_log.html:111 templates/categories.html:84
-#: templates/categories.html:118 templates/packaging.html:196
-#: templates/premake_production.html:130 templates/production.html:137
+#: templates/add_or_edit_supplier.html:103 templates/audit_log.html:91
+#: templates/audit_log.html:120 templates/audit_log.html:143
+#: templates/categories.html:84 templates/categories.html:118
+#: templates/packaging.html:196 templates/premake_production.html:135
+#: templates/premakes.html:132 templates/production.html:142
 #: templates/raw_materials.html:292 templates/raw_materials.html:333
 #: templates/raw_materials.html:355 templates/recipe_review.html:216
 #: templates/recipe_review.html:387 templates/supplier_materials.html:252
@@ -378,24 +434,24 @@ msgid "Edit Premake"
 msgstr "ערוך הכנה מקדימה"
 
 #: templates/add_or_edit_premake.html:2 templates/add_or_edit_premake.html:6
-#: templates/add_or_edit_product.html:169 templates/premakes.html:12
+#: templates/add_or_edit_product.html:169
 msgid "Add Premake"
 msgstr "הוסף הכנה מקדימה"
 
 #: templates/add_or_edit_premake.html:12 templates/index.html:265
-#: templates/weekly_report.html:477
+#: templates/premakes.html:34 templates/weekly_report.html:477
 msgid "Premake Name"
 msgstr "שם ההכנה"
 
 #: templates/add_or_edit_premake.html:18 templates/add_or_edit_product.html:20
-#: templates/add_or_edit_product.html:447
+#: templates/add_or_edit_product.html:488
 #: templates/add_or_edit_raw_material.html:42 templates/monthly_report.html:371
-#: templates/monthly_report.html:418 templates/premakes.html:43
-#: templates/raw_materials.html:87 templates/recipe_review.html:169
-#: templates/stock_audits.html:102 templates/stock_audits.html:172
-#: templates/supplier_materials.html:76 templates/weekly_report.html:223
-#: templates/weekly_report.html:284 templates/weekly_report.html:610
-#: templates/weekly_report.html:786 templates/weekly_report.html:821
+#: templates/monthly_report.html:418 templates/raw_materials.html:87
+#: templates/recipe_review.html:169 templates/stock_audits.html:102
+#: templates/stock_audits.html:172 templates/supplier_materials.html:76
+#: templates/weekly_report.html:223 templates/weekly_report.html:284
+#: templates/weekly_report.html:610 templates/weekly_report.html:786
+#: templates/weekly_report.html:821
 msgid "Category"
 msgstr "קטגוריה"
 
@@ -418,31 +474,35 @@ msgstr "כמות התוצר תחושב אוטומטית כסכום משקלי ה
 msgid "Components"
 msgstr "מרכיבים"
 
-#: templates/add_or_edit_premake.html:56 templates/base.html:52
+#: templates/add_or_edit_premake.html:56 templates/base.html:55
 #: templates/categories.html:26 templates/categories.html:108
-#: templates/product_details.html:100 templates/raw_materials.html:2
+#: templates/product_details.html:97 templates/raw_materials.html:2
 #: templates/stock_audits.html:59
 msgid "Raw Materials"
 msgstr "חומרי גלם"
 
 #: templates/add_or_edit_premake.html:77 templates/add_or_edit_premake.html:129
-#: templates/add_or_edit_premake.html:268
+#: templates/add_or_edit_premake.html:320
 #: templates/add_or_edit_product.html:305
-#: templates/add_or_edit_product.html:576
+#: templates/add_or_edit_product.html:617
 msgid "Select raw material..."
 msgstr "בחר חומר גלם..."
 
 #: templates/add_or_edit_premake.html:84 templates/add_or_edit_premake.html:136
-#: templates/add_or_edit_premake.html:274
-#: templates/add_or_edit_product.html:586
+#: templates/add_or_edit_premake.html:326
+#: templates/add_or_edit_product.html:627 templates/premake_production.html:295
+#: templates/premake_production.html:352 templates/production.html:334
+#: templates/production.html:394
 #, fuzzy
 msgid "waste"
 msgstr "פחת"
 
 #: templates/add_or_edit_premake.html:94 templates/add_or_edit_premake.html:146
 #: templates/add_or_edit_premake.html:200
-#: templates/add_or_edit_premake.html:291
-#: templates/add_or_edit_premake.html:378
+#: templates/add_or_edit_premake.html:246
+#: templates/add_or_edit_premake.html:343
+#: templates/add_or_edit_premake.html:383
+#: templates/add_or_edit_premake.html:464
 #: templates/add_or_edit_product.html:113
 #: templates/add_or_edit_product.html:153
 #: templates/add_or_edit_product.html:196
@@ -451,44 +511,60 @@ msgstr "פחת"
 #: templates/add_or_edit_product.html:317
 #: templates/add_or_edit_product.html:365
 #: templates/add_or_edit_product.html:386
-#: templates/add_or_edit_product.html:609
-#: templates/add_or_edit_product.html:673
-#: templates/add_or_edit_product.html:712
-#: templates/add_or_edit_product.html:795 templates/packaging.html:180
-#: templates/product_details.html:320 templates/view_premake.html:103
+#: templates/add_or_edit_product.html:421
+#: templates/add_or_edit_product.html:650
+#: templates/add_or_edit_product.html:714
+#: templates/add_or_edit_product.html:743
+#: templates/add_or_edit_product.html:782
+#: templates/add_or_edit_product.html:866 templates/daily_production.html:81
+#: templates/packaging.html:180 templates/premakes.html:116
+#: templates/product_details.html:317 templates/product_details.html:366
+#: templates/view_premake.html:103 templates/view_premake.html:170
 msgid "Quantity"
 msgstr "כמות"
 
 #: templates/add_or_edit_premake.html:169 templates/add_or_edit_product.html:90
-#: templates/base.html:47 templates/base.html:51 templates/categories.html:36
-#: templates/index.html:30 templates/premakes.html:2 templates/premakes.html:8
-#: templates/product_details.html:170
+#: templates/base.html:49 templates/base.html:54 templates/categories.html:36
+#: templates/daily_production.html:2 templates/index.html:30
+#: templates/premakes.html:2 templates/premakes.html:8
+#: templates/product_details.html:167
 msgid "Premakes"
 msgstr "הכנות מקדימות"
 
 #: templates/add_or_edit_premake.html:190
-#: templates/add_or_edit_premake.html:363
+#: templates/add_or_edit_premake.html:449
 #: templates/add_or_edit_product.html:144
-#: templates/add_or_edit_product.html:698 templates/premake_production.html:23
+#: templates/add_or_edit_product.html:768 templates/premake_production.html:28
 msgid "Select premake..."
 msgstr "בחר הכנה..."
 
-#: templates/add_or_edit_premake.html:218
-#: templates/add_or_edit_product.html:401
+#: templates/add_or_edit_premake.html:227
+msgid ""
+"Loss reduces the final weight of the batch but does NOT reduce the total "
+"cost, effectively increasing the cost per unit."
+msgstr ""
+
+#: templates/add_or_edit_premake.html:241
+#: templates/add_or_edit_premake.html:379
+msgid "Description (e.g., Water Vapor)"
+msgstr ""
+
+#: templates/add_or_edit_premake.html:270
+#: templates/add_or_edit_product.html:442
 msgid "Cost Summary (Primary Supplier Prices)"
 msgstr "סיכום עלויות (מחירי ספק ראשי)"
 
-#: templates/add_or_edit_premake.html:222 templates/view_premake.html:139
+#: templates/add_or_edit_premake.html:274 templates/view_premake.html:139
 msgid "Total Cost per Batch:"
 msgstr "סה\"כ עלות לאצ':"
 
-#: templates/add_or_edit_premake.html:225
-#: templates/add_or_edit_product.html:408 templates/recipe_review.html:330
+#: templates/add_or_edit_premake.html:277
+#: templates/add_or_edit_product.html:449 templates/recipe_review.html:330
 #: templates/view_premake.html:107
 msgid "Cost"
 msgstr "עלות"
 
-#: templates/add_or_edit_premake.html:229
+#: templates/add_or_edit_premake.html:281
 #, fuzzy
 msgid ""
 "Costs are calculated based on primary supplier prices. Batch size is "
@@ -497,38 +573,38 @@ msgstr ""
 "העלויות מחושבות על בסיס מחירי הספק הראשי של כל חומר גלם, שזה המחיר שישמש "
 "בייצור בפועל."
 
-#: templates/add_or_edit_premake.html:236
-#: templates/add_or_edit_premake.html:254
-#: templates/add_or_edit_product.html:497 templates/supplier_materials.html:253
+#: templates/add_or_edit_premake.html:288
+#: templates/add_or_edit_premake.html:306
+#: templates/add_or_edit_product.html:538 templates/supplier_materials.html:253
 msgid "Save"
 msgstr "שמור"
 
-#: templates/add_or_edit_premake.html:247
-#: templates/add_or_edit_product.html:490
+#: templates/add_or_edit_premake.html:299
+#: templates/add_or_edit_product.html:531
 #: templates/add_or_edit_raw_material.html:217
 msgid "Add Category"
 msgstr "הוסף קטגוריה"
 
-#: templates/add_or_edit_premake.html:253
-#: templates/add_or_edit_product.html:496
+#: templates/add_or_edit_premake.html:305
+#: templates/add_or_edit_product.html:537
 #: templates/add_or_edit_raw_material.html:211 templates/categories.html:46
 #: templates/categories.html:79 templates/categories.html:113
 msgid "Category Name"
 msgstr "שם קטגוריה"
 
-#: templates/add_or_edit_premake.html:317
-#: templates/add_or_edit_premake.html:399
-#: templates/add_or_edit_premake.html:609
-#: templates/add_or_edit_product.html:638
-#: templates/add_or_edit_product.html:689
-#: templates/add_or_edit_product.html:735
-#: templates/add_or_edit_product.html:816
-#: templates/add_or_edit_product.html:884 templates/base.html:127
-#: templates/premake_production.html:149 templates/production.html:156
+#: templates/add_or_edit_premake.html:369
+#: templates/add_or_edit_premake.html:485
+#: templates/add_or_edit_premake.html:715
+#: templates/add_or_edit_product.html:679
+#: templates/add_or_edit_product.html:730
+#: templates/add_or_edit_product.html:805
+#: templates/add_or_edit_product.html:887
+#: templates/add_or_edit_product.html:975 templates/base.html:130
+#: templates/premake_production.html:154 templates/production.html:161
 msgid "No results found"
 msgstr "לא נמצאו תוצאות"
 
-#: templates/add_or_edit_premake.html:458 templates/view_premake.html:70
+#: templates/add_or_edit_premake.html:544 templates/view_premake.html:70
 msgid "per"
 msgstr "ל-"
 
@@ -543,7 +619,7 @@ msgstr "עריכת מוצר"
 msgid "Add New Product"
 msgstr "הוסף מוצר חדש"
 
-#: templates/add_or_edit_product.html:16 templates/products.html:34
+#: templates/add_or_edit_product.html:16 templates/products.html:44
 #: templates/upload_inventory.html:44
 msgid "Product Name"
 msgstr "שם מוצר"
@@ -552,8 +628,7 @@ msgstr "שם מוצר"
 msgid "e.g., Uniform Bread"
 msgstr "לדוגמה: לחם אחיד"
 
-#: templates/add_or_edit_product.html:23 templates/premakes.html:63
-#: templates/premakes.html:65 templates/weekly_report.html:301
+#: templates/add_or_edit_product.html:23 templates/weekly_report.html:301
 msgid "No Category"
 msgstr "ללא קטגוריה"
 
@@ -568,8 +643,8 @@ msgstr "שם מוצר"
 
 #: templates/add_or_edit_product.html:46 templates/close_week.html:28
 #: templates/index.html:197 templates/monthly_report.html:417
-#: templates/monthly_report.html:456 templates/production.html:86
-#: templates/production.html:128 templates/update_weekly_sales.html:50
+#: templates/monthly_report.html:456 templates/production.html:91
+#: templates/production.html:133 templates/update_weekly_sales.html:50
 #: templates/weekly_report.html:169 templates/weekly_report.html:283
 #: templates/weekly_report.html:337 templates/weekly_report.html:785
 msgid "Product"
@@ -603,7 +678,7 @@ msgstr "מחיר מכירה ליחידה"
 msgid "Product Image"
 msgstr "תמונת מוצר"
 
-#: templates/add_or_edit_product.html:173 templates/product_details.html:253
+#: templates/add_or_edit_product.html:173 templates/product_details.html:250
 msgid "Preproducts"
 msgstr "מוצרים מקדימים"
 
@@ -611,18 +686,18 @@ msgstr "מוצרים מקדימים"
 #: templates/add_or_edit_product.html:211
 #: templates/add_or_edit_product.html:227
 #: templates/add_or_edit_product.html:239
-#: templates/add_or_edit_product.html:776
-#: templates/add_or_edit_product.html:783
-#: templates/add_or_edit_product.html:825 templates/premakes.html:45
-#: templates/product_details.html:111 templates/product_details.html:181
-#: templates/product_details.html:213 templates/product_details.html:264
+#: templates/add_or_edit_product.html:902
+#: templates/add_or_edit_product.html:934 templates/product_details.html:108
+#: templates/product_details.html:178 templates/product_details.html:210
+#: templates/product_details.html:261 templates/product_details.html:367
 #: templates/raw_materials.html:89 templates/recipe_review.html:178
 #: templates/supplier_materials.html:77 templates/view_premake.html:104
+#: templates/view_premake.html:171
 msgid "Unit"
 msgstr "יחידה"
 
 #: templates/add_or_edit_product.html:225
-#: templates/add_or_edit_product.html:780
+#: templates/add_or_edit_product.html:850
 msgid "Select preproduct..."
 msgstr "בחר מוצר מקדים..."
 
@@ -635,7 +710,7 @@ msgid "Required Raw Materials"
 msgstr "חומרי גלם נדרשים"
 
 #: templates/add_or_edit_product.html:338
-#: templates/add_or_edit_product.html:478
+#: templates/add_or_edit_product.html:519
 #: templates/add_or_edit_raw_material.html:189 templates/raw_materials.html:56
 msgid "Add Raw Material"
 msgstr "הוסף חומר גלם"
@@ -645,25 +720,47 @@ msgid "Required Packaging"
 msgstr "אריזות נדרשות"
 
 #: templates/add_or_edit_product.html:377
-#: templates/add_or_edit_product.html:659
+#: templates/add_or_edit_product.html:700
 msgid "Select packaging..."
 msgstr "בחר אריזה..."
 
 #: templates/add_or_edit_product.html:395
-#: templates/add_or_edit_product.html:529 templates/packaging.html:44
+#: templates/add_or_edit_product.html:570 templates/packaging.html:44
 msgid "Add Packaging"
 msgstr "הוסף אריזה"
 
-#: templates/add_or_edit_product.html:405
+#: templates/add_or_edit_product.html:403
+msgid ""
+"Loss reduces the final yield (units per recipe) but does NOT reduce the "
+"total cost, effectively increasing the cost per unit."
+msgstr ""
+
+#: templates/add_or_edit_product.html:417
+#: templates/add_or_edit_product.html:740
+msgid "Description (e.g., Broken Units)"
+msgstr ""
+
+#: templates/add_or_edit_product.html:425
+#: templates/add_or_edit_product.html:747 templates/monthly_report.html:582
+#: templates/production.html:43 templates/weekly_report.html:755
+msgid "Units"
+msgstr "יחידות"
+
+#: templates/add_or_edit_product.html:436
+#, fuzzy
+msgid "Add Loss"
+msgstr "הוסף מכירה"
+
+#: templates/add_or_edit_product.html:446
 msgid "Total Cost per Recipe:"
 msgstr "סה\"כ עלות למתכון:"
 
-#: templates/add_or_edit_product.html:408
-#: templates/add_or_edit_product.html:949
+#: templates/add_or_edit_product.html:449
+#: templates/add_or_edit_product.html:1040
 msgid "per Unit"
 msgstr "ליחידה"
 
-#: templates/add_or_edit_product.html:412
+#: templates/add_or_edit_product.html:453
 msgid ""
 "Costs are calculated based on primary supplier prices for each raw "
 "material, which will be used in actual production."
@@ -671,55 +768,55 @@ msgstr ""
 "העלויות מחושבות על בסיס מחירי הספק הראשי של כל חומר גלם, שזה המחיר שישמש "
 "בייצור בפועל."
 
-#: templates/add_or_edit_product.html:420
+#: templates/add_or_edit_product.html:461
 msgid "Add Product"
 msgstr "הוסף מוצר"
 
-#: templates/add_or_edit_product.html:438
+#: templates/add_or_edit_product.html:479
 #: templates/add_or_edit_raw_material.html:25
 msgid "Add New Raw Material"
 msgstr "הוסף חומר גלם חדש"
 
-#: templates/add_or_edit_product.html:443
+#: templates/add_or_edit_product.html:484
 #: templates/add_or_edit_raw_material.html:36
 msgid "Raw Material Name"
 msgstr "שם חומר הגלם"
 
-#: templates/add_or_edit_product.html:460
+#: templates/add_or_edit_product.html:501
 #: templates/add_or_edit_raw_material.html:60
 msgid "Unit of Measure"
 msgstr "יחידת מידה"
 
-#: templates/add_or_edit_product.html:468
+#: templates/add_or_edit_product.html:509
 #: templates/add_or_edit_raw_material.html:152
 #: templates/add_or_edit_raw_material.html:159
 #: templates/supplier_materials.html:240
 msgid "Price per Unit"
 msgstr "מחיר ליחידה"
 
-#: templates/add_or_edit_product.html:472
+#: templates/add_or_edit_product.html:513
 #: templates/add_or_edit_raw_material.html:181
 #, fuzzy
 msgid "Initial Stock"
 msgstr "במלאי"
 
-#: templates/add_or_edit_product.html:519
+#: templates/add_or_edit_product.html:560
 msgid "Quantity per Packaging Unit"
 msgstr "כמות ליחידת אריזה"
 
-#: templates/add_or_edit_product.html:523 templates/product_details.html:321
+#: templates/add_or_edit_product.html:564 templates/product_details.html:318
 msgid "Price per Packaging Unit"
 msgstr "מחיר ליחידת אריזה"
 
-#: templates/add_or_edit_product.html:581
+#: templates/add_or_edit_product.html:622
 msgid "Average"
 msgstr "ממוצע"
 
 #: templates/add_or_edit_raw_material.html:2
-#: templates/premake_production.html:284 templates/premake_production.html:319
-#: templates/premake_production.html:389 templates/product_details.html:109
-#: templates/production.html:323 templates/production.html:361
-#: templates/production.html:402 templates/supplier_materials.html:74
+#: templates/premake_production.html:305 templates/premake_production.html:362
+#: templates/premake_production.html:438 templates/product_details.html:106
+#: templates/production.html:344 templates/production.html:404
+#: templates/production.html:451 templates/supplier_materials.html:74
 #: templates/supplier_materials.html:232 templates/weekly_report.html:645
 msgid "Raw Material"
 msgstr "חומר גלם"
@@ -806,10 +903,11 @@ msgid "SKU"
 msgstr "מק\"ט"
 
 #: templates/add_or_edit_raw_material.html:153 templates/index.html:152
-#: templates/packaging.html:58 templates/premake_production.html:55
-#: templates/production.html:61 templates/raw_materials.html:92
-#: templates/supplier_materials.html:80 templates/supplier_materials.html:154
-#: templates/update_weekly_sales.html:51 templates/view_premake.html:43
+#: templates/packaging.html:58 templates/premake_production.html:60
+#: templates/premakes.html:36 templates/production.html:66
+#: templates/raw_materials.html:92 templates/supplier_materials.html:80
+#: templates/supplier_materials.html:154 templates/update_weekly_sales.html:51
+#: templates/view_premake.html:43
 msgid "Current Stock"
 msgstr "מלאי נוכחי"
 
@@ -885,7 +983,7 @@ msgstr "העלות האפקטיבית תהיה"
 msgid "the base price"
 msgstr "מהמחיר הבסיסי"
 
-#: templates/add_or_edit_supplier.html:9 templates/base.html:70
+#: templates/add_or_edit_supplier.html:9 templates/base.html:73
 #: templates/packaging.html:57 templates/supplier_materials.html:9
 #: templates/suppliers.html:2
 msgid "Suppliers"
@@ -951,7 +1049,8 @@ msgstr "הנחה נוכחית:"
 msgid "Example: ₪100 becomes ₪"
 msgstr "דוגמה: ₪100 הופך ל-₪"
 
-#: templates/add_or_edit_supplier.html:106 templates/audit_log.html:45
+#: templates/add_or_edit_supplier.html:106 templates/audit_log.html:48
+#: templates/premakes.html:133
 msgid "Update"
 msgstr "עדכן"
 
@@ -1008,85 +1107,128 @@ msgstr "מעקב אחר שינויים ופעולות משתמשים."
 msgid "Backup Data"
 msgstr "גיבוי נתונים"
 
-#: templates/audit_log.html:16 templates/audit_log.html:76
+#: templates/audit_log.html:16 templates/audit_log.html:79
 msgid "Restore from Backup"
 msgstr "שחזור מגיבוי"
 
 #: templates/audit_log.html:19
+msgid "Reset History Only"
+msgstr ""
+
+#: templates/audit_log.html:22
 msgid "Full System Reset"
 msgstr "איפוס מערכת מלא"
 
-#: templates/audit_log.html:30
+#: templates/audit_log.html:33
 msgid "Time"
 msgstr "זמן"
 
-#: templates/audit_log.html:31
+#: templates/audit_log.html:34 templates/premakes.html:120
 msgid "Action"
 msgstr "פעולה"
 
-#: templates/audit_log.html:32
+#: templates/audit_log.html:35
 msgid "Target Type"
 msgstr "סוג יעד"
 
-#: templates/audit_log.html:33
+#: templates/audit_log.html:36
 msgid "Target ID"
 msgstr "מזהה יעד"
 
-#: templates/audit_log.html:34
+#: templates/audit_log.html:37
 #, fuzzy
 msgid "Details"
 msgstr "פרטי שבוע"
 
-#: templates/audit_log.html:43 templates/recipe_review.html:213
+#: templates/audit_log.html:46 templates/recipe_review.html:213
 msgid "Create"
 msgstr "יצירה"
 
-#: templates/audit_log.html:47 templates/labor.html:70
-#: templates/packaging.html:107 templates/premake_production.html:98
-#: templates/premakes.html:101 templates/production.html:109
+#: templates/audit_log.html:50 templates/labor.html:70
+#: templates/packaging.html:107 templates/premake_production.html:103
+#: templates/premakes.html:87 templates/production.html:114
 #: templates/raw_materials.html:251 templates/raw_materials.html:356
 #: templates/suppliers.html:75
 msgid "Delete"
 msgstr "מחק"
 
-#: templates/audit_log.html:49
+#: templates/audit_log.html:52
 msgid "Reset"
 msgstr "איפוס"
 
-#: templates/audit_log.html:51 templates/products.html:140
-#: templates/products.html:141
+#: templates/audit_log.html:54 templates/products.html:145
+#: templates/products.html:146
 msgid "Restore"
 msgstr "שחזור"
 
-#: templates/audit_log.html:62
+#: templates/audit_log.html:65
 msgid "No records in the log."
 msgstr "אין רישומים ביומן."
 
-#: templates/audit_log.html:80
+#: templates/audit_log.html:83
 msgid "This action will overwrite all data in the system!"
 msgstr "פעולה זו תדרוס את כל הנתונים במערכת!"
 
-#: templates/audit_log.html:81
+#: templates/audit_log.html:84
 msgid "Upload a backup file (JSON) to restore the state."
 msgstr "העלה קובץ גיבוי (JSON) לשחזור המצב."
 
-#: templates/audit_log.html:83
+#: templates/audit_log.html:86
 msgid "Backup File"
 msgstr "קובץ גיבוי"
 
-#: templates/audit_log.html:89
+#: templates/audit_log.html:92
 msgid "Restore Data"
 msgstr "שחזר נתונים"
 
-#: templates/audit_log.html:102
+#: templates/audit_log.html:105
+msgid "Warning: Reset History Only"
+msgstr ""
+
+#: templates/audit_log.html:109
+msgid "This will clear all history but keep your setup."
+msgstr ""
+
+#: templates/audit_log.html:111
+msgid "Clears all inventory stock levels (sets to 0)"
+msgstr ""
+
+#: templates/audit_log.html:112
+#, fuzzy
+msgid "Clears all production history"
+msgstr "היסטוריית ייצור הכנות"
+
+#: templates/audit_log.html:113
+msgid "Clears all weekly sales and labor records"
+msgstr ""
+
+#: templates/audit_log.html:114
+#, fuzzy
+msgid "Clears all activity logs"
+msgstr "יומן פעילות"
+
+#: templates/audit_log.html:116
+msgid "Master data (Materials, Recipes, Suppliers, Labor) will be kept."
+msgstr ""
+
+#: templates/audit_log.html:117
+#, fuzzy
+msgid "Are you sure you want to proceed?"
+msgstr "האם אתה בטוח שברצונך להמשיך?"
+
+#: templates/audit_log.html:121
+msgid "Yes, clear history"
+msgstr ""
+
+#: templates/audit_log.html:134
 msgid "Warning: System Reset"
 msgstr "אזהרה: איפוס מערכת"
 
-#: templates/audit_log.html:106
+#: templates/audit_log.html:138
 msgid "This action will delete all data in the system!"
 msgstr "פעולה זו תמחק את כל הנתונים במערכת!"
 
-#: templates/audit_log.html:107
+#: templates/audit_log.html:139
 msgid ""
 "All products, raw materials, history and logs will be permanently "
 "deleted. This information cannot be recovered."
@@ -1094,11 +1236,11 @@ msgstr ""
 "כל המוצרים, חומרי הגלם, ההיסטוריה והיומנים יימחקו לצמיתות. לא ניתן לשחזר "
 "מידע זה."
 
-#: templates/audit_log.html:108
+#: templates/audit_log.html:140
 msgid "Are you sure you want to continue?"
 msgstr "האם אתה בטוח שברצונך להמשיך?"
 
-#: templates/audit_log.html:112
+#: templates/audit_log.html:144
 msgid "Yes, reset the system"
 msgstr "כן, אפס את המערכת"
 
@@ -1120,63 +1262,71 @@ msgstr "ראשי"
 msgid "Production"
 msgstr "ייצור"
 
-#: templates/base.html:46 templates/base.html:50 templates/categories.html:31
-#: templates/categories.html:108 templates/index.html:29
-#: templates/monthly_report.html:372 templates/products.html:2
-#: templates/products.html:8
+#: templates/base.html:46 templates/base.html:53 templates/categories.html:31
+#: templates/categories.html:108 templates/daily_production.html:2
+#: templates/index.html:29 templates/monthly_report.html:372
+#: templates/products.html:2 templates/products.html:8
 msgid "Products"
 msgstr "מוצרים"
 
-#: templates/base.html:55
+#: templates/base.html:47 templates/daily_production.html:13
+msgid "Daily Production - Products"
+msgstr "ייצור יומי - מוצרים"
+
+#: templates/base.html:50 templates/daily_production.html:11
+msgid "Daily Production - Premakes"
+msgstr "ייצור יומי - הכנות"
+
+#: templates/base.html:58
 msgid "Reports"
 msgstr "דו\"חות"
 
 # Weekly Report - Added Dec 2024
-#: templates/base.html:58 templates/weekly_report.html:2
+#: templates/base.html:61 templates/weekly_report.html:2
 #: templates/weekly_report.html:7
 msgid "Weekly Report"
 msgstr "דו\"ח שבועי"
 
-#: templates/base.html:59 templates/monthly_report.html:2
+#: templates/base.html:62 templates/monthly_report.html:2
 #: templates/monthly_report.html:7
 msgid "Monthly Report"
 msgstr "דו\"ח חודשי"
 
-#: templates/base.html:64
+#: templates/base.html:67
 msgid "Settings"
 msgstr "הגדרות"
 
-#: templates/base.html:67 templates/index.html:320
+#: templates/base.html:70 templates/index.html:320
 #: templates/weekly_cost_details.html:9
 msgid "Weekly Labor"
 msgstr "לייבור שבועי"
 
-#: templates/base.html:68
+#: templates/base.html:71
 msgid "Employees"
 msgstr "מצבת עובדים"
 
-#: templates/base.html:72
+#: templates/base.html:75
 msgid "Categories"
 msgstr "קטגוריות"
 
-#: templates/base.html:73 templates/stock_audits.html:2
+#: templates/base.html:76 templates/stock_audits.html:2
 #: templates/stock_audits.html:7
 msgid "Stock Audit"
 msgstr "ביקורת מלאי"
 
-#: templates/base.html:74
+#: templates/base.html:77
 msgid "Upload Inventory from File"
 msgstr "טעינת מלאי מקובץ"
 
-#: templates/base.html:75 templates/recipe_upload.html:2
+#: templates/base.html:78 templates/recipe_upload.html:2
 msgid "Import Recipes"
 msgstr "ייבוא מתכונים"
 
-#: templates/base.html:77
+#: templates/base.html:80
 msgid "Activity Log / Reset"
 msgstr "יומן פעילות / איפוס"
 
-#: templates/base.html:105
+#: templates/base.html:108
 msgid "All rights reserved."
 msgstr "כל הזכויות שמורות."
 
@@ -1197,9 +1347,9 @@ msgid "New Category"
 msgstr "קטגוריה חדשה"
 
 #: templates/categories.html:47 templates/labor.html:55
-#: templates/packaging.html:59 templates/premake_production.html:82
-#: templates/premakes.html:58 templates/production.html:91
-#: templates/products.html:40 templates/raw_materials.html:93
+#: templates/packaging.html:59 templates/premake_production.html:87
+#: templates/premakes.html:39 templates/production.html:96
+#: templates/products.html:50 templates/raw_materials.html:93
 #: templates/supplier_materials.html:82 templates/supplier_materials.html:156
 #: templates/suppliers.html:28 templates/weekly_costs.html:25
 msgid "Actions"
@@ -1258,9 +1408,9 @@ msgstr "להעביר לשבוע הבא?"
 msgid "Premake Leftovers"
 msgstr "שאריות הכנות"
 
-#: templates/close_week.html:62 templates/premake_production.html:80
-#: templates/premake_production.html:117 templates/premake_production.html:389
-#: templates/product_details.html:179 templates/production.html:408
+#: templates/close_week.html:62 templates/premake_production.html:85
+#: templates/premake_production.html:122 templates/premake_production.html:438
+#: templates/product_details.html:176 templates/production.html:457
 #: templates/view_premake.html:12 templates/weekly_report.html:377
 msgid "Premake"
 msgstr "הכנה מקדימה"
@@ -1300,6 +1450,158 @@ msgstr "עדכון מכירות"
 #: templates/close_week.html:143
 msgid "Return to update sales data for the previous week (if sold)."
 msgstr "חזור לעדכון נתוני מכירות לשבוע הקודם (אם נמכר)."
+
+#: templates/daily_production.html:2 templates/premake_production.html:7
+#: templates/production.html:7
+msgid "Daily Production"
+msgstr "ייצור יומי"
+
+#: templates/daily_production.html:16
+msgid "Enter quantities for all items you want to produce today"
+msgstr "הזן כמויות לכל הפריטים שברצונך לייצר היום"
+
+#: templates/daily_production.html:21 templates/daily_production.html:25
+msgid "Back to Single Entry"
+msgstr "חזרה לרישום בודד"
+
+#: templates/daily_production.html:38
+msgid "Production Timestamp"
+msgstr "זמן ייצור"
+
+#: templates/daily_production.html:41
+msgid "This timestamp will apply to all items"
+msgstr "זמן זה יחול על כל הפריטים"
+
+#: templates/daily_production.html:46
+msgid "items selected"
+msgstr "פריטים נבחרו"
+
+#: templates/daily_production.html:49 templates/monthly_report.html:339
+#: templates/raw_materials.html:134 templates/weekly_report.html:253
+#: templates/weekly_report.html:575
+msgid "Total"
+msgstr "סה\"כ"
+
+#: templates/daily_production.html:80 templates/labor.html:52
+#: templates/packaging.html:54 templates/raw_materials.html:86
+#: templates/recipe_review.html:128
+msgid "Name"
+msgstr "שם"
+
+#: templates/daily_production.html:82
+msgid "Stock Status"
+msgstr "מצב מלאי"
+
+#: templates/daily_production.html:83
+msgid "Info"
+msgstr "מידע"
+
+#: templates/daily_production.html:96
+msgid "Missing:"
+msgstr "חסר:"
+
+#: templates/daily_production.html:120 templates/daily_production.html:122
+#: templates/daily_production.html:355 templates/daily_production.html:360
+#: templates/premake_production.html:43 templates/premake_production.html:95
+#: templates/premake_production.html:129 templates/premake_production.html:254
+#: templates/production.html:252
+msgid "batches"
+msgstr "באצ'ים"
+
+#: templates/daily_production.html:130
+msgid "Stock OK"
+msgstr "מלאי תקין"
+
+#: templates/daily_production.html:134
+msgid "Insufficient"
+msgstr "חסר במלאי"
+
+#: templates/daily_production.html:141
+msgid "Batch"
+msgstr "באצ'"
+
+#: templates/daily_production.html:145
+msgid "Recipe"
+msgstr "מתכון"
+
+# Product Details page translations
+#: templates/daily_production.html:145 templates/daily_production.html:360
+#: templates/packaging.html:127 templates/product_details.html:36
+#: templates/stock_audits.html:29 templates/stock_audits.html:37
+msgid "units"
+msgstr "יחידות"
+
+#: templates/daily_production.html:162
+msgid "No premakes found. Create some premakes first."
+msgstr "לא נמצאו הכנות מקדימות. צור כמה הכנות תחילה."
+
+#: templates/daily_production.html:164
+msgid "No products found. Create some products first."
+msgstr "לא נמצאו מוצרים. צור כמה מוצרים תחילה."
+
+#: templates/daily_production.html:175 templates/daily_production.html:286
+msgid "Select items to produce by entering quantities above"
+msgstr "בחר פריטים לייצור על ידי הזנת כמויות למעלה"
+
+#: templates/daily_production.html:180
+msgid "Clear All"
+msgstr "נקה הכל"
+
+#: templates/daily_production.html:183
+msgid "Submit All Production"
+msgstr "שלח את כל הייצור"
+
+#: templates/daily_production.html:196
+msgid "Production Error"
+msgstr "שגיאת ייצור"
+
+#: templates/daily_production.html:204 templates/packaging.html:159
+msgid "Close"
+msgstr "סגור"
+
+# Dashboard page translations
+#: templates/daily_production.html:216
+msgid "Production Completed"
+msgstr "הייצור הושלם"
+
+#: templates/daily_production.html:224
+msgid "View Production Log"
+msgstr "צפה ביומן הייצור"
+
+#: templates/daily_production.html:279
+msgid "Cannot submit: some selected items have insufficient stock"
+msgstr "לא ניתן לשלוח: לחלק מהפריטים שנבחרו אין מספיק מלאי"
+
+#: templates/daily_production.html:281
+msgid "items ready to produce"
+msgstr "פריטים מוכנים לייצור"
+
+#: templates/daily_production.html:323
+msgid "Processing..."
+msgstr "מעבד..."
+
+#: templates/daily_production.html:347
+msgid "Successfully logged production for"
+msgstr "ייצור נרשם בהצלחה עבור"
+
+#: templates/daily_production.html:347 templates/product_details.html:98
+#: templates/product_details.html:168 templates/product_details.html:251
+#: templates/product_details.html:308 templates/product_details.html:357
+#: templates/view_premake.html:94 templates/view_premake.html:161
+msgid "items"
+msgstr "פריטים"
+
+#: templates/daily_production.html:377
+msgid "The following items have issues:"
+msgstr "לפריטים הבאים יש בעיות:"
+
+#: templates/daily_production.html:382
+msgid "Missing"
+msgstr "חסר"
+
+#: templates/daily_production.html:399
+msgid "An unexpected error occurred. Please try again."
+msgstr "אירעה שגיאה בלתי צפויה. נסה שוב."
 
 # Dashboard & Index page translations
 #: templates/index.html:3 templates/index.html:8
@@ -1414,7 +1716,7 @@ msgid "Revenue"
 msgstr "הכנסות"
 
 #: templates/index.html:204 templates/monthly_report.html:377
-#: templates/products.html:39 templates/weekly_report.html:231
+#: templates/products.html:49 templates/weekly_report.html:231
 msgid "Gross Profit"
 msgstr "רווח גולמי"
 
@@ -1485,7 +1787,7 @@ msgid "Daily production logging for products"
 msgstr "רישום ייצור יומי של מוצרים"
 
 #: templates/index.html:367 templates/premake_production.html:2
-#: templates/premake_production.html:4
+#: templates/premake_production.html:5
 msgid "Premake Production Log"
 msgstr "יומן ייצור הכנות"
 
@@ -1520,12 +1822,6 @@ msgstr "הוסף עובד"
 #: templates/labor.html:46
 msgid "Employee List"
 msgstr "רשימת עובדים"
-
-#: templates/labor.html:52 templates/packaging.html:54
-#: templates/premakes.html:42 templates/raw_materials.html:86
-#: templates/recipe_review.html:128
-msgid "Name"
-msgstr "שם"
 
 #: templates/labor.html:54
 msgid "Hourly Cost"
@@ -1661,7 +1957,7 @@ msgstr "עלות במלאי"
 msgid "Products:"
 msgstr "מוצרים"
 
-#: templates/monthly_report.html:110 templates/product_details.html:373
+#: templates/monthly_report.html:110 templates/product_details.html:407
 #: templates/weekly_report.html:119
 msgid "Premakes:"
 msgstr "הכנות מקדימות:"
@@ -1712,11 +2008,6 @@ msgstr "Food Cost %%"
 msgid "Recipes"
 msgstr "מתכונים"
 
-#: templates/monthly_report.html:339 templates/raw_materials.html:134
-#: templates/weekly_report.html:253 templates/weekly_report.html:575
-msgid "Total"
-msgstr "סה\"כ"
-
 #: templates/monthly_report.html:363
 msgid "Category Performance"
 msgstr "ביצועי קטגוריות"
@@ -1761,9 +2052,10 @@ msgstr "ניתוח מלאי"
 msgid "Unsold Products (In Inventory)"
 msgstr "מוצרים שלא נמכרו (במלאי)"
 
-#: templates/monthly_report.html:461 templates/view_premake.html:68
-#: templates/view_premake.html:185 templates/weekly_report.html:342
-#: templates/weekly_report.html:381 templates/weekly_report.html:518
+#: templates/monthly_report.html:461 templates/premakes.html:38
+#: templates/view_premake.html:68 templates/view_premake.html:222
+#: templates/weekly_report.html:342 templates/weekly_report.html:381
+#: templates/weekly_report.html:518
 msgid "Cost per Unit"
 msgstr "עלות ליחידה"
 
@@ -1835,11 +2127,6 @@ msgstr "השבוע הרווחי ביותר:"
 msgid "Monthly waste percentage:"
 msgstr "שיעור פחת חודשי:"
 
-#: templates/monthly_report.html:582 templates/production.html:38
-#: templates/weekly_report.html:755
-msgid "Units"
-msgstr "יחידות"
-
 #: templates/monthly_report.html:582 templates/weekly_report.html:756
 msgid "of production"
 msgstr "מהייצור"
@@ -1900,25 +2187,15 @@ msgstr "ראשי"
 msgid "Secondary"
 msgstr "משני"
 
-# Product Details page translations
-#: templates/packaging.html:127 templates/product_details.html:36
-#: templates/stock_audits.html:29 templates/stock_audits.html:37
-msgid "units"
-msgstr "יחידות"
-
 #: templates/packaging.html:145
 msgid "No packaging found in the system."
 msgstr "לא נמצאו אריזות במערכת."
 
 #: templates/packaging.html:158 templates/packaging.html:197
+#: templates/premakes.html:83 templates/premakes.html:110
 #: templates/raw_materials.html:293
 msgid "Update Stock"
 msgstr "עדכן מלאי"
-
-#: templates/packaging.html:159
-#, fuzzy
-msgid "Close"
-msgstr "עלות"
 
 #: templates/packaging.html:189 templates/raw_materials.html:328
 msgid "Counter Name"
@@ -1964,170 +2241,186 @@ msgstr "סך שעות"
 msgid "Error updating stock"
 msgstr "שגיאה בעדכון מחיר"
 
-#: templates/premake_production.html:17 templates/production.html:17
+#: templates/premake_production.html:22 templates/production.html:22
 msgid "Timestamp"
 msgstr "תאריך ושעה"
 
 # Premake Production page translations
-#: templates/premake_production.html:21
+#: templates/premake_production.html:26
 msgid "Select Premake"
 msgstr "בחר הכנה מקדימה"
 
-#: templates/premake_production.html:31
+#: templates/premake_production.html:36
 msgid "Batch size (recipe):"
 msgstr "גודל באצ' (מתכון):"
 
-#: templates/premake_production.html:35
+#: templates/premake_production.html:40
 msgid "Number of batches to produce"
 msgstr "מספר באצ'ים לייצור"
 
-#: templates/premake_production.html:38 templates/premake_production.html:90
-#: templates/premake_production.html:124 templates/premake_production.html:249
-#: templates/production.html:247
-msgid "batches"
-msgstr "באצ'ים"
-
-#: templates/premake_production.html:40
+#: templates/premake_production.html:45
 msgid "Enter the number of batches to produce. Each batch is"
 msgstr "הכנס את מספר הבאצ'ים לייצור. כל באצ' הוא"
 
-#: templates/premake_production.html:45
+#: templates/premake_production.html:50
 msgid "Total quantity to produce:"
 msgstr "סה\"כ כמות לייצור:"
 
-#: templates/premake_production.html:48 templates/production.html:54
+#: templates/premake_production.html:53 templates/production.html:59
 msgid "Material and Premake Usage Breakdown"
 msgstr "פירוט צריכת חומרים והכנות"
 
-#: templates/premake_production.html:53 templates/product_details.html:211
-#: templates/production.html:59 templates/view_premake.html:102
+#: templates/premake_production.html:58 templates/product_details.html:208
+#: templates/production.html:64 templates/view_premake.html:102
 msgid "Component"
 msgstr "רכיב"
 
-#: templates/premake_production.html:54 templates/production.html:60
+#: templates/premake_production.html:59 templates/production.html:65
 #: templates/recipe_review.html:129
 msgid "Type"
 msgstr "סוג"
 
-#: templates/premake_production.html:56 templates/production.html:62
+#: templates/premake_production.html:61 templates/production.html:67
 msgid "Usage in this production"
 msgstr "צריכה בייצור זה"
 
-#: templates/premake_production.html:57 templates/production.html:63
+#: templates/premake_production.html:62 templates/production.html:68
 msgid "Stock after production"
 msgstr "מלאי לאחר ייצור"
 
-#: templates/premake_production.html:58 templates/production.html:64
+#: templates/premake_production.html:63 templates/production.html:69
 msgid "Cost per 100g/unit"
 msgstr "עלות ל-100 ג׳/יחידה"
 
-#: templates/premake_production.html:59 templates/production.html:65
-#: templates/production.html:89 templates/weekly_costs.html:23
+#: templates/premake_production.html:64 templates/production.html:70
+#: templates/production.html:94 templates/weekly_costs.html:23
 #: templates/weekly_report.html:174 templates/weekly_report.html:519
 #: templates/weekly_report.html:558 templates/weekly_report.html:824
 msgid "Total Cost"
 msgstr "סך עלות"
 
-#: templates/premake_production.html:69 templates/production.html:75
+#: templates/premake_production.html:74 templates/production.html:80
 msgid "Log Production"
 msgstr "יומן ייצור"
 
-#: templates/premake_production.html:75
+#: templates/premake_production.html:80
 msgid "Premake Production History"
 msgstr "היסטוריית ייצור הכנות"
 
-#: templates/premake_production.html:79 templates/production.html:85
+#: templates/premake_production.html:84 templates/production.html:90
 #: templates/stock_audits.html:100 templates/weekly_report.html:644
 msgid "Date"
 msgstr "תאריך"
 
-#: templates/premake_production.html:81 templates/production.html:44
-#: templates/production.html:132 templates/production.html:245
-#: templates/production.html:251
+#: templates/premake_production.html:86 templates/production.html:49
+#: templates/production.html:137 templates/production.html:250
+#: templates/production.html:256
 msgid "Quantity Produced"
 msgstr "כמות שיוצר"
 
-#: templates/premake_production.html:97
+#: templates/premake_production.html:102
 msgid "Are you sure you want to delete this premake production log?"
 msgstr "האם אתה בטוח שברצונך למחוק רשומת ייצור הכנה זו?"
 
-#: templates/premake_production.html:112
+#: templates/premake_production.html:117
 msgid "Edit Premake Production Quantity"
 msgstr "עריכת כמות ייצור הכנה"
 
-#: templates/premake_production.html:121
+#: templates/premake_production.html:126
 msgid "Number of batches"
 msgstr "מספר באצ'ים"
 
-#: templates/premake_production.html:126
+#: templates/premake_production.html:131
 msgid "Enter the number of batches produced. Each batch is"
 msgstr "הכנס את מספר הבאצ'ים שיוצרו. כל באצ' הוא"
 
-#: templates/premake_production.html:192
+#: templates/premake_production.html:197
 msgid "Edit Premake Production Quantity for"
 msgstr "עריכת כמות ייצור הכנה עבור"
 
-#: templates/premake_production.html:306 templates/premake_production.html:354
-#: templates/production.html:348 templates/production.html:396
+#: templates/premake_production.html:295 templates/premake_production.html:352
+#: templates/production.html:334 templates/production.html:394
+#, fuzzy
+msgid "Recipe needs"
+msgstr "מתכונים"
+
+#: templates/premake_production.html:295 templates/premake_production.html:352
+#: templates/production.html:334 templates/production.html:394
+#, fuzzy
+msgid "using"
+msgstr "הגדרות"
+
+#: templates/premake_production.html:295 templates/premake_production.html:352
+#: templates/production.html:334 templates/production.html:394
+msgid "includes"
+msgstr ""
+
+#: templates/premake_production.html:300 templates/premake_production.html:357
+#: templates/production.html:339 templates/production.html:399
+msgid "Includes"
+msgstr ""
+
+#: templates/premake_production.html:300 templates/premake_production.html:357
+#: templates/production.html:339 templates/production.html:399
+#, fuzzy
+msgid "waste adjustment"
+msgstr "עלות פחת"
+
+#: templates/premake_production.html:333 templates/premake_production.html:403
+#: templates/production.html:375 templates/production.html:445
 msgid "Shortage"
 msgstr "חוסר"
 
-#: templates/premake_production.html:389 templates/product_details.html:14
-#: templates/product_details.html:262 templates/production.html:404
+#: templates/premake_production.html:438 templates/product_details.html:14
+#: templates/product_details.html:259 templates/production.html:453
 msgid "Preproduct"
 msgstr "מוצר מקדים"
 
-#: templates/premake_production.html:403 templates/production.html:474
+#: templates/premake_production.html:452 templates/production.html:523
 msgid "Total production cost"
 msgstr "סה\"כ עלות ייצור"
 
-# Premakes page translations
 #: templates/premakes.html:9
-msgid "Manage base recipes and premakes."
-msgstr "ניהול מתכוני בסיס והכנות (Premakes)."
+msgid "Manage intermediate recipes and stock."
+msgstr "ניהול מתכוני ביניים ומלאי."
+
+#: templates/premakes.html:13
+msgid "Add New Premake"
+msgstr "הוסף הכנה חדשה"
 
 #: templates/premakes.html:24
-msgid "Search premake..."
-msgstr "חפש הכנה מקדימה..."
+msgid "Search by premake name..."
+msgstr "חיפוש לפי שם הכנה..."
 
-#: templates/premakes.html:29 templates/raw_materials.html:73
-msgid "All Categories"
-msgstr "כל הקטגוריות"
+#: templates/premakes.html:35 templates/view_premake.html:31
+msgid "Batch Size"
+msgstr "גודל באצ'"
 
-#: templates/premakes.html:44
-msgid "Batch Quantity"
-msgstr "כמות באצ'"
+#: templates/premakes.html:37 templates/view_premake.html:59
+msgid "Cost per Batch"
+msgstr "עלות לאצ'"
 
-#: templates/premakes.html:46
-msgid "Price per Batch"
-msgstr "מחיר לאצווה"
-
-#: templates/premakes.html:49
-msgid "Price per"
-msgstr "מחיר ל"
-
-#: templates/premakes.html:86 templates/premakes.html:186
-#: templates/premakes.html:200
-#, fuzzy
-msgid "piece"
-msgstr "מחיר ליחידה"
-
-#: templates/premakes.html:88 templates/premakes.html:188
-#: templates/premakes.html:202
-msgid "unit"
-msgstr "יחידה"
-
-#: templates/premakes.html:94 templates/products.html:126
+#: templates/premakes.html:73 templates/products.html:131
 msgid "View Details"
 msgstr "צפה בפרטים"
 
-#: templates/premakes.html:100
+#: templates/premakes.html:86
 msgid "Are you sure you want to delete this premake?"
 msgstr "האם אתה בטוח שברצונך למחוק הכנה מקדימה זו?"
 
-#: templates/premakes.html:110
+#: templates/premakes.html:96
 msgid "No premakes found."
 msgstr "לא נמצאו הכנות מקדימות."
+
+#: templates/premakes.html:123
+#, fuzzy
+msgid "Add to current stock"
+msgstr "מלאי נוכחי"
+
+#: templates/premakes.html:127
+#, fuzzy
+msgid "Set absolute stock level"
+msgstr "שווי מלאי מכירה"
 
 #: templates/product_details.html:2
 msgid "Product Details"
@@ -2142,183 +2435,191 @@ msgstr "שימוש פנימי"
 msgid "Quantity per Recipe"
 msgstr "כמות למתכון"
 
-#: templates/product_details.html:55 templates/products.html:37
+#: templates/product_details.html:55 templates/products.html:47
 msgid "Production Cost per Unit"
 msgstr "עלות ייצור ליחידה"
 
-#: templates/product_details.html:78
+#: templates/product_details.html:75
 msgid "Gross Profit per Unit"
 msgstr "רווח גולמי ליחידה"
 
-#: templates/product_details.html:92
+#: templates/product_details.html:89
 msgid "Product Components"
 msgstr "מרכיבי המוצר"
 
-#: templates/product_details.html:101 templates/product_details.html:171
-#: templates/product_details.html:254 templates/product_details.html:311
-#: templates/view_premake.html:94
-msgid "items"
-msgstr "פריטים"
-
-#: templates/product_details.html:110 templates/product_details.html:180
-#: templates/product_details.html:263
+#: templates/product_details.html:107 templates/product_details.html:177
+#: templates/product_details.html:260
 msgid "Quantity in Recipe"
 msgstr "כמות במתכון"
 
-#: templates/product_details.html:112
+#: templates/product_details.html:109
 #, fuzzy
 msgid "Original Price per 100g"
 msgstr "מחיר מקורי"
 
-#: templates/product_details.html:113
+#: templates/product_details.html:110
 #, fuzzy
 msgid "Discounted Price per 100g"
 msgstr "מחיר אחרי הנחה"
 
-#: templates/product_details.html:114 templates/product_details.html:183
-#: templates/product_details.html:266 templates/product_details.html:322
+#: templates/product_details.html:111 templates/product_details.html:180
+#: templates/product_details.html:263 templates/product_details.html:319
 #: templates/weekly_report.html:173
 msgid "Cost per Recipe"
 msgstr "עלות למתכון"
 
-#: templates/product_details.html:115 templates/product_details.html:184
-#: templates/product_details.html:267 templates/product_details.html:323
+#: templates/product_details.html:112 templates/product_details.html:181
+#: templates/product_details.html:264 templates/product_details.html:320
 msgid "Cost per Product"
 msgstr "עלות למוצר"
 
-#: templates/product_details.html:148
+#: templates/product_details.html:145
 msgid "Total Raw Materials:"
 msgstr "סה\"כ חומרי גלם:"
 
-#: templates/product_details.html:182
+#: templates/product_details.html:179
 #, fuzzy
 msgid "Price per 100g"
 msgstr "מחיר ל"
 
-#: templates/product_details.html:207
+#: templates/product_details.html:204
 msgid "Components of"
 msgstr "מרכיבי"
 
 # Missing product_details.html translations
-#: templates/product_details.html:212
+#: templates/product_details.html:209
 #, fuzzy
 msgid "Quantity per Unit"
 msgstr "כמות למתכון"
 
-#: templates/product_details.html:231
+#: templates/product_details.html:228
 msgid "Total Premakes:"
 msgstr "סה\"כ הכנות מקדימות:"
 
-#: templates/product_details.html:265 templates/recipe_review.html:205
+#: templates/product_details.html:262 templates/recipe_review.html:205
 #, fuzzy
 msgid "Price"
 msgstr "מחיר ליחידה"
 
-#: templates/product_details.html:288
+#: templates/product_details.html:285
 msgid "Total Preproducts:"
 msgstr "סה\"כ מוצרים מקדימים:"
 
-#: templates/product_details.html:337
+#: templates/product_details.html:334
 msgid "Total Packaging:"
 msgstr "סה\"כ אריזות:"
 
-#: templates/product_details.html:357 templates/view_premake.html:158
+#: templates/product_details.html:365 templates/view_premake.html:169
+#, fuzzy
+msgid "Description"
+msgstr "הוספות"
+
+#: templates/product_details.html:368 templates/view_premake.html:172
+#, fuzzy
+msgid "Impact"
+msgstr "דו\"חות"
+
+#: templates/product_details.html:377 templates/view_premake.html:181
+#, fuzzy
+msgid "Reduces Yield"
+msgstr "מתכונים נבחרו"
+
+#: templates/product_details.html:391 templates/view_premake.html:195
 msgid "Cost Summary"
 msgstr "סיכום עלויות"
 
-#: templates/product_details.html:367
+#: templates/product_details.html:401
 msgid "Raw Materials:"
 msgstr "חומרי גלם:"
 
-#: templates/product_details.html:379
+#: templates/product_details.html:413
 #, fuzzy
 msgid "Preproducts:"
 msgstr "מוצרים מקדימים"
 
-#: templates/product_details.html:385
-#, fuzzy
-msgid "Packaging:"
-msgstr "אריזה"
+#: templates/product_details.html:419
+msgid "Packaging (Excluded from Production Cost):"
+msgstr ""
 
-#: templates/product_details.html:390
+#: templates/product_details.html:424
 msgid "Total Cost per Product:"
 msgstr "סה\"כ עלות למוצר:"
 
-#: templates/product_details.html:400
+#: templates/product_details.html:434
 msgid "Selling Price:"
 msgstr "מחיר מכירה:"
 
-#: templates/product_details.html:404
+#: templates/product_details.html:438
 msgid "Production Cost:"
 msgstr "עלות ייצור:"
 
-#: templates/product_details.html:408
+#: templates/product_details.html:442
 msgid "Gross Profit:"
 msgstr "רווח גולמי:"
 
-#: templates/product_details.html:412
+#: templates/product_details.html:446
 msgid "Profit Margin:"
 msgstr "אחוז רווח:"
 
-#: templates/production.html:2 templates/production.html:4
+#: templates/production.html:2 templates/production.html:5
 msgid "Production Logs"
 msgstr "יומן ייצור"
 
-#: templates/production.html:21
+#: templates/production.html:26
 msgid "Select Product"
 msgstr "בחר מוצר"
 
 # Production page translations
-#: templates/production.html:23
+#: templates/production.html:28
 msgid "Select product..."
 msgstr "בחר מוצר..."
 
-#: templates/production.html:30
+#: templates/production.html:35
 msgid "Production Mode"
 msgstr "מצב ייצור"
 
-#: templates/production.html:34 templates/production.html:87
+#: templates/production.html:39 templates/production.html:92
 msgid "Batches"
 msgstr "באצ'ים"
 
-#: templates/production.html:44 templates/production.html:132
-#: templates/production.html:251
+#: templates/production.html:49 templates/production.html:137
+#: templates/production.html:256
 msgid "number of batches"
 msgstr "מספר באצ'ים"
 
-#: templates/production.html:51
+#: templates/production.html:56
 msgid "Total units to produce:"
 msgstr "סה\"כ יחידות לייצור:"
 
-#: templates/production.html:81
+#: templates/production.html:86
 msgid "Recent Production Logs"
 msgstr "רשומות ייצור אחרונות"
 
-#: templates/production.html:88
+#: templates/production.html:93
 msgid "Units Produced"
 msgstr "יחידות שיוצרו"
 
-#: templates/production.html:90
+#: templates/production.html:95
 msgid "Cost/Unit"
 msgstr "עלות/יחידה"
 
-#: templates/production.html:108
+#: templates/production.html:113
 msgid "Are you sure you want to delete this production log?"
 msgstr "האם אתה בטוח שברצונך למחוק רשומת ייצור זו?"
 
-#: templates/production.html:123
+#: templates/production.html:128
 msgid "Edit Production Quantity"
 msgstr "עריכת כמות ייצור"
 
-#: templates/production.html:204
+#: templates/production.html:209
 msgid "Edit Production Quantity for"
 msgstr "עריכת כמות ייצור עבור"
 
-#: templates/production.html:245
+#: templates/production.html:250
 msgid "number of units"
 msgstr "מספר יחידות"
 
-#: templates/production.html:247
+#: templates/production.html:252
 msgid "One unit"
 msgstr "יחידה אחת"
 
@@ -2336,69 +2637,73 @@ msgstr "פעיל"
 msgid "Show Archived"
 msgstr "הצג מוצרים בארכיון"
 
-#: templates/products.html:33 templates/update_weekly_sales.html:49
+#: templates/products.html:33
+msgid "Search by product name..."
+msgstr "חיפוש לפי שם מוצר..."
+
+#: templates/products.html:43 templates/update_weekly_sales.html:49
 msgid "Image"
 msgstr "תמונה"
 
-#: templates/products.html:35
+#: templates/products.html:45
 msgid "Recipe Weight"
 msgstr "משקל מתכון"
 
-#: templates/products.html:36
+#: templates/products.html:46
 msgid "Unit Weight"
 msgstr "משקל יחידה"
 
-#: templates/products.html:38
+#: templates/products.html:48
 msgid "Selling Price"
 msgstr "מחיר מכירה"
 
-#: templates/products.html:59
+#: templates/products.html:69
 #, fuzzy
 msgid "Archived product"
 msgstr "הוסף מוצר"
 
-#: templates/products.html:60
+#: templates/products.html:70
 #, fuzzy
 msgid "Archived"
 msgstr "פעיל"
 
-#: templates/products.html:65
+#: templates/products.html:75
 #, fuzzy
 msgid "Preproduct - Can be sold and used as a component"
 msgstr "מוצר מקדים - ניתן למכירה וגם לשימוש כרכיב"
 
-#: templates/products.html:69
+#: templates/products.html:79
 msgid "Preproduct - Internal use only"
 msgstr "מוצר מקדים - לשימוש פנימי בלבד"
 
-#: templates/products.html:70
+#: templates/products.html:80
 msgid "Internal"
 msgstr "פנימי"
 
-#: templates/products.html:77
+#: templates/products.html:87
 msgid "Missing raw materials:"
 msgstr "חסרים חומרי גלם:"
 
-#: templates/products.html:78
+#: templates/products.html:88
 msgid "Stock shortage"
 msgstr "חוסר במלאי"
 
-#: templates/products.html:118 templates/update_weekly_sales.html:82
+#: templates/products.html:123 templates/update_weekly_sales.html:82
 msgid "N/A"
 msgstr "שגיאה"
 
-#: templates/products.html:133
+#: templates/products.html:138
 msgid ""
 "Are you sure? This will archive the product if it has history, or delete "
 "it permanently if not."
 msgstr ""
 
-#: templates/products.html:134
+#: templates/products.html:139
 #, fuzzy
 msgid "Delete/Archive"
 msgstr "מחק"
 
-#: templates/products.html:150
+#: templates/products.html:155
 msgid "No products found in system."
 msgstr "לא נמצאו מוצרים במערכת."
 
@@ -2414,6 +2719,10 @@ msgstr "מעקב אחר מלאי, עלויות וספקים."
 #: templates/raw_materials.html:68
 msgid "Search raw material..."
 msgstr "חפש חומר גלם..."
+
+#: templates/raw_materials.html:73
+msgid "All Categories"
+msgstr "כל הקטגוריות"
 
 #: templates/raw_materials.html:90 templates/weekly_report.html:789
 #: templates/weekly_report.html:823
@@ -2513,7 +2822,7 @@ msgstr "לא הוגדרו ספקים לחומר גלם זה"
 msgid "Error loading suppliers"
 msgstr "שגיאה בטעינת ספקים"
 
-#: templates/raw_materials.html:456 templates/view_premake.html:189
+#: templates/raw_materials.html:456 templates/view_premake.html:226
 msgid "Current Stock:"
 msgstr "מלאי נוכחי:"
 
@@ -3288,14 +3597,6 @@ msgstr "פרטי הכנה מקדימה"
 msgid "Back to List"
 msgstr "חזרה לרשימה"
 
-#: templates/view_premake.html:31
-msgid "Batch Size"
-msgstr "גודל באצ'"
-
-#: templates/view_premake.html:59
-msgid "Cost per Batch"
-msgstr "עלות לאצ'"
-
 #: templates/view_premake.html:86
 msgid "Preparation Components"
 msgstr "מרכיבי ההכנה"
@@ -3304,19 +3605,19 @@ msgstr "מרכיבי ההכנה"
 msgid "No components defined for this preparation."
 msgstr "אין מרכיבים מוגדרים להכנה זו."
 
-#: templates/view_premake.html:167
+#: templates/view_premake.html:204
 msgid "Batch Size:"
 msgstr "גודל אצ':"
 
-#: templates/view_premake.html:171
+#: templates/view_premake.html:208
 msgid "Number of Components:"
 msgstr "מספר מרכיבים:"
 
-#: templates/view_premake.html:175
+#: templates/view_premake.html:212
 msgid "Total Batch Cost:"
 msgstr "עלות כוללת לאצ':"
 
-#: templates/view_premake.html:200
+#: templates/view_premake.html:237
 msgid "Stock Value:"
 msgstr "שווי מלאי:"
 
@@ -4509,14 +4810,34 @@ msgstr "פחת לפי קטגוריה"
 #~ msgid "Migration skipped: is_archived field already exists"
 #~ msgstr "המיגרציה דולגה: שדה is_archived כבר קיים"
 
-msgid "Search by product name..."
-msgstr "חיפוש לפי שם מוצר..."
+#~ msgid "Waste percentage column already exists"
+#~ msgstr "עמודת אחוז הפחת כבר קיימת"
 
-msgid "Search by premake name..."
-msgstr "חיפוש לפי שם הכנה..."
+#~ msgid "Successfully added waste percentage column"
+#~ msgstr "עמודת אחוז הפחת נוספה בהצלחה"
 
-msgid "Add New Premake"
-msgstr "הוסף הכנה חדשה"
+# Premakes page translations
+#~ msgid "Manage base recipes and premakes."
+#~ msgstr "ניהול מתכוני בסיס והכנות (Premakes)."
 
-msgid "Manage intermediate recipes and stock."
-msgstr "ניהול מתכוני ביניים ומלאי."
+#~ msgid "Search premake..."
+#~ msgstr "חפש הכנה מקדימה..."
+
+#~ msgid "Batch Quantity"
+#~ msgstr "כמות באצ'"
+
+#~ msgid "Price per Batch"
+#~ msgstr "מחיר לאצווה"
+
+#~ msgid "Price per"
+#~ msgstr "מחיר ל"
+
+#~ msgid "piece"
+#~ msgstr "מחיר ליחידה"
+
+#~ msgid "unit"
+#~ msgstr "יחידה"
+
+#~ msgid "Packaging:"
+#~ msgstr "אריזה"
+

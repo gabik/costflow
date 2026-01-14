@@ -1496,3 +1496,138 @@ def calculate_consumption_breakdown(supplier_links, material, remaining_to_consu
             })
 
     return consumption_breakdown, remaining_to_consume
+
+
+def check_item_stock_availability(item, quantity=1):
+    """
+    Check if a product/premake has sufficient stock for production.
+
+    Args:
+        item: Product object (can be product or premake)
+        quantity: Number of batches to produce
+
+    Returns:
+        dict: {
+            'has_stock': bool,
+            'missing_components': [{'name': str, 'type': str, 'required': float, 'available': float}]
+        }
+    """
+    missing_components = []
+
+    try:
+        for component in item.components:
+            if component.component_type == 'raw_material':
+                material = component.material
+                if material and not material.is_unlimited:
+                    # Apply waste adjustment to required quantity
+                    required_qty = component.quantity * quantity * material.effective_cost_multiplier
+                    available = calculate_total_material_stock(material.id)
+                    if available < required_qty:
+                        missing_components.append({
+                            'name': material.name,
+                            'type': 'raw_material',
+                            'required': required_qty,
+                            'available': available
+                        })
+
+            elif component.component_type == 'premake':
+                premake = component.premake
+                if premake:
+                    required_qty = component.quantity * quantity
+                    available = calculate_premake_current_stock(premake.id)
+                    if available < required_qty:
+                        missing_components.append({
+                            'name': premake.name,
+                            'type': 'premake',
+                            'required': required_qty,
+                            'available': available
+                        })
+
+            elif component.component_type == 'product':
+                preproduct = component.preproduct
+                if preproduct:
+                    required_qty = component.quantity * quantity
+                    available = calculate_premake_current_stock(preproduct.id)
+                    if available < required_qty:
+                        missing_components.append({
+                            'name': preproduct.name,
+                            'type': 'preproduct',
+                            'required': required_qty,
+                            'available': available
+                        })
+
+        return {
+            'has_stock': len(missing_components) == 0,
+            'missing_components': missing_components
+        }
+    except Exception:
+        # Conservative: if check fails, assume insufficient stock
+        return {
+            'has_stock': False,
+            'missing_components': [{'name': 'Unknown', 'type': 'error', 'required': 0, 'available': 0}]
+        }
+
+
+def group_items_by_category(items, item_type='product'):
+    """
+    Group products/premakes by category for display.
+
+    Args:
+        items: List of Product objects
+        item_type: 'product' or 'premake' for category type lookup
+
+    Returns:
+        list: [{
+            'id': category_id,
+            'name': category_name,
+            'items': [{'id', 'name', 'has_stock', 'missing_components', 'unit', 'batch_size', ...}]
+        }]
+    """
+    from ..models import Category
+
+    # Get categories of the appropriate type
+    category_type = 'premake' if item_type == 'premake' else 'product'
+    categories = Category.query.filter_by(type=category_type).order_by(Category.name).all()
+
+    # Build category ID to category mapping
+    category_map = {cat.id: {'id': cat.id, 'name': cat.name, 'items': []} for cat in categories}
+
+    # Add uncategorized bucket
+    uncategorized = {'id': None, 'name': 'ללא קטגוריה', 'items': []}
+
+    # Group items
+    for item in items:
+        stock_info = check_item_stock_availability(item, quantity=1)
+
+        item_data = {
+            'id': item.id,
+            'name': item.name,
+            'has_stock': stock_info['has_stock'],
+            'missing_components': stock_info['missing_components'],
+            'unit': item.unit if hasattr(item, 'unit') and item.unit else 'kg',
+            'batch_size': item.batch_size if hasattr(item, 'batch_size') and item.batch_size else None,
+            'products_per_recipe': item.products_per_recipe if hasattr(item, 'products_per_recipe') else 1
+        }
+
+        if item.category_id and item.category_id in category_map:
+            category_map[item.category_id]['items'].append(item_data)
+        else:
+            uncategorized['items'].append(item_data)
+
+    # Build result list (only categories with items)
+    result = []
+    for cat_id in category_map:
+        if category_map[cat_id]['items']:
+            # Sort items within category by name
+            category_map[cat_id]['items'].sort(key=lambda x: x['name'])
+            result.append(category_map[cat_id])
+
+    # Add uncategorized if it has items
+    if uncategorized['items']:
+        uncategorized['items'].sort(key=lambda x: x['name'])
+        result.append(uncategorized)
+
+    # Sort categories by name
+    result.sort(key=lambda x: x['name'])
+
+    return result

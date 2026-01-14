@@ -44,7 +44,10 @@
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="productionDropdown">
                         <li><a class="dropdown-item" href="{{ url_for('production.production') }}">{{ _('Products') }}</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('production.daily_product_production') }}"><i class="bi bi-calendar-day me-2"></i>{{ _('Daily Production - Products') }}</a></li>
+                        <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="{{ url_for('production.premake_production') }}">{{ _('Premakes') }}</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('production.daily_premake_production') }}"><i class="bi bi-calendar-day me-2"></i>{{ _('Daily Production - Premakes') }}</a></li>
                     </ul>
                 </li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('products.products') }}">{{ _('Products') }}</a></li>

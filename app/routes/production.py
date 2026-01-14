@@ -1,6 +1,7 @@
 from datetime import datetime
 import json
 from flask import Blueprint, render_template, request, redirect, url_for
+from flask_babel import gettext as _
 from ..models import db, Product, ProductionLog, StockLog, InsufficientStockError, RawMaterial
 from .utils import log_audit, deduct_material_stock, calculate_premake_cost_per_unit
 
@@ -465,3 +466,367 @@ def delete_premake_production_log(log_id):
     db.session.commit()
     log_audit("DELETE", "ProductionLog", log_id, "Deleted premake production log")
     return redirect(url_for('production.premake_production'))
+
+
+# ----------------------------
+# Daily Batch Production
+# ----------------------------
+
+@production_blueprint.route('/production/daily', methods=['GET', 'POST'])
+def daily_product_production():
+    """Batch production interface for multiple products"""
+    from flask import flash, jsonify
+    from flask_babel import gettext as _
+    from .utils import group_items_by_category, check_item_stock_availability
+
+    if request.method == 'POST':
+        return _process_daily_production(is_premake=False)
+
+    # GET: Prepare data for template
+    products = Product.query.filter_by(is_product=True, is_archived=False).all()
+    categories_data = group_items_by_category(products, item_type='product')
+    current_time = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+
+    return render_template(
+        'daily_production.html',
+        item_type='product',
+        categories=categories_data,
+        current_time=current_time,
+        api_endpoint='product_recipe'
+    )
+
+
+@production_blueprint.route('/production/premakes/daily', methods=['GET', 'POST'])
+def daily_premake_production():
+    """Batch production interface for multiple premakes"""
+    from flask import flash, jsonify
+    from flask_babel import gettext as _
+    from .utils import group_items_by_category, check_item_stock_availability
+
+    if request.method == 'POST':
+        return _process_daily_production(is_premake=True)
+
+    # GET: Prepare data for template
+    premakes = Product.query.filter_by(is_premake=True, is_archived=False).all()
+    categories_data = group_items_by_category(premakes, item_type='premake')
+    current_time = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+
+    return render_template(
+        'daily_production.html',
+        item_type='premake',
+        categories=categories_data,
+        current_time=current_time,
+        api_endpoint='premake_recipe'
+    )
+
+
+def _process_daily_production(is_premake):
+    """Process batch production submission for products or premakes"""
+    from flask import jsonify
+    from flask_babel import gettext as _
+    from .utils import check_item_stock_availability
+
+    # Parse request data
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'error': _('Invalid request data')}), 400
+
+    timestamp_str = data.get('timestamp')
+    items = data.get('items', [])
+
+    # Parse timestamp
+    try:
+        timestamp = datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S') if timestamp_str else datetime.utcnow()
+    except ValueError:
+        timestamp = datetime.utcnow()
+
+    if not items:
+        return jsonify({'success': False, 'error': _('No items to produce')}), 400
+
+    # Filter out zero quantities
+    items = [item for item in items if item.get('quantity', 0) > 0]
+    if not items:
+        return jsonify({'success': False, 'error': _('No items with quantity > 0')}), 400
+
+    # Phase 1: Validate ALL items have sufficient stock
+    validation_errors = []
+    for item_data in items:
+        item_id = item_data.get('id')
+        quantity = item_data.get('quantity', 0)
+
+        if is_premake:
+            product = Product.query.filter_by(id=item_id, is_premake=True).first()
+        else:
+            product = Product.query.filter_by(id=item_id, is_product=True).first()
+
+        if not product:
+            validation_errors.append({'id': item_id, 'name': f'ID {item_id}', 'error': _('Item not found')})
+            continue
+
+        # Check stock availability
+        stock_check = check_item_stock_availability(product, quantity)
+        if not stock_check['has_stock']:
+            missing_names = ', '.join([m['name'] for m in stock_check['missing_components'][:3]])
+            validation_errors.append({
+                'id': item_id,
+                'name': product.name,
+                'error': _('Insufficient stock'),
+                'missing': missing_names
+            })
+
+    if validation_errors:
+        return jsonify({
+            'success': False,
+            'error': _('Stock validation failed'),
+            'validation_errors': validation_errors
+        }), 400
+
+    # Phase 2: Execute production for ALL items in a single transaction
+    try:
+        production_results = []
+
+        for item_data in items:
+            item_id = item_data.get('id')
+            quantity = item_data.get('quantity', 0)
+
+            if is_premake:
+                result = _execute_single_premake_production(item_id, quantity, timestamp)
+            else:
+                result = _execute_single_product_production(item_id, quantity, timestamp)
+
+            production_results.append(result)
+
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': _('Production logged successfully'),
+            'count': len(production_results),
+            'results': production_results
+        })
+
+    except InsufficientStockError as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': _('Production failed: %(error)s', error=str(e))
+        }), 500
+
+
+def _execute_single_product_production(product_id, quantity_produced, timestamp):
+    """Execute production for a single product (reuses existing logic)"""
+    from .utils import calculate_premake_cost_per_unit, calculate_prime_cost, calculate_premake_current_stock
+
+    product = Product.query.get_or_404(product_id)
+
+    total_production_cost = 0
+    cost_details = {'materials': [], 'premakes': [], 'packaging': [], 'preproducts': []}
+
+    # Process each component (same logic as main production route)
+    for component in product.components:
+        if component.component_type == 'raw_material':
+            required_qty = component.quantity * quantity_produced
+            deductions = deduct_material_stock(component.component_id, required_qty)
+
+            material_cost = sum(d[3] for d in deductions)
+            total_production_cost += material_cost
+
+            material = RawMaterial.query.get(component.component_id)
+            cost_details['materials'].append({
+                'name': material.name,
+                'suppliers_used': [{'supplier_id': d[0], 'qty': d[1], 'cost': d[3]} for d in deductions],
+                'total_cost': material_cost
+            })
+
+        elif component.component_type == 'premake':
+            premake = Product.query.filter_by(id=component.component_id, is_premake=True).first()
+            if premake:
+                required_qty = component.quantity * quantity_produced
+
+                # Check stock
+                available_stock = calculate_premake_current_stock(premake.id)
+                if available_stock < required_qty:
+                    raise InsufficientStockError(
+                        _('Insufficient stock for %(name)s. Required: %(required).2f %(unit)s, Available: %(available).2f %(unit)s',
+                          name=premake.name, required=required_qty,
+                          unit=premake.unit or 'kg', available=available_stock)
+                    )
+
+                # Calculate cost from recipe
+                premake_cost_per_unit = calculate_premake_cost_per_unit(premake, use_actual_costs=False)
+                material_cost = premake_cost_per_unit * required_qty
+                total_production_cost += material_cost
+
+                cost_details['premakes'].append({
+                    'name': premake.name,
+                    'qty': required_qty,
+                    'cost': material_cost
+                })
+
+        elif component.component_type == 'product':
+            preproduct = Product.query.filter_by(id=component.component_id, is_preproduct=True).first()
+            if preproduct:
+                required_qty = component.quantity * quantity_produced
+
+                available_stock = calculate_premake_current_stock(preproduct.id)
+                if available_stock < required_qty:
+                    raise InsufficientStockError(
+                        _('Insufficient stock for %(name)s. Required: %(required).2f %(unit)s, Available: %(available).2f %(unit)s',
+                          name=preproduct.name, required=required_qty,
+                          unit=preproduct.unit or 'units', available=available_stock)
+                    )
+
+                preproduct_cost_per_unit = calculate_prime_cost(preproduct)
+                material_cost = preproduct_cost_per_unit * required_qty
+                total_production_cost += material_cost
+
+                cost_details['preproducts'].append({
+                    'name': preproduct.name,
+                    'qty': required_qty,
+                    'cost': material_cost
+                })
+
+        elif component.component_type == 'packaging' and component.packaging:
+            required_qty = component.quantity * quantity_produced
+            packaging_cost = component.packaging.price_per_unit * required_qty
+            # Note: Packaging NOT added to production cost (only when sold)
+            cost_details['packaging'].append({
+                'name': component.packaging.name,
+                'qty': required_qty,
+                'cost': packaging_cost
+            })
+
+    # Calculate cost per unit
+    units_produced = quantity_produced * product.products_per_recipe
+    cost_per_unit = total_production_cost / units_produced if units_produced > 0 else 0
+
+    # Create production log
+    production_log = ProductionLog(
+        product_id=product_id,
+        quantity_produced=quantity_produced,
+        total_cost=total_production_cost,
+        cost_per_unit=cost_per_unit,
+        cost_details=json.dumps(cost_details),
+        timestamp=timestamp
+    )
+    db.session.add(production_log)
+
+    # For preproducts: Add to stock
+    if product.is_preproduct:
+        stock_log = StockLog(
+            product_id=product_id,
+            action_type='add',
+            quantity=units_produced
+        )
+        db.session.add(stock_log)
+
+    return {
+        'id': product_id,
+        'name': product.name,
+        'quantity': quantity_produced,
+        'units': units_produced,
+        'cost': total_production_cost
+    }
+
+
+def _execute_single_premake_production(premake_id, quantity_batches, timestamp):
+    """Execute production for a single premake (reuses existing logic)"""
+    from .utils import calculate_premake_cost_per_unit
+
+    premake = Product.query.filter_by(id=premake_id, is_premake=True).first()
+    if not premake:
+        raise ValueError(f"Premake ID {premake_id} not found")
+
+    batch_size = premake.batch_size or 1
+    quantity_units = quantity_batches * batch_size
+
+    total_production_cost = 0
+    cost_details = {'materials': [], 'premakes': [], 'packaging': []}
+
+    # Process each component
+    for component in premake.components:
+        if component.component_type == 'raw_material':
+            required_qty = component.quantity * quantity_batches
+            deductions = deduct_material_stock(component.component_id, required_qty)
+
+            material_cost = sum(d[3] for d in deductions)
+            total_production_cost += material_cost
+
+            material = RawMaterial.query.get(component.component_id)
+            cost_details['materials'].append({
+                'name': material.name,
+                'suppliers_used': [{'supplier_id': d[0], 'qty': d[1], 'cost': d[3]} for d in deductions],
+                'total_cost': material_cost
+            })
+
+        elif component.component_type == 'premake':
+            nested_premake = Product.query.filter_by(id=component.component_id, is_premake=True).first()
+            if nested_premake:
+                required_qty = component.quantity * quantity_batches
+
+                # Check stock for nested premake
+                from .utils import calculate_premake_current_stock
+                available_stock = calculate_premake_current_stock(nested_premake.id)
+                if available_stock < required_qty:
+                    raise InsufficientStockError(
+                        _('Insufficient stock for %(name)s. Required: %(required).2f %(unit)s, Available: %(available).2f %(unit)s',
+                          name=nested_premake.name, required=required_qty,
+                          unit=nested_premake.unit or 'kg', available=available_stock)
+                    )
+
+                nested_premake_cost_per_unit = calculate_premake_cost_per_unit(nested_premake, use_actual_costs=False)
+                material_cost = nested_premake_cost_per_unit * required_qty
+                total_production_cost += material_cost
+
+                cost_details['premakes'].append({
+                    'name': nested_premake.name,
+                    'qty': required_qty,
+                    'cost': material_cost
+                })
+
+        elif component.component_type == 'packaging' and component.packaging:
+            required_qty = component.quantity * quantity_batches
+            packaging_cost = component.packaging.price_per_unit * required_qty
+            # Note: Packaging NOT added to production cost
+            cost_details['packaging'].append({
+                'name': component.packaging.name,
+                'qty': required_qty,
+                'cost': packaging_cost
+            })
+
+    # Calculate cost per unit (per kg/unit, not per batch)
+    cost_per_unit = total_production_cost / quantity_units if quantity_units > 0 else 0
+
+    # Create production log
+    production_log = ProductionLog(
+        product_id=premake_id,
+        quantity_produced=quantity_batches,
+        total_cost=total_production_cost,
+        cost_per_unit=cost_per_unit,
+        cost_details=json.dumps(cost_details),
+        timestamp=timestamp
+    )
+    db.session.add(production_log)
+
+    # Update stock for premake
+    stock_log = StockLog(
+        product_id=premake_id,
+        action_type='add',
+        quantity=quantity_units
+    )
+    db.session.add(stock_log)
+
+    return {
+        'id': premake_id,
+        'name': premake.name,
+        'quantity_batches': quantity_batches,
+        'quantity_units': quantity_units,
+        'cost': total_production_cost
+    }
