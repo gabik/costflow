@@ -200,7 +200,11 @@ def production():
 
             # Get data for template
             products = Product.query.filter_by(is_product=True).all()
-            production_logs = ProductionLog.query.filter(ProductionLog.product_id != None).order_by(ProductionLog.timestamp.desc()).all()
+            production_logs = ProductionLog.query.filter(
+                ProductionLog.product_id.in_(
+                    db.session.query(Product.id).filter_by(is_product=True)
+                )
+            ).order_by(ProductionLog.timestamp.desc()).all()
             current_time = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 
             # Return with error message
@@ -212,7 +216,11 @@ def production():
 
     # Filter to only show actual products (not premakes or preproducts)
     products = Product.query.filter_by(is_product=True).all()
-    production_logs = ProductionLog.query.filter(ProductionLog.product_id != None).order_by(ProductionLog.timestamp.desc()).all()
+    production_logs = ProductionLog.query.filter(
+        ProductionLog.product_id.in_(
+            db.session.query(Product.id).filter_by(is_product=True)
+        )
+    ).order_by(ProductionLog.timestamp.desc()).all()
     current_time = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
     return render_template('production.html', products=products, production_logs=production_logs, current_time=current_time)
 
