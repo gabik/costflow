@@ -1584,6 +1584,7 @@ def group_items_by_category(items, item_type='product'):
         }]
     """
     from ..models import Category
+    from flask_babel import gettext as _
 
     # Get categories of the appropriate type
     category_type = 'premake' if item_type == 'premake' else 'product'
@@ -1593,7 +1594,7 @@ def group_items_by_category(items, item_type='product'):
     category_map = {cat.id: {'id': cat.id, 'name': cat.name, 'items': []} for cat in categories}
 
     # Add uncategorized bucket
-    uncategorized = {'id': None, 'name': 'ללא קטגוריה', 'items': []}
+    uncategorized = {'id': None, 'name': _('Uncategorized'), 'items': []}
 
     # Group items
     for item in items:

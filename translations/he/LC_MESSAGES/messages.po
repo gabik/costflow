@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-01-14 16:24+0200\n"
+"POT-Creation-Date: 2026-01-14 17:36+0200\n"
 "PO-Revision-Date: 2024-12-14 21:06+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: he\n"
@@ -223,6 +223,10 @@ msgstr "עלות ל-100 ג׳:"
 #, fuzzy
 msgid "per unit"
 msgstr "מחיר ליחידה"
+
+#: app/routes/utils.py:1597
+msgid "Uncategorized"
+msgstr "ללא קטגוריה"
 
 #: templates/add_or_edit_labor.html:2
 msgid "Edit Labor"
