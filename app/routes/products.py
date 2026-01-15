@@ -1246,3 +1246,28 @@ def restore_product(product_id):
 
     return redirect(url_for('products.products') + '?show_archived=true')
 
+
+@products_blueprint.route('/products/update_stock', methods=['POST'])
+def update_product_stock():
+    """Update stock for a product"""
+    product_id = request.form['product_id']
+    quantity = float(request.form['quantity'])
+    action_type = request.form['action_type']  # 'add' or 'set'
+
+    if action_type not in ['add', 'set']:
+        flash(_('Invalid action type'), 'error')
+        return redirect(url_for('products.products'))
+
+    stock_log = StockLog(
+        product_id=product_id,
+        action_type=action_type,
+        quantity=quantity
+    )
+    db.session.add(stock_log)
+
+    log_audit("UPDATE_STOCK", "Product", product_id, f"{action_type} {quantity}")
+
+    db.session.commit()
+
+    flash(_('Stock updated successfully'), 'success')
+    return redirect(url_for('products.products'))

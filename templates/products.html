@@ -135,6 +135,13 @@
                             <a href="{{ url_for('products.edit_product', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('Edit') }}">
                                 <i class="bi bi-pencil"></i>
                             </a>
+                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                    data-bs-toggle="modal" data-bs-target="#updateStockModal"
+                                    data-product-id="{{ product.id }}"
+                                    data-product-name="{{ product.name }}"
+                                    title="{{ _('Update Stock') }}">
+                                <i class="bi bi-box-seam"></i>
+                            </button>
                             <form action="{{ url_for('products.delete_product', product_id=product.id) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ _('Are you sure? This will archive the product if it has history, or delete it permanently if not.') }}');">
                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ _('Delete/Archive') }}">
                                     <i class="bi bi-trash"></i>
@@ -157,6 +164,42 @@
             {% endfor %}
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- Update Stock Modal -->
+<div class="modal fade" id="updateStockModal" tabindex="-1" aria-labelledby="updateStockModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('products.update_product_stock') }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateStockModalLabel">{{ _('Update Stock') }} - <span id="modalProductName"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="product_id" id="modalProductId">
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">{{ _('Quantity') }}</label>
+                        <input type="number" step="0.01" class="form-control" name="quantity" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ _('Action') }}</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="action_type" value="add" id="actionAdd" checked>
+                            <label class="form-check-label" for="actionAdd">{{ _('Add to current stock') }}</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="action_type" value="set" id="actionSet">
+                            <label class="form-check-label" for="actionSet">{{ _('Set absolute stock level') }}</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ _('Update') }}</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -233,6 +276,22 @@ document.addEventListener('DOMContentLoaded', function() {
             rows.forEach(row => tbody.appendChild(row));
         });
     });
+
+    // Modal Logic for Stock Update
+    const updateStockModal = document.getElementById('updateStockModal');
+    if (updateStockModal) {
+        updateStockModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const productId = button.getAttribute('data-product-id');
+            const productName = button.getAttribute('data-product-name');
+
+            const modalTitle = updateStockModal.querySelector('#modalProductName');
+            const modalInputId = updateStockModal.querySelector('#modalProductId');
+
+            modalTitle.textContent = productName;
+            modalInputId.value = productId;
+        });
+    }
 });
 </script>
 {% endblock %}
