@@ -47,6 +47,7 @@
                 <th class="sortable" style="cursor: pointer;" data-sort="currency">{{ _('Production Cost per Unit') }} <i class="bi bi-arrow-down-up text-muted small"></i></th>
                 <th class="sortable" style="cursor: pointer;" data-sort="currency">{{ _('Selling Price') }} <i class="bi bi-arrow-down-up text-muted small"></i></th>
                 <th class="sortable" style="cursor: pointer;" data-sort="percent">{{ _('Gross Profit') }} <i class="bi bi-arrow-down-up text-muted small"></i></th>
+                <th class="sortable" style="cursor: pointer;" data-sort="number">{{ _('Current Stock') }} <i class="bi bi-arrow-down-up text-muted small"></i></th>
                 <th class="text-end no-sort">{{ _('Actions') }}</th>
             </tr>
             </thead>
@@ -124,6 +125,13 @@
                         {% endif %}
                     {% else %}
                         <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td data-value="{{ item.current_stock }}">
+                    {% if item.current_stock > 0 %}
+                        <span class="badge bg-success">{{ "%.1f"|format(item.current_stock) }}</span>
+                    {% else %}
+                        <span class="badge bg-secondary">0</span>
                     {% endif %}
                 </td>
                 <td class="text-end">

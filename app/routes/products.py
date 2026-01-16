@@ -272,13 +272,17 @@ def products():
                         'available': available
                     })
 
+        # Calculate current stock for this product
+        current_stock = calculate_premake_current_stock(product.id)
+
         products_data.append({
             'product': product,
             'prime_cost': prime_cost,
             'recipe_weight': recipe_weight,
             'unit_weight': unit_weight,
             'can_produce': can_produce,
-            'missing_materials': missing_materials
+            'missing_materials': missing_materials,
+            'current_stock': current_stock
         })
 
     return render_template('products.html', products_data=products_data, show_archived=show_archived)

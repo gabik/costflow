@@ -123,7 +123,9 @@ def weekly_report():
         sale = sales_by_product.get(product_id)
         sold_qty = sale.quantity_sold if sale else 0
         waste_qty = sale.quantity_waste if sale else 0
-        unsold_qty = produced_qty - sold_qty - waste_qty
+        # Use StockLog-based stock instead of production-based
+        from .utils import calculate_premake_current_stock
+        unsold_qty = calculate_premake_current_stock(product_id)
 
         # Calculate costs - use different costs for sold vs unsold
         from .utils import calculate_cogs_with_packaging
@@ -441,7 +443,9 @@ def weekly_report():
         sale = sales_by_product.get(product_id)
         sold_qty = sale.quantity_sold if sale else 0
         waste_qty = sale.quantity_waste if sale else 0
-        unsold_qty = produced_qty - sold_qty - waste_qty
+        # Use StockLog-based stock instead of production-based
+        from .utils import calculate_premake_current_stock
+        unsold_qty = calculate_premake_current_stock(product_id)
 
         # Only include products with unsold inventory
         if unsold_qty > 0:
@@ -754,7 +758,9 @@ def monthly_report():
             sale = sales_by_product.get(product_id)
             sold_qty = sale.quantity_sold if sale else 0
             waste_qty = sale.quantity_waste if sale else 0
-            unsold_qty = produced_qty - sold_qty - waste_qty
+            # Use StockLog-based stock instead of production-based
+            from .utils import calculate_premake_current_stock
+            unsold_qty = calculate_premake_current_stock(product_id)
 
             # Calculate prime cost
             prime_cost_per_unit = calculate_prime_cost(product)

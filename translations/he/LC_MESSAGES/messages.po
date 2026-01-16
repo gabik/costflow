@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-01-16 11:14+0200\n"
+"POT-Creation-Date: 2026-01-16 16:38+0200\n"
 "PO-Revision-Date: 2024-12-14 21:06+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: he\n"
@@ -48,11 +48,11 @@ msgstr "שדות חובה חסרים"
 msgid "Packaging not found"
 msgstr "אריזה לא נמצאה"
 
-#: app/routes/packaging.py:388 app/routes/products.py:1294
+#: app/routes/packaging.py:388 app/routes/products.py:1300
 msgid "Stock updated successfully"
 msgstr "המלאי עודכן בהצלחה"
 
-#: app/routes/premakes.py:249 app/routes/products.py:820
+#: app/routes/premakes.py:249 app/routes/products.py:824
 #: templates/add_or_edit_premake.html:218
 #: templates/add_or_edit_product.html:451 templates/product_details.html:356
 #: templates/view_premake.html:160
@@ -108,40 +108,40 @@ msgstr ""
 "אין מספיק מלאי עבור %(name)s. נדרש: %(required).2f %(unit)s, זמין: "
 "%(available).2f %(unit)s"
 
-#: app/routes/products.py:1203
+#: app/routes/products.py:1208
 #, python-brace-format
 msgid "Product archived: It is used as a component in {} other product(s)"
 msgstr "המוצר הועבר לארכיון: הוא משמש כרכיב ב-{} מוצרים אחרים"
 
-#: app/routes/products.py:1214
+#: app/routes/products.py:1219
 #, python-brace-format
 msgid "Product archived: It has {} production record(s)"
 msgstr "המוצר הועבר לארכיון: יש לו {} רשומות ייצור"
 
-#: app/routes/products.py:1225
+#: app/routes/products.py:1230
 #, python-brace-format
 msgid "Product archived: It has {} weekly sales record(s)"
 msgstr "המוצר הועבר לארכיון: יש לו {} רשומות מכירות שבועיות"
 
-#: app/routes/products.py:1244
+#: app/routes/products.py:1249
 msgid "Product deleted successfully"
 msgstr "המוצר נמחק בהצלחה"
 
-#: app/routes/products.py:1247
+#: app/routes/products.py:1252
 #, python-brace-format
 msgid "Error deleting product: {}"
 msgstr "שגיאה במחיקת מוצר: {}"
 
-#: app/routes/products.py:1264
+#: app/routes/products.py:1269
 msgid "Product restored successfully"
 msgstr "המוצר שוחזר בהצלחה"
 
-#: app/routes/products.py:1267
+#: app/routes/products.py:1272
 #, python-brace-format
 msgid "Error restoring product: {}"
 msgstr "שגיאה בשחזור מוצר: {}"
 
-#: app/routes/products.py:1280
+#: app/routes/products.py:1286
 msgid "Invalid action type"
 msgstr ""
 
@@ -276,7 +276,7 @@ msgstr "ביטול וחזרה"
 #: templates/add_or_edit_supplier.html:13 templates/labor.html:66
 #: templates/packaging.html:103 templates/premake_production.html:100
 #: templates/premakes.html:76 templates/production.html:111
-#: templates/products.html:135 templates/suppliers.html:61
+#: templates/products.html:143 templates/suppliers.html:61
 msgid "Edit"
 msgstr "עדכן"
 
@@ -419,7 +419,7 @@ msgstr "הזן כמות מלאי התחלתית"
 #: templates/categories.html:84 templates/categories.html:118
 #: templates/packaging.html:196 templates/premake_production.html:135
 #: templates/premakes.html:132 templates/production.html:142
-#: templates/products.html:198 templates/raw_materials.html:292
+#: templates/products.html:206 templates/raw_materials.html:292
 #: templates/raw_materials.html:333 templates/raw_materials.html:355
 #: templates/recipe_review.html:216 templates/recipe_review.html:387
 #: templates/supplier_materials.html:252 templates/update_weekly_sales.html:108
@@ -527,7 +527,7 @@ msgstr "פחת"
 #: templates/add_or_edit_product.html:933 templates/daily_production.html:81
 #: templates/packaging.html:180 templates/premakes.html:116
 #: templates/product_details.html:317 templates/product_details.html:366
-#: templates/products.html:182 templates/view_premake.html:103
+#: templates/products.html:190 templates/view_premake.html:103
 #: templates/view_premake.html:170
 msgid "Quantity"
 msgstr "כמות"
@@ -950,9 +950,9 @@ msgstr "מק\"ט"
 #: templates/add_or_edit_raw_material.html:153 templates/index.html:152
 #: templates/packaging.html:58 templates/premake_production.html:60
 #: templates/premakes.html:36 templates/production.html:66
-#: templates/raw_materials.html:92 templates/supplier_materials.html:80
-#: templates/supplier_materials.html:154 templates/update_weekly_sales.html:51
-#: templates/view_premake.html:43
+#: templates/products.html:50 templates/raw_materials.html:92
+#: templates/supplier_materials.html:80 templates/supplier_materials.html:154
+#: templates/update_weekly_sales.html:51 templates/view_premake.html:43
 msgid "Current Stock"
 msgstr "מלאי נוכחי"
 
@@ -1095,7 +1095,7 @@ msgid "Example: ₪100 becomes ₪"
 msgstr "דוגמה: ₪100 הופך ל-₪"
 
 #: templates/add_or_edit_supplier.html:106 templates/audit_log.html:48
-#: templates/premakes.html:133 templates/products.html:199
+#: templates/premakes.html:133 templates/products.html:207
 msgid "Update"
 msgstr "עדכן"
 
@@ -1169,7 +1169,7 @@ msgid "Time"
 msgstr "זמן"
 
 #: templates/audit_log.html:34 templates/premakes.html:120
-#: templates/products.html:186
+#: templates/products.html:194
 msgid "Action"
 msgstr "פעולה"
 
@@ -1202,8 +1202,8 @@ msgstr "מחק"
 msgid "Reset"
 msgstr "איפוס"
 
-#: templates/audit_log.html:54 templates/products.html:152
-#: templates/products.html:153
+#: templates/audit_log.html:54 templates/products.html:160
+#: templates/products.html:161
 msgid "Restore"
 msgstr "שחזור"
 
@@ -1395,7 +1395,7 @@ msgstr "קטגוריה חדשה"
 #: templates/categories.html:47 templates/labor.html:55
 #: templates/packaging.html:59 templates/premake_production.html:87
 #: templates/premakes.html:39 templates/production.html:96
-#: templates/products.html:50 templates/raw_materials.html:93
+#: templates/products.html:51 templates/raw_materials.html:93
 #: templates/supplier_materials.html:82 templates/supplier_materials.html:156
 #: templates/suppliers.html:28 templates/weekly_costs.html:25
 msgid "Actions"
@@ -2232,7 +2232,7 @@ msgstr "לא נמצאו אריזות במערכת."
 
 #: templates/packaging.html:158 templates/packaging.html:197
 #: templates/premakes.html:83 templates/premakes.html:110
-#: templates/products.html:142 templates/products.html:176
+#: templates/products.html:150 templates/products.html:184
 #: templates/raw_materials.html:293
 msgid "Update Stock"
 msgstr "עדכן מלאי"
@@ -2436,7 +2436,7 @@ msgstr "חיפוש לפי שם הכנה..."
 msgid "Cost per Batch"
 msgstr "עלות לאצ'"
 
-#: templates/premakes.html:73 templates/products.html:131
+#: templates/premakes.html:73 templates/products.html:139
 msgid "View Details"
 msgstr "צפה בפרטים"
 
@@ -2448,12 +2448,12 @@ msgstr "האם אתה בטוח שברצונך למחוק הכנה מקדימה �
 msgid "No premakes found."
 msgstr "לא נמצאו הכנות מקדימות."
 
-#: templates/premakes.html:123 templates/products.html:189
+#: templates/premakes.html:123 templates/products.html:197
 #, fuzzy
 msgid "Add to current stock"
 msgstr "מלאי נוכחי"
 
-#: templates/premakes.html:127 templates/products.html:193
+#: templates/premakes.html:127 templates/products.html:201
 #, fuzzy
 msgid "Set absolute stock level"
 msgstr "שווי מלאי מכירה"
@@ -2693,53 +2693,53 @@ msgstr "משקל יחידה"
 msgid "Selling Price"
 msgstr "מחיר מכירה"
 
-#: templates/products.html:69
+#: templates/products.html:70
 #, fuzzy
 msgid "Archived product"
 msgstr "הוסף מוצר"
 
-#: templates/products.html:70
+#: templates/products.html:71
 #, fuzzy
 msgid "Archived"
 msgstr "פעיל"
 
-#: templates/products.html:75
+#: templates/products.html:76
 #, fuzzy
 msgid "Preproduct - Can be sold and used as a component"
 msgstr "מוצר מקדים - ניתן למכירה וגם לשימוש כרכיב"
 
-#: templates/products.html:79
+#: templates/products.html:80
 msgid "Preproduct - Internal use only"
 msgstr "מוצר מקדים - לשימוש פנימי בלבד"
 
-#: templates/products.html:80
+#: templates/products.html:81
 msgid "Internal"
 msgstr "פנימי"
 
-#: templates/products.html:87
+#: templates/products.html:88
 msgid "Missing raw materials:"
 msgstr "חסרים חומרי גלם:"
 
-#: templates/products.html:88
+#: templates/products.html:89
 msgid "Stock shortage"
 msgstr "חוסר במלאי"
 
-#: templates/products.html:123 templates/update_weekly_sales.html:82
+#: templates/products.html:124 templates/update_weekly_sales.html:82
 msgid "N/A"
 msgstr "שגיאה"
 
-#: templates/products.html:145
+#: templates/products.html:153
 msgid ""
 "Are you sure? This will archive the product if it has history, or delete "
 "it permanently if not."
 msgstr ""
 
-#: templates/products.html:146
+#: templates/products.html:154
 #, fuzzy
 msgid "Delete/Archive"
 msgstr "מחק"
 
-#: templates/products.html:162
+#: templates/products.html:170
 msgid "No products found in system."
 msgstr "לא נמצאו מוצרים במערכת."
 

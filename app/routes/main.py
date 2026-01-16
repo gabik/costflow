@@ -225,23 +225,24 @@ def index():
             # Add to total (Products)
             total_inventory_usage += inventory_usage_value
             
-            # Available (Unsold)
-            # Count TOTAL (carryover + new) - sold - waste
-            available_qty = produced_qty - sold_qty - waste_qty
-            if available_qty < 0: available_qty = 0 # Should not happen with valid input but safe to clamp
-            
+            # Available (Unsold) - Use StockLog-based calculation
+            # This includes manual stock adjustments, not just production-based
+            available_qty = calculate_premake_current_stock(product.id)
+            if available_qty < 0: available_qty = 0
+
             # Unsold Value (cost basis)
             total_unsold_value += available_qty * prime_cost_per_unit
 
             # Sales Stock Value (potential revenue from unsold stock)
-            total_sales_stock_value += available_qty * product.selling_price_per_unit
+            selling_price = product.selling_price_per_unit or 0
+            total_sales_stock_value += available_qty * selling_price
 
             total_revenue += revenue
             total_cogs += cogs
             # total_inventory_usage was updated above
-            
-            # Only add to report if active this week
-            if produced_qty == 0 and sold_qty == 0 and waste_qty == 0:
+
+            # Only add to report if active this week OR has stock
+            if produced_qty == 0 and sold_qty == 0 and waste_qty == 0 and available_qty == 0:
                 continue
 
             report_data.append({
@@ -252,7 +253,7 @@ def index():
                 'waste_qty': waste_qty,
                 'available_qty': available_qty,
                 'prime_cost': prime_cost_per_unit,
-                'selling_price': product.selling_price_per_unit,
+                'selling_price': selling_price,
                 'revenue': revenue,
                 'gross_profit': gross_profit
             })
