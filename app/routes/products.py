@@ -3,7 +3,7 @@ from datetime import datetime
 from collections import defaultdict
 from PIL import Image
 from werkzeug.utils import secure_filename
-from flask import Blueprint, render_template, request, redirect, url_for, current_app, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, current_app, jsonify, flash
 from sqlalchemy.orm import joinedload
 from sqlalchemy import text
 from ..models import db, Product, ProductComponent, RawMaterial, Packaging, Labor, Category, ProductionLog, StockLog, WeeklyProductSales, StockAudit
@@ -886,7 +886,8 @@ def edit_product(product_id):
             product.is_preproduct = False
             product.selling_price_per_unit = 0
             # Set premake-specific fields
-            product.batch_size = float(request.form.get('batch_size', 0)) or product.products_per_recipe
+            batch_size_str = request.form.get('batch_size', '')
+            product.batch_size = float(batch_size_str) if batch_size_str else product.products_per_recipe
             product.unit = request.form.get('premake_unit', 'kg')
             # Use user-selected premake category
             premake_category_id = request.form.get('premake_category_id')
