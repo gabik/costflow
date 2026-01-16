@@ -1273,6 +1273,7 @@ def restore_product(product_id):
 @products_blueprint.route('/products/update_stock', methods=['POST'])
 def update_product_stock():
     """Update stock for a product"""
+    from flask_babel import gettext as _
     product_id = request.form['product_id']
     quantity = float(request.form['quantity'])
     action_type = request.form['action_type']  # 'add' or 'set'
