@@ -35,6 +35,14 @@
                     <input type="number" id="products_per_recipe" name="products_per_recipe" class="form-control" step="1" value="{{ product.products_per_recipe if product else '' }}">
                 </div>
                 <!-- Product Type Selection -->
+                {% set has_preproduct_components = false %}
+                {% if product %}
+                    {% for component in product.components %}
+                        {% if component.component_type == 'product' %}
+                            {% set has_preproduct_components = true %}
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
                 <div class="mb-4">
                     <label class="form-label">{{ _('Product Type') }}</label>
                     <div class="ms-3">
@@ -62,6 +70,18 @@
                                 <strong>{{ _('Preproduct (internal use)') }}</strong> - {{ _('Used as component only, not sold directly') }}
                             </label>
                         </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="product_type_selection" id="type_premake" value="premake"
+                                   {% if product and product.get_product_type() == 'premake' %}checked{% endif %}
+                                   {% if has_preproduct_components %}disabled{% endif %}
+                                   onchange="updateProductTypeForm()">
+                            <label class="form-check-label {% if has_preproduct_components %}text-muted{% endif %}" for="type_premake">
+                                <strong>{{ _('Premake') }}</strong> - {{ _('Intermediate preparation, not sold directly') }}
+                                {% if has_preproduct_components %}
+                                <br><small class="text-danger"><i class="bi bi-exclamation-triangle"></i> {{ _('Cannot convert: has preproduct components') }}</small>
+                                {% endif %}
+                            </label>
+                        </div>
                     </div>
                 </div>
 
@@ -69,6 +89,38 @@
                 <div class="mb-4" id="selling_price_container">
                     <label for="selling_price_per_unit" class="form-label">{{ _('Selling Price per Unit') }} (₪)</label>
                     <input type="number" id="selling_price_per_unit" name="selling_price_per_unit" class="form-control" step="0.01" value="{{ product.selling_price_per_unit if product else '' }}">
+                </div>
+
+                <!-- Premake Fields (shown only for premake type) -->
+                <div class="mb-4" id="premake_fields_container" style="display: none;">
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="premake_category_id" class="form-label">{{ _('Premake Category') }}</label>
+                            <select id="premake_category_id" name="premake_category_id" class="form-select">
+                                <option value="">{{ _('Select category...') }}</option>
+                                {% for cat in premake_categories %}
+                                <option value="{{ cat.id }}">{{ cat.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="batch_size" class="form-label">{{ _('Batch Size') }}</label>
+                            <input type="number" id="batch_size" name="batch_size" class="form-control" step="0.01" value="{{ product.batch_size if product and product.batch_size else '' }}" placeholder="{{ _('e.g., 1000') }}">
+                            <div class="form-text">{{ _('Amount produced per batch') }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="premake_unit" class="form-label">{{ _('Unit') }}</label>
+                            <select id="premake_unit" name="premake_unit" class="form-select">
+                                <option value="kg" {% if product and product.unit == 'kg' %}selected{% endif %}>kg</option>
+                                <option value="g" {% if product and product.unit == 'g' %}selected{% endif %}>g</option>
+                                <option value="L" {% if product and product.unit == 'L' %}selected{% endif %}>L</option>
+                                <option value="ml" {% if product and product.unit == 'ml' %}selected{% endif %}>ml</option>
+                                <option value="unit" {% if product and product.unit == 'unit' %}selected{% endif %}>{{ _('Units') }}</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="col-md-4 text-center">
@@ -594,14 +646,29 @@
         const selectedType = document.querySelector('input[name="product_type_selection"]:checked').value;
         const sellingPriceContainer = document.getElementById('selling_price_container');
         const sellingPriceInput = document.getElementById('selling_price_per_unit');
+        const premakeFieldsContainer = document.getElementById('premake_fields_container');
+        const preproductsSection = document.getElementById('preproducts-container')?.closest('.mb-4')?.parentElement;
 
-        if (selectedType === 'preproduct_internal') {
-            // Hide selling price for internal-use preproducts
+        if (selectedType === 'preproduct_internal' || selectedType === 'premake') {
+            // Hide selling price for internal-use preproducts and premakes
             sellingPriceContainer.style.display = 'none';
             sellingPriceInput.value = '';  // Clear the value
         } else {
             // Show selling price for products and sellable preproducts
             sellingPriceContainer.style.display = 'block';
+        }
+
+        if (selectedType === 'premake') {
+            // Show premake-specific fields
+            premakeFieldsContainer.style.display = 'block';
+            // Hide preproducts section (premakes can't have preproducts)
+            const preproductHeader = document.querySelector('h4.mb-3.fw-bold');
+            if (preproductHeader && preproductHeader.textContent.includes('Preproducts')) {
+                preproductHeader.closest('.mb-4')?.style.display = 'none';
+            }
+        } else {
+            // Hide premake-specific fields
+            premakeFieldsContainer.style.display = 'none';
         }
     }
 

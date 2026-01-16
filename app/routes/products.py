@@ -878,6 +878,26 @@ def edit_product(product_id):
             product.is_premake = False
             product.is_preproduct = True
             product.selling_price_per_unit = 0  # No selling price for internal use
+        elif product_type_selection == 'premake':
+            product.product_type = 'premake'
+            product.is_for_sale = False
+            product.is_product = False
+            product.is_premake = True
+            product.is_preproduct = False
+            product.selling_price_per_unit = 0
+            # Set premake-specific fields
+            product.batch_size = float(request.form.get('batch_size', 0)) or product.products_per_recipe
+            product.unit = request.form.get('premake_unit', 'kg')
+            # Use user-selected premake category
+            premake_category_id = request.form.get('premake_category_id')
+            if premake_category_id:
+                product.category_id = int(premake_category_id)
+            else:
+                # Fallback to general premake category if none selected
+                product.category_id = get_or_create_general_category('premake')
+            # Update any ProductComponent references from 'product' to 'premake'
+            from ..models import ProductComponent as PC
+            PC.query.filter_by(component_type='product', component_id=product.id).update({'component_type': 'premake'})
 
         if 'image' in request.files:
             file = request.files['image']
@@ -1143,6 +1163,7 @@ def edit_product(product_id):
 
     categories = Category.query.filter_by(type='raw_material').all()
     product_categories = Category.query.filter_by(type='product').all()
+    premake_categories = Category.query.filter_by(type='premake').all()
 
     # Pass both the object (for Jinja server-side) and the dict (for JS client-side)
     return render_template(
@@ -1155,6 +1176,7 @@ def edit_product(product_id):
         all_preproducts=all_preproducts,
         categories=categories,
         product_categories=product_categories,
+        premake_categories=premake_categories,
         units=units_list # For raw material modal
     )
 
