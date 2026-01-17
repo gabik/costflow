@@ -481,12 +481,11 @@ def confirm_inventory_upload():
                 material = RawMaterial.query.filter_by(name=name, is_deleted=False).first()
 
             if status == 'new' and not material:
-                # Create new material
+                # Create new material (price is set via supplier link, not directly)
                 material = RawMaterial(
                     name=name,
                     category=default_category,
-                    unit=unit,
-                    cost_per_unit=new_price
+                    unit=unit
                 )
                 db.session.add(material)
                 db.session.flush()
