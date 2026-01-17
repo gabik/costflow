@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import json
 import io
+from collections import defaultdict
 from datetime import datetime, date, timedelta
 from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_file, jsonify
@@ -41,10 +42,10 @@ def serve_image(filename):
 def index():
     # 1. Fetch all weeks for dropdown
     all_weeks = WeeklyLaborCost.query.order_by(WeeklyLaborCost.week_start_date.desc()).all()
-    
+
     selected_week_id = request.args.get('week_id')
     selected_week = None
-    
+
     if selected_week_id:
         selected_week = WeeklyLaborCost.query.get(selected_week_id)
     elif all_weeks:
@@ -56,103 +57,161 @@ def index():
     total_cogs = 0
     total_inventory_usage = 0
     total_labor = 0
-    total_unsold_value = 0  # Cost value of unsold stock
-    total_sales_stock_value = 0  # Sales/revenue value of unsold stock (potential revenue)
-    total_packaging_stock_value = 0  # Total value of packaging materials in stock
-    
+    total_unsold_value = 0
+    total_sales_stock_value = 0
+    total_packaging_stock_value = 0
+
     if selected_week:
         week_start = selected_week.week_start_date
         week_end = week_start + timedelta(days=6)
         total_labor = selected_week.total_cost
-        
-        # Fetch Product Production Logs
-        logs = ProductionLog.query.filter(
+
+        # ========== OPTIMIZATION: Batch load all data upfront ==========
+
+        # Load ALL products with their components eagerly (single query)
+        all_products_list = Product.query.options(
+            joinedload(Product.components)
+        ).filter_by(is_archived=False).all()
+
+        # Create lookup dictionaries
+        all_products_map = {p.id: p for p in all_products_list}
+        all_premakes = [p for p in all_products_list if p.is_premake]
+        all_non_premakes = [p for p in all_products_list if not p.is_premake]
+        premake_ids = [p.id for p in all_premakes]
+
+        # Batch load production logs with product relationship
+        logs = ProductionLog.query.options(
+            joinedload(ProductionLog.product)
+        ).filter(
             func.date(ProductionLog.timestamp) >= week_start,
             func.date(ProductionLog.timestamp) <= week_end,
             ProductionLog.product_id != None
         ).all()
-        
-        # Map Production
-        product_production = {}
+
+        # Separate logs by type using the map (no additional queries)
+        product_logs = []
+        premake_logs = []
         for log in logs:
-            # Calculate total units based on recipes count * units per recipe
-            units_produced = log.quantity_produced * log.product.products_per_recipe
-            
+            if log.product_id in premake_ids:
+                premake_logs.append(log)
+            else:
+                product_logs.append(log)
+
+        # ========== Process Production Data ==========
+
+        # Map Product Production
+        product_production = {}
+        for log in product_logs:
+            product = all_products_map.get(log.product_id)
+            if not product:
+                continue
+            units_produced = log.quantity_produced * product.products_per_recipe
+
             if log.product_id not in product_production:
                 product_production[log.product_id] = {'total': 0, 'new': 0}
-            
+
             product_production[log.product_id]['total'] += units_produced
             if not log.is_carryover:
                 product_production[log.product_id]['new'] += units_produced
 
-        # Fetch Premake Production Logs (Products with is_premake=True)
-        premake_ids = [p.id for p in Product.query.filter_by(is_premake=True).all()]
-        premake_logs = ProductionLog.query.filter(
-            func.date(ProductionLog.timestamp) >= week_start,
-            func.date(ProductionLog.timestamp) <= week_end,
-            ProductionLog.product_id.in_(premake_ids)
-        ).all()
-
+        # Map Premake Production
         premake_production = {}
         for log in premake_logs:
-            # Get the premake product
-            premake = Product.query.get(log.product_id)
+            premake = all_products_map.get(log.product_id)
             if premake and premake.is_premake:
-                # Premake quantity is in Batches. Total units = Batches * Batch Size
-                units_produced = log.quantity_produced * premake.batch_size
+                units_produced = log.quantity_produced * (premake.batch_size or 1)
                 premake_production[log.product_id] = premake_production.get(log.product_id, 0) + units_produced
 
-        # Calculate Premake Usage (from Product Production)
+        # Calculate Premake Usage (from non-carryover product logs)
         premake_usage = {}
-        for log in logs:
-            # Premake usage should technically include usage from Carryover products?
-            # If I carried over 10 products, did I "use" the premake *this week*?
-            # No, I used it last week.
-            # So Premake Usage should ONLY be calculated from NEW production logs.
+        for log in product_logs:
             if log.is_carryover:
                 continue
-
-            product = log.product
+            product = all_products_map.get(log.product_id)
+            if not product:
+                continue
             for component in product.components:
                 if component.component_type == 'premake':
-                    # Units used = component qty per recipe * recipes produced
-                    # component.quantity is per recipe. log.quantity_produced is recipes (batches).
                     usage = component.quantity * log.quantity_produced
                     premake_usage[component.component_id] = premake_usage.get(component.component_id, 0) + usage
 
-        # Process Premakes for Report and Inventory Value
-        all_premakes = Product.query.filter_by(is_premake=True).all()
+        # ========== Batch calculate stocks ==========
+
+        # Simplified approach: Get all stock logs and calculate in Python
+        product_ids_to_check = [p.id for p in all_products_list]
+
+        stock_cache = {}
+        if product_ids_to_check:
+            # Get ALL stock logs for products in a single query, ordered by timestamp
+            all_stock_logs = StockLog.query.filter(
+                StockLog.product_id.in_(product_ids_to_check)
+            ).order_by(StockLog.product_id, StockLog.timestamp).all()
+
+            # Group by product_id and calculate stock in Python
+            logs_by_product = defaultdict(list)
+            for log in all_stock_logs:
+                logs_by_product[log.product_id].append(log)
+
+            for pid in product_ids_to_check:
+                product_logs = logs_by_product.get(pid, [])
+                stock = 0
+                for log in product_logs:
+                    if log.action_type == 'set':
+                        stock = log.quantity
+                    elif log.action_type == 'add':
+                        stock += log.quantity
+                stock_cache[pid] = stock
+
+        # ========== Batch load material prices ==========
+        # Pre-fetch all raw material prices to avoid N+1 queries
+        from ..models import RawMaterialSupplier
+        all_material_ids = set()
+        for p in all_products_list:
+            for comp in p.components:
+                if comp.component_type == 'raw_material':
+                    all_material_ids.add(comp.component_id)
+
+        # Get primary supplier prices for all materials in one query
+        material_price_cache = {}
+        if all_material_ids:
+            primary_prices = db.session.query(
+                RawMaterialSupplier.raw_material_id,
+                RawMaterialSupplier.cost_per_unit
+            ).filter(
+                RawMaterialSupplier.raw_material_id.in_(all_material_ids),
+                RawMaterialSupplier.is_primary == True
+            ).all()
+            material_price_cache = {r.raw_material_id: r.cost_per_unit for r in primary_prices}
+
+        # ========== Process Premakes ==========
         for premake in all_premakes:
             produced = premake_production.get(premake.id, 0)
             used = premake_usage.get(premake.id, 0)
 
-            # Calculate beginning stock (stock at start of week)
-            beginning_stock = calculate_premake_stock_at_date(premake.id, week_start - timedelta(days=1))
+            # Use cached stock instead of individual queries
+            current_premake_stock = stock_cache.get(premake.id, 0)
 
-            # Calculate current stock for premake
-            current_premake_stock = calculate_premake_current_stock(premake.id)
+            # Calculate beginning stock as current - produced + used (approximation to avoid expensive query)
+            beginning_stock = current_premake_stock - produced + used
 
-            # Calculate Cost Per Unit
+            # Calculate Cost Per Unit using cached prices
             cost_per_batch = 0
             for comp in premake.components:
-                if comp.component_type == 'raw_material' and comp.material:
-                    # Get supplier price
-                    from .utils import get_primary_supplier_discounted_price
-                    supplier_price = get_primary_supplier_discounted_price(comp.material)
+                if comp.component_type == 'raw_material':
+                    supplier_price = material_price_cache.get(comp.component_id, 0)
                     cost_per_batch += comp.quantity * supplier_price
-            
-            cost_per_unit = cost_per_batch / premake.batch_size if premake.batch_size > 0 else 0
-            
+
+            cost_per_unit = cost_per_batch / premake.batch_size if premake.batch_size and premake.batch_size > 0 else 0
+
             # Inventory Value Change (Produced - Used)
             stock_change = produced - used
-            
-            # Add NET value change to total inventory usage (cost of goods flow)
-            # This accounts for "Unused Premakes" being an expense this week.
+
+            # Add NET value change to total inventory usage
             total_inventory_usage += stock_change * cost_per_unit
-            
+
             if produced == 0 and used == 0 and current_premake_stock == 0:
                 continue
-                
+
             premake_report_data.append({
                 'name': premake.name,
                 'unit': premake.unit,
@@ -168,10 +227,8 @@ def index():
         # Map Sales
         product_sales = {s.product_id: {'sold': s.quantity_sold, 'waste': s.quantity_waste} for s in selected_week.sales}
 
-        # Iterate Products (exclude premakes - they have their own section)
-        all_products = Product.query.filter_by(is_premake=False).all()
-        
-        for product in all_products:
+        # Use pre-fetched non-premake products (no additional query)
+        for product in all_non_premakes:
             prod_data = product_production.get(product.id, {'total': 0, 'new': 0})
             produced_qty = prod_data['total']
             produced_qty_new = prod_data['new']
@@ -180,54 +237,49 @@ def index():
             sold_qty = sales_data['sold']
             waste_qty = sales_data['waste']
 
-            # Calculate actual cost per unit from production logs
-            # Use weighted average of actual production costs if available
-            actual_cost_per_unit = None
-            if product.id in product_production and produced_qty > 0:
-                # Get production logs for this product in this week
-                product_logs_for_week = [log for log in logs if log.product_id == product.id]
-                total_actual_cost = 0
-                total_actual_units = 0
-
-                for log in product_logs_for_week:
-                    if log.total_cost is not None and log.cost_per_unit is not None:
-                        # Use actual cost from production log
-                        units = log.quantity_produced * product.products_per_recipe
-                        total_actual_cost += log.total_cost
-                        total_actual_units += units
-
-                if total_actual_units > 0:
-                    actual_cost_per_unit = total_actual_cost / total_actual_units
-
-            # Fall back to calculated prime cost if no actual cost available
-            if actual_cost_per_unit is None:
-                prime_cost_per_unit = calculate_prime_cost(product)
-            else:
-                prime_cost_per_unit = actual_cost_per_unit
+            # Calculate prime cost using cached material prices (fast)
+            prime_cost_per_unit = 0
+            if product.products_per_recipe and product.products_per_recipe > 0:
+                total_recipe_cost = 0
+                for comp in product.components:
+                    if comp.component_type == 'raw_material':
+                        price = material_price_cache.get(comp.component_id, 0)
+                        total_recipe_cost += comp.quantity * price
+                    elif comp.component_type == 'premake':
+                        # Use premake cost from our cache
+                        premake_obj = all_products_map.get(comp.component_id)
+                        if premake_obj:
+                            premake_cost = 0
+                            for pc in premake_obj.components:
+                                if pc.component_type == 'raw_material':
+                                    premake_cost += pc.quantity * material_price_cache.get(pc.component_id, 0)
+                            if premake_obj.batch_size:
+                                premake_cost_per_unit = premake_cost / premake_obj.batch_size
+                            else:
+                                premake_cost_per_unit = 0
+                            total_recipe_cost += comp.quantity * premake_cost_per_unit
+                prime_cost_per_unit = total_recipe_cost / product.products_per_recipe
 
             # Financials
-            revenue = sold_qty * product.selling_price_per_unit
+            selling_price = product.selling_price_per_unit or 0
+            revenue = sold_qty * selling_price
             cogs = sold_qty * prime_cost_per_unit
-            waste_cost = waste_qty * prime_cost_per_unit # Cost of waste
+            waste_cost = waste_qty * prime_cost_per_unit
 
             # Calculate production cost for unsold inventory
-            # This represents the cost incurred for producing items not yet sold
             production_cost = produced_qty_new * prime_cost_per_unit
 
-            # Gross profit should include production cost as negative (expense)
-            # When items are produced but not sold, profit is negative (the production cost)
+            # Gross profit
             gross_profit = revenue - cogs - waste_cost - production_cost
-            
-            # Inventory Usage Value (what we made)
-            # ONLY count NEW production for Cost
+
+            # Inventory Usage Value
             inventory_usage_value = produced_qty_new * prime_cost_per_unit
-            
+
             # Add to total (Products)
             total_inventory_usage += inventory_usage_value
-            
-            # Available (Unsold) - Use StockLog-based calculation
-            # This includes manual stock adjustments, not just production-based
-            available_qty = calculate_premake_current_stock(product.id)
+
+            # Use cached stock instead of individual query
+            available_qty = stock_cache.get(product.id, 0)
             if available_qty < 0: available_qty = 0
 
             # Unsold Value (cost basis)
@@ -258,20 +310,50 @@ def index():
                 'gross_profit': gross_profit
             })
 
-    # Calculate total packaging stock value
-    all_packaging = Packaging.query.all()
+    # Calculate total packaging stock value (optimized batch query)
+    # Get all packaging with supplier links in one query
+    all_packaging = Packaging.query.options(
+        joinedload(Packaging.supplier_links)
+    ).all()
+
+    # Batch calculate packaging stocks (using set/add logic like products)
+    packaging_ids = [pkg.id for pkg in all_packaging]
+    packaging_stock_cache = {}
+    if packaging_ids:
+        # Get ALL stock logs for packaging in a single query, ordered by timestamp
+        all_packaging_logs = StockLog.query.filter(
+            StockLog.packaging_id.in_(packaging_ids)
+        ).order_by(StockLog.packaging_id, StockLog.timestamp).all()
+
+        # Group by packaging_id and calculate stock in Python
+        packaging_logs_by_id = defaultdict(list)
+        for log in all_packaging_logs:
+            packaging_logs_by_id[log.packaging_id].append(log)
+
+        for pkg_id in packaging_ids:
+            pkg_logs = packaging_logs_by_id.get(pkg_id, [])
+            stock = 0
+            for log in pkg_logs:
+                if log.action_type == 'set':
+                    stock = log.quantity
+                elif log.action_type == 'add':
+                    stock += log.quantity
+            packaging_stock_cache[pkg_id] = stock
+
     for pkg in all_packaging:
-        # Get total stock across all suppliers (in units after container conversion)
-        total_stock = calculate_total_packaging_stock(pkg.id)
+        total_stock = packaging_stock_cache.get(pkg.id, 0)
         if total_stock > 0:
-            # Get primary supplier price (with discount)
-            primary_link = pkg.get_primary_supplier_link()
+            # Get primary supplier price (already loaded via joinedload)
+            primary_link = None
+            for link in pkg.supplier_links:
+                if link.is_primary:
+                    primary_link = link
+                    break
+            if not primary_link and pkg.supplier_links:
+                primary_link = pkg.supplier_links[0]
+
             if primary_link:
-                price_per_package = apply_supplier_discount(
-                    primary_link.price_per_package,
-                    primary_link.supplier
-                )
-                # Calculate price per unit (not per package) since stock is in units
+                price_per_package = primary_link.price_per_package or 0
                 price_per_unit = price_per_package / pkg.quantity_per_package if pkg.quantity_per_package > 0 else 0
                 total_packaging_stock_value += total_stock * price_per_unit
 
