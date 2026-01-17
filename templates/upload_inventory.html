@@ -117,19 +117,32 @@
                     </thead>
                     <tbody>
                         {% for item in review_data %}
-                        <tr class="{{ 'table-warning' if item.price_differs else '' }}">
+                        <tr class="{{ 'table-danger' if 'new_supplier' in (item.status_flags or []) else ('table-warning' if 'name_mismatch' in (item.status_flags or []) or 'price_change' in (item.status_flags or []) else '') }}">
                             <td>
                                 <input type="hidden" name="items[{{ loop.index0 }}][name]" value="{{ item.name }}">
                                 <input type="hidden" name="items[{{ loop.index0 }}][quantity]" value="{{ item.quantity }}">
                                 <input type="hidden" name="items[{{ loop.index0 }}][new_price]" value="{{ item.new_price }}">
                                 <input type="hidden" name="items[{{ loop.index0 }}][status]" value="{{ item.status }}">
+                                <input type="hidden" name="items[{{ loop.index0 }}][status_flags]" value="{{ (item.status_flags or [])|join(',') }}">
                                 {% if item.material_id %}
                                 <input type="hidden" name="items[{{ loop.index0 }}][material_id]" value="{{ item.material_id }}">
                                 {% endif %}
                                 {% if item.supplier_id %}
                                 <input type="hidden" name="items[{{ loop.index0 }}][supplier_id]" value="{{ item.supplier_id }}">
                                 {% endif %}
+                                {% if item.supplier_name %}
+                                <input type="hidden" name="items[{{ loop.index0 }}][supplier_name]" value="{{ item.supplier_name }}">
+                                {% endif %}
+                                {% if item.sku %}
+                                <input type="hidden" name="items[{{ loop.index0 }}][sku]" value="{{ item.sku }}">
+                                {% endif %}
+                                <input type="hidden" name="items[{{ loop.index0 }}][supplier_exists]" value="{{ 'true' if item.supplier_exists else 'false' }}">
                                 <strong>{{ item.name }}</strong>
+                                {% if item.system_name and item.system_name != item.name %}
+                                <div class="small text-warning mt-1">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>{{ _('System name:') }} {{ item.system_name }}
+                                </div>
+                                {% endif %}
                             </td>
                             <td>
                                 {% if item.sku %}
@@ -143,10 +156,40 @@
                                 {% endif %}
                             </td>
                             <td>
+                                <!-- Main status -->
                                 {% if item.status == 'new' %}
-                                    <span class="badge bg-success">{{ _('New') }}</span>
+                                    <span class="badge bg-success">{{ _('New Material') }}</span>
                                 {% elif item.status == 'exists' %}
                                     <span class="badge bg-secondary">{{ _('Exists') }}</span>
+                                {% endif %}
+
+                                <!-- Status flags -->
+                                {% if item.status_flags %}
+                                    {% if 'new_supplier' in item.status_flags %}
+                                        <span class="badge bg-danger d-block mt-1" title="{{ _('A new supplier will be created') }}">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ _('New Supplier!') }}
+                                        </span>
+                                    {% endif %}
+                                    {% if 'add_supplier' in item.status_flags %}
+                                        <span class="badge bg-warning text-dark d-block mt-1" title="{{ _('Supplier will be linked to this material') }}">
+                                            <i class="bi bi-link-45deg me-1"></i>{{ _('Add Supplier Link') }}
+                                        </span>
+                                    {% endif %}
+                                    {% if 'add_sku' in item.status_flags %}
+                                        <span class="badge bg-info d-block mt-1" title="{{ _('SKU will be added to supplier link') }}">
+                                            <i class="bi bi-upc me-1"></i>{{ _('Add SKU') }}
+                                        </span>
+                                    {% endif %}
+                                    {% if 'name_mismatch' in item.status_flags %}
+                                        <span class="badge bg-warning text-dark d-block mt-1" title="{{ _('Name in file differs from system') }}">
+                                            <i class="bi bi-exclamation-triangle me-1"></i>{{ _('Name Mismatch') }}
+                                        </span>
+                                    {% endif %}
+                                    {% if 'price_change' in item.status_flags %}
+                                        <span class="badge bg-orange text-white d-block mt-1" style="background-color: #fd7e14;" title="{{ _('Price differs from current') }}">
+                                            <i class="bi bi-currency-exchange me-1"></i>{{ _('Price Change') }}
+                                        </span>
+                                    {% endif %}
                                 {% endif %}
                             </td>
                             <td>+{{ item.quantity }} kg</td>
@@ -159,16 +202,19 @@
                                 {% endif %}
                             </td>
                             <td>
-                                {% if item.price_differs %}
+                                {% if 'price_change' in (item.status_flags or []) %}
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="update_price_{{ loop.index0 }}" name="items[{{ loop.index0 }}][update_price]" value="yes" checked>
                                         <label class="form-check-label text-danger fw-bold" for="update_price_{{ loop.index0 }}">
                                             {{ _('Update price to') }} {{ item.new_price }} ₪
                                         </label>
                                     </div>
+                                {% elif 'new_supplier' in (item.status_flags or []) or 'add_supplier' in (item.status_flags or []) %}
+                                    <span class="text-muted small"><i class="bi bi-plus-circle me-1"></i>{{ _('Will set price') }}</span>
+                                    <input type="hidden" name="items[{{ loop.index0 }}][update_price]" value="yes">
                                 {% else %}
                                     <span class="text-muted small"><i class="bi bi-check-circle me-1"></i>{{ _('Same price') }}</span>
-                                    <input type="hidden" name="items[{{ loop.index0 }}][update_price]" value="yes"> <!-- Default to yes/ignore if same -->
+                                    <input type="hidden" name="items[{{ loop.index0 }}][update_price]" value="yes">
                                 {% endif %}
                             </td>
                         </tr>

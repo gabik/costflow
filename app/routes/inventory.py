@@ -105,12 +105,15 @@ def upload_inventory():
                     sku = str(row[col_sku]).strip() if col_sku in df.columns and not pd.isna(row.get(col_sku)) else None
                     supplier_name = str(row[col_supplier]).strip() if col_supplier in df.columns and not pd.isna(row.get(col_supplier)) else None
 
-                    # Match material and supplier
+                    # Enhanced matching logic - SKU + Supplier is ground truth
                     material = None
                     supplier = None
-                    matched_by = 'name'  # Track how we matched: 'sku', 'name', or 'new'
+                    supplier_link = None
+                    matched_by = 'new'
+                    status_flags = []
+                    system_name = None  # Name in system (if different from file)
 
-                    # First try to match by SKU and supplier if both are provided
+                    # Step 1: Try SKU + Supplier match (ground truth)
                     if sku and supplier_name:
                         supplier = Supplier.query.filter_by(name=supplier_name).first()
                         if supplier:
@@ -120,36 +123,59 @@ def upload_inventory():
                             ).first()
                             if material_supplier:
                                 material = material_supplier.raw_material
+                                supplier_link = material_supplier
                                 matched_by = 'sku'
+                                # Check name mismatch
+                                if material.name != name:
+                                    status_flags.append('name_mismatch')
+                                    system_name = material.name
 
-                    # If not found by SKU, try by name (exclude deleted materials)
+                    # Step 2: If no SKU match, try NAME match
                     if not material:
                         material = RawMaterial.query.filter_by(name=name, is_deleted=False).first()
-                        if material and supplier_name and not supplier:
-                            # Get supplier from material if not already found
-                            supplier = Supplier.query.filter_by(name=supplier_name).first()
+                        if material:
+                            matched_by = 'name'
 
-                    # Determine status
-                    status = 'new'
+                    # Step 3: Check supplier if provided but not found yet
+                    if supplier_name and not supplier:
+                        supplier = Supplier.query.filter_by(name=supplier_name).first()
+
+                    # Step 4: Determine status and flags
                     current_price = None
-                    price_differs = False
 
                     if material:
                         status = 'exists'
-                        # Get supplier-specific price if supplier is identified
-                        if supplier:
-                            supplier_link = RawMaterialSupplier.query.filter_by(
-                                raw_material_id=material.id,
-                                supplier_id=supplier.id
-                            ).first()
-                            if supplier_link:
-                                current_price = supplier_link.cost_per_unit
+
+                        # Check supplier relationship
+                        if supplier_name:
+                            if not supplier:
+                                # Supplier doesn't exist - will be created
+                                status_flags.append('new_supplier')
+                                current_price = 0
                             else:
-                                # No supplier link found, use first available
-                                if material.supplier_links:
-                                    current_price = material.supplier_links[0].cost_per_unit
+                                # Supplier exists, check if linked to material
+                                if not supplier_link:
+                                    supplier_link = RawMaterialSupplier.query.filter_by(
+                                        raw_material_id=material.id,
+                                        supplier_id=supplier.id
+                                    ).first()
+
+                                if supplier_link:
+                                    current_price = supplier_link.cost_per_unit
+                                    # Check if SKU needs to be added
+                                    if sku and not supplier_link.sku:
+                                        status_flags.append('add_sku')
                                 else:
-                                    current_price = 0
+                                    # No link - will add supplier to material
+                                    status_flags.append('add_supplier')
+                                    # Use primary supplier price for comparison
+                                    primary_link = next((link for link in material.supplier_links if link.is_primary), None)
+                                    if primary_link:
+                                        current_price = primary_link.cost_per_unit
+                                    elif material.supplier_links:
+                                        current_price = material.supplier_links[0].cost_per_unit
+                                    else:
+                                        current_price = 0
                         else:
                             # No supplier specified, use primary or first available
                             primary_link = next((link for link in material.supplier_links if link.is_primary), None)
@@ -160,20 +186,32 @@ def upload_inventory():
                             else:
                                 current_price = 0
 
-                        if abs(current_price - price) > 0.01:
-                            price_differs = True
+                        # Check price difference
+                        if current_price is not None and abs(current_price - price) > 0.01:
+                            status_flags.append('price_change')
+
+                    else:
+                        # New material
+                        status = 'new'
+                        current_price = None
+
+                        # Check if supplier exists
+                        if supplier_name and not supplier:
+                            status_flags.append('new_supplier')
 
                     review_data.append({
                         'name': name,
+                        'system_name': system_name,  # Name in system if different
                         'sku': sku,
                         'supplier_name': supplier_name,
                         'supplier_id': supplier.id if supplier else None,
+                        'supplier_exists': supplier is not None,
                         'material_id': material.id if material else None,
                         'quantity': quantity,
                         'new_price': price,
                         'status': status,
+                        'status_flags': status_flags,
                         'current_price': current_price,
-                        'price_differs': price_differs,
                         'matched_by': matched_by
                     })
                     
@@ -236,9 +274,16 @@ def confirm_inventory_upload():
         db.session.commit()
 
     # Track statistics
-    created_count = 0
-    updated_count = 0
+    stats = {
+        'created_materials': 0,
+        'updated_materials': 0,
+        'created_suppliers': 0,
+        'added_supplier_links': 0,
+        'added_skus': 0,
+        'price_updates': 0
+    }
     errors = []
+    new_suppliers_created = []
 
     try:
         for index, item in items_data.items():
@@ -250,17 +295,39 @@ def confirm_inventory_upload():
             try:
                 quantity = float(item.get('quantity', 0))
                 new_price = float(item.get('new_price', 0))
-            except (ValueError, TypeError) as e:
+            except (ValueError, TypeError):
                 errors.append(f"{name}: Invalid quantity or price")
                 continue
 
-            update_price = item.get('update_price') == 'yes'
             material_id = item.get('material_id')
             supplier_id = item.get('supplier_id')
+            supplier_name = item.get('supplier_name')
+            supplier_exists = item.get('supplier_exists') == 'True'
+            sku = item.get('sku')
+            status = item.get('status')
+            # Parse status_flags from comma-separated string
+            status_flags_str = item.get('status_flags', '')
+            status_flags = [f.strip() for f in status_flags_str.split(',') if f.strip()]
 
-            current_app.logger.debug(f"Processing: {name}, qty={quantity}, material_id={material_id}, supplier_id={supplier_id}")
+            current_app.logger.debug(f"Processing: {name}, status={status}, flags={status_flags}")
 
-            # Get material by ID if provided, otherwise by name (exclude deleted materials)
+            # Step 1: Create new supplier if needed
+            supplier = None
+            if supplier_id:
+                supplier = Supplier.query.get(int(supplier_id))
+            elif supplier_name and 'new_supplier' in status_flags:
+                # Create new supplier
+                supplier = Supplier(name=supplier_name)
+                db.session.add(supplier)
+                db.session.flush()  # Get ID
+                stats['created_suppliers'] += 1
+                new_suppliers_created.append(supplier_name)
+                current_app.logger.info(f"CREATED NEW SUPPLIER: {supplier_name} (ID: {supplier.id})")
+            elif supplier_name:
+                # Supplier should exist, find it
+                supplier = Supplier.query.filter_by(name=supplier_name).first()
+
+            # Step 2: Get or create material
             material = None
             if material_id:
                 try:
@@ -268,83 +335,133 @@ def confirm_inventory_upload():
                 except (ValueError, TypeError):
                     pass
 
-            if not material:
+            if not material and status != 'new':
+                # Try to find by name
                 material = RawMaterial.query.filter_by(name=name, is_deleted=False).first()
 
-            if not material:
-                # Create new
+            if status == 'new' and not material:
+                # Create new material
                 material = RawMaterial(
                     name=name,
                     category=default_category,
-                    unit='kg',  # Default unit
+                    unit='kg',
                     cost_per_unit=new_price
                 )
                 db.session.add(material)
-                db.session.flush()  # Get ID
+                db.session.flush()
+                stats['created_materials'] += 1
+                current_app.logger.info(f"Created new material: {name} (ID: {material.id})")
 
-                # Initial stock log with supplier if provided
+                # Create supplier link if supplier provided
+                if supplier:
+                    new_link = RawMaterialSupplier(
+                        raw_material_id=material.id,
+                        supplier_id=supplier.id,
+                        cost_per_unit=new_price,
+                        sku=sku if sku else None,
+                        is_primary=True
+                    )
+                    db.session.add(new_link)
+                    stats['added_supplier_links'] += 1
+
+                # Create initial stock log
                 log = StockLog(
                     raw_material_id=material.id,
-                    supplier_id=int(supplier_id) if supplier_id else None,
+                    supplier_id=supplier.id if supplier else None,
                     action_type='set',
                     quantity=quantity,
                     timestamp=inventory_timestamp
                 )
                 db.session.add(log)
-                created_count += 1
-                current_app.logger.info(f"Created new material: {name} (ID: {material.id}), stock: {quantity}")
 
-            else:
-                # Update existing
-                if update_price and supplier_id:
-                    # Update supplier-specific price
+            elif material:
+                # Update existing material
+                stats['updated_materials'] += 1
+
+                # Step 3: Handle supplier link
+                supplier_link = None
+                if supplier:
                     supplier_link = RawMaterialSupplier.query.filter_by(
                         raw_material_id=material.id,
-                        supplier_id=int(supplier_id)
+                        supplier_id=supplier.id
                     ).first()
-                    if supplier_link:
-                        supplier_link.cost_per_unit = new_price
-                    else:
-                        # Create new supplier link if it doesn't exist
-                        new_link = RawMaterialSupplier(
+
+                    if not supplier_link and 'add_supplier' in status_flags:
+                        # Create new supplier link
+                        supplier_link = RawMaterialSupplier(
                             raw_material_id=material.id,
-                            supplier_id=int(supplier_id),
+                            supplier_id=supplier.id,
                             cost_per_unit=new_price,
+                            sku=sku if sku else None,
                             is_primary=not material.supplier_links  # Primary if no other links
                         )
-                        db.session.add(new_link)
-                        current_app.logger.info(f"Created new supplier link for {name} with supplier_id={supplier_id}")
-                elif update_price:
-                    # Update primary supplier price if no specific supplier
-                    primary_link = next((link for link in material.supplier_links if link.is_primary), None)
-                    if primary_link:
-                        primary_link.cost_per_unit = new_price
-                    elif material.supplier_links:
-                        # If no primary, update first supplier
-                        material.supplier_links[0].cost_per_unit = new_price
+                        db.session.add(supplier_link)
+                        stats['added_supplier_links'] += 1
+                        current_app.logger.info(f"Added supplier {supplier.name} to material {name}")
 
-                # Add stock log with supplier
+                # Step 4: Add SKU if needed
+                if supplier_link and 'add_sku' in status_flags and sku:
+                    supplier_link.sku = sku
+                    stats['added_skus'] += 1
+                    current_app.logger.info(f"Added SKU {sku} to material {name}")
+
+                # Step 5: Update price if needed
+                if 'price_change' in status_flags:
+                    if supplier_link:
+                        supplier_link.cost_per_unit = new_price
+                    elif supplier and not supplier_link:
+                        # Link was just created above with new_price
+                        pass
+                    else:
+                        # Update primary supplier price
+                        primary_link = next((link for link in material.supplier_links if link.is_primary), None)
+                        if primary_link:
+                            primary_link.cost_per_unit = new_price
+                        elif material.supplier_links:
+                            material.supplier_links[0].cost_per_unit = new_price
+                    stats['price_updates'] += 1
+
+                # Step 6: Create stock log
                 log = StockLog(
                     raw_material_id=material.id,
-                    supplier_id=int(supplier_id) if supplier_id else None,
+                    supplier_id=supplier.id if supplier else None,
                     action_type='add',
                     quantity=quantity,
                     timestamp=inventory_timestamp
                 )
                 db.session.add(log)
-                updated_count += 1
-                current_app.logger.info(f"Updated material: {name} (ID: {material.id}), added stock: {quantity}")
+                current_app.logger.info(f"Updated material: {name}, added stock: {quantity}")
 
-        log_audit("IMPORT", "Inventory", details=f"Imported {len(items_data)} items from Excel. Created: {created_count}, Updated: {updated_count}")
+        # Build audit details
+        audit_details = f"Imported {len(items_data)} items. "
+        audit_details += f"Materials: {stats['created_materials']} new, {stats['updated_materials']} updated. "
+        if stats['created_suppliers'] > 0:
+            audit_details += f"Suppliers created: {stats['created_suppliers']}. "
+        if stats['added_supplier_links'] > 0:
+            audit_details += f"Supplier links: {stats['added_supplier_links']}. "
+
+        log_audit("IMPORT", "Inventory", details=audit_details)
         db.session.commit()
 
-        # Show success message
-        if created_count > 0 and updated_count > 0:
-            flash(_('Inventory updated successfully. Created {} new materials, updated {} existing.').format(created_count, updated_count), 'success')
-        elif created_count > 0:
-            flash(_('Inventory updated successfully. Created {} new materials.').format(created_count), 'success')
-        elif updated_count > 0:
-            flash(_('Inventory updated successfully. Updated {} materials.').format(updated_count), 'success')
+        # Show success messages
+        messages = []
+        if stats['created_materials'] > 0:
+            messages.append(_('Created {} new materials').format(stats['created_materials']))
+        if stats['updated_materials'] > 0:
+            messages.append(_('Updated {} materials').format(stats['updated_materials']))
+        if stats['added_supplier_links'] > 0:
+            messages.append(_('Added {} supplier links').format(stats['added_supplier_links']))
+        if stats['added_skus'] > 0:
+            messages.append(_('Added {} SKUs').format(stats['added_skus']))
+        if stats['price_updates'] > 0:
+            messages.append(_('Updated {} prices').format(stats['price_updates']))
+
+        if messages:
+            flash(_('Inventory updated successfully. {}').format(', '.join(messages)), 'success')
+
+        # Show crucial warning for new suppliers
+        if new_suppliers_created:
+            flash(_('NEW SUPPLIERS CREATED: {}').format(', '.join(new_suppliers_created)), 'warning')
 
         if errors:
             flash(_('Some items had errors: {}').format(', '.join(errors[:3])), 'warning')
