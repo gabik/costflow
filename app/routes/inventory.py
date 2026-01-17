@@ -311,14 +311,14 @@ def confirm_inventory_upload():
             material_id = item.get('material_id')
             supplier_id = item.get('supplier_id')
             supplier_name = item.get('supplier_name')
-            supplier_exists = item.get('supplier_exists') == 'True'
+            supplier_exists = item.get('supplier_exists', '').lower() == 'true'
             sku = item.get('sku')
             status = item.get('status')
             # Parse status_flags from comma-separated string
             status_flags_str = item.get('status_flags', '')
             status_flags = [f.strip() for f in status_flags_str.split(',') if f.strip()]
 
-            current_app.logger.debug(f"Processing: {name}, status={status}, flags={status_flags}")
+            current_app.logger.info(f"Processing: {name}, status={status}, flags={status_flags}, material_id={material_id}")
 
             # Step 1: Create new supplier if needed
             supplier = None
@@ -415,19 +415,23 @@ def confirm_inventory_upload():
                     current_app.logger.info(f"Added SKU {sku} to material {name}")
 
                 # Step 4b: Add alternative name if name mismatch (SKU matched but name differs)
-                if 'name_mismatch' in status_flags and name != material.name:
-                    # Check if this name is not already an alternative
-                    existing_alt = RawMaterialAlternativeName.query.filter_by(
-                        alternative_name=name
-                    ).first()
-                    if not existing_alt:
-                        alt_name = RawMaterialAlternativeName(
-                            raw_material_id=material.id,
+                if 'name_mismatch' in status_flags:
+                    current_app.logger.info(f"Name mismatch detected: file='{name}' vs system='{material.name}'")
+                    if name != material.name:
+                        # Check if this name is not already an alternative
+                        existing_alt = RawMaterialAlternativeName.query.filter_by(
                             alternative_name=name
-                        )
-                        db.session.add(alt_name)
-                        stats['added_alt_names'] += 1
-                        current_app.logger.info(f"Added alternative name '{name}' for material '{material.name}'")
+                        ).first()
+                        if not existing_alt:
+                            alt_name = RawMaterialAlternativeName(
+                                raw_material_id=material.id,
+                                alternative_name=name
+                            )
+                            db.session.add(alt_name)
+                            stats['added_alt_names'] += 1
+                            current_app.logger.info(f"ADDED alternative name '{name}' for material '{material.name}'")
+                        else:
+                            current_app.logger.info(f"Alternative name '{name}' already exists for material ID {existing_alt.raw_material_id}")
 
                 # Step 5: Update price if needed
                 if 'price_change' in status_flags:
