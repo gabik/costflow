@@ -513,6 +513,7 @@ def confirm_inventory_upload():
                     timestamp=inventory_timestamp
                 )
                 db.session.add(log)
+                current_app.logger.info(f"NEW MATERIAL StockLog: material_id={material.id}, qty={quantity}, action='set'")
 
             elif material:
                 # Update existing material
@@ -589,7 +590,12 @@ def confirm_inventory_upload():
                     timestamp=inventory_timestamp
                 )
                 db.session.add(log)
-                current_app.logger.info(f"Updated material: {name}, added stock: {quantity}")
+                current_app.logger.info(f"EXISTING MATERIAL StockLog: material_id={material.id}, qty={quantity}, action='add', supplier_id={supplier.id if supplier else None}")
+
+            else:
+                # Neither new nor existing material found - this shouldn't happen
+                current_app.logger.error(f"NO STOCK LOG CREATED for '{name}': status={status}, material_id={material_id}, material found={material is not None}")
+                errors.append(f"{name}: Material not found or created")
 
         # Build audit details
         audit_details = f"Imported {len(items_data)} items. "
