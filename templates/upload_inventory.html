@@ -60,41 +60,41 @@
                 </thead>
                 <tbody class="text-start">
                     <tr>
-                        <td><code class="text-primary">שם מוצר</code></td>
+                        <td><code class="text-primary">שם מוצר / שם חומר / שם</code></td>
                         <td><span class="badge bg-danger">{{ _('Required') }}</span></td>
                         <td class="text-muted small">{{ _('Sugar') }}</td>
                     </tr>
                     <tr>
-                        <td><code class="text-primary">סה''כ כמות</code></td>
+                        <td><code class="text-primary">כמות / סה''כ כמות</code></td>
                         <td><span class="badge bg-danger">{{ _('Required') }}</span></td>
                         <td class="text-muted small">25.5</td>
                     </tr>
                     <tr>
-                        <td><code class="text-primary">מחיר ממוצע</code></td>
+                        <td><code class="text-primary">מחיר / מחיר ליחידה</code></td>
                         <td><span class="badge bg-danger">{{ _('Required') }}</span></td>
                         <td class="text-muted small">4.50</td>
                     </tr>
                     <tr>
-                        <td><code class="text-secondary">מק"ט</code></td>
+                        <td><code class="text-secondary">מק"ט / SKU</code></td>
                         <td><span class="badge bg-secondary">{{ _('Optional') }}</span></td>
                         <td class="text-muted small">SKU-12345</td>
                     </tr>
                     <tr>
-                        <td><code class="text-secondary">ספק</code></td>
+                        <td><code class="text-secondary">ספק / שם ספק</code></td>
                         <td><span class="badge bg-secondary">{{ _('Optional') }}</span></td>
                         <td class="text-muted small">{{ _('Supplier Name') }}</td>
                     </tr>
+                    <tr>
+                        <td><code class="text-secondary">תאריך / date</code></td>
+                        <td><span class="badge bg-secondary">{{ _('Optional') }}</span></td>
+                        <td class="text-muted small">2024-01-15</td>
+                    </tr>
                 </tbody>
             </table>
-            <small class="text-muted">{{ _('SKU + Supplier provide more accurate material identification') }}</small>
+            <small class="text-muted">{{ _('Column names are flexible - multiple variations accepted') }}</small>
         </div>
 
         <form method="POST" enctype="multipart/form-data" class="d-inline-block text-start" style="max-width: 400px;">
-            <div class="mb-3">
-                <label for="inventory_date" class="form-label">{{ _('Inventory Date') }}</label>
-                <input type="date" name="inventory_date" id="inventory_date" class="form-control" value="{{ today_date }}" required>
-                <div class="form-text">{{ _('Select the date for this inventory update') }}</div>
-            </div>
             <div class="mb-3">
                 <input type="file" name="inventory_file" class="form-control" accept=".xlsx, .xls" required>
             </div>
@@ -124,32 +124,36 @@
 
 <!-- Step 2: Review Data -->
 <div class="card shadow-sm">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <div class="card-header bg-white">
         <h5 class="mb-0">{{ _('Review Data and Confirm Changes') }}</h5>
-        <span class="badge bg-primary fs-6">
-            <i class="bi bi-calendar-event me-1"></i>{{ _('Inventory Date') }}: {{ inventory_date }}
-        </span>
     </div>
     <div class="card-body">
         <form method="POST" action="{{ url_for('inventory.confirm_inventory_upload') }}">
-            <input type="hidden" name="inventory_date" value="{{ inventory_date }}">
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
+                            <th class="text-center" style="width: 50px;">
+                                <input type="checkbox" class="form-check-input" id="selectAll" checked title="{{ _('Select All') }}">
+                            </th>
                             <th>{{ _('Product Name') }}</th>
                             <th>{{ _('SKU / Supplier') }}</th>
                             <th>{{ _('Status') }}</th>
                             <th>{{ _('Quantity to Add') }}</th>
                             <th>{{ _('Price in File') }}</th>
                             <th>{{ _('Price in System') }}</th>
+                            <th>{{ _('Date') }}</th>
                             <th>{{ _('Action Required') }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in review_data %}
-                        <tr class="{{ 'table-danger' if 'new_supplier' in (item.status_flags or []) else ('table-warning' if 'name_mismatch' in (item.status_flags or []) or 'price_change' in (item.status_flags or []) else '') }}">
+                        <tr class="{{ 'table-danger' if 'new_supplier' in (item.status_flags or []) else ('table-warning' if 'name_mismatch' in (item.status_flags or []) or 'price_change' in (item.status_flags or []) else '') }}" data-row-index="{{ loop.index0 }}">
+                            <td class="text-center">
+                                <input type="checkbox" class="form-check-input row-select" data-index="{{ loop.index0 }}" checked>
+                            </td>
                             <td>
+                                <input type="hidden" name="items[{{ loop.index0 }}][include]" value="yes" class="include-field" data-index="{{ loop.index0 }}">
                                 <input type="hidden" name="items[{{ loop.index0 }}][name]" value="{{ item.name }}">
                                 <input type="hidden" name="items[{{ loop.index0 }}][quantity]" value="{{ item.quantity }}">
                                 <input type="hidden" name="items[{{ loop.index0 }}][new_price]" value="{{ item.new_price }}">
@@ -168,6 +172,7 @@
                                 <input type="hidden" name="items[{{ loop.index0 }}][sku]" value="{{ item.sku }}">
                                 {% endif %}
                                 <input type="hidden" name="items[{{ loop.index0 }}][supplier_exists]" value="{{ 'true' if item.supplier_exists else 'false' }}">
+                                <input type="hidden" name="items[{{ loop.index0 }}][row_date]" value="{{ item.row_date or '' }}">
                                 <strong>{{ item.name }}</strong>
                                 {% if item.system_name and item.system_name != item.name %}
                                 <div class="small text-warning mt-1">
@@ -234,6 +239,13 @@
                                     -
                                 {% endif %}
                             </td>
+                            <td class="small text-muted">
+                                {% if item.row_date %}
+                                    {{ item.row_date }}
+                                {% else %}
+                                    <span class="text-secondary">{{ _('Today') }}</span>
+                                {% endif %}
+                            </td>
                             <td>
                                 {% if 'price_change' in (item.status_flags or []) %}
                                     <div class="form-check form-switch">
@@ -256,14 +268,71 @@
                 </table>
             </div>
             
-            <div class="mt-4 d-flex justify-content-end gap-2">
-                <a href="{{ url_for('inventory.upload_inventory') }}" class="btn btn-secondary">{{ _('Cancel') }}</a>
-                <button type="submit" class="btn btn-success btn-lg">
-                    <i class="bi bi-check-lg me-2"></i> {{ _('Confirm and Update Inventory') }}
-                </button>
+            <div class="mt-4 d-flex justify-content-between align-items-center">
+                <span class="text-muted" id="selectedCount">{{ _('Selected:') }} <strong>{{ review_data|length }}</strong> / {{ review_data|length }}</span>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('inventory.upload_inventory') }}" class="btn btn-secondary">{{ _('Cancel') }}</a>
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="bi bi-check-lg me-2"></i> {{ _('Confirm and Update Inventory') }}
+                    </button>
+                </div>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const rowCheckboxes = document.querySelectorAll('.row-select');
+    const totalCount = rowCheckboxes.length;
+
+    function updateSelectedCount() {
+        const selectedCount = document.querySelectorAll('.row-select:checked').length;
+        document.getElementById('selectedCount').innerHTML =
+            '{{ _("Selected:") }} <strong>' + selectedCount + '</strong> / ' + totalCount;
+    }
+
+    function updateSelectAllState() {
+        const checkedCount = document.querySelectorAll('.row-select:checked').length;
+        selectAllCheckbox.checked = checkedCount === totalCount;
+        selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < totalCount;
+    }
+
+    // Select All toggle
+    selectAllCheckbox.addEventListener('change', function() {
+        rowCheckboxes.forEach(function(checkbox) {
+            checkbox.checked = selectAllCheckbox.checked;
+            updateRowState(checkbox);
+        });
+        updateSelectedCount();
+    });
+
+    // Individual checkbox toggle
+    rowCheckboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            updateRowState(checkbox);
+            updateSelectAllState();
+            updateSelectedCount();
+        });
+    });
+
+    function updateRowState(checkbox) {
+        const index = checkbox.dataset.index;
+        const row = checkbox.closest('tr');
+        const includeField = document.querySelector('.include-field[data-index="' + index + '"]');
+
+        if (checkbox.checked) {
+            includeField.value = 'yes';
+            row.style.opacity = '1';
+            row.style.textDecoration = 'none';
+        } else {
+            includeField.value = 'no';
+            row.style.opacity = '0.5';
+            row.style.textDecoration = 'line-through';
+        }
+    }
+});
+</script>
 {% endif %}
 {% endblock %}

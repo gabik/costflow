@@ -26,6 +26,16 @@ def normalize_column_name(col):
     return col.strip()
 
 
+def find_column(df_columns, possible_names):
+    """Find a column by trying multiple possible names."""
+    normalized_cols = {normalize_column_name(col): col for col in df_columns}
+    for name in possible_names:
+        norm_name = normalize_column_name(name)
+        if norm_name in normalized_cols:
+            return normalized_cols[norm_name]
+    return None
+
+
 def process_inventory_dataframe(df):
     """
     Process inventory dataframe and return review_data and skipped_rows.
@@ -34,21 +44,22 @@ def process_inventory_dataframe(df):
     # Normalize column names (strip whitespace and handle quote variations)
     df.columns = [normalize_column_name(col) for col in df.columns]
 
-    # Expected columns (normalized)
-    col_name = 'שם מוצר'
-    col_qty = "סה''כ כמות"
-    col_price = 'מחיר ממוצע'
-    col_sku = "מק'ט"  # SKU column (optional) - normalized
-    col_supplier = 'ספק'  # Supplier column (optional)
+    # Find columns by trying multiple possible names
+    col_name = find_column(df.columns, ['שם מוצר', 'שם חומר', 'שם', 'חומר גלם', 'מוצר'])
+    col_sku = find_column(df.columns, ["מק'ט", 'מק"ט', 'מקט', 'SKU', 'sku'])
+    col_supplier = find_column(df.columns, ['ספק', 'שם ספק', 'supplier'])
+    col_qty = find_column(df.columns, ['כמות', "סה''כ כמות", 'סה"כ כמות', 'qty', 'quantity'])
+    col_price = find_column(df.columns, ['מחיר', 'מחיר ממוצע', 'מחיר ליחידה', 'price'])
+    col_date = find_column(df.columns, ['תאריך', 'date', 'תאריך עדכון'])
 
     # Check for required columns
     missing_columns = []
-    if col_name not in df.columns:
-        missing_columns.append(col_name)
-    if col_qty not in df.columns:
-        missing_columns.append(col_qty)
-    if col_price not in df.columns:
-        missing_columns.append(col_price)
+    if not col_name:
+        missing_columns.append(_('Material Name'))
+    if not col_qty:
+        missing_columns.append(_('Quantity'))
+    if not col_price:
+        missing_columns.append(_('Price'))
 
     if missing_columns:
         error_msg = _('Missing required columns: {}. Found columns: {}').format(
@@ -85,8 +96,27 @@ def process_inventory_dataframe(df):
             continue
 
         # Get optional SKU and supplier
-        sku = str(row[col_sku]).strip() if col_sku in df.columns and not pd.isna(row.get(col_sku)) else None
-        supplier_name = str(row[col_supplier]).strip() if col_supplier in df.columns and not pd.isna(row.get(col_supplier)) else None
+        sku = str(row[col_sku]).strip() if col_sku and not pd.isna(row.get(col_sku)) else None
+        supplier_name = str(row[col_supplier]).strip() if col_supplier and not pd.isna(row.get(col_supplier)) else None
+
+        # Get date from row (optional)
+        row_date = None
+        if col_date and not pd.isna(row.get(col_date)):
+            try:
+                date_val = row[col_date]
+                if isinstance(date_val, str):
+                    # Try parsing common date formats
+                    for fmt in ['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y', '%d.%m.%Y']:
+                        try:
+                            row_date = datetime.strptime(date_val, fmt).strftime('%Y-%m-%d')
+                            break
+                        except ValueError:
+                            continue
+                elif hasattr(date_val, 'strftime'):
+                    # pandas Timestamp or datetime
+                    row_date = date_val.strftime('%Y-%m-%d')
+            except Exception:
+                pass  # Use default date if parsing fails
 
         # Enhanced matching logic - SKU + Supplier is ground truth
         material = None
@@ -203,7 +233,8 @@ def process_inventory_dataframe(df):
             'status': status,
             'status_flags': status_flags,
             'current_price': current_price,
-            'matched_by': matched_by
+            'matched_by': matched_by,
+            'row_date': row_date  # Date from row (may be None)
         })
 
     return review_data, skipped_rows, None
@@ -212,12 +243,8 @@ def process_inventory_dataframe(df):
 @inventory_blueprint.route('/inventory/upload', methods=['GET', 'POST'])
 def upload_inventory():
     today_date = date.today().isoformat()
-    inventory_date = today_date
 
     if request.method == 'POST':
-        # Get the selected inventory date (default to today)
-        inventory_date = request.form.get('inventory_date', today_date)
-
         if 'inventory_file' not in request.files:
             return redirect(request.url)
 
@@ -236,9 +263,8 @@ def upload_inventory():
                 excel_file = pd.ExcelFile(temp_file.name)
                 sheet_names = excel_file.sheet_names
 
-                # Store temp file path and inventory date in session
+                # Store temp file path in session
                 session['inventory_temp_file'] = temp_file.name
-                session['inventory_date'] = inventory_date
 
                 if len(sheet_names) > 1:
                     # Multiple sheets - show selection page
@@ -246,7 +272,6 @@ def upload_inventory():
                                            review_data=None,
                                            skipped_rows=[],
                                            today_date=today_date,
-                                           inventory_date=inventory_date,
                                            sheet_names=sheet_names,
                                            file_uploaded=True)
                 else:
@@ -264,8 +289,7 @@ def upload_inventory():
                         return render_template('upload_inventory.html',
                                                review_data=None,
                                                skipped_rows=[],
-                                               today_date=today_date,
-                                               inventory_date=inventory_date)
+                                               today_date=today_date)
 
                     if skipped_rows:
                         flash(_('Skipped {} rows due to invalid data. Check the warnings below.').format(len(skipped_rows)), 'warning')
@@ -273,22 +297,19 @@ def upload_inventory():
                     return render_template('upload_inventory.html',
                                            review_data=review_data,
                                            skipped_rows=skipped_rows,
-                                           today_date=today_date,
-                                           inventory_date=inventory_date)
+                                           today_date=today_date)
 
             except Exception as e:
                 flash(_('Error processing file: {}').format(str(e)), 'error')
                 return render_template('upload_inventory.html',
                                        review_data=None,
                                        skipped_rows=[],
-                                       today_date=today_date,
-                                       inventory_date=inventory_date)
+                                       today_date=today_date)
 
     return render_template('upload_inventory.html',
                            review_data=None,
                            skipped_rows=[],
-                           today_date=today_date,
-                           inventory_date=inventory_date)
+                           today_date=today_date)
 
 
 @inventory_blueprint.route('/inventory/select_sheet', methods=['POST'])
@@ -296,7 +317,6 @@ def select_inventory_sheet():
     """Process selected sheet from multi-sheet Excel file"""
     sheet_name = request.form.get('sheet_name')
     temp_file = session.get('inventory_temp_file')
-    inventory_date = session.get('inventory_date', date.today().isoformat())
     today_date = date.today().isoformat()
 
     if not temp_file or not os.path.exists(temp_file):
@@ -321,8 +341,7 @@ def select_inventory_sheet():
             return render_template('upload_inventory.html',
                                    review_data=None,
                                    skipped_rows=[],
-                                   today_date=today_date,
-                                   inventory_date=inventory_date)
+                                   today_date=today_date)
 
         if skipped_rows:
             flash(_('Skipped {} rows due to invalid data. Check the warnings below.').format(len(skipped_rows)), 'warning')
@@ -331,7 +350,6 @@ def select_inventory_sheet():
                                review_data=review_data,
                                skipped_rows=skipped_rows,
                                today_date=today_date,
-                               inventory_date=inventory_date,
                                selected_sheet=sheet_name)
 
     except Exception as e:
@@ -343,13 +361,8 @@ def confirm_inventory_upload():
     # Parse the complex form data (items[0][name], items[0][quantity], etc.)
     # Flask doesn't parse nested dicts automatically, so we iterate manually.
 
-    # Get the inventory date and parse it to datetime with noon time
-    inventory_date_str = request.form.get('inventory_date')
-    if inventory_date_str:
-        # Parse date string (YYYY-MM-DD) and set time to noon (12:00:00)
-        inventory_timestamp = datetime.strptime(inventory_date_str, '%Y-%m-%d').replace(hour=12, minute=0, second=0)
-    else:
-        inventory_timestamp = datetime.utcnow()
+    # Default timestamp (today at noon) for items without a date
+    default_timestamp = datetime.utcnow().replace(hour=12, minute=0, second=0, microsecond=0)
 
     items_data = {}
     for key, value in request.form.items():
@@ -391,8 +404,15 @@ def confirm_inventory_upload():
     errors = []
     new_suppliers_created = []
 
+    skipped_count = 0
     try:
         for index, item in items_data.items():
+            # Check if row is selected for import
+            include = item.get('include', 'yes')
+            if include != 'yes':
+                skipped_count += 1
+                continue
+
             name = item.get('name', '')
             if not name:
                 errors.append(f"Item {index}: Missing name")
@@ -415,7 +435,17 @@ def confirm_inventory_upload():
             status_flags_str = item.get('status_flags', '')
             status_flags = [f.strip() for f in status_flags_str.split(',') if f.strip()]
 
-            current_app.logger.info(f"Processing: {name}, status={status}, flags={status_flags}, material_id={material_id}")
+            # Parse per-row date (use default if not provided)
+            row_date_str = item.get('row_date', '')
+            if row_date_str:
+                try:
+                    inventory_timestamp = datetime.strptime(row_date_str, '%Y-%m-%d').replace(hour=12, minute=0, second=0)
+                except ValueError:
+                    inventory_timestamp = default_timestamp
+            else:
+                inventory_timestamp = default_timestamp
+
+            current_app.logger.info(f"Processing: {name}, status={status}, flags={status_flags}, material_id={material_id}, date={inventory_timestamp}")
 
             # Step 1: Create new supplier if needed
             supplier = None
@@ -587,6 +617,10 @@ def confirm_inventory_upload():
 
         if messages:
             flash(_('Inventory updated successfully. {}').format(', '.join(messages)), 'success')
+
+        # Show info about skipped rows
+        if skipped_count > 0:
+            flash(_('Skipped {} items (not selected)').format(skipped_count), 'info')
 
         # Show crucial warning for new suppliers
         if new_suppliers_created:
