@@ -500,4 +500,4 @@ def confirm_inventory_upload():
         flash(_('Error processing inventory: {}').format(str(e)), 'error')
         return redirect(url_for('inventory.upload_inventory'))
 
-    return redirect(url_for('main.raw_materials'))
+    return redirect(url_for('raw_materials.raw_materials'))
