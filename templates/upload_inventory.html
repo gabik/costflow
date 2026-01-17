@@ -153,6 +153,8 @@
                                 {% endif %}
                                 {% if item.matched_by == 'sku' %}
                                     <span class="badge bg-success" title="{{ _('Identified by SKU') }}"><i class="bi bi-upc-scan"></i></span>
+                                {% elif item.matched_by == 'alt_name' %}
+                                    <span class="badge bg-info" title="{{ _('Identified by alternative name') }}"><i class="bi bi-tags"></i></span>
                                 {% endif %}
                             </td>
                             <td>
@@ -181,8 +183,8 @@
                                         </span>
                                     {% endif %}
                                     {% if 'name_mismatch' in item.status_flags %}
-                                        <span class="badge bg-warning text-dark d-block mt-1" title="{{ _('Name in file differs from system') }}">
-                                            <i class="bi bi-exclamation-triangle me-1"></i>{{ _('Name Mismatch') }}
+                                        <span class="badge bg-warning text-dark d-block mt-1" title="{{ _('Name will be added as alternative name') }}">
+                                            <i class="bi bi-plus-circle me-1"></i>{{ _('Add Alternative Name') }}
                                         </span>
                                     {% endif %}
                                     {% if 'price_change' in item.status_flags %}

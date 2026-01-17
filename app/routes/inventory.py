@@ -2,7 +2,7 @@ from datetime import datetime, date
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_babel import gettext as _
 import pandas as pd
-from ..models import db, RawMaterial, StockLog, Category, RawMaterialSupplier, Supplier
+from ..models import db, RawMaterial, StockLog, Category, RawMaterialSupplier, Supplier, RawMaterialAlternativeName
 from .utils import log_audit
 
 inventory_blueprint = Blueprint('inventory', __name__)
@@ -130,11 +130,19 @@ def upload_inventory():
                                     status_flags.append('name_mismatch')
                                     system_name = material.name
 
-                    # Step 2: If no SKU match, try NAME match
+                    # Step 2: If no SKU match, try NAME match (primary name first, then alternative names)
                     if not material:
+                        # Try primary name first
                         material = RawMaterial.query.filter_by(name=name, is_deleted=False).first()
                         if material:
                             matched_by = 'name'
+                        else:
+                            # Try alternative names
+                            alt_name = RawMaterialAlternativeName.query.filter_by(alternative_name=name).first()
+                            if alt_name and not alt_name.raw_material.is_deleted:
+                                material = alt_name.raw_material
+                                matched_by = 'alt_name'
+                                system_name = material.name  # Show the primary name
 
                     # Step 3: Check supplier if provided but not found yet
                     if supplier_name and not supplier:
@@ -280,7 +288,8 @@ def confirm_inventory_upload():
         'created_suppliers': 0,
         'added_supplier_links': 0,
         'added_skus': 0,
-        'price_updates': 0
+        'price_updates': 0,
+        'added_alt_names': 0
     }
     errors = []
     new_suppliers_created = []
@@ -405,6 +414,21 @@ def confirm_inventory_upload():
                     stats['added_skus'] += 1
                     current_app.logger.info(f"Added SKU {sku} to material {name}")
 
+                # Step 4b: Add alternative name if name mismatch (SKU matched but name differs)
+                if 'name_mismatch' in status_flags and name != material.name:
+                    # Check if this name is not already an alternative
+                    existing_alt = RawMaterialAlternativeName.query.filter_by(
+                        alternative_name=name
+                    ).first()
+                    if not existing_alt:
+                        alt_name = RawMaterialAlternativeName(
+                            raw_material_id=material.id,
+                            alternative_name=name
+                        )
+                        db.session.add(alt_name)
+                        stats['added_alt_names'] += 1
+                        current_app.logger.info(f"Added alternative name '{name}' for material '{material.name}'")
+
                 # Step 5: Update price if needed
                 if 'price_change' in status_flags:
                     if supplier_link:
@@ -439,6 +463,8 @@ def confirm_inventory_upload():
             audit_details += f"Suppliers created: {stats['created_suppliers']}. "
         if stats['added_supplier_links'] > 0:
             audit_details += f"Supplier links: {stats['added_supplier_links']}. "
+        if stats['added_alt_names'] > 0:
+            audit_details += f"Alternative names: {stats['added_alt_names']}. "
 
         log_audit("IMPORT", "Inventory", details=audit_details)
         db.session.commit()
@@ -453,6 +479,8 @@ def confirm_inventory_upload():
             messages.append(_('Added {} supplier links').format(stats['added_supplier_links']))
         if stats['added_skus'] > 0:
             messages.append(_('Added {} SKUs').format(stats['added_skus']))
+        if stats['added_alt_names'] > 0:
+            messages.append(_('Added {} alternative names').format(stats['added_alt_names']))
         if stats['price_updates'] > 0:
             messages.append(_('Updated {} prices').format(stats['price_updates']))
 
