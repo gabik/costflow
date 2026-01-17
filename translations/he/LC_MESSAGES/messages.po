@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-01-17 20:05+0200\n"
+"POT-Creation-Date: 2026-01-17 20:28+0200\n"
 "PO-Revision-Date: 2024-12-14 21:06+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: he\n"
@@ -59,84 +59,84 @@ msgstr "כמות לא תקינה"
 msgid "Invalid price"
 msgstr "מחיר לא תקין"
 
-#: app/routes/inventory.py:296 app/routes/inventory.py:348
+#: app/routes/inventory.py:297 app/routes/inventory.py:349
 #, python-brace-format
 msgid "Skipped {} rows due to invalid data. Check the warnings below."
 msgstr "דילגנו על {} שורות עקב נתונים לא תקינים. בדוק את האזהרות למטה."
 
-#: app/routes/inventory.py:304
+#: app/routes/inventory.py:305
 #, python-brace-format
 msgid "Error processing file: {}"
 msgstr "שגיאה בעיבוד הקובץ: {}"
 
-#: app/routes/inventory.py:324
+#: app/routes/inventory.py:325
 msgid "File not found. Please upload again."
 msgstr "הקובץ לא נמצא. אנא העלה שוב."
 
-#: app/routes/inventory.py:328
+#: app/routes/inventory.py:329
 msgid "Please select a sheet."
 msgstr "אנא בחר גיליון."
 
-#: app/routes/inventory.py:357
+#: app/routes/inventory.py:358
 #, python-brace-format
 msgid "Error processing sheet: {}"
 msgstr "שגיאה בעיבוד הגיליון: {}"
 
-#: app/routes/inventory.py:384
+#: app/routes/inventory.py:385
 msgid "No items to process. Please upload a file first."
 msgstr "אין פריטים לעיבוד. אנא העלה קובץ קודם."
 
-#: app/routes/inventory.py:607
+#: app/routes/inventory.py:611
 #, fuzzy, python-brace-format
 msgid "Created {} new materials"
 msgstr "חומר גלם"
 
-#: app/routes/inventory.py:609
+#: app/routes/inventory.py:613
 #, fuzzy, python-brace-format
 msgid "Updated {} materials"
 msgstr "חומרים פעילים"
 
-#: app/routes/inventory.py:611
+#: app/routes/inventory.py:615
 #, fuzzy, python-brace-format
 msgid "Added {} supplier links"
 msgstr "הוסף ספק"
 
-#: app/routes/inventory.py:613
+#: app/routes/inventory.py:617
 #, fuzzy, python-brace-format
 msgid "Added {} SKUs"
 msgstr "כתובת"
 
-#: app/routes/inventory.py:615
+#: app/routes/inventory.py:619
 #, python-brace-format
 msgid "Added {} alternative names"
 msgstr "נוספו {} שמות חלופיים"
 
-#: app/routes/inventory.py:617
+#: app/routes/inventory.py:621
 #, fuzzy, python-brace-format
 msgid "Updated {} prices"
 msgstr "עדכן מחיר ל-"
 
-#: app/routes/inventory.py:620
+#: app/routes/inventory.py:624
 #, fuzzy, python-brace-format
 msgid "Inventory updated successfully. {}"
 msgstr "המלאי עודכן בהצלחה. עודכנו {} חומרים."
 
-#: app/routes/inventory.py:624
+#: app/routes/inventory.py:628
 #, python-brace-format
 msgid "Skipped {} items (not selected)"
 msgstr "דולגו {} פריטים (לא נבחרו)"
 
-#: app/routes/inventory.py:628
+#: app/routes/inventory.py:632
 #, python-brace-format
 msgid "NEW SUPPLIERS CREATED: {}"
 msgstr "ספקים חדשים נוצרו: {}"
 
-#: app/routes/inventory.py:631
+#: app/routes/inventory.py:635
 #, python-brace-format
 msgid "Some items had errors: {}"
 msgstr "חלק מהפריטים עם שגיאות: {}"
 
-#: app/routes/inventory.py:636
+#: app/routes/inventory.py:640
 #, python-brace-format
 msgid "Error processing inventory: {}"
 msgstr "שגיאה בעיבוד המלאי: {}"
@@ -525,7 +525,7 @@ msgstr "הזן כמות מלאי התחלתית"
 #: templates/raw_materials.html:333 templates/raw_materials.html:355
 #: templates/recipe_review.html:216 templates/recipe_review.html:387
 #: templates/supplier_materials.html:252 templates/update_weekly_sales.html:108
-#: templates/upload_inventory.html:274 templates/weekly_costs.html:69
+#: templates/upload_inventory.html:291 templates/weekly_costs.html:69
 msgid "Cancel"
 msgstr "בטל"
 
@@ -829,8 +829,8 @@ msgstr "כמות מיוצרת לבאצ'"
 #: templates/product_details.html:178 templates/product_details.html:210
 #: templates/product_details.html:261 templates/product_details.html:367
 #: templates/raw_materials.html:89 templates/recipe_review.html:178
-#: templates/supplier_materials.html:77 templates/view_premake.html:104
-#: templates/view_premake.html:171
+#: templates/supplier_materials.html:77 templates/upload_inventory.html:143
+#: templates/view_premake.html:104 templates/view_premake.html:171
 msgid "Unit"
 msgstr "יחידה"
 
@@ -1012,7 +1012,7 @@ msgid "Alternative Names (optional)"
 msgstr "שמות חלופיים (אופציונלי)"
 
 #: templates/add_or_edit_raw_material.html:117
-#: templates/upload_inventory.html:223
+#: templates/upload_inventory.html:224
 msgid "Add Alternative Name"
 msgstr "הוסף שם חלופי"
 
@@ -2454,7 +2454,7 @@ msgstr "היסטוריית ייצור הכנות"
 
 #: templates/premake_production.html:84 templates/production.html:90
 #: templates/stock_audits.html:100 templates/upload_inventory.html:89
-#: templates/upload_inventory.html:145 templates/weekly_report.html:644
+#: templates/upload_inventory.html:146 templates/weekly_report.html:644
 msgid "Date"
 msgstr "תאריך"
 
@@ -3059,7 +3059,7 @@ msgstr "משקל (ג׳)"
 msgid "Price in Sheet"
 msgstr "מחיר בגיליון"
 
-#: templates/recipe_review.html:133 templates/upload_inventory.html:144
+#: templates/recipe_review.html:133 templates/upload_inventory.html:145
 msgid "Price in System"
 msgstr "מחיר במערכת"
 
@@ -3755,95 +3755,99 @@ msgstr "סקירת נתונים ואישור שינויים"
 msgid "SKU / Supplier"
 msgstr "מק\"ט / ספק"
 
-#: templates/upload_inventory.html:143
+#: templates/upload_inventory.html:144
 msgid "Price in File"
 msgstr "מחיר בקובץ"
 
-#: templates/upload_inventory.html:146
+#: templates/upload_inventory.html:147
 msgid "Action Required"
 msgstr "פעולה נדרשת"
 
-#: templates/upload_inventory.html:179
+#: templates/upload_inventory.html:180
 msgid "System name:"
 msgstr "שם במערכת:"
 
-#: templates/upload_inventory.html:185
+#: templates/upload_inventory.html:186
 msgid "SKU:"
 msgstr "מק\"ט:"
 
-#: templates/upload_inventory.html:191
+#: templates/upload_inventory.html:192
 msgid "Identified by SKU"
 msgstr "זוהה לפי מק''ט"
 
-#: templates/upload_inventory.html:193
+#: templates/upload_inventory.html:194
 msgid "Identified by alternative name"
 msgstr "זוהה לפי שם חלופי"
 
-#: templates/upload_inventory.html:199
+#: templates/upload_inventory.html:200
 msgid "New Material"
 msgstr "חומר גלם חדש"
 
-#: templates/upload_inventory.html:201
+#: templates/upload_inventory.html:202
 msgid "Exists"
 msgstr "קיים"
 
-#: templates/upload_inventory.html:207
+#: templates/upload_inventory.html:208
 msgid "A new supplier will be created"
 msgstr "ספק חדש ייווצר"
 
-#: templates/upload_inventory.html:208
+#: templates/upload_inventory.html:209
 msgid "New Supplier!"
 msgstr "ספק חדש!"
 
-#: templates/upload_inventory.html:212
+#: templates/upload_inventory.html:213
 msgid "Supplier will be linked to this material"
 msgstr "הספק יקושר לחומר גלם זה"
 
-#: templates/upload_inventory.html:213
+#: templates/upload_inventory.html:214
 msgid "Add Supplier Link"
 msgstr "הוסף קישור לספק"
 
-#: templates/upload_inventory.html:217
+#: templates/upload_inventory.html:218
 msgid "SKU will be added to supplier link"
 msgstr "מק\"ט יתווסף לקישור הספק"
 
-#: templates/upload_inventory.html:218
+#: templates/upload_inventory.html:219
 msgid "Add SKU"
 msgstr "הוסף מק\"ט"
 
-#: templates/upload_inventory.html:222
+#: templates/upload_inventory.html:223
 msgid "Name will be added as alternative name"
 msgstr "השם יתווסף כשם חלופי"
 
-#: templates/upload_inventory.html:227
+#: templates/upload_inventory.html:228
 msgid "Price differs from current"
 msgstr "המחיר שונה מהנוכחי"
 
-#: templates/upload_inventory.html:228
+#: templates/upload_inventory.html:229
 msgid "Price Change"
 msgstr "שינוי מחיר"
 
-#: templates/upload_inventory.html:246
+#: templates/upload_inventory.html:247
+msgid "unit"
+msgstr "יחידה"
+
+#: templates/upload_inventory.html:263
 msgid "Today"
 msgstr "היום"
 
-#: templates/upload_inventory.html:254
+#: templates/upload_inventory.html:271
 msgid "Update price to"
 msgstr "עדכן מחיר ל-"
 
-#: templates/upload_inventory.html:258
+#: templates/upload_inventory.html:275
 msgid "Will set price"
 msgstr "יקבע מחיר"
 
-#: templates/upload_inventory.html:261
+#: templates/upload_inventory.html:278
 msgid "Same price"
 msgstr "מחיר זהה"
 
-#: templates/upload_inventory.html:272 templates/upload_inventory.html:293
+#: templates/upload_inventory.html:289 templates/upload_inventory.html:310
 msgid "Selected:"
 msgstr "נבחרו:"
 
-#: templates/upload_inventory.html:276
+#: templates/upload_inventory.html:293
 msgid "Confirm and Update Inventory"
 msgstr "אשר ועדכן מלאי"
 

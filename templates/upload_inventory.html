@@ -140,6 +140,7 @@
                             <th>{{ _('SKU / Supplier') }}</th>
                             <th>{{ _('Status') }}</th>
                             <th>{{ _('Quantity to Add') }}</th>
+                            <th>{{ _('Unit') }}</th>
                             <th>{{ _('Price in File') }}</th>
                             <th>{{ _('Price in System') }}</th>
                             <th>{{ _('Date') }}</th>
@@ -230,7 +231,23 @@
                                     {% endif %}
                                 {% endif %}
                             </td>
-                            <td>+{{ item.quantity }} kg</td>
+                            <td>+{{ item.quantity }}</td>
+                            <td>
+                                {% if item.unit %}
+                                    <!-- Existing material - show unit -->
+                                    <span class="badge bg-light text-dark">{{ item.unit }}</span>
+                                    <input type="hidden" name="items[{{ loop.index0 }}][unit]" value="{{ item.unit }}">
+                                {% else %}
+                                    <!-- New material - select unit -->
+                                    <select name="items[{{ loop.index0 }}][unit]" class="form-select form-select-sm" style="width: auto; min-width: 80px;">
+                                        <option value="kg" selected>kg</option>
+                                        <option value="g">g</option>
+                                        <option value="L">L</option>
+                                        <option value="ml">ml</option>
+                                        <option value="יחידה">{{ _('unit') }}</option>
+                                    </select>
+                                {% endif %}
+                            </td>
                             <td class="fw-bold">{{ item.new_price }} ₪</td>
                             <td>
                                 {% if item.current_price is not none %}

@@ -235,7 +235,8 @@ def process_inventory_dataframe(df):
             'status_flags': status_flags,
             'current_price': current_price,
             'matched_by': matched_by,
-            'row_date': row_date  # Date from row (may be None)
+            'row_date': row_date,  # Date from row (may be None)
+            'unit': material.unit if material else None  # Unit from existing material
         })
 
     return review_data, skipped_rows, None
@@ -446,6 +447,9 @@ def confirm_inventory_upload():
             else:
                 inventory_timestamp = default_timestamp
 
+            # Get unit from form (for new materials)
+            unit = item.get('unit', 'kg')
+
             current_app.logger.info(f"Processing: {name}, status={status}, flags={status_flags}, material_id={material_id}, date={inventory_timestamp}")
 
             # Step 1: Create new supplier if needed
@@ -481,7 +485,7 @@ def confirm_inventory_upload():
                 material = RawMaterial(
                     name=name,
                     category=default_category,
-                    unit='kg',
+                    unit=unit,
                     cost_per_unit=new_price
                 )
                 db.session.add(material)
