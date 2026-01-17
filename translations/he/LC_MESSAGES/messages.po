@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-01-16 16:38+0200\n"
+"POT-Creation-Date: 2026-01-17 17:50+0200\n"
 "PO-Revision-Date: 2024-12-14 21:06+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: he\n"
@@ -423,7 +423,7 @@ msgstr "הזן כמות מלאי התחלתית"
 #: templates/raw_materials.html:333 templates/raw_materials.html:355
 #: templates/recipe_review.html:216 templates/recipe_review.html:387
 #: templates/supplier_materials.html:252 templates/update_weekly_sales.html:108
-#: templates/upload_inventory.html:116 templates/weekly_costs.html:69
+#: templates/upload_inventory.html:165 templates/weekly_costs.html:69
 msgid "Cancel"
 msgstr "בטל"
 
@@ -630,7 +630,7 @@ msgid "Add New Product"
 msgstr "הוסף מוצר חדש"
 
 #: templates/add_or_edit_product.html:16 templates/products.html:44
-#: templates/upload_inventory.html:44
+#: templates/upload_inventory.html:93
 msgid "Product Name"
 msgstr "שם מוצר"
 
@@ -975,6 +975,7 @@ msgstr "הוספת ספק חדש"
 
 #: templates/add_or_edit_raw_material.html:235
 #: templates/add_or_edit_supplier.html:32 templates/suppliers.html:22
+#: templates/upload_inventory.html:54
 msgid "Supplier Name"
 msgstr "שם הספק"
 
@@ -1042,7 +1043,8 @@ msgstr "שם ייחודי לזיהוי הספק במערכת"
 #: templates/add_or_edit_supplier.html:47
 #: templates/add_or_edit_supplier.html:54
 #: templates/add_or_edit_supplier.html:63
-#: templates/add_or_edit_supplier.html:72
+#: templates/add_or_edit_supplier.html:72 templates/upload_inventory.html:48
+#: templates/upload_inventory.html:53
 msgid "Optional"
 msgstr "אופציונלי"
 
@@ -2818,7 +2820,7 @@ msgstr "הוספת כמות ל:"
 msgid "Select supplier for stock addition"
 msgstr "בחר ספק להוספת המלאי"
 
-#: templates/raw_materials.html:287 templates/upload_inventory.html:47
+#: templates/raw_materials.html:287 templates/upload_inventory.html:96
 msgid "Quantity to Add"
 msgstr "כמות להוספה"
 
@@ -2927,7 +2929,7 @@ msgstr "מחיר בקובץ"
 msgid "Exists - No Changes"
 msgstr "אין שינויים"
 
-#: templates/recipe_review.html:109 templates/upload_inventory.html:82
+#: templates/recipe_review.html:109 templates/upload_inventory.html:131
 msgid "New"
 msgstr "חדש"
 
@@ -2940,7 +2942,7 @@ msgid "Materials:"
 msgstr "חומרים:"
 
 #: templates/recipe_review.html:130 templates/suppliers.html:27
-#: templates/upload_inventory.html:46
+#: templates/upload_inventory.html:95
 msgid "Status"
 msgstr "סטטוס"
 
@@ -2952,7 +2954,7 @@ msgstr "משקל (ג׳)"
 msgid "Price in Sheet"
 msgstr "מחיר בגיליון"
 
-#: templates/recipe_review.html:133 templates/upload_inventory.html:49
+#: templates/recipe_review.html:133 templates/upload_inventory.html:98
 msgid "Price in System"
 msgstr "מחיר במערכת"
 
@@ -3154,7 +3156,7 @@ msgstr "עמודות: שם, סוג, מחיר/ק״ג, משקל (ג׳), מחיר �
 msgid "Select Excel file:"
 msgstr "בחר קובץ אקסל:"
 
-#: templates/recipe_upload.html:64 templates/upload_inventory.html:26
+#: templates/recipe_upload.html:64 templates/upload_inventory.html:71
 msgid "Load File"
 msgstr "טען קובץ"
 
@@ -3576,51 +3578,76 @@ msgstr "העלאת קובץ אקסל לעדכון כמויות ומחירים."
 msgid "Upload Excel File"
 msgstr "העלה קובץ אקסל"
 
-#: templates/upload_inventory.html:18
-msgid "File must contain columns: Product Name, Total Quantity, Average Price."
-msgstr "הקובץ חייב להכיל את העמודות: שם מוצר, סה\"כ כמות, מחיר ממוצע."
+#: templates/upload_inventory.html:21
+msgid "Expected column names in Excel file:"
+msgstr "שמות עמודות נדרשים בקובץ אקסל:"
 
-#: templates/upload_inventory.html:19
-msgid "Optional columns: SKU, Supplier (for more accurate identification)"
-msgstr "עמודות אופציונליות: מק\"ט, ספק (לזיהוי מדויק יותר)"
+#: templates/upload_inventory.html:25
+msgid "Column Name"
+msgstr "שם עמודה"
 
-#: templates/upload_inventory.html:36
+#: templates/upload_inventory.html:26 templates/upload_inventory.html:33
+#: templates/upload_inventory.html:38 templates/upload_inventory.html:43
+msgid "Required"
+msgstr "חובה"
+
+#: templates/upload_inventory.html:27
+msgid "Example"
+msgstr "דוגמה"
+
+#: templates/upload_inventory.html:34
+msgid "Sugar"
+msgstr "סוכר"
+
+#: templates/upload_inventory.html:58
+msgid "SKU + Supplier provide more accurate material identification"
+msgstr "מק\"ט + ספק מספקים זיהוי מדויק יותר של חומרים"
+
+#: templates/upload_inventory.html:63 templates/upload_inventory.html:83
+msgid "Inventory Date"
+msgstr "תאריך מלאי"
+
+#: templates/upload_inventory.html:65
+msgid "Select the date for this inventory update"
+msgstr "בחר את התאריך לעדכון מלאי זה"
+
+#: templates/upload_inventory.html:81
 msgid "Review Data and Confirm Changes"
 msgstr "סקירת נתונים ואישור שינויים"
 
-#: templates/upload_inventory.html:45
+#: templates/upload_inventory.html:94
 msgid "SKU / Supplier"
 msgstr "מק\"ט / ספק"
 
-#: templates/upload_inventory.html:48
+#: templates/upload_inventory.html:97
 msgid "Price in File"
 msgstr "מחיר בקובץ"
 
-#: templates/upload_inventory.html:50
+#: templates/upload_inventory.html:99
 msgid "Action Required"
 msgstr "פעולה נדרשת"
 
-#: templates/upload_inventory.html:71
+#: templates/upload_inventory.html:120
 msgid "SKU:"
 msgstr "מק\"ט:"
 
-#: templates/upload_inventory.html:77
+#: templates/upload_inventory.html:126
 msgid "Identified by SKU"
 msgstr "זוהה לפי מק''ט"
 
-#: templates/upload_inventory.html:84
+#: templates/upload_inventory.html:133
 msgid "Exists"
 msgstr "קיים"
 
-#: templates/upload_inventory.html:101
+#: templates/upload_inventory.html:150
 msgid "Update price to"
 msgstr "עדכן מחיר ל-"
 
-#: templates/upload_inventory.html:105
+#: templates/upload_inventory.html:154
 msgid "Same price"
 msgstr "מחיר זהה"
 
-#: templates/upload_inventory.html:118
+#: templates/upload_inventory.html:167
 msgid "Confirm and Update Inventory"
 msgstr "אשר ועדכן מלאי"
 
@@ -4876,4 +4903,7 @@ msgstr "פחת לפי קטגוריה"
 
 #~ msgid "Packaging:"
 #~ msgstr "אריזה"
+
+#~ msgid "File must contain columns: Product Name, Total Quantity, Average Price."
+#~ msgstr "הקובץ חייב להכיל את העמודות: שם מוצר, סה\"כ כמות, מחיר ממוצע."
 

@@ -15,10 +15,55 @@
     <div class="card-body p-5 text-center">
         <i class="bi bi-file-earmark-spreadsheet display-1 text-success mb-3"></i>
         <h4 class="mb-3">{{ _('Upload Excel File') }}</h4>
-        <p class="text-muted mb-4">{{ _('File must contain columns: Product Name, Total Quantity, Average Price.') }}<br>
-        <small>{{ _('Optional columns: SKU, Supplier (for more accurate identification)') }}</small></p>
-        
+
+        <!-- Column Format Table -->
+        <div class="mb-4">
+            <p class="text-muted mb-2">{{ _('Expected column names in Excel file:') }}</p>
+            <table class="table table-sm table-bordered mx-auto" style="max-width: 500px;">
+                <thead class="table-light">
+                    <tr>
+                        <th>{{ _('Column Name') }}</th>
+                        <th>{{ _('Required') }}</th>
+                        <th>{{ _('Example') }}</th>
+                    </tr>
+                </thead>
+                <tbody class="text-start">
+                    <tr>
+                        <td><code class="text-primary">שם מוצר</code></td>
+                        <td><span class="badge bg-danger">{{ _('Required') }}</span></td>
+                        <td class="text-muted small">{{ _('Sugar') }}</td>
+                    </tr>
+                    <tr>
+                        <td><code class="text-primary">סה''כ כמות</code></td>
+                        <td><span class="badge bg-danger">{{ _('Required') }}</span></td>
+                        <td class="text-muted small">25.5</td>
+                    </tr>
+                    <tr>
+                        <td><code class="text-primary">מחיר ממוצע</code></td>
+                        <td><span class="badge bg-danger">{{ _('Required') }}</span></td>
+                        <td class="text-muted small">4.50</td>
+                    </tr>
+                    <tr>
+                        <td><code class="text-secondary">מק"ט</code></td>
+                        <td><span class="badge bg-secondary">{{ _('Optional') }}</span></td>
+                        <td class="text-muted small">SKU-12345</td>
+                    </tr>
+                    <tr>
+                        <td><code class="text-secondary">ספק</code></td>
+                        <td><span class="badge bg-secondary">{{ _('Optional') }}</span></td>
+                        <td class="text-muted small">{{ _('Supplier Name') }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <small class="text-muted">{{ _('SKU + Supplier provide more accurate material identification') }}</small>
+        </div>
+
         <form method="POST" enctype="multipart/form-data" class="d-inline-block text-start" style="max-width: 400px;">
+            <div class="mb-3">
+                <label for="inventory_date" class="form-label">{{ _('Inventory Date') }}</label>
+                <input type="date" name="inventory_date" id="inventory_date" class="form-control" value="{{ today_date }}" required>
+                <div class="form-text">{{ _('Select the date for this inventory update') }}</div>
+            </div>
             <div class="mb-3">
                 <input type="file" name="inventory_file" class="form-control" accept=".xlsx, .xls" required>
             </div>
@@ -32,11 +77,15 @@
 {% else %}
 <!-- Step 2: Review Data -->
 <div class="card shadow-sm">
-    <div class="card-header bg-white">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0">{{ _('Review Data and Confirm Changes') }}</h5>
+        <span class="badge bg-primary fs-6">
+            <i class="bi bi-calendar-event me-1"></i>{{ _('Inventory Date') }}: {{ inventory_date }}
+        </span>
     </div>
     <div class="card-body">
         <form method="POST" action="{{ url_for('inventory.confirm_inventory_upload') }}">
+            <input type="hidden" name="inventory_date" value="{{ inventory_date }}">
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">

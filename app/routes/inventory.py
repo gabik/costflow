@@ -1,3 +1,4 @@
+from datetime import datetime, date
 from flask import Blueprint, render_template, request, redirect, url_for
 import pandas as pd
 from ..models import db, RawMaterial, StockLog, Category, RawMaterialSupplier, Supplier
@@ -11,11 +12,16 @@ inventory_blueprint = Blueprint('inventory', __name__)
 @inventory_blueprint.route('/inventory/upload', methods=['GET', 'POST'])
 def upload_inventory():
     review_data = None
-    
+    today_date = date.today().isoformat()
+    inventory_date = today_date
+
     if request.method == 'POST':
+        # Get the selected inventory date (default to today)
+        inventory_date = request.form.get('inventory_date', today_date)
+
         if 'inventory_file' not in request.files:
             return redirect(request.url)
-            
+
         file = request.files['inventory_file']
         if file.filename == '':
             return redirect(request.url)
@@ -126,13 +132,24 @@ def upload_inventory():
             except Exception as e:
                 return f"Error processing file: {e}", 400
 
-    return render_template('upload_inventory.html', review_data=review_data)
+    return render_template('upload_inventory.html',
+                           review_data=review_data,
+                           today_date=today_date,
+                           inventory_date=inventory_date)
 
 @inventory_blueprint.route('/inventory/confirm', methods=['POST'])
 def confirm_inventory_upload():
     # Parse the complex form data (items[0][name], items[0][quantity], etc.)
     # Flask doesn't parse nested dicts automatically, so we iterate manually.
-    
+
+    # Get the inventory date and parse it to datetime with noon time
+    inventory_date_str = request.form.get('inventory_date')
+    if inventory_date_str:
+        # Parse date string (YYYY-MM-DD) and set time to noon (12:00:00)
+        inventory_timestamp = datetime.strptime(inventory_date_str, '%Y-%m-%d').replace(hour=12, minute=0, second=0)
+    else:
+        inventory_timestamp = datetime.utcnow()
+
     items_data = {}
     for key, value in request.form.items():
         if key.startswith('items['):
@@ -140,7 +157,7 @@ def confirm_inventory_upload():
             parts = key.replace(']', '').split('[')
             index = int(parts[1])
             field = parts[2]
-            
+
             if index not in items_data:
                 items_data[index] = {}
             items_data[index][field] = value
@@ -183,7 +200,8 @@ def confirm_inventory_upload():
                 raw_material_id=material.id,
                 supplier_id=int(supplier_id) if supplier_id else None,
                 action_type='set',
-                quantity=quantity
+                quantity=quantity,
+                timestamp=inventory_timestamp
             )
             db.session.add(log)
 
@@ -211,7 +229,8 @@ def confirm_inventory_upload():
                 raw_material_id=material.id,
                 supplier_id=int(supplier_id) if supplier_id else None,
                 action_type='add',
-                quantity=quantity
+                quantity=quantity,
+                timestamp=inventory_timestamp
             )
             db.session.add(log)
                                                                                                                                                                 
