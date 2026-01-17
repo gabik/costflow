@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-01-17 17:50+0200\n"
+"POT-Creation-Date: 2026-01-17 18:19+0200\n"
 "PO-Revision-Date: 2024-12-14 21:06+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: he\n"
@@ -38,6 +38,64 @@ msgstr ""
 #, fuzzy, python-brace-format
 msgid "Error resetting transactions: {}"
 msgstr "שגיאה בשחזור מוצר: {}"
+
+#: app/routes/inventory.py:69
+#, python-brace-format
+msgid "Missing required columns: {}. Found columns: {}"
+msgstr "עמודות חובה חסרות: {}. עמודות שנמצאו: {}"
+
+#: app/routes/inventory.py:84 app/routes/inventory.py:89
+msgid "Empty product name"
+msgstr "שם מוצר ריק"
+
+#: app/routes/inventory.py:95
+msgid "Invalid quantity"
+msgstr "כמות לא תקינה"
+
+#: app/routes/inventory.py:101
+msgid "Invalid price"
+msgstr "מחיר לא תקין"
+
+#: app/routes/inventory.py:182
+#, python-brace-format
+msgid "Skipped {} rows due to invalid data. Check the warnings below."
+msgstr "דילגנו על {} שורות עקב נתונים לא תקינים. בדוק את האזהרות למטה."
+
+#: app/routes/inventory.py:185
+#, python-brace-format
+msgid "Error processing file: {}"
+msgstr "שגיאה בעיבוד הקובץ: {}"
+
+#: app/routes/inventory.py:227
+msgid "No items to process. Please upload a file first."
+msgstr "אין פריטים לעיבוד. אנא העלה קובץ קודם."
+
+#: app/routes/inventory.py:343
+#, python-brace-format
+msgid ""
+"Inventory updated successfully. Created {} new materials, updated {} "
+"existing."
+msgstr "המלאי עודכן בהצלחה. נוצרו {} חומרים חדשים, עודכנו {} קיימים."
+
+#: app/routes/inventory.py:345
+#, python-brace-format
+msgid "Inventory updated successfully. Created {} new materials."
+msgstr "המלאי עודכן בהצלחה. נוצרו {} חומרים חדשים."
+
+#: app/routes/inventory.py:347
+#, python-brace-format
+msgid "Inventory updated successfully. Updated {} materials."
+msgstr "המלאי עודכן בהצלחה. עודכנו {} חומרים."
+
+#: app/routes/inventory.py:350
+#, python-brace-format
+msgid "Some items had errors: {}"
+msgstr "חלק מהפריטים עם שגיאות: {}"
+
+#: app/routes/inventory.py:355
+#, python-brace-format
+msgid "Error processing inventory: {}"
+msgstr "שגיאה בעיבוד המלאי: {}"
 
 #: app/routes/packaging.py:300
 msgid "Missing required fields"
@@ -423,7 +481,7 @@ msgstr "הזן כמות מלאי התחלתית"
 #: templates/raw_materials.html:333 templates/raw_materials.html:355
 #: templates/recipe_review.html:216 templates/recipe_review.html:387
 #: templates/supplier_materials.html:252 templates/update_weekly_sales.html:108
-#: templates/upload_inventory.html:165 templates/weekly_costs.html:69
+#: templates/upload_inventory.html:181 templates/weekly_costs.html:69
 msgid "Cancel"
 msgstr "בטל"
 
@@ -630,7 +688,7 @@ msgid "Add New Product"
 msgstr "הוסף מוצר חדש"
 
 #: templates/add_or_edit_product.html:16 templates/products.html:44
-#: templates/upload_inventory.html:93
+#: templates/upload_inventory.html:109
 msgid "Product Name"
 msgstr "שם מוצר"
 
@@ -2820,7 +2878,7 @@ msgstr "הוספת כמות ל:"
 msgid "Select supplier for stock addition"
 msgstr "בחר ספק להוספת המלאי"
 
-#: templates/raw_materials.html:287 templates/upload_inventory.html:96
+#: templates/raw_materials.html:287 templates/upload_inventory.html:112
 msgid "Quantity to Add"
 msgstr "כמות להוספה"
 
@@ -2929,7 +2987,7 @@ msgstr "מחיר בקובץ"
 msgid "Exists - No Changes"
 msgstr "אין שינויים"
 
-#: templates/recipe_review.html:109 templates/upload_inventory.html:131
+#: templates/recipe_review.html:109 templates/upload_inventory.html:147
 msgid "New"
 msgstr "חדש"
 
@@ -2942,7 +3000,7 @@ msgid "Materials:"
 msgstr "חומרים:"
 
 #: templates/recipe_review.html:130 templates/suppliers.html:27
-#: templates/upload_inventory.html:95
+#: templates/upload_inventory.html:111
 msgid "Status"
 msgstr "סטטוס"
 
@@ -2954,7 +3012,7 @@ msgstr "משקל (ג׳)"
 msgid "Price in Sheet"
 msgstr "מחיר בגיליון"
 
-#: templates/recipe_review.html:133 templates/upload_inventory.html:98
+#: templates/recipe_review.html:133 templates/upload_inventory.html:114
 msgid "Price in System"
 msgstr "מחיר במערכת"
 
@@ -3603,7 +3661,7 @@ msgstr "סוכר"
 msgid "SKU + Supplier provide more accurate material identification"
 msgstr "מק\"ט + ספק מספקים זיהוי מדויק יותר של חומרים"
 
-#: templates/upload_inventory.html:63 templates/upload_inventory.html:83
+#: templates/upload_inventory.html:63 templates/upload_inventory.html:99
 msgid "Inventory Date"
 msgstr "תאריך מלאי"
 
@@ -3612,42 +3670,59 @@ msgid "Select the date for this inventory update"
 msgstr "בחר את התאריך לעדכון מלאי זה"
 
 #: templates/upload_inventory.html:81
+msgid "Skipped Rows"
+msgstr "שורות שדולגו"
+
+#: templates/upload_inventory.html:82
+msgid "The following rows were skipped due to invalid data:"
+msgstr "השורות הבאות דולגו עקב נתונים לא תקינים:"
+
+#: templates/upload_inventory.html:85
+msgid "Row"
+msgstr "שורה"
+
+#: templates/upload_inventory.html:88
+#, python-brace-format
+msgid "... and {} more"
+msgstr "... ועוד {}"
+
+#: templates/upload_inventory.html:97
 msgid "Review Data and Confirm Changes"
 msgstr "סקירת נתונים ואישור שינויים"
 
-#: templates/upload_inventory.html:94
+#: templates/upload_inventory.html:110
 msgid "SKU / Supplier"
 msgstr "מק\"ט / ספק"
 
-#: templates/upload_inventory.html:97
+#: templates/upload_inventory.html:113
 msgid "Price in File"
 msgstr "מחיר בקובץ"
 
-#: templates/upload_inventory.html:99
+#: templates/upload_inventory.html:115
 msgid "Action Required"
 msgstr "פעולה נדרשת"
 
-#: templates/upload_inventory.html:120
+#: templates/upload_inventory.html:136
 msgid "SKU:"
 msgstr "מק\"ט:"
 
-#: templates/upload_inventory.html:126
+#: templates/upload_inventory.html:142
 msgid "Identified by SKU"
 msgstr "זוהה לפי מק''ט"
 
-#: templates/upload_inventory.html:133
+#: templates/upload_inventory.html:149
 msgid "Exists"
 msgstr "קיים"
 
-#: templates/upload_inventory.html:150
+#: templates/upload_inventory.html:166
 msgid "Update price to"
 msgstr "עדכן מחיר ל-"
 
-#: templates/upload_inventory.html:154
+#: templates/upload_inventory.html:170
 msgid "Same price"
 msgstr "מחיר זהה"
 
-#: templates/upload_inventory.html:167
+#: templates/upload_inventory.html:183
 msgid "Confirm and Update Inventory"
 msgstr "אשר ועדכן מלאי"
 
