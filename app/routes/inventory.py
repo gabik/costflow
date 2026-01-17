@@ -40,33 +40,34 @@ def process_inventory_dataframe(df):
     """
     Process inventory dataframe and return review_data and skipped_rows.
     Returns (review_data, skipped_rows, error_message)
-    """
-    # Normalize column names (strip whitespace and handle quote variations)
-    df.columns = [normalize_column_name(col) for col in df.columns]
 
-    # Find columns by trying multiple possible names
-    col_name = find_column(df.columns, ['שם מוצר', 'שם חומר', 'שם', 'חומר גלם', 'מוצר'])
-    col_sku = find_column(df.columns, ["מק'ט", 'מק"ט', 'מקט', 'SKU', 'sku'])
-    col_supplier = find_column(df.columns, ['ספק', 'שם ספק', 'supplier'])
-    col_qty = find_column(df.columns, ['כמות', "סה''כ כמות", 'סה"כ כמות', 'qty', 'quantity'])
-    col_price = find_column(df.columns, ['מחיר', 'מחיר ממוצע', 'מחיר ליחידה', 'price'])
-    col_date = find_column(df.columns, ['תאריך', 'date', 'תאריך עדכון'])
+    Expected column positions (first row is header):
+    A (0): Material name
+    B (1): SKU
+    C (2): Supplier name
+    E (4): Quantity
+    F (5): Price per unit
+    J (9): Date
+    """
+    # Use column positions instead of names
+    # Column indices: A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7, I=8, J=9
+    columns = df.columns.tolist()
+
+    # Check we have enough columns
+    if len(columns) < 6:
+        return None, [], _('File must have at least 6 columns (A through F)')
+
+    # Map to positional indices
+    col_name = columns[0]      # A - Material name
+    col_sku = columns[1]       # B - SKU
+    col_supplier = columns[2]  # C - Supplier name
+    col_qty = columns[4] if len(columns) > 4 else None      # E - Quantity
+    col_price = columns[5] if len(columns) > 5 else None    # F - Price
+    col_date = columns[9] if len(columns) > 9 else None     # J - Date
 
     # Check for required columns
-    missing_columns = []
-    if not col_name:
-        missing_columns.append(_('Material Name'))
-    if not col_qty:
-        missing_columns.append(_('Quantity'))
-    if not col_price:
-        missing_columns.append(_('Price'))
-
-    if missing_columns:
-        error_msg = _('Missing required columns: {}. Found columns: {}').format(
-            ', '.join(missing_columns),
-            ', '.join(df.columns.tolist())
-        )
-        return None, [], error_msg
+    if col_qty is None or col_price is None:
+        return None, [], _('File must have columns E (quantity) and F (price)')
 
     review_data = []
     skipped_rows = []

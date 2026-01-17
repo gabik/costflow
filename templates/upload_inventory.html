@@ -49,49 +49,49 @@
 
         <!-- Column Format Table -->
         <div class="mb-4">
-            <p class="text-muted mb-2">{{ _('Expected column names in Excel file:') }}</p>
+            <p class="text-muted mb-2">{{ _('Expected column positions in Excel file:') }}</p>
             <table class="table table-sm table-bordered mx-auto" style="max-width: 500px;">
                 <thead class="table-light">
                     <tr>
-                        <th>{{ _('Column Name') }}</th>
-                        <th>{{ _('Required') }}</th>
+                        <th>{{ _('Column') }}</th>
+                        <th>{{ _('Content') }}</th>
                         <th>{{ _('Example') }}</th>
                     </tr>
                 </thead>
                 <tbody class="text-start">
                     <tr>
-                        <td><code class="text-primary">שם מוצר / שם חומר / שם</code></td>
-                        <td><span class="badge bg-danger">{{ _('Required') }}</span></td>
+                        <td><code class="text-primary fw-bold">A</code></td>
+                        <td>{{ _('Material Name') }} <span class="badge bg-danger">{{ _('Required') }}</span></td>
                         <td class="text-muted small">{{ _('Sugar') }}</td>
                     </tr>
                     <tr>
-                        <td><code class="text-primary">כמות / סה''כ כמות</code></td>
-                        <td><span class="badge bg-danger">{{ _('Required') }}</span></td>
-                        <td class="text-muted small">25.5</td>
-                    </tr>
-                    <tr>
-                        <td><code class="text-primary">מחיר / מחיר ליחידה</code></td>
-                        <td><span class="badge bg-danger">{{ _('Required') }}</span></td>
-                        <td class="text-muted small">4.50</td>
-                    </tr>
-                    <tr>
-                        <td><code class="text-secondary">מק"ט / SKU</code></td>
-                        <td><span class="badge bg-secondary">{{ _('Optional') }}</span></td>
+                        <td><code class="text-secondary fw-bold">B</code></td>
+                        <td>{{ _('SKU') }} <span class="badge bg-secondary">{{ _('Optional') }}</span></td>
                         <td class="text-muted small">SKU-12345</td>
                     </tr>
                     <tr>
-                        <td><code class="text-secondary">ספק / שם ספק</code></td>
-                        <td><span class="badge bg-secondary">{{ _('Optional') }}</span></td>
+                        <td><code class="text-secondary fw-bold">C</code></td>
+                        <td>{{ _('Supplier Name') }} <span class="badge bg-secondary">{{ _('Optional') }}</span></td>
                         <td class="text-muted small">{{ _('Supplier Name') }}</td>
                     </tr>
                     <tr>
-                        <td><code class="text-secondary">תאריך / date</code></td>
-                        <td><span class="badge bg-secondary">{{ _('Optional') }}</span></td>
+                        <td><code class="text-primary fw-bold">E</code></td>
+                        <td>{{ _('Quantity') }} <span class="badge bg-danger">{{ _('Required') }}</span></td>
+                        <td class="text-muted small">25.5</td>
+                    </tr>
+                    <tr>
+                        <td><code class="text-primary fw-bold">F</code></td>
+                        <td>{{ _('Price per Unit') }} <span class="badge bg-danger">{{ _('Required') }}</span></td>
+                        <td class="text-muted small">4.50</td>
+                    </tr>
+                    <tr>
+                        <td><code class="text-secondary fw-bold">J</code></td>
+                        <td>{{ _('Date') }} <span class="badge bg-secondary">{{ _('Optional') }}</span></td>
                         <td class="text-muted small">2024-01-15</td>
                     </tr>
                 </tbody>
             </table>
-            <small class="text-muted">{{ _('Column names are flexible - multiple variations accepted') }}</small>
+            <small class="text-muted">{{ _('First row must be headers. Columns D, G, H, I are ignored.') }}</small>
         </div>
 
         <form method="POST" enctype="multipart/form-data" class="d-inline-block text-start" style="max-width: 400px;">
