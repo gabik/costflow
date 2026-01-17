@@ -1,5 +1,7 @@
 from datetime import datetime, date
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+import os
+import tempfile
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, session
 from flask_babel import gettext as _
 import pandas as pd
 from ..models import db, RawMaterial, StockLog, Category, RawMaterialSupplier, Supplier, RawMaterialAlternativeName
@@ -24,10 +26,191 @@ def normalize_column_name(col):
     return col.strip()
 
 
+def process_inventory_dataframe(df):
+    """
+    Process inventory dataframe and return review_data and skipped_rows.
+    Returns (review_data, skipped_rows, error_message)
+    """
+    # Normalize column names (strip whitespace and handle quote variations)
+    df.columns = [normalize_column_name(col) for col in df.columns]
+
+    # Expected columns (normalized)
+    col_name = 'שם מוצר'
+    col_qty = "סה''כ כמות"
+    col_price = 'מחיר ממוצע'
+    col_sku = "מק'ט"  # SKU column (optional) - normalized
+    col_supplier = 'ספק'  # Supplier column (optional)
+
+    # Check for required columns
+    missing_columns = []
+    if col_name not in df.columns:
+        missing_columns.append(col_name)
+    if col_qty not in df.columns:
+        missing_columns.append(col_qty)
+    if col_price not in df.columns:
+        missing_columns.append(col_price)
+
+    if missing_columns:
+        error_msg = _('Missing required columns: {}. Found columns: {}').format(
+            ', '.join(missing_columns),
+            ', '.join(df.columns.tolist())
+        )
+        return None, [], error_msg
+
+    review_data = []
+    skipped_rows = []
+
+    for index, row in df.iterrows():
+        row_num = index + 2  # Excel row number (1-indexed + header)
+
+        if pd.isna(row[col_name]):
+            skipped_rows.append({'row': row_num, 'reason': _('Empty product name')})
+            continue
+
+        name = str(row[col_name]).strip()
+        if not name:
+            skipped_rows.append({'row': row_num, 'reason': _('Empty product name')})
+            continue
+
+        try:
+            quantity = float(row[col_qty])
+        except (ValueError, KeyError, TypeError):
+            skipped_rows.append({'row': row_num, 'name': name, 'reason': _('Invalid quantity')})
+            continue
+
+        try:
+            price = float(row[col_price])
+        except (ValueError, KeyError, TypeError):
+            skipped_rows.append({'row': row_num, 'name': name, 'reason': _('Invalid price')})
+            continue
+
+        # Get optional SKU and supplier
+        sku = str(row[col_sku]).strip() if col_sku in df.columns and not pd.isna(row.get(col_sku)) else None
+        supplier_name = str(row[col_supplier]).strip() if col_supplier in df.columns and not pd.isna(row.get(col_supplier)) else None
+
+        # Enhanced matching logic - SKU + Supplier is ground truth
+        material = None
+        supplier = None
+        supplier_link = None
+        matched_by = 'new'
+        status_flags = []
+        system_name = None  # Name in system (if different from file)
+
+        # Step 1: Try SKU + Supplier match (ground truth)
+        if sku and supplier_name:
+            supplier = Supplier.query.filter_by(name=supplier_name).first()
+            if supplier:
+                material_supplier = RawMaterialSupplier.query.filter_by(
+                    sku=sku,
+                    supplier_id=supplier.id
+                ).first()
+                if material_supplier:
+                    material = material_supplier.raw_material
+                    supplier_link = material_supplier
+                    matched_by = 'sku'
+                    # Check name mismatch
+                    if material.name != name:
+                        status_flags.append('name_mismatch')
+                        system_name = material.name
+
+        # Step 2: If no SKU match, try NAME match (primary name first, then alternative names)
+        if not material:
+            # Try primary name first
+            material = RawMaterial.query.filter_by(name=name, is_deleted=False).first()
+            if material:
+                matched_by = 'name'
+            else:
+                # Try alternative names
+                alt_name = RawMaterialAlternativeName.query.filter_by(alternative_name=name).first()
+                if alt_name and not alt_name.raw_material.is_deleted:
+                    material = alt_name.raw_material
+                    matched_by = 'alt_name'
+                    system_name = material.name  # Show the primary name
+
+        # Step 3: Check supplier if provided but not found yet
+        if supplier_name and not supplier:
+            supplier = Supplier.query.filter_by(name=supplier_name).first()
+
+        # Step 4: Determine status and flags
+        current_price = None
+
+        if material:
+            status = 'exists'
+
+            # Check supplier relationship
+            if supplier_name:
+                if not supplier:
+                    # Supplier doesn't exist - will be created
+                    status_flags.append('new_supplier')
+                    current_price = 0
+                else:
+                    # Supplier exists, check if linked to material
+                    if not supplier_link:
+                        supplier_link = RawMaterialSupplier.query.filter_by(
+                            raw_material_id=material.id,
+                            supplier_id=supplier.id
+                        ).first()
+
+                    if supplier_link:
+                        current_price = supplier_link.cost_per_unit
+                        # Check if SKU needs to be added
+                        if sku and not supplier_link.sku:
+                            status_flags.append('add_sku')
+                    else:
+                        # No link - will add supplier to material
+                        status_flags.append('add_supplier')
+                        # Use primary supplier price for comparison
+                        primary_link = next((link for link in material.supplier_links if link.is_primary), None)
+                        if primary_link:
+                            current_price = primary_link.cost_per_unit
+                        elif material.supplier_links:
+                            current_price = material.supplier_links[0].cost_per_unit
+                        else:
+                            current_price = 0
+            else:
+                # No supplier specified, use primary or first available
+                primary_link = next((link for link in material.supplier_links if link.is_primary), None)
+                if primary_link:
+                    current_price = primary_link.cost_per_unit
+                elif material.supplier_links:
+                    current_price = material.supplier_links[0].cost_per_unit
+                else:
+                    current_price = 0
+
+            # Check price difference
+            if current_price is not None and abs(current_price - price) > 0.01:
+                status_flags.append('price_change')
+
+        else:
+            # New material
+            status = 'new'
+            current_price = None
+
+            # Check if supplier exists
+            if supplier_name and not supplier:
+                status_flags.append('new_supplier')
+
+        review_data.append({
+            'name': name,
+            'system_name': system_name,  # Name in system if different
+            'sku': sku,
+            'supplier_name': supplier_name,
+            'supplier_id': supplier.id if supplier else None,
+            'supplier_exists': supplier is not None,
+            'material_id': material.id if material else None,
+            'quantity': quantity,
+            'new_price': price,
+            'status': status,
+            'status_flags': status_flags,
+            'current_price': current_price,
+            'matched_by': matched_by
+        })
+
+    return review_data, skipped_rows, None
+
+
 @inventory_blueprint.route('/inventory/upload', methods=['GET', 'POST'])
 def upload_inventory():
-    review_data = None
-    skipped_rows = []
     today_date = date.today().isoformat()
     inventory_date = today_date
 
@@ -44,188 +227,54 @@ def upload_inventory():
 
         if file:
             try:
-                df = pd.read_excel(file)
+                # Save file to temp location
+                temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx')
+                file.save(temp_file.name)
+                temp_file.close()
 
-                # Normalize column names (strip whitespace and handle quote variations)
-                df.columns = [normalize_column_name(col) for col in df.columns]
+                # Get sheet names
+                excel_file = pd.ExcelFile(temp_file.name)
+                sheet_names = excel_file.sheet_names
 
-                # Expected columns (normalized)
-                col_name = 'שם מוצר'
-                col_qty = "סה''כ כמות"
-                col_price = 'מחיר ממוצע'
-                col_sku = "מק'ט"  # SKU column (optional) - normalized
-                col_supplier = 'ספק'  # Supplier column (optional)
+                # Store temp file path and inventory date in session
+                session['inventory_temp_file'] = temp_file.name
+                session['inventory_date'] = inventory_date
 
-                # Check for required columns
-                missing_columns = []
-                if col_name not in df.columns:
-                    missing_columns.append(col_name)
-                if col_qty not in df.columns:
-                    missing_columns.append(col_qty)
-                if col_price not in df.columns:
-                    missing_columns.append(col_price)
-
-                if missing_columns:
-                    flash(_('Missing required columns: {}. Found columns: {}').format(
-                        ', '.join(missing_columns),
-                        ', '.join(df.columns.tolist())
-                    ), 'error')
+                if len(sheet_names) > 1:
+                    # Multiple sheets - show selection page
                     return render_template('upload_inventory.html',
                                            review_data=None,
+                                           skipped_rows=[],
+                                           today_date=today_date,
+                                           inventory_date=inventory_date,
+                                           sheet_names=sheet_names,
+                                           file_uploaded=True)
+                else:
+                    # Single sheet - process directly
+                    df = pd.read_excel(temp_file.name, sheet_name=sheet_names[0])
+                    review_data, skipped_rows, error_msg = process_inventory_dataframe(df)
+
+                    # Clean up temp file
+                    if os.path.exists(temp_file.name):
+                        os.remove(temp_file.name)
+                    session.pop('inventory_temp_file', None)
+
+                    if error_msg:
+                        flash(error_msg, 'error')
+                        return render_template('upload_inventory.html',
+                                               review_data=None,
+                                               skipped_rows=[],
+                                               today_date=today_date,
+                                               inventory_date=inventory_date)
+
+                    if skipped_rows:
+                        flash(_('Skipped {} rows due to invalid data. Check the warnings below.').format(len(skipped_rows)), 'warning')
+
+                    return render_template('upload_inventory.html',
+                                           review_data=review_data,
+                                           skipped_rows=skipped_rows,
                                            today_date=today_date,
                                            inventory_date=inventory_date)
-
-                review_data = []
-
-                for index, row in df.iterrows():
-                    row_num = index + 2  # Excel row number (1-indexed + header)
-
-                    if pd.isna(row[col_name]):
-                        skipped_rows.append({'row': row_num, 'reason': _('Empty product name')})
-                        continue
-
-                    name = str(row[col_name]).strip()
-                    if not name:
-                        skipped_rows.append({'row': row_num, 'reason': _('Empty product name')})
-                        continue
-
-                    try:
-                        quantity = float(row[col_qty])
-                    except (ValueError, KeyError, TypeError):
-                        skipped_rows.append({'row': row_num, 'name': name, 'reason': _('Invalid quantity')})
-                        continue
-
-                    try:
-                        price = float(row[col_price])
-                    except (ValueError, KeyError, TypeError):
-                        skipped_rows.append({'row': row_num, 'name': name, 'reason': _('Invalid price')})
-                        continue
-
-                    # Get optional SKU and supplier
-                    sku = str(row[col_sku]).strip() if col_sku in df.columns and not pd.isna(row.get(col_sku)) else None
-                    supplier_name = str(row[col_supplier]).strip() if col_supplier in df.columns and not pd.isna(row.get(col_supplier)) else None
-
-                    # Enhanced matching logic - SKU + Supplier is ground truth
-                    material = None
-                    supplier = None
-                    supplier_link = None
-                    matched_by = 'new'
-                    status_flags = []
-                    system_name = None  # Name in system (if different from file)
-
-                    # Step 1: Try SKU + Supplier match (ground truth)
-                    if sku and supplier_name:
-                        supplier = Supplier.query.filter_by(name=supplier_name).first()
-                        if supplier:
-                            material_supplier = RawMaterialSupplier.query.filter_by(
-                                sku=sku,
-                                supplier_id=supplier.id
-                            ).first()
-                            if material_supplier:
-                                material = material_supplier.raw_material
-                                supplier_link = material_supplier
-                                matched_by = 'sku'
-                                # Check name mismatch
-                                if material.name != name:
-                                    status_flags.append('name_mismatch')
-                                    system_name = material.name
-
-                    # Step 2: If no SKU match, try NAME match (primary name first, then alternative names)
-                    if not material:
-                        # Try primary name first
-                        material = RawMaterial.query.filter_by(name=name, is_deleted=False).first()
-                        if material:
-                            matched_by = 'name'
-                        else:
-                            # Try alternative names
-                            alt_name = RawMaterialAlternativeName.query.filter_by(alternative_name=name).first()
-                            if alt_name and not alt_name.raw_material.is_deleted:
-                                material = alt_name.raw_material
-                                matched_by = 'alt_name'
-                                system_name = material.name  # Show the primary name
-
-                    # Step 3: Check supplier if provided but not found yet
-                    if supplier_name and not supplier:
-                        supplier = Supplier.query.filter_by(name=supplier_name).first()
-
-                    # Step 4: Determine status and flags
-                    current_price = None
-
-                    if material:
-                        status = 'exists'
-
-                        # Check supplier relationship
-                        if supplier_name:
-                            if not supplier:
-                                # Supplier doesn't exist - will be created
-                                status_flags.append('new_supplier')
-                                current_price = 0
-                            else:
-                                # Supplier exists, check if linked to material
-                                if not supplier_link:
-                                    supplier_link = RawMaterialSupplier.query.filter_by(
-                                        raw_material_id=material.id,
-                                        supplier_id=supplier.id
-                                    ).first()
-
-                                if supplier_link:
-                                    current_price = supplier_link.cost_per_unit
-                                    # Check if SKU needs to be added
-                                    if sku and not supplier_link.sku:
-                                        status_flags.append('add_sku')
-                                else:
-                                    # No link - will add supplier to material
-                                    status_flags.append('add_supplier')
-                                    # Use primary supplier price for comparison
-                                    primary_link = next((link for link in material.supplier_links if link.is_primary), None)
-                                    if primary_link:
-                                        current_price = primary_link.cost_per_unit
-                                    elif material.supplier_links:
-                                        current_price = material.supplier_links[0].cost_per_unit
-                                    else:
-                                        current_price = 0
-                        else:
-                            # No supplier specified, use primary or first available
-                            primary_link = next((link for link in material.supplier_links if link.is_primary), None)
-                            if primary_link:
-                                current_price = primary_link.cost_per_unit
-                            elif material.supplier_links:
-                                current_price = material.supplier_links[0].cost_per_unit
-                            else:
-                                current_price = 0
-
-                        # Check price difference
-                        if current_price is not None and abs(current_price - price) > 0.01:
-                            status_flags.append('price_change')
-
-                    else:
-                        # New material
-                        status = 'new'
-                        current_price = None
-
-                        # Check if supplier exists
-                        if supplier_name and not supplier:
-                            status_flags.append('new_supplier')
-
-                    review_data.append({
-                        'name': name,
-                        'system_name': system_name,  # Name in system if different
-                        'sku': sku,
-                        'supplier_name': supplier_name,
-                        'supplier_id': supplier.id if supplier else None,
-                        'supplier_exists': supplier is not None,
-                        'material_id': material.id if material else None,
-                        'quantity': quantity,
-                        'new_price': price,
-                        'status': status,
-                        'status_flags': status_flags,
-                        'current_price': current_price,
-                        'matched_by': matched_by
-                    })
-                    
-                # Show warning if rows were skipped
-                if skipped_rows:
-                    flash(_('Skipped {} rows due to invalid data. Check the warnings below.').format(len(skipped_rows)), 'warning')
 
             except Exception as e:
                 flash(_('Error processing file: {}').format(str(e)), 'error')
@@ -236,10 +285,58 @@ def upload_inventory():
                                        inventory_date=inventory_date)
 
     return render_template('upload_inventory.html',
-                           review_data=review_data,
-                           skipped_rows=skipped_rows,
+                           review_data=None,
+                           skipped_rows=[],
                            today_date=today_date,
                            inventory_date=inventory_date)
+
+
+@inventory_blueprint.route('/inventory/select_sheet', methods=['POST'])
+def select_inventory_sheet():
+    """Process selected sheet from multi-sheet Excel file"""
+    sheet_name = request.form.get('sheet_name')
+    temp_file = session.get('inventory_temp_file')
+    inventory_date = session.get('inventory_date', date.today().isoformat())
+    today_date = date.today().isoformat()
+
+    if not temp_file or not os.path.exists(temp_file):
+        flash(_('File not found. Please upload again.'), 'error')
+        return redirect(url_for('inventory.upload_inventory'))
+
+    if not sheet_name:
+        flash(_('Please select a sheet.'), 'error')
+        return redirect(url_for('inventory.upload_inventory'))
+
+    try:
+        df = pd.read_excel(temp_file, sheet_name=sheet_name)
+        review_data, skipped_rows, error_msg = process_inventory_dataframe(df)
+
+        # Clean up temp file
+        if os.path.exists(temp_file):
+            os.remove(temp_file)
+        session.pop('inventory_temp_file', None)
+
+        if error_msg:
+            flash(error_msg, 'error')
+            return render_template('upload_inventory.html',
+                                   review_data=None,
+                                   skipped_rows=[],
+                                   today_date=today_date,
+                                   inventory_date=inventory_date)
+
+        if skipped_rows:
+            flash(_('Skipped {} rows due to invalid data. Check the warnings below.').format(len(skipped_rows)), 'warning')
+
+        return render_template('upload_inventory.html',
+                               review_data=review_data,
+                               skipped_rows=skipped_rows,
+                               today_date=today_date,
+                               inventory_date=inventory_date,
+                               selected_sheet=sheet_name)
+
+    except Exception as e:
+        flash(_('Error processing sheet: {}').format(str(e)), 'error')
+        return redirect(url_for('inventory.upload_inventory'))
 
 @inventory_blueprint.route('/inventory/confirm', methods=['POST'])
 def confirm_inventory_upload():
