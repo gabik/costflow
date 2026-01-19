@@ -74,6 +74,7 @@
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item py-2" href="{{ url_for('categories.categories') }}">{{ _('Categories') }}</a></li>
                         <li><a class="dropdown-item py-2" href="{{ url_for('main.stock_audits') }}">{{ _('Stock Audit') }}</a></li>
+                        <li><a class="dropdown-item py-2" href="{{ url_for('stock_audit_upload.upload_stock_audit') }}"><i class="bi bi-clipboard-check me-2"></i>{{ _('Upload Stock Audit') }}</a></li>
                         <li><a class="dropdown-item py-2" href="{{ url_for('inventory.upload_inventory') }}">{{ _('Upload Inventory from File') }}</a></li>
                         <li><a class="dropdown-item py-2" href="{{ url_for('recipe_import.upload_recipes') }}"><i class="bi bi-file-earmark-spreadsheet me-2"></i>{{ _('Import Recipes') }}</a></li>
                         <li><hr class="dropdown-divider"></li>
