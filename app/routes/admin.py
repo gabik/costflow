@@ -422,3 +422,51 @@ def audit_log():
                              'action': action_filter,
                              'date': date_filter
                          })
+
+
+@admin_blueprint.route('/admin/export_materials_csv')
+def export_materials_csv():
+    """Export all materials with their SKUs and suppliers as CSV for Google Sheets"""
+    import csv
+    from io import StringIO
+
+    output = StringIO()
+    writer = csv.writer(output, delimiter='\t')  # Tab-separated for easy paste
+
+    # Header row
+    writer.writerow(['Material Name', 'SKU', 'Supplier', 'Price', 'Is Primary', 'Unit', 'Category'])
+
+    # Get all non-deleted materials with their supplier links
+    materials = RawMaterial.query.filter_by(is_deleted=False).order_by(RawMaterial.name).all()
+
+    for material in materials:
+        if material.supplier_links:
+            for link in material.supplier_links:
+                writer.writerow([
+                    material.name,
+                    link.sku or '',
+                    link.supplier.name if link.supplier else '',
+                    link.cost_per_unit or 0,
+                    'Yes' if link.is_primary else 'No',
+                    material.unit,
+                    material.category.name if material.category else ''
+                ])
+        else:
+            # Material without suppliers
+            writer.writerow([
+                material.name,
+                '',
+                '',
+                '',
+                '',
+                material.unit,
+                material.category.name if material.category else ''
+            ])
+
+    output.seek(0)
+    return send_file(
+        io.BytesIO(output.getvalue().encode('utf-8-sig')),  # UTF-8 with BOM for Excel
+        mimetype='text/csv',
+        as_attachment=True,
+        download_name=f'materials_export_{datetime.now().strftime("%Y%m%d")}.csv'
+    )
