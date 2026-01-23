@@ -4,7 +4,7 @@ import tempfile
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, session
 from flask_babel import gettext as _
 import pandas as pd
-from ..models import db, RawMaterial, StockLog, StockAudit, RawMaterialSupplier, RawMaterialAlternativeName
+from ..models import db, RawMaterial, StockLog, StockAudit, RawMaterialSupplier, RawMaterialAlternativeName, Supplier, Category
 from .utils import log_audit, calculate_supplier_stock, calculate_total_material_stock
 
 stock_audit_upload_blueprint = Blueprint('stock_audit_upload', __name__)
@@ -168,12 +168,18 @@ def upload_stock_audit():
                     flash(error, 'error')
                     return redirect(request.url)
 
+                # Get materials and suppliers for not-found items
+                all_materials = RawMaterial.query.filter_by(is_deleted=False).order_by(RawMaterial.name).all()
+                all_suppliers = Supplier.query.filter_by(is_active=True).order_by(Supplier.name).all()
+
                 # Clean up temp file reference (will be deleted after confirm)
                 return render_template('upload_stock_audit.html',
                                        review_data=review_data,
                                        skipped_rows=skipped_rows,
                                        audit_date=audit_date_str,
-                                       today_date=today_date)
+                                       today_date=today_date,
+                                       all_materials=all_materials,
+                                       all_suppliers=all_suppliers)
 
             except Exception as e:
                 current_app.logger.error(f"Stock audit upload error: {str(e)}")
@@ -201,12 +207,18 @@ def select_stock_audit_sheet():
             flash(error, 'error')
             return redirect(url_for('stock_audit_upload.upload_stock_audit'))
 
+        # Get materials and suppliers for not-found items
+        all_materials = RawMaterial.query.filter_by(is_deleted=False).order_by(RawMaterial.name).all()
+        all_suppliers = Supplier.query.filter_by(is_active=True).order_by(Supplier.name).all()
+
         return render_template('upload_stock_audit.html',
                                review_data=review_data,
                                skipped_rows=skipped_rows,
                                audit_date=audit_date_str,
                                today_date=date.today().isoformat(),
-                               selected_sheet=sheet_name)
+                               selected_sheet=sheet_name,
+                               all_materials=all_materials,
+                               all_suppliers=all_suppliers)
 
     except Exception as e:
         flash(_('Error processing sheet: {}').format(str(e)), 'error')
@@ -238,9 +250,18 @@ def confirm_stock_audit():
         flash(_('No items to process.'), 'warning')
         return redirect(url_for('stock_audit_upload.upload_stock_audit'))
 
+    # Get default category for new materials
+    default_category = Category.query.first()
+    if not default_category:
+        default_category = Category(name="כללי")
+        db.session.add(default_category)
+        db.session.flush()
+
     # Process items
     stats = {
         'audits_created': 0,
+        'materials_created': 0,
+        'alt_names_added': 0,
         'skipped': 0,
         'errors': 0
     }
@@ -254,57 +275,147 @@ def confirm_stock_audit():
                 stats['skipped'] += 1
                 continue
 
-            # Check if material was found
-            material_id = item.get('material_id')
-            if not material_id:
+            name = item.get('name', '')
+            status = item.get('status', 'found')
+            action = item.get('action', '')  # 'link' or 'create' for not_found items
+
+            try:
+                quantity = float(item.get('quantity', 0))
+            except (ValueError, TypeError):
+                errors.append(f"{name}: Invalid quantity")
+                stats['errors'] += 1
+                continue
+
+            material = None
+            supplier_id = None
+            primary_link = None
+
+            # Handle found items
+            if status == 'found':
+                material_id = item.get('material_id')
+                if not material_id:
+                    stats['skipped'] += 1
+                    continue
+
+                try:
+                    material_id = int(material_id)
+                except (ValueError, TypeError):
+                    errors.append(f"{name}: Invalid material ID")
+                    stats['errors'] += 1
+                    continue
+
+                material = RawMaterial.query.filter_by(id=material_id, is_deleted=False).first()
+                if not material:
+                    errors.append(f"{name}: Material not found")
+                    stats['errors'] += 1
+                    continue
+
+                # Get supplier info
+                supplier_id = item.get('supplier_id')
+                if supplier_id:
+                    try:
+                        supplier_id = int(supplier_id)
+                    except (ValueError, TypeError):
+                        supplier_id = None
+
+            # Handle not_found items with action
+            elif status == 'not_found':
+                if action == 'link':
+                    # Link to existing material and add alternative name
+                    link_material_id = item.get('link_material_id')
+                    if not link_material_id:
+                        errors.append(f"{name}: No material selected for linking")
+                        stats['errors'] += 1
+                        continue
+
+                    try:
+                        link_material_id = int(link_material_id)
+                    except (ValueError, TypeError):
+                        errors.append(f"{name}: Invalid link material ID")
+                        stats['errors'] += 1
+                        continue
+
+                    material = RawMaterial.query.filter_by(id=link_material_id, is_deleted=False).first()
+                    if not material:
+                        errors.append(f"{name}: Linked material not found")
+                        stats['errors'] += 1
+                        continue
+
+                    # Add alternative name if not already exists
+                    existing_alt = RawMaterialAlternativeName.query.filter_by(alternative_name=name).first()
+                    if not existing_alt and name != material.name:
+                        alt_name = RawMaterialAlternativeName(
+                            raw_material_id=material.id,
+                            alternative_name=name
+                        )
+                        db.session.add(alt_name)
+                        stats['alt_names_added'] += 1
+                        current_app.logger.info(f"Added alternative name '{name}' for material '{material.name}'")
+
+                elif action == 'create':
+                    # Create new material
+                    new_unit = item.get('new_unit', 'kg')
+                    new_supplier_id = item.get('new_supplier_id')
+                    sku = item.get('sku') or None
+
+                    material = RawMaterial(
+                        name=name,
+                        category=default_category,
+                        unit=new_unit
+                    )
+                    db.session.add(material)
+                    db.session.flush()
+                    stats['materials_created'] += 1
+                    current_app.logger.info(f"Created new material: {name} (ID: {material.id})")
+
+                    # Create supplier link if supplier provided
+                    if new_supplier_id:
+                        try:
+                            new_supplier_id = int(new_supplier_id)
+                            supplier = Supplier.query.get(new_supplier_id)
+                            if supplier:
+                                new_link = RawMaterialSupplier(
+                                    raw_material_id=material.id,
+                                    supplier_id=supplier.id,
+                                    cost_per_unit=0,  # No price info
+                                    sku=sku,
+                                    is_primary=True
+                                )
+                                db.session.add(new_link)
+                                supplier_id = supplier.id
+                        except (ValueError, TypeError):
+                            pass
+                else:
+                    # No action selected for not_found item
+                    stats['skipped'] += 1
+                    continue
+
+            if not material:
                 stats['skipped'] += 1
                 continue
 
-            try:
-                material_id = int(material_id)
-                quantity = float(item.get('quantity', 0))
-            except (ValueError, TypeError):
-                errors.append(f"Item {index}: Invalid data")
-                stats['errors'] += 1
-                continue
-
-            material = RawMaterial.query.filter_by(id=material_id, is_deleted=False).first()
-            if not material:
-                errors.append(f"Item {index}: Material not found")
-                stats['errors'] += 1
-                continue
-
-            # Get supplier info
-            supplier_id = item.get('supplier_id')
-            if supplier_id:
-                try:
-                    supplier_id = int(supplier_id)
-                except (ValueError, TypeError):
-                    supplier_id = None
-
             # Find primary link for cost
-            primary_link = None
-            if supplier_id:
-                primary_link = RawMaterialSupplier.query.filter_by(
-                    raw_material_id=material_id,
-                    supplier_id=supplier_id
-                ).first()
-            if not primary_link:
+            if not supplier_id:
                 primary_link = next((l for l in material.supplier_links if l.is_primary), None)
                 if not primary_link and material.supplier_links:
                     primary_link = material.supplier_links[0]
                 if primary_link:
                     supplier_id = primary_link.supplier_id
+            else:
+                primary_link = RawMaterialSupplier.query.filter_by(
+                    raw_material_id=material.id,
+                    supplier_id=supplier_id
+                ).first()
 
             # Calculate current system stock
             if supplier_id:
-                system_stock = calculate_supplier_stock(material_id, supplier_id)
+                system_stock = calculate_supplier_stock(material.id, supplier_id)
             else:
-                system_stock = calculate_total_material_stock(material_id)
+                system_stock = calculate_total_material_stock(material.id)
 
             # Create StockLog with 'set' action
             stock_log = StockLog(
-                raw_material_id=material_id,
+                raw_material_id=material.id,
                 supplier_id=supplier_id,
                 action_type='set',
                 quantity=quantity,
@@ -320,7 +431,7 @@ def confirm_stock_audit():
 
             # Create StockAudit
             audit = StockAudit(
-                raw_material_id=material_id,
+                raw_material_id=material.id,
                 system_quantity=system_stock,
                 physical_quantity=quantity,
                 variance=variance,
@@ -340,8 +451,12 @@ def confirm_stock_audit():
         db.session.commit()
 
         # Log audit event
-        log_audit("IMPORT", "StockAudit",
-                  details=f"Imported {stats['audits_created']} stock audits for date {audit_date_str}")
+        audit_details = f"Imported {stats['audits_created']} stock audits for date {audit_date_str}"
+        if stats['materials_created'] > 0:
+            audit_details += f", created {stats['materials_created']} materials"
+        if stats['alt_names_added'] > 0:
+            audit_details += f", added {stats['alt_names_added']} alternative names"
+        log_audit("IMPORT", "StockAudit", details=audit_details)
 
         # Clean up temp file
         temp_file_path = session.pop('stock_audit_temp_file', None)
@@ -355,6 +470,10 @@ def confirm_stock_audit():
         # Show results
         if stats['audits_created'] > 0:
             flash(_('Created {} stock audits successfully').format(stats['audits_created']), 'success')
+        if stats['materials_created'] > 0:
+            flash(_('Created {} new materials').format(stats['materials_created']), 'info')
+        if stats['alt_names_added'] > 0:
+            flash(_('Added {} alternative names').format(stats['alt_names_added']), 'info')
         if stats['skipped'] > 0:
             flash(_('Skipped {} items').format(stats['skipped']), 'info')
         if errors:

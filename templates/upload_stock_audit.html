@@ -151,12 +151,14 @@
                         {% for item in review_data %}
                         <tr class="{{ 'table-danger' if item.status == 'not_found' else ('table-warning' if item.variance and item.variance < 0 else ('table-success' if item.variance and item.variance > 0 else '')) }}" data-row-index="{{ loop.index0 }}">
                             <td class="text-center">
-                                <input type="checkbox" class="form-check-input row-select" data-index="{{ loop.index0 }}" {% if item.status == 'found' %}checked{% endif %} {% if item.status == 'not_found' %}disabled{% endif %}>
+                                <input type="checkbox" class="form-check-input row-select" data-index="{{ loop.index0 }}" {% if item.status == 'found' %}checked{% endif %}>
                             </td>
                             <td>
                                 <input type="hidden" name="items[{{ loop.index0 }}][include]" value="{{ 'yes' if item.status == 'found' else 'no' }}" class="include-field" data-index="{{ loop.index0 }}">
                                 <input type="hidden" name="items[{{ loop.index0 }}][name]" value="{{ item.name }}">
                                 <input type="hidden" name="items[{{ loop.index0 }}][quantity]" value="{{ item.quantity }}">
+                                <input type="hidden" name="items[{{ loop.index0 }}][sku]" value="{{ item.sku or '' }}">
+                                <input type="hidden" name="items[{{ loop.index0 }}][status]" value="{{ item.status }}">
                                 {% if item.material_id %}
                                 <input type="hidden" name="items[{{ loop.index0 }}][material_id]" value="{{ item.material_id }}">
                                 {% endif %}
@@ -215,6 +217,57 @@
                                 {% endif %}
                             </td>
                         </tr>
+                        {% if item.status == 'not_found' %}
+                        <!-- Action row for not-found items -->
+                        <tr class="table-light not-found-action-row" data-row-index="{{ loop.index0 }}">
+                            <td></td>
+                            <td colspan="6">
+                                <div class="d-flex align-items-center gap-3 py-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input action-radio" type="radio" name="items[{{ loop.index0 }}][action]" id="action_link_{{ loop.index0 }}" value="link" data-index="{{ loop.index0 }}">
+                                        <label class="form-check-label" for="action_link_{{ loop.index0 }}">
+                                            <i class="bi bi-link-45deg me-1"></i>{{ _('Link to existing:') }}
+                                        </label>
+                                    </div>
+                                    <select name="items[{{ loop.index0 }}][link_material_id]" class="form-select form-select-sm" style="max-width: 250px;" data-index="{{ loop.index0 }}">
+                                        <option value="">-- {{ _('Select material') }} --</option>
+                                        {% for mat in all_materials %}
+                                        <option value="{{ mat.id }}">{{ mat.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="d-flex align-items-center gap-3 py-2 border-top">
+                                    <div class="form-check">
+                                        <input class="form-check-input action-radio" type="radio" name="items[{{ loop.index0 }}][action]" id="action_create_{{ loop.index0 }}" value="create" data-index="{{ loop.index0 }}">
+                                        <label class="form-check-label" for="action_create_{{ loop.index0 }}">
+                                            <i class="bi bi-plus-circle me-1"></i>{{ _('Create new material') }}
+                                        </label>
+                                    </div>
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        <div class="input-group input-group-sm" style="width: 180px;">
+                                            <span class="input-group-text">{{ _('Unit') }}</span>
+                                            <select name="items[{{ loop.index0 }}][new_unit]" class="form-select form-select-sm">
+                                                <option value="kg" selected>kg</option>
+                                                <option value="g">g</option>
+                                                <option value="L">L</option>
+                                                <option value="ml">ml</option>
+                                                <option value="יחידה">{{ _('unit') }}</option>
+                                            </select>
+                                        </div>
+                                        <div class="input-group input-group-sm" style="width: 200px;">
+                                            <span class="input-group-text">{{ _('Supplier') }}</span>
+                                            <select name="items[{{ loop.index0 }}][new_supplier_id]" class="form-select form-select-sm">
+                                                <option value="">{{ _('None') }}</option>
+                                                {% for sup in all_suppliers %}
+                                                <option value="{{ sup.id }}">{{ sup.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endif %}
                         {% endfor %}
                     </tbody>
                 </table>
@@ -236,9 +289,8 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const selectAllCheckbox = document.getElementById('selectAll');
-    const rowCheckboxes = document.querySelectorAll('.row-select:not(:disabled)');
-    const totalCount = document.querySelectorAll('.row-select').length;
-    const enabledCount = rowCheckboxes.length;
+    const rowCheckboxes = document.querySelectorAll('.row-select');
+    const totalCount = rowCheckboxes.length;
 
     function updateSelectedCount() {
         const selectedCount = document.querySelectorAll('.row-select:checked').length;
@@ -247,9 +299,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateSelectAllState() {
-        const checkedCount = document.querySelectorAll('.row-select:not(:disabled):checked').length;
-        selectAllCheckbox.checked = checkedCount === enabledCount;
-        selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < enabledCount;
+        const checkedCount = document.querySelectorAll('.row-select:checked').length;
+        selectAllCheckbox.checked = checkedCount === totalCount;
+        selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < totalCount;
     }
 
     // Select All toggle
@@ -274,17 +326,47 @@ document.addEventListener('DOMContentLoaded', function() {
         const index = checkbox.dataset.index;
         const row = checkbox.closest('tr');
         const includeField = document.querySelector('.include-field[data-index="' + index + '"]');
+        const actionRow = document.querySelector('.not-found-action-row[data-row-index="' + index + '"]');
 
         if (checkbox.checked) {
             includeField.value = 'yes';
             row.style.opacity = '1';
             row.style.textDecoration = 'none';
+            if (actionRow) {
+                actionRow.style.display = '';
+            }
         } else {
             includeField.value = 'no';
             row.style.opacity = '0.5';
             row.style.textDecoration = 'line-through';
+            if (actionRow) {
+                actionRow.style.display = 'none';
+            }
         }
     }
+
+    // Handle action radio buttons - auto-check row when action selected
+    document.querySelectorAll('.action-radio').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            const index = this.dataset.index;
+            const checkbox = document.querySelector('.row-select[data-index="' + index + '"]');
+            if (!checkbox.checked) {
+                checkbox.checked = true;
+                updateRowState(checkbox);
+                updateSelectAllState();
+                updateSelectedCount();
+            }
+        });
+    });
+
+    // Initialize: hide action rows for unchecked items
+    document.querySelectorAll('.not-found-action-row').forEach(function(row) {
+        const index = row.dataset.rowIndex;
+        const checkbox = document.querySelector('.row-select[data-index="' + index + '"]');
+        if (!checkbox.checked) {
+            row.style.display = 'none';
+        }
+    });
 
     // Initialize state
     updateSelectAllState();
