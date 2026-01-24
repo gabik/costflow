@@ -470,3 +470,118 @@ def export_materials_csv():
         as_attachment=True,
         download_name=f'materials_export_{datetime.now().strftime("%Y%m%d")}.csv'
     )
+
+
+@admin_blueprint.route('/migrate_multi_sku_support')
+def migrate_multi_sku_support():
+    """
+    Migration: Enable multi-SKU support per supplier.
+
+    This migration:
+    1. Adds 'sku' column to stock_log table (if not exists)
+    2. Drops old unique constraints on raw_material_supplier and packaging_supplier
+    3. Adds new unique constraints that include SKU
+    """
+    from flask_babel import gettext as _
+    results = []
+
+    try:
+        # Check database type
+        is_postgres = 'postgresql' in str(db.engine.url)
+
+        # Step 1: Add SKU column to stock_log if not exists
+        try:
+            if is_postgres:
+                db.session.execute(text(
+                    "ALTER TABLE stock_log ADD COLUMN IF NOT EXISTS sku VARCHAR(100)"
+                ))
+            else:
+                # SQLite - check if column exists first
+                result = db.session.execute(text("PRAGMA table_info(stock_log)"))
+                columns = [row[1] for row in result.fetchall()]
+                if 'sku' not in columns:
+                    db.session.execute(text("ALTER TABLE stock_log ADD COLUMN sku VARCHAR(100)"))
+            results.append("Added 'sku' column to stock_log table")
+        except Exception as e:
+            if 'already exists' in str(e).lower() or 'duplicate column' in str(e).lower():
+                results.append("Column 'sku' already exists in stock_log")
+            else:
+                raise
+
+        # Step 2: Handle RawMaterialSupplier constraint
+        if is_postgres:
+            # PostgreSQL: Drop old constraint and add new one
+            try:
+                # Try to drop old constraint (may have different names)
+                for constraint_name in ['raw_material_supplier_raw_material_id_supplier_id_key',
+                                       'uq_raw_material_supplier_raw_material_id_supplier_id',
+                                       'raw_material_supplier_raw_material_id_supplier_id_sku_key']:
+                    try:
+                        db.session.execute(text(
+                            f"ALTER TABLE raw_material_supplier DROP CONSTRAINT IF EXISTS {constraint_name}"
+                        ))
+                    except Exception:
+                        pass
+
+                # Add new constraint including SKU
+                db.session.execute(text("""
+                    ALTER TABLE raw_material_supplier
+                    ADD CONSTRAINT raw_material_supplier_material_supplier_sku_key
+                    UNIQUE (raw_material_id, supplier_id, sku)
+                """))
+                results.append("Updated RawMaterialSupplier unique constraint to include SKU")
+            except Exception as e:
+                if 'already exists' in str(e).lower():
+                    results.append("RawMaterialSupplier constraint already updated")
+                else:
+                    results.append(f"RawMaterialSupplier constraint: {str(e)}")
+        else:
+            # SQLite doesn't support ALTER constraint - constraints defined in model will apply on new tables
+            results.append("SQLite: RawMaterialSupplier constraint will apply on table recreation")
+
+        # Step 3: Handle PackagingSupplier constraint
+        if is_postgres:
+            try:
+                # Try to drop old constraint
+                for constraint_name in ['packaging_supplier_packaging_id_supplier_id_key',
+                                       'uq_packaging_supplier_packaging_id_supplier_id',
+                                       'packaging_supplier_packaging_id_supplier_id_sku_key']:
+                    try:
+                        db.session.execute(text(
+                            f"ALTER TABLE packaging_supplier DROP CONSTRAINT IF EXISTS {constraint_name}"
+                        ))
+                    except Exception:
+                        pass
+
+                # Add new constraint including SKU
+                db.session.execute(text("""
+                    ALTER TABLE packaging_supplier
+                    ADD CONSTRAINT packaging_supplier_packaging_supplier_sku_key
+                    UNIQUE (packaging_id, supplier_id, sku)
+                """))
+                results.append("Updated PackagingSupplier unique constraint to include SKU")
+            except Exception as e:
+                if 'already exists' in str(e).lower():
+                    results.append("PackagingSupplier constraint already updated")
+                else:
+                    results.append(f"PackagingSupplier constraint: {str(e)}")
+        else:
+            results.append("SQLite: PackagingSupplier constraint will apply on table recreation")
+
+        db.session.commit()
+
+        log_audit("MIGRATION", "System", details="Multi-SKU support migration completed")
+
+        return jsonify({
+            'status': 'success',
+            'message': 'Multi-SKU support migration completed',
+            'details': results
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'status': 'error',
+            'message': str(e),
+            'details': results
+        }), 500

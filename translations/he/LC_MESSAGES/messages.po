@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-01-23 12:01+0200\n"
+"POT-Creation-Date: 2026-01-24 18:45+0200\n"
 "PO-Revision-Date: 2024-12-14 21:06+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: he\n"
@@ -77,7 +77,7 @@ msgstr "הקובץ לא נמצא. אנא העלה שוב."
 msgid "Please select a sheet."
 msgstr "אנא בחר גיליון."
 
-#: app/routes/inventory.py:358 app/routes/stock_audit_upload.py:224
+#: app/routes/inventory.py:358 app/routes/stock_audit_upload.py:267
 #, python-brace-format
 msgid "Error processing sheet: {}"
 msgstr "שגיאה בעיבוד הגיליון: {}"
@@ -86,7 +86,7 @@ msgstr "שגיאה בעיבוד הגיליון: {}"
 msgid "No items to process. Please upload a file first."
 msgstr "אין פריטים לעיבוד. אנא העלה קובץ קודם."
 
-#: app/routes/inventory.py:616 app/routes/stock_audit_upload.py:474
+#: app/routes/inventory.py:616 app/routes/stock_audit_upload.py:674
 #, python-brace-format
 msgid "Created {} new materials"
 msgstr "נוצרו {} חומרים חדשים"
@@ -106,7 +106,7 @@ msgstr "הוסף ספק"
 msgid "Added {} SKUs"
 msgstr "כתובת"
 
-#: app/routes/inventory.py:624 app/routes/stock_audit_upload.py:476
+#: app/routes/inventory.py:624 app/routes/stock_audit_upload.py:678
 #, python-brace-format
 msgid "Added {} alternative names"
 msgstr "נוספו {} שמות חלופיים"
@@ -146,7 +146,7 @@ msgid "Missing required fields"
 msgstr "שדות חובה חסרים"
 
 #: app/routes/packaging.py:304 app/routes/packaging.py:397
-#: app/routes/utils.py:846
+#: app/routes/utils.py:883
 msgid "Packaging not found"
 msgstr "אריזה לא נמצאה"
 
@@ -247,8 +247,8 @@ msgstr "שגיאה בשחזור מוצר: {}"
 msgid "Invalid action type"
 msgstr ""
 
-#: app/routes/recipe_import.py:372 app/routes/utils.py:1199
-#: app/routes/utils.py:1249 templates/add_or_edit_premake.html:530
+#: app/routes/recipe_import.py:372 app/routes/utils.py:1236
+#: app/routes/utils.py:1286 templates/add_or_edit_premake.html:530
 #: templates/recipe_review.html:330
 #, fuzzy
 msgid "per 100g"
@@ -303,51 +303,56 @@ msgstr "הקובץ חייב להכיל לפחות 6 עמודות (A עד F)"
 msgid "Empty name"
 msgstr "שם עובד"
 
-#: app/routes/stock_audit_upload.py:130 app/routes/stock_audit_upload.py:135
+#: app/routes/stock_audit_upload.py:173 app/routes/stock_audit_upload.py:178
 #, fuzzy
 msgid "No file selected"
 msgstr "פריטים נבחרו"
 
-#: app/routes/stock_audit_upload.py:186
+#: app/routes/stock_audit_upload.py:229
 #, fuzzy, python-brace-format
 msgid "Error reading file: {}"
 msgstr "שגיאה בעיבוד הקובץ: {}"
 
-#: app/routes/stock_audit_upload.py:199
+#: app/routes/stock_audit_upload.py:242
 #, fuzzy
 msgid "Session expired. Please upload the file again."
 msgstr "הקובץ לא נמצא. אנא העלה שוב."
 
-#: app/routes/stock_audit_upload.py:250
+#: app/routes/stock_audit_upload.py:293
 #, fuzzy
 msgid "No items to process."
 msgstr "סה\"כ יחידות לייצור:"
 
-#: app/routes/stock_audit_upload.py:439
+#: app/routes/stock_audit_upload.py:637
 msgid "Excel Import"
 msgstr "ייבוא מאקסל"
 
-#: app/routes/stock_audit_upload.py:472
+#: app/routes/stock_audit_upload.py:672
 #, python-brace-format
 msgid "Created {} stock audits successfully"
 msgstr "נוצרו {} ביקורות מלאי בהצלחה"
 
-#: app/routes/stock_audit_upload.py:478
+#: app/routes/stock_audit_upload.py:676
+#, python-brace-format
+msgid "Created {} SKU variants"
+msgstr "נוצרו {} וריאנטי מק\"ט"
+
+#: app/routes/stock_audit_upload.py:680
 #, python-brace-format
 msgid "Skipped {} items"
 msgstr "דולגו {} פריטים"
 
-#: app/routes/stock_audit_upload.py:480
+#: app/routes/stock_audit_upload.py:682
 #, python-brace-format
 msgid "Errors: {}"
-msgstr ""
+msgstr "שגיאות: {}"
 
-#: app/routes/stock_audit_upload.py:485
+#: app/routes/stock_audit_upload.py:687
 #, fuzzy, python-brace-format
 msgid "Error processing stock audit: {}"
 msgstr "שגיאה בעיבוד הגיליון: {}"
 
-#: app/routes/utils.py:857 app/routes/utils.py:918
+#: app/routes/utils.py:894 app/routes/utils.py:955
 #, python-format
 msgid ""
 "Insufficient packaging stock for %(name)s. Required: %(required).2f, "
@@ -356,7 +361,7 @@ msgstr ""
 "מלאי אריזה לא מספיק עבור %(name)s. נדרש: %(required).2f, זמין: "
 "%(available).2f"
 
-#: app/routes/utils.py:1193 app/routes/utils.py:1197 app/routes/utils.py:1253
+#: app/routes/utils.py:1230 app/routes/utils.py:1234 app/routes/utils.py:1290
 #: templates/add_or_edit_premake.html:277
 #: templates/add_or_edit_premake.html:518
 #: templates/add_or_edit_premake.html:524
@@ -365,26 +370,26 @@ msgstr ""
 msgid "per kg"
 msgstr "ל-"
 
-#: app/routes/utils.py:1201 app/routes/utils.py:1205 app/routes/utils.py:1255
+#: app/routes/utils.py:1238 app/routes/utils.py:1242 app/routes/utils.py:1292
 #: templates/add_or_edit_premake.html:533
 #: templates/add_or_edit_premake.html:537
 #, fuzzy
 msgid "per L"
 msgstr "ל-"
 
-#: app/routes/utils.py:1207 app/routes/utils.py:1251
+#: app/routes/utils.py:1244 app/routes/utils.py:1288
 #: templates/add_or_edit_premake.html:539
 #, fuzzy
 msgid "per 100ml"
 msgstr "עלות ל-100 ג׳:"
 
-#: app/routes/utils.py:1209 app/routes/utils.py:1257
+#: app/routes/utils.py:1246 app/routes/utils.py:1294
 #: templates/add_or_edit_premake.html:542
 #, fuzzy
 msgid "per unit"
 msgstr "מחיר ליחידה"
 
-#: app/routes/utils.py:1597
+#: app/routes/utils.py:1634
 msgid "Uncategorized"
 msgstr "ללא קטגוריה"
 
@@ -579,7 +584,7 @@ msgstr "הזן כמות מלאי התחלתית"
 #: templates/raw_materials.html:333 templates/raw_materials.html:355
 #: templates/recipe_review.html:216 templates/recipe_review.html:387
 #: templates/supplier_materials.html:252 templates/update_weekly_sales.html:108
-#: templates/upload_inventory.html:291 templates/upload_stock_audit.html:279
+#: templates/upload_inventory.html:291 templates/upload_stock_audit.html:364
 #: templates/weekly_costs.html:69
 msgid "Cancel"
 msgstr "בטל"
@@ -885,7 +890,7 @@ msgstr "כמות מיוצרת לבאצ'"
 #: templates/product_details.html:261 templates/product_details.html:367
 #: templates/raw_materials.html:89 templates/recipe_review.html:178
 #: templates/supplier_materials.html:77 templates/upload_inventory.html:143
-#: templates/upload_stock_audit.html:248 templates/view_premake.html:104
+#: templates/upload_stock_audit.html:333 templates/view_premake.html:104
 #: templates/view_premake.html:171
 msgid "Unit"
 msgstr "יחידה"
@@ -1096,7 +1101,7 @@ msgstr "ספקים ומחירים"
 #: templates/add_or_edit_supplier.html:106 templates/packaging.html:172
 #: templates/raw_materials.html:88 templates/raw_materials.html:279
 #: templates/raw_materials.html:316 templates/recipe_review.html:186
-#: templates/upload_stock_audit.html:258
+#: templates/upload_stock_audit.html:264 templates/upload_stock_audit.html:343
 msgid "Supplier"
 msgstr "ספק"
 
@@ -1104,7 +1109,7 @@ msgstr "ספק"
 #: templates/add_or_edit_raw_material.html:158
 #: templates/supplier_materials.html:75 templates/supplier_materials.html:150
 #: templates/supplier_materials.html:236 templates/upload_inventory.html:69
-#: templates/upload_stock_audit.html:64 templates/upload_stock_audit.html:143
+#: templates/upload_stock_audit.html:64 templates/upload_stock_audit.html:152
 msgid "SKU"
 msgstr "מק\"ט"
 
@@ -1113,7 +1118,7 @@ msgstr "מק\"ט"
 #: templates/premakes.html:36 templates/production.html:66
 #: templates/products.html:50 templates/raw_materials.html:92
 #: templates/supplier_materials.html:80 templates/supplier_materials.html:154
-#: templates/update_weekly_sales.html:51 templates/upload_stock_audit.html:145
+#: templates/update_weekly_sales.html:51 templates/upload_stock_audit.html:154
 #: templates/view_premake.html:43
 msgid "Current Stock"
 msgstr "מלאי נוכחי"
@@ -2704,6 +2709,7 @@ msgid "Total Premakes:"
 msgstr "סה\"כ הכנות מקדימות:"
 
 #: templates/product_details.html:262 templates/recipe_review.html:205
+#: templates/upload_stock_audit.html:272
 #, fuzzy
 msgid "Price"
 msgstr "מחיר ליחידה"
@@ -3073,7 +3079,7 @@ msgid ""
 msgstr "בחר חומר מהרשימה או הוסף חומרים חדשים למערכת ואז ייבא שוב."
 
 #: templates/recipe_review.html:68 templates/recipe_review.html:545
-#: templates/upload_inventory.html:137 templates/upload_stock_audit.html:140
+#: templates/upload_inventory.html:137 templates/upload_stock_audit.html:149
 msgid "Select All"
 msgstr "בחר הכל"
 
@@ -3112,7 +3118,7 @@ msgid "Materials:"
 msgstr "חומרים:"
 
 #: templates/recipe_review.html:130 templates/suppliers.html:27
-#: templates/upload_inventory.html:141 templates/upload_stock_audit.html:144
+#: templates/upload_inventory.html:141 templates/upload_stock_audit.html:153
 msgid "Status"
 msgstr "סטטוס"
 
@@ -3465,7 +3471,7 @@ msgstr "כמות במערכת"
 msgid "Physical Quantity"
 msgstr "כמות פיזית"
 
-#: templates/stock_audits.html:105 templates/upload_stock_audit.html:147
+#: templates/stock_audits.html:105 templates/upload_stock_audit.html:156
 msgid "Variance"
 msgstr "הפרש"
 
@@ -3478,7 +3484,7 @@ msgstr "ערך כספי"
 msgid "Auditor"
 msgstr "מבקר"
 
-#: templates/stock_audits.html:130 templates/upload_stock_audit.html:260
+#: templates/stock_audits.html:130 templates/upload_stock_audit.html:345
 #, fuzzy
 msgid "None"
 msgstr "טלפון"
@@ -3781,7 +3787,7 @@ msgid "Example"
 msgstr "דוגמה"
 
 #: templates/upload_inventory.html:64 templates/upload_stock_audit.html:69
-#: templates/upload_stock_audit.html:142
+#: templates/upload_stock_audit.html:151
 msgid "Material Name"
 msgstr "שם חומר גלם"
 
@@ -3892,7 +3898,7 @@ msgstr "המחיר שונה מהנוכחי"
 msgid "Price Change"
 msgstr "שינוי מחיר"
 
-#: templates/upload_inventory.html:247 templates/upload_stock_audit.html:254
+#: templates/upload_inventory.html:247 templates/upload_stock_audit.html:339
 msgid "unit"
 msgstr "יחידה"
 
@@ -3913,7 +3919,7 @@ msgid "Same price"
 msgstr "מחיר זהה"
 
 #: templates/upload_inventory.html:289 templates/upload_inventory.html:310
-#: templates/upload_stock_audit.html:277 templates/upload_stock_audit.html:298
+#: templates/upload_stock_audit.html:362 templates/upload_stock_audit.html:383
 msgid "Selected:"
 msgstr "נבחרו:"
 
@@ -3929,7 +3935,7 @@ msgstr "העלה קובץ אקסל עם ספירת מלאי פיזית."
 msgid "Upload Stock Audit File"
 msgstr "העלה קובץ ביקורת מלאי"
 
-#: templates/upload_stock_audit.html:74 templates/upload_stock_audit.html:146
+#: templates/upload_stock_audit.html:74 templates/upload_stock_audit.html:155
 msgid "Physical Count"
 msgstr "ספירה פיזית"
 
@@ -3937,7 +3943,7 @@ msgstr "ספירה פיזית"
 msgid "First row must be headers. Column C is ignored."
 msgstr "השורה הראשונה חייבת להיות כותרות. עמודה C מתעלמת."
 
-#: templates/upload_stock_audit.html:84 templates/upload_stock_audit.html:129
+#: templates/upload_stock_audit.html:84 templates/upload_stock_audit.html:138
 msgid "Audit Date"
 msgstr "תאריך ביקורת"
 
@@ -3946,51 +3952,106 @@ msgid "Excel File"
 msgstr "קובץ אקסל"
 
 #: templates/upload_stock_audit.html:119
+msgid "New SKU Variants"
+msgstr "וריאנטי מק\"ט חדשים"
+
+#: templates/upload_stock_audit.html:120
+#, python-brace-format
+msgid ""
+"Found {} items where the name matches but SKU is new. Choose to add as "
+"new SKU variant or link to existing."
+msgstr "נמצאו {} פריטים שהשם תואם אך המק\"ט חדש. בחר להוסיף כוריאנט מק\"ט חדש או לקשר לקיים."
+
+#: templates/upload_stock_audit.html:128
 msgid "Materials Not Found"
 msgstr "חומרים לא נמצאו"
 
-#: templates/upload_stock_audit.html:120
+#: templates/upload_stock_audit.html:129
 #, python-brace-format
 msgid "Warning: {} materials could not be matched and will be skipped."
 msgstr "אזהרה: {} חומרים לא נמצאו ויידלגו."
 
-#: templates/upload_stock_audit.html:127
+#: templates/upload_stock_audit.html:136
 msgid "Review Stock Audit Data"
 msgstr "סקירת נתוני ביקורת מלאי"
 
-#: templates/upload_stock_audit.html:172
+#: templates/upload_stock_audit.html:186
 msgid "System:"
 msgstr "במערכת:"
 
-#: templates/upload_stock_audit.html:186
+#: templates/upload_stock_audit.html:191
+msgid "Will add as alternative name"
+msgstr "יתווסף כשם חלופי"
+
+#: templates/upload_stock_audit.html:205
 msgid "SKU Match"
 msgstr "התאמת מק\"ט"
 
-#: templates/upload_stock_audit.html:188
+#: templates/upload_stock_audit.html:207
+msgid "Name+SKU"
+msgstr "שם+מק\"ט"
+
+#: templates/upload_stock_audit.html:209
 msgid "Alt Name"
 msgstr "שם חלופי"
 
-#: templates/upload_stock_audit.html:190
+#: templates/upload_stock_audit.html:211
 msgid "Name Match"
 msgstr "התאמת שם"
 
-#: templates/upload_stock_audit.html:193
+#: templates/upload_stock_audit.html:214
+msgid "New SKU"
+msgstr "מק\"ט חדש"
+
+#: templates/upload_stock_audit.html:216
 msgid "Not Found"
 msgstr "לא נמצא"
 
-#: templates/upload_stock_audit.html:229
+#: templates/upload_stock_audit.html:249
+msgid "Material:"
+msgstr "חומר:"
+
+#: templates/upload_stock_audit.html:251
+msgid "Existing SKUs:"
+msgstr "מק\"טים קיימים:"
+
+#: templates/upload_stock_audit.html:253
+msgid "New SKU:"
+msgstr "מק\"ט חדש:"
+
+#: templates/upload_stock_audit.html:259
+msgid "Add as new SKU variant"
+msgstr "הוסף כוריאנט מק\"ט חדש"
+
+#: templates/upload_stock_audit.html:281
+msgid "Link to existing SKU:"
+msgstr "קשר למק\"ט קיים:"
+
+#: templates/upload_stock_audit.html:285
+msgid "Select SKU variant"
+msgstr "בחר וריאנט מק\"ט"
+
+#: templates/upload_stock_audit.html:289
+msgid "No SKU"
+msgstr "ללא מק\"ט"
+
+#: templates/upload_stock_audit.html:299
+msgid "Create as new material"
+msgstr "צור כחומר חדש"
+
+#: templates/upload_stock_audit.html:314
 msgid "Link to existing:"
 msgstr "קשר לקיים:"
 
-#: templates/upload_stock_audit.html:233
+#: templates/upload_stock_audit.html:318
 msgid "Select material"
 msgstr "בחר חומר גלם"
 
-#: templates/upload_stock_audit.html:243
+#: templates/upload_stock_audit.html:328
 msgid "Create new material"
 msgstr "צור חומר גלם חדש"
 
-#: templates/upload_stock_audit.html:281
+#: templates/upload_stock_audit.html:366
 msgid "Confirm Stock Audit"
 msgstr "אשר ביקורת מלאי"
 

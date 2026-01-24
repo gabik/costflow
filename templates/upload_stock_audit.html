@@ -112,6 +112,15 @@
 </div>
 {% endif %}
 
+<!-- Show ambiguous warning (name matched but new SKU) -->
+{% set ambiguous_count = review_data | selectattr('status', 'equalto', 'ambiguous') | list | length %}
+{% if ambiguous_count > 0 %}
+<div class="alert alert-warning mb-4">
+    <h6 class="alert-heading"><i class="bi bi-question-circle me-2"></i>{{ _('New SKU Variants') }}</h6>
+    <p class="mb-0">{{ _('Found {} items where the name matches but SKU is new. Choose to add as new SKU variant or link to existing.').format(ambiguous_count) }}</p>
+</div>
+{% endif %}
+
 <!-- Show not found warning -->
 {% set not_found_count = review_data | selectattr('status', 'equalto', 'not_found') | list | length %}
 {% if not_found_count > 0 %}
@@ -149,7 +158,7 @@
                     </thead>
                     <tbody>
                         {% for item in review_data %}
-                        <tr class="{{ 'table-danger' if item.status == 'not_found' else ('table-warning' if item.variance and item.variance < 0 else ('table-success' if item.variance and item.variance > 0 else '')) }}" data-row-index="{{ loop.index0 }}">
+                        <tr class="{{ 'table-danger' if item.status == 'not_found' else ('table-warning' if item.status == 'ambiguous' or (item.variance and item.variance < 0) else ('table-success' if item.variance and item.variance > 0 else '')) }}" data-row-index="{{ loop.index0 }}">
                             <td class="text-center">
                                 <input type="checkbox" class="form-check-input row-select" data-index="{{ loop.index0 }}" {% if item.status == 'found' %}checked{% endif %}>
                             </td>
@@ -159,17 +168,27 @@
                                 <input type="hidden" name="items[{{ loop.index0 }}][quantity]" value="{{ item.quantity }}">
                                 <input type="hidden" name="items[{{ loop.index0 }}][sku]" value="{{ item.sku or '' }}">
                                 <input type="hidden" name="items[{{ loop.index0 }}][status]" value="{{ item.status }}">
+                                <input type="hidden" name="items[{{ loop.index0 }}][target_sku]" value="{{ item.target_sku or '' }}">
+                                <input type="hidden" name="items[{{ loop.index0 }}][add_alt_name]" value="{{ 'true' if item.add_alt_name else 'false' }}">
                                 {% if item.material_id %}
                                 <input type="hidden" name="items[{{ loop.index0 }}][material_id]" value="{{ item.material_id }}">
                                 {% endif %}
                                 {% if item.supplier_id %}
                                 <input type="hidden" name="items[{{ loop.index0 }}][supplier_id]" value="{{ item.supplier_id }}">
                                 {% endif %}
+                                {% if item.supplier_link_id %}
+                                <input type="hidden" name="items[{{ loop.index0 }}][supplier_link_id]" value="{{ item.supplier_link_id }}">
+                                {% endif %}
 
                                 <strong>{{ item.name }}</strong>
                                 {% if item.material_name and item.material_name != item.name %}
                                 <div class="small text-info mt-1">
                                     <i class="bi bi-arrow-right me-1"></i>{{ _('System:') }} {{ item.material_name }}
+                                </div>
+                                {% endif %}
+                                {% if item.add_alt_name %}
+                                <div class="small text-success mt-1">
+                                    <i class="bi bi-plus-circle me-1"></i>{{ _('Will add as alternative name') }}
                                 </div>
                                 {% endif %}
                             </td>
@@ -184,11 +203,15 @@
                                 {% if item.status == 'found' %}
                                     {% if item.matched_by == 'sku' %}
                                     <span class="badge bg-success"><i class="bi bi-upc-scan me-1"></i>{{ _('SKU Match') }}</span>
+                                    {% elif 'sku' in (item.matched_by or '') %}
+                                    <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>{{ _('Name+SKU') }}</span>
                                     {% elif item.matched_by == 'alt_name' %}
                                     <span class="badge bg-info"><i class="bi bi-tags me-1"></i>{{ _('Alt Name') }}</span>
                                     {% else %}
                                     <span class="badge bg-secondary"><i class="bi bi-check me-1"></i>{{ _('Name Match') }}</span>
                                     {% endif %}
+                                {% elif item.status == 'ambiguous' %}
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-question-circle me-1"></i>{{ _('New SKU') }}</span>
                                 {% else %}
                                     <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>{{ _('Not Found') }}</span>
                                 {% endif %}
@@ -217,9 +240,71 @@
                                 {% endif %}
                             </td>
                         </tr>
-                        {% if item.status == 'not_found' %}
+                        {% if item.status == 'ambiguous' %}
+                        <!-- Action row for ambiguous items (name matched but new SKU) -->
+                        <tr class="table-light action-row" data-row-index="{{ loop.index0 }}">
+                            <td></td>
+                            <td colspan="6">
+                                <div class="small text-muted mb-2">
+                                    <i class="bi bi-info-circle me-1"></i>{{ _('Material:') }} <strong>{{ item.material_name }}</strong>
+                                    {% if item.existing_skus %}
+                                    | {{ _('Existing SKUs:') }} {{ item.existing_skus | join(', ') }}
+                                    {% endif %}
+                                    | {{ _('New SKU:') }} <code>{{ item.sku }}</code>
+                                </div>
+                                <div class="d-flex align-items-center gap-3 py-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input action-radio" type="radio" name="items[{{ loop.index0 }}][action]" id="action_add_sku_{{ loop.index0 }}" value="add_new_sku" data-index="{{ loop.index0 }}" checked>
+                                        <label class="form-check-label" for="action_add_sku_{{ loop.index0 }}">
+                                            <i class="bi bi-plus-square me-1"></i>{{ _('Add as new SKU variant') }}
+                                        </label>
+                                    </div>
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        <div class="input-group input-group-sm" style="width: 200px;">
+                                            <span class="input-group-text">{{ _('Supplier') }}</span>
+                                            <select name="items[{{ loop.index0 }}][new_supplier_id]" class="form-select form-select-sm" required>
+                                                {% for sup in all_suppliers %}
+                                                <option value="{{ sup.id }}" {% if item.supplier_id == sup.id %}selected{% endif %}>{{ sup.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="input-group input-group-sm" style="width: 150px;">
+                                            <span class="input-group-text">{{ _('Price') }}</span>
+                                            <input type="number" step="0.01" min="0" name="items[{{ loop.index0 }}][new_price]" class="form-control form-control-sm" value="0" placeholder="0.00">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-3 py-2 border-top">
+                                    <div class="form-check">
+                                        <input class="form-check-input action-radio" type="radio" name="items[{{ loop.index0 }}][action]" id="action_link_sku_{{ loop.index0 }}" value="link_existing_sku" data-index="{{ loop.index0 }}">
+                                        <label class="form-check-label" for="action_link_sku_{{ loop.index0 }}">
+                                            <i class="bi bi-link-45deg me-1"></i>{{ _('Link to existing SKU:') }}
+                                        </label>
+                                    </div>
+                                    <select name="items[{{ loop.index0 }}][sku_variant_id]" class="form-select form-select-sm" style="max-width: 300px;">
+                                        <option value="">-- {{ _('Select SKU variant') }} --</option>
+                                        {% for mat in all_materials %}
+                                            {% if mat.id == item.material_id %}
+                                                {% for link in mat.supplier_links %}
+                                                <option value="{{ link.id }}">{{ link.supplier.name }} - {{ link.sku or _('No SKU') }} ({{ link.cost_per_unit }})</option>
+                                                {% endfor %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="d-flex align-items-center gap-3 py-2 border-top">
+                                    <div class="form-check">
+                                        <input class="form-check-input action-radio" type="radio" name="items[{{ loop.index0 }}][action]" id="action_create_mat_{{ loop.index0 }}" value="create_material" data-index="{{ loop.index0 }}">
+                                        <label class="form-check-label" for="action_create_mat_{{ loop.index0 }}">
+                                            <i class="bi bi-plus-circle me-1"></i>{{ _('Create as new material') }}
+                                        </label>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% elif item.status == 'not_found' %}
                         <!-- Action row for not-found items -->
-                        <tr class="table-light not-found-action-row" data-row-index="{{ loop.index0 }}">
+                        <tr class="table-light action-row" data-row-index="{{ loop.index0 }}">
                             <td></td>
                             <td colspan="6">
                                 <div class="d-flex align-items-center gap-3 py-2">
@@ -326,7 +411,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const index = checkbox.dataset.index;
         const row = checkbox.closest('tr');
         const includeField = document.querySelector('.include-field[data-index="' + index + '"]');
-        const actionRow = document.querySelector('.not-found-action-row[data-row-index="' + index + '"]');
+        const actionRow = document.querySelector('.action-row[data-row-index="' + index + '"]');
 
         if (checkbox.checked) {
             includeField.value = 'yes';
@@ -359,11 +444,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Initialize: hide action rows for unchecked items
-    document.querySelectorAll('.not-found-action-row').forEach(function(row) {
+    // Initialize: hide action rows for unchecked items (not_found and ambiguous)
+    document.querySelectorAll('.action-row').forEach(function(row) {
         const index = row.dataset.rowIndex;
         const checkbox = document.querySelector('.row-select[data-index="' + index + '"]');
-        if (!checkbox.checked) {
+        if (checkbox && !checkbox.checked) {
             row.style.display = 'none';
         }
     });

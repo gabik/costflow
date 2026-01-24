@@ -55,53 +55,92 @@ def process_stock_audit_dataframe(df):
             skipped_rows.append({'row': row_num, 'name': name, 'reason': _('Invalid quantity')})
             continue
 
-        # Match material
+        # Match material with updated priority logic
         material = None
         matched_by = None
-        primary_supplier = None
         primary_link = None
+        status = 'not_found'
+        add_alt_name = False  # Flag to auto-add file name as alternative name
+        existing_skus = []  # For ambiguous status display
+        target_sku = None  # The SKU to use for stock tracking
 
-        # Step 1: Try SKU match
+        # STEP 1: Try SKU match (highest priority)
         if sku:
             material_supplier = RawMaterialSupplier.query.filter_by(sku=sku).first()
             if material_supplier and not material_supplier.raw_material.is_deleted:
                 material = material_supplier.raw_material
                 matched_by = 'sku'
                 primary_link = material_supplier
+                target_sku = sku
+                status = 'found'
 
-        # Step 2: Try name match
+                # Check if file name differs from material name - will auto-add as alt name
+                if name != material.name:
+                    alt_exists = RawMaterialAlternativeName.query.filter_by(
+                        alternative_name=name).first()
+                    if not alt_exists:
+                        add_alt_name = True
+
+        # STEP 2: Try name/alt_name match (with SKU check)
         if not material:
+            # Try exact name match
             material = RawMaterial.query.filter_by(name=name, is_deleted=False).first()
             if material:
                 matched_by = 'name'
+            else:
+                # Try alternative name match
+                alt_name_entry = RawMaterialAlternativeName.query.filter_by(
+                    alternative_name=name).first()
+                if alt_name_entry and not alt_name_entry.raw_material.is_deleted:
+                    material = alt_name_entry.raw_material
+                    matched_by = 'alt_name'
 
-        # Step 3: Try alternative name match
-        if not material:
-            alt_name = RawMaterialAlternativeName.query.filter_by(alternative_name=name).first()
-            if alt_name and not alt_name.raw_material.is_deleted:
-                material = alt_name.raw_material
-                matched_by = 'alt_name'
+            if material:
+                # Material found by name - now check SKU situation
+                if sku:
+                    # File has SKU - check if it exists in material's supplier links
+                    existing_link = next((l for l in material.supplier_links
+                                          if l.sku == sku), None)
+                    if existing_link:
+                        # SKU exists for this material - use it
+                        primary_link = existing_link
+                        target_sku = sku
+                        matched_by = f'{matched_by}+sku'
+                        status = 'found'
+                    else:
+                        # Name matches but SKU is new - AMBIGUOUS
+                        status = 'ambiguous'
+                        existing_skus = [l.sku for l in material.supplier_links if l.sku]
+                        # Still get primary link for display purposes
+                        primary_link = next((l for l in material.supplier_links if l.is_primary), None)
+                        if not primary_link and material.supplier_links:
+                            primary_link = material.supplier_links[0]
+                else:
+                    # No SKU in file - use primary supplier
+                    primary_link = next((l for l in material.supplier_links if l.is_primary), None)
+                    if not primary_link and material.supplier_links:
+                        primary_link = material.supplier_links[0]
+                    target_sku = primary_link.sku if primary_link else None
+                    status = 'found'
 
-        # Get primary supplier and current stock
+        # Get current stock and supplier info
         current_stock = 0
         supplier_id = None
         cost_per_unit = 0
 
-        if material:
-            # Find primary supplier
-            if not primary_link:
-                primary_link = next((l for l in material.supplier_links if l.is_primary), None)
-                if not primary_link and material.supplier_links:
-                    primary_link = material.supplier_links[0]
-
+        if material and status != 'not_found':
             if primary_link:
                 supplier_id = primary_link.supplier_id
                 cost_per_unit = primary_link.cost_per_unit or 0
-                current_stock = calculate_supplier_stock(material.id, supplier_id)
+                # Use SKU-specific stock if available
+                if target_sku:
+                    current_stock = calculate_supplier_stock(material.id, supplier_id, sku=target_sku)
+                else:
+                    current_stock = calculate_supplier_stock(material.id, supplier_id)
             else:
                 current_stock = calculate_total_material_stock(material.id)
 
-        variance = quantity - current_stock if material else None
+        variance = quantity - current_stock if material and status != 'not_found' else None
 
         review_data.append({
             'name': name,
@@ -110,12 +149,16 @@ def process_stock_audit_dataframe(df):
             'material_name': material.name if material else None,
             'matched_by': matched_by,
             'quantity': quantity,
-            'current_stock': round(current_stock, 2) if material else None,
+            'current_stock': round(current_stock, 2) if material and status != 'not_found' else None,
             'variance': round(variance, 2) if variance is not None else None,
-            'status': 'found' if material else 'not_found',
+            'status': status,
             'supplier_id': supplier_id,
+            'supplier_link_id': primary_link.id if primary_link else None,
             'cost_per_unit': cost_per_unit,
             'unit': material.unit if material else None,
+            'add_alt_name': add_alt_name,
+            'target_sku': target_sku,
+            'existing_skus': existing_skus,
         })
 
     return review_data, skipped_rows, None
@@ -262,6 +305,7 @@ def confirm_stock_audit():
         'audits_created': 0,
         'materials_created': 0,
         'alt_names_added': 0,
+        'sku_variants_created': 0,
         'skipped': 0,
         'errors': 0
     }
@@ -277,7 +321,9 @@ def confirm_stock_audit():
 
             name = item.get('name', '')
             status = item.get('status', 'found')
-            action = item.get('action', '')  # 'link' or 'create' for not_found items
+            action = item.get('action', '')  # Action for not_found/ambiguous items
+            sku = item.get('sku') or None
+            target_sku = item.get('target_sku') or sku  # SKU to use for stock tracking
 
             try:
                 quantity = float(item.get('quantity', 0))
@@ -318,6 +364,164 @@ def confirm_stock_audit():
                     except (ValueError, TypeError):
                         supplier_id = None
 
+                # Auto-add alternative name if flagged (SKU matched but name differs)
+                add_alt_name = item.get('add_alt_name', '') == 'true'
+                if add_alt_name and name != material.name:
+                    existing_alt = RawMaterialAlternativeName.query.filter_by(
+                        alternative_name=name).first()
+                    if not existing_alt:
+                        alt_name_entry = RawMaterialAlternativeName(
+                            raw_material_id=material.id,
+                            alternative_name=name
+                        )
+                        db.session.add(alt_name_entry)
+                        stats['alt_names_added'] += 1
+                        current_app.logger.info(f"Auto-added alternative name '{name}' for material '{material.name}'")
+
+            # Handle ambiguous items (name matched but SKU is new)
+            elif status == 'ambiguous':
+                material_id = item.get('material_id')
+                if not material_id:
+                    stats['skipped'] += 1
+                    continue
+
+                try:
+                    material_id = int(material_id)
+                except (ValueError, TypeError):
+                    errors.append(f"{name}: Invalid material ID")
+                    stats['errors'] += 1
+                    continue
+
+                material = RawMaterial.query.filter_by(id=material_id, is_deleted=False).first()
+                if not material:
+                    errors.append(f"{name}: Material not found")
+                    stats['errors'] += 1
+                    continue
+
+                if action == 'add_new_sku':
+                    # Create new SKU variant for existing material
+                    if not sku:
+                        errors.append(f"{name}: SKU required for new variant")
+                        stats['errors'] += 1
+                        continue
+
+                    new_supplier_id = item.get('new_supplier_id')
+                    try:
+                        new_price = float(item.get('new_price', 0))
+                    except (ValueError, TypeError):
+                        new_price = 0
+
+                    if not new_supplier_id:
+                        errors.append(f"{name}: No supplier selected for new SKU")
+                        stats['errors'] += 1
+                        continue
+
+                    try:
+                        new_supplier_id = int(new_supplier_id)
+                    except (ValueError, TypeError):
+                        errors.append(f"{name}: Invalid supplier ID")
+                        stats['errors'] += 1
+                        continue
+
+                    supplier = Supplier.query.get(new_supplier_id)
+                    if not supplier:
+                        errors.append(f"{name}: Supplier not found")
+                        stats['errors'] += 1
+                        continue
+
+                    # Check if SKU variant already exists (race condition protection)
+                    existing_link = RawMaterialSupplier.query.filter_by(
+                        raw_material_id=material.id,
+                        supplier_id=supplier.id,
+                        sku=sku
+                    ).first()
+
+                    if existing_link:
+                        # SKU already exists - use it instead of creating
+                        primary_link = existing_link
+                        supplier_id = supplier.id
+                        target_sku = sku
+                        current_app.logger.info(f"SKU variant '{sku}' already exists, using existing link")
+                    else:
+                        # Create new supplier link with the new SKU
+                        new_link = RawMaterialSupplier(
+                            raw_material_id=material.id,
+                            supplier_id=supplier.id,
+                            cost_per_unit=new_price,
+                            sku=sku,
+                            is_primary=False
+                        )
+                        db.session.add(new_link)
+                        db.session.flush()
+                        primary_link = new_link
+                        stats['sku_variants_created'] += 1
+                        current_app.logger.info(f"Created new SKU variant '{sku}' for material '{material.name}'")
+
+                    supplier_id = supplier.id
+                    target_sku = sku
+
+                elif action == 'link_existing_sku':
+                    # Use selected existing SKU variant
+                    sku_variant_id = item.get('sku_variant_id')
+                    if not sku_variant_id:
+                        errors.append(f"{name}: No SKU variant selected")
+                        stats['errors'] += 1
+                        continue
+
+                    try:
+                        sku_variant_id = int(sku_variant_id)
+                    except (ValueError, TypeError):
+                        errors.append(f"{name}: Invalid SKU variant ID")
+                        stats['errors'] += 1
+                        continue
+
+                    link = RawMaterialSupplier.query.get(sku_variant_id)
+                    if not link or link.raw_material_id != material.id:
+                        errors.append(f"{name}: SKU variant not found")
+                        stats['errors'] += 1
+                        continue
+
+                    supplier_id = link.supplier_id
+                    primary_link = link
+                    target_sku = link.sku
+
+                elif action == 'create_material':
+                    # Create entirely new material (reuse existing create logic)
+                    new_unit = item.get('new_unit', 'kg')
+                    new_supplier_id = item.get('new_supplier_id')
+
+                    material = RawMaterial(
+                        name=name,
+                        category=default_category,
+                        unit=new_unit
+                    )
+                    db.session.add(material)
+                    db.session.flush()
+                    stats['materials_created'] += 1
+                    current_app.logger.info(f"Created new material from ambiguous: {name} (ID: {material.id})")
+
+                    if new_supplier_id:
+                        try:
+                            new_supplier_id = int(new_supplier_id)
+                            supplier = Supplier.query.get(new_supplier_id)
+                            if supplier:
+                                new_link = RawMaterialSupplier(
+                                    raw_material_id=material.id,
+                                    supplier_id=supplier.id,
+                                    cost_per_unit=0,
+                                    sku=sku,
+                                    is_primary=True
+                                )
+                                db.session.add(new_link)
+                                supplier_id = supplier.id
+                                target_sku = sku
+                        except (ValueError, TypeError):
+                            pass
+                else:
+                    # No action selected for ambiguous item
+                    stats['skipped'] += 1
+                    continue
+
             # Handle not_found items with action
             elif status == 'not_found':
                 if action == 'link':
@@ -344,11 +548,11 @@ def confirm_stock_audit():
                     # Add alternative name if not already exists
                     existing_alt = RawMaterialAlternativeName.query.filter_by(alternative_name=name).first()
                     if not existing_alt and name != material.name:
-                        alt_name = RawMaterialAlternativeName(
+                        alt_name_entry = RawMaterialAlternativeName(
                             raw_material_id=material.id,
                             alternative_name=name
                         )
-                        db.session.add(alt_name)
+                        db.session.add(alt_name_entry)
                         stats['alt_names_added'] += 1
                         current_app.logger.info(f"Added alternative name '{name}' for material '{material.name}'")
 
@@ -356,7 +560,6 @@ def confirm_stock_audit():
                     # Create new material
                     new_unit = item.get('new_unit', 'kg')
                     new_supplier_id = item.get('new_supplier_id')
-                    sku = item.get('sku') or None
 
                     material = RawMaterial(
                         name=name,
@@ -377,12 +580,13 @@ def confirm_stock_audit():
                                 new_link = RawMaterialSupplier(
                                     raw_material_id=material.id,
                                     supplier_id=supplier.id,
-                                    cost_per_unit=0,  # No price info
+                                    cost_per_unit=0,
                                     sku=sku,
                                     is_primary=True
                                 )
                                 db.session.add(new_link)
                                 supplier_id = supplier.id
+                                target_sku = sku
                         except (ValueError, TypeError):
                             pass
                 else:
@@ -401,22 +605,35 @@ def confirm_stock_audit():
                     primary_link = material.supplier_links[0]
                 if primary_link:
                     supplier_id = primary_link.supplier_id
-            else:
-                primary_link = RawMaterialSupplier.query.filter_by(
-                    raw_material_id=material.id,
-                    supplier_id=supplier_id
-                ).first()
+                    target_sku = primary_link.sku
+            elif not primary_link:
+                # Find link by supplier_id and target_sku
+                if target_sku:
+                    primary_link = RawMaterialSupplier.query.filter_by(
+                        raw_material_id=material.id,
+                        supplier_id=supplier_id,
+                        sku=target_sku
+                    ).first()
+                if not primary_link:
+                    primary_link = RawMaterialSupplier.query.filter_by(
+                        raw_material_id=material.id,
+                        supplier_id=supplier_id
+                    ).first()
 
-            # Calculate current system stock
+            # Calculate current system stock (SKU-specific if available)
             if supplier_id:
-                system_stock = calculate_supplier_stock(material.id, supplier_id)
+                if target_sku:
+                    system_stock = calculate_supplier_stock(material.id, supplier_id, sku=target_sku)
+                else:
+                    system_stock = calculate_supplier_stock(material.id, supplier_id)
             else:
                 system_stock = calculate_total_material_stock(material.id)
 
-            # Create StockLog with 'set' action
+            # Create StockLog with 'set' action (including SKU)
             stock_log = StockLog(
                 raw_material_id=material.id,
                 supplier_id=supplier_id,
+                sku=target_sku,
                 action_type='set',
                 quantity=quantity,
                 timestamp=audit_datetime
@@ -443,7 +660,7 @@ def confirm_stock_audit():
             stats['audits_created'] += 1
 
             current_app.logger.info(
-                f"Stock audit created: material={material.name}, "
+                f"Stock audit created: material={material.name}, sku={target_sku}, "
                 f"system={system_stock}, physical={quantity}, variance={variance}"
             )
 
@@ -454,6 +671,8 @@ def confirm_stock_audit():
         audit_details = f"Imported {stats['audits_created']} stock audits for date {audit_date_str}"
         if stats['materials_created'] > 0:
             audit_details += f", created {stats['materials_created']} materials"
+        if stats['sku_variants_created'] > 0:
+            audit_details += f", created {stats['sku_variants_created']} SKU variants"
         if stats['alt_names_added'] > 0:
             audit_details += f", added {stats['alt_names_added']} alternative names"
         log_audit("IMPORT", "StockAudit", details=audit_details)
@@ -472,6 +691,8 @@ def confirm_stock_audit():
             flash(_('Created {} stock audits successfully').format(stats['audits_created']), 'success')
         if stats['materials_created'] > 0:
             flash(_('Created {} new materials').format(stats['materials_created']), 'info')
+        if stats['sku_variants_created'] > 0:
+            flash(_('Created {} SKU variants').format(stats['sku_variants_created']), 'info')
         if stats['alt_names_added'] > 0:
             flash(_('Added {} alternative names').format(stats['alt_names_added']), 'info')
         if stats['skipped'] > 0:

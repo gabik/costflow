@@ -496,9 +496,11 @@ def calculate_premake_stock_at_date(premake_id, cutoff_date):
 
     return max(0, stock)  # Ensure non-negative
 
-def calculate_supplier_stock(material_id, supplier_id):
+def calculate_supplier_stock(material_id, supplier_id, sku=None):
     """
     Calculate current stock for a specific supplier-material combination.
+    If sku is provided, calculates stock only for that SKU variant.
+    If sku is None, calculates total stock for the supplier across all SKU variants.
     """
     from ..models import StockLog, ProductionLog, Product, RawMaterial
 
@@ -507,25 +509,52 @@ def calculate_supplier_stock(material_id, supplier_id):
     if material and material.is_unlimited:
         return float('inf')
 
-    # Get last 'set' action for this supplier
-    last_set = StockLog.query.filter_by(
-        raw_material_id=material_id,
-        supplier_id=supplier_id,
-        action_type='set'
-    ).order_by(StockLog.timestamp.desc()).first()
+    # Build base query filters
+    base_filters = {
+        'raw_material_id': material_id,
+        'supplier_id': supplier_id,
+        'action_type': 'set'
+    }
 
-    stock = last_set.quantity if last_set else 0
+    if sku is not None:
+        # SKU-specific stock calculation
+        base_filters['sku'] = sku
+        last_set = StockLog.query.filter_by(**base_filters).order_by(StockLog.timestamp.desc()).first()
 
-    # Add all 'add' actions after last set
-    add_logs = StockLog.query.filter(
-        StockLog.raw_material_id == material_id,
-        StockLog.supplier_id == supplier_id,
-        StockLog.action_type == 'add',
-        StockLog.timestamp > (last_set.timestamp if last_set else datetime.min)
-    ).all()
+        stock = last_set.quantity if last_set else 0
 
-    for log in add_logs:
-        stock += log.quantity
+        # Add all 'add' actions after last set for this SKU
+        add_logs = StockLog.query.filter(
+            StockLog.raw_material_id == material_id,
+            StockLog.supplier_id == supplier_id,
+            StockLog.sku == sku,
+            StockLog.action_type == 'add',
+            StockLog.timestamp > (last_set.timestamp if last_set else datetime.min)
+        ).all()
+
+        for log in add_logs:
+            stock += log.quantity
+    else:
+        # Total stock for supplier across all SKU variants (backward compatible)
+        # Get last 'set' action for this supplier (any SKU)
+        last_set = StockLog.query.filter_by(
+            raw_material_id=material_id,
+            supplier_id=supplier_id,
+            action_type='set'
+        ).order_by(StockLog.timestamp.desc()).first()
+
+        stock = last_set.quantity if last_set else 0
+
+        # Add all 'add' actions after last set
+        add_logs = StockLog.query.filter(
+            StockLog.raw_material_id == material_id,
+            StockLog.supplier_id == supplier_id,
+            StockLog.action_type == 'add',
+            StockLog.timestamp > (last_set.timestamp if last_set else datetime.min)
+        ).all()
+
+        for log in add_logs:
+            stock += log.quantity
 
     # Note: Supplier-specific stock consumption is now tracked in production logs
     # via the deduct_material_stock function which records which suppliers were used.
@@ -533,6 +562,14 @@ def calculate_supplier_stock(material_id, supplier_id):
     # historical production to avoid circular dependencies.
 
     return max(0, stock)  # Ensure non-negative
+
+
+def calculate_sku_stock(material_id, supplier_id, sku):
+    """
+    Calculate current stock for a specific SKU variant.
+    This is a convenience wrapper around calculate_supplier_stock with explicit SKU.
+    """
+    return calculate_supplier_stock(material_id, supplier_id, sku=sku)
 
 def calculate_total_material_stock(material_id):
     """

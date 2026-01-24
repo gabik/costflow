@@ -14,6 +14,7 @@ class StockLog(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=True)  # Unified field for products/premakes
     packaging_id = db.Column(db.Integer, db.ForeignKey('packaging.id'), nullable=True)  # For packaging stock tracking
     supplier_id = db.Column(db.Integer, db.ForeignKey('supplier.id'), nullable=True)  # Track supplier for raw materials
+    sku = db.Column(db.String(100), nullable=True)  # Track SKU for multi-variant stock per supplier
     action_type = db.Column(db.String(10), nullable=False)  # 'add' or 'set'
     quantity = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
@@ -30,6 +31,7 @@ class StockLog(db.Model):
             'product_id': self.product_id,
             'packaging_id': self.packaging_id,
             'supplier_id': self.supplier_id,
+            'sku': self.sku,
             'action_type': self.action_type,
             'quantity': self.quantity,
             'timestamp': self.timestamp.isoformat() if self.timestamp else None
@@ -531,13 +533,14 @@ class RawMaterialSupplier(db.Model):
     raw_material_id = db.Column(db.Integer, db.ForeignKey('raw_material.id'), nullable=False)
     supplier_id = db.Column(db.Integer, db.ForeignKey('supplier.id'), nullable=False)
     cost_per_unit = db.Column(db.Float, nullable=False)
-    is_primary = db.Column(db.Boolean, default=False)  # Mark primary supplier
+    is_primary = db.Column(db.Boolean, default=False)  # Mark primary supplier/SKU variant
     sku = db.Column(db.String(100), nullable=True)  # SKU for supplier-specific product identification
 
     raw_material = db.relationship('RawMaterial', backref='supplier_links')
     supplier = db.relationship('Supplier', backref='material_links')
 
-    __table_args__ = (db.UniqueConstraint('raw_material_id', 'supplier_id'),)
+    # Allow multiple SKUs per supplier for the same material (e.g., Rice 1kg, Rice 5kg)
+    __table_args__ = (db.UniqueConstraint('raw_material_id', 'supplier_id', 'sku'),)
 
     def to_dict(self):
         return {
@@ -555,13 +558,14 @@ class PackagingSupplier(db.Model):
     packaging_id = db.Column(db.Integer, db.ForeignKey('packaging.id'), nullable=False)
     supplier_id = db.Column(db.Integer, db.ForeignKey('supplier.id'), nullable=False)
     price_per_package = db.Column(db.Float, nullable=False)
-    is_primary = db.Column(db.Boolean, default=False)  # Mark primary supplier
+    is_primary = db.Column(db.Boolean, default=False)  # Mark primary supplier/SKU variant
     sku = db.Column(db.String(100), nullable=True)  # SKU for supplier-specific product identification
 
     packaging = db.relationship('Packaging', backref='supplier_links')
     supplier = db.relationship('Supplier', backref='packaging_links')
 
-    __table_args__ = (db.UniqueConstraint('packaging_id', 'supplier_id'),)
+    # Allow multiple SKUs per supplier for the same packaging (e.g., Box 10pk, Box 50pk)
+    __table_args__ = (db.UniqueConstraint('packaging_id', 'supplier_id', 'sku'),)
 
     def to_dict(self):
         return {
