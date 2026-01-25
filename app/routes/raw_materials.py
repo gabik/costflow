@@ -1,7 +1,8 @@
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify, flash
+from sqlalchemy.orm import joinedload, subqueryload
 from ..models import db, RawMaterial, RawMaterialAlternativeName, StockLog, ProductComponent, StockAudit, Category, Product, ProductionLog, Supplier, RawMaterialSupplier
-from .utils import log_audit, get_or_create_general_category, units_list, calculate_supplier_stock, calculate_total_material_stock
+from .utils import log_audit, get_or_create_general_category, units_list, calculate_supplier_stock, calculate_total_material_stock, apply_supplier_discount
 
 raw_materials_blueprint = Blueprint('raw_materials', __name__)
 
@@ -23,58 +24,131 @@ def validate_alternative_name_uniqueness(name, exclude_material_id=None):
         return False, existing.raw_material.name
     return True, None
 
+def calculate_all_material_stocks(material_ids):
+    """
+    Bulk calculate stock for all materials in 2 queries instead of O(N×M).
+    Returns: {material_id: {'total': X, 'suppliers': {supplier_id: stock}}}
+    """
+    if not material_ids:
+        return {}
+
+    # Query 1: Get all 'set' logs for these materials (ordered by timestamp desc)
+    all_set_logs = StockLog.query.filter(
+        StockLog.raw_material_id.in_(material_ids),
+        StockLog.action_type == 'set'
+    ).order_by(StockLog.timestamp.desc()).all()
+
+    # Query 2: Get all 'add' logs for these materials
+    all_add_logs = StockLog.query.filter(
+        StockLog.raw_material_id.in_(material_ids),
+        StockLog.action_type == 'add'
+    ).all()
+
+    # Build lookup: (material_id, supplier_id) -> last_set_log (most recent)
+    last_sets = {}
+    for log in all_set_logs:
+        key = (log.raw_material_id, log.supplier_id)
+        if key not in last_sets:  # Keep only the most recent (first due to desc order)
+            last_sets[key] = log
+
+    # Build result structure
+    result = {mid: {'total': 0, 'suppliers': {}} for mid in material_ids}
+
+    # Process set logs - initialize stock from last set
+    for key, log in last_sets.items():
+        material_id, supplier_id = key
+        if material_id in result:
+            result[material_id]['suppliers'][supplier_id] = {
+                'stock': log.quantity,
+                'last_set_time': log.timestamp
+            }
+
+    # Process add logs (only those after corresponding set)
+    for log in all_add_logs:
+        material_id = log.raw_material_id
+        supplier_id = log.supplier_id
+        if material_id not in result:
+            continue
+
+        key = (material_id, supplier_id)
+        if key in last_sets:
+            last_set_time = last_sets[key].timestamp
+            if log.timestamp > last_set_time:
+                if supplier_id in result[material_id]['suppliers']:
+                    result[material_id]['suppliers'][supplier_id]['stock'] += log.quantity
+        else:
+            # No set log for this supplier - add creates initial stock
+            if supplier_id not in result[material_id]['suppliers']:
+                result[material_id]['suppliers'][supplier_id] = {'stock': 0, 'last_set_time': datetime.min}
+            result[material_id]['suppliers'][supplier_id]['stock'] += log.quantity
+
+    # Calculate totals and ensure non-negative values
+    for material_id in result:
+        total = sum(s['stock'] for s in result[material_id]['suppliers'].values())
+        result[material_id]['total'] = max(0, total)
+        # Ensure non-negative per-supplier
+        for sid in result[material_id]['suppliers']:
+            result[material_id]['suppliers'][sid]['stock'] = max(0, result[material_id]['suppliers'][sid]['stock'])
+
+    return result
+
 # ----------------------------
 # Raw Materials Management
 # ----------------------------
 @raw_materials_blueprint.route('/raw_materials')
 def raw_materials():
-    materials = RawMaterial.query.filter_by(is_deleted=False).all()
+    # Single query with eager loading - eliminates N+1 queries
+    materials = RawMaterial.query.filter_by(is_deleted=False).options(
+        joinedload(RawMaterial.category),
+        subqueryload(RawMaterial.supplier_links).joinedload(RawMaterialSupplier.supplier)
+    ).all()
+
+    # Bulk calculate stock for all non-unlimited materials (2 queries total)
+    material_ids = [m.id for m in materials if not m.is_unlimited]
+    stock_data = calculate_all_material_stocks(material_ids)
 
     for material in materials:
-        # Use the function that sums all supplier stocks
-        material.current_stock = calculate_total_material_stock(material.id)
-
-        # Skip supplier processing for unlimited materials
+        # Handle unlimited materials
         if material.is_unlimited:
+            material.current_stock = float('inf')
             material.supplier_count = 0
             material.stock_breakdown = []
             material.primary_supplier = None
             continue
 
-        # Get supplier information for this material
-        supplier_links = RawMaterialSupplier.query.filter_by(raw_material_id=material.id).all()
+        # Get pre-calculated stock data
+        mat_stock = stock_data.get(material.id, {'total': 0, 'suppliers': {}})
+        material.current_stock = mat_stock['total']
+
+        # Supplier info already eager-loaded
+        supplier_links = material.supplier_links
         material.supplier_count = len(supplier_links)
 
-        # Get per-supplier stock breakdown
+        # Build stock breakdown from pre-fetched data
         stock_breakdown = []
+        primary_supplier = None
+
         for link in supplier_links:
-            stock = calculate_supplier_stock(material.id, link.supplier_id)
-            # Calculate discounted price
-            from .utils import apply_supplier_discount
+            supplier_stock = mat_stock['suppliers'].get(link.supplier_id, {}).get('stock', 0)
             discounted_price = apply_supplier_discount(link.cost_per_unit, link.supplier)
 
-            # Include all suppliers (even with 0 stock)
             stock_breakdown.append({
                 'supplier_name': link.supplier.name,
-                'stock': stock,
+                'stock': supplier_stock,
                 'is_primary': link.is_primary,
                 'cost_per_unit': link.cost_per_unit,
                 'discounted_cost_per_unit': discounted_price,
                 'discount_percentage': link.supplier.discount_percentage
             })
 
+            if link.is_primary:
+                primary_supplier = link.supplier
+
         # Sort by primary first, then by stock amount
         stock_breakdown.sort(key=lambda x: (-x['is_primary'], -x['stock']))
         material.stock_breakdown = stock_breakdown
 
-        # Get primary supplier or first supplier
-        primary_supplier = None
-        for link in supplier_links:
-            if link.is_primary:
-                primary_supplier = link.supplier
-                break
-
-        # If no primary, get the first supplier
+        # Fallback to first supplier if no primary
         if not primary_supplier and supplier_links:
             primary_supplier = supplier_links[0].supplier
 
