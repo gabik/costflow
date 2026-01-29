@@ -182,6 +182,7 @@ def add_raw_material():
         supplier_ids = request.form.getlist('supplier_ids[]')
         supplier_costs = request.form.getlist('supplier_costs[]')
         supplier_skus = request.form.getlist('supplier_skus[]')
+        supplier_upps = request.form.getlist('supplier_upps[]')
         primary_supplier_value = request.form.get('primary_supplier')
 
         # Get alternative names
@@ -219,12 +220,21 @@ def add_raw_material():
                     # Get SKU for this supplier (if provided)
                     supplier_sku = supplier_skus[i] if i < len(supplier_skus) and supplier_skus[i] else None
 
+                    # Get units_per_package for this supplier (default to 1)
+                    try:
+                        supplier_upp = float(supplier_upps[i]) if i < len(supplier_upps) and supplier_upps[i] else 1.0
+                        if supplier_upp <= 0:
+                            supplier_upp = 1.0
+                    except (ValueError, TypeError, IndexError):
+                        supplier_upp = 1.0
+
                     supplier_link = RawMaterialSupplier(
                         raw_material_id=new_material.id,
                         supplier_id=int(supplier_id),
                         cost_per_unit=supplier_cost,
                         is_primary=is_primary,
-                        sku=supplier_sku
+                        sku=supplier_sku,
+                        units_per_package=supplier_upp
                     )
                     db.session.add(supplier_link)
 
@@ -437,6 +447,7 @@ def edit_raw_material(material_id):
         supplier_ids = request.form.getlist('supplier_ids[]')
         supplier_costs = request.form.getlist('supplier_costs[]')
         supplier_skus = request.form.getlist('supplier_skus[]')
+        supplier_upps = request.form.getlist('supplier_upps[]')
         primary_supplier_value = request.form.get('primary_supplier')
 
         # Add new supplier links
@@ -456,12 +467,21 @@ def edit_raw_material(material_id):
                 # Get SKU for this supplier (if provided)
                 supplier_sku = supplier_skus[i] if i < len(supplier_skus) and supplier_skus[i] else None
 
+                # Get units_per_package for this supplier (default to 1)
+                try:
+                    supplier_upp = float(supplier_upps[i]) if i < len(supplier_upps) and supplier_upps[i] else 1.0
+                    if supplier_upp <= 0:
+                        supplier_upp = 1.0
+                except (ValueError, TypeError, IndexError):
+                    supplier_upp = 1.0
+
                 supplier_link = RawMaterialSupplier(
                     raw_material_id=material.id,
                     supplier_id=int(supplier_id),
                     cost_per_unit=supplier_cost,
                     is_primary=is_primary,
-                    sku=supplier_sku
+                    sku=supplier_sku,
+                    units_per_package=supplier_upp
                 )
                 db.session.add(supplier_link)
 

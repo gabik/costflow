@@ -147,17 +147,19 @@
                         <!-- Column headers -->
                         <div class="row g-2 mb-2 fw-bold text-muted small">
                             {% if material %}
-                            <div class="col-3">{{ _('Supplier') }}</div>
+                            <div class="col-2">{{ _('Supplier') }}</div>
                             <div class="col-2">{{ _('SKU') }}</div>
                             <div class="col-2">{{ _('Price per Unit') }}</div>
+                            <div class="col-1">{{ _('Units/Pkg') }}</div>
                             <div class="col-2">{{ _('Current Stock') }}</div>
                             <div class="col-2 text-center">{{ _('Primary Supplier') }}</div>
                             <div class="col-1"></div>
                             {% else %}
-                            <div class="col-4">{{ _('Supplier') }}</div>
-                            <div class="col-3">{{ _('SKU') }}</div>
-                            <div class="col-3">{{ _('Price per Unit') }}</div>
-                            <div class="col-1 text-center">{{ _('Primary Supplier') }}</div>
+                            <div class="col-3">{{ _('Supplier') }}</div>
+                            <div class="col-2">{{ _('SKU') }}</div>
+                            <div class="col-2">{{ _('Price per Unit') }}</div>
+                            <div class="col-2">{{ _('Units/Pkg') }}</div>
+                            <div class="col-2 text-center">{{ _('Primary Supplier') }}</div>
                             <div class="col-1"></div>
                             {% endif %}
                         </div>
@@ -319,7 +321,7 @@
 <template id="supplierRowTemplate">
     <div class="supplier-row border rounded p-2 mb-2">
         <div class="row g-2 align-items-center">
-            <div class="col-4 supplier-col">
+            <div class="col-3 supplier-col">
                 <select class="form-select supplier-select" name="supplier_ids[]">
                     <option value="">{{ _('Select supplier...') }}</option>
                     {% for supplier in suppliers %}
@@ -327,18 +329,22 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-3 sku-col">
+            <div class="col-2 sku-col">
                 <input type="text" class="form-control supplier-sku" name="supplier_skus[]"
                        placeholder="{{ _('Optional SKU') }}">
             </div>
-            <div class="col-3 cost-col">
+            <div class="col-2 cost-col">
                 <div class="input-group">
                     <span class="input-group-text">₪</span>
                     <input type="number" class="form-control supplier-cost" name="supplier_costs[]"
                            placeholder="0.00" step="0.01">
                 </div>
             </div>
-            <div class="col-1 text-center primary-col">
+            <div class="col-2 upp-col">
+                <input type="number" class="form-control supplier-upp" name="supplier_upps[]"
+                       placeholder="1" step="0.01" min="0.01" value="1">
+            </div>
+            <div class="col-2 text-center primary-col">
                 <input type="radio" class="form-check-input primary-radio"
                        name="primary_supplier" style="scale: 1.2;">
             </div>
@@ -381,7 +387,7 @@
         {% endfor %}
     {% endif %}
 
-    function addSupplierRow(supplierId = '', sku = '', cost = '', isPrimary = false, currentStock = null, isExisting = false, discountedCost = null, discountPercentage = null) {
+    function addSupplierRow(supplierId = '', sku = '', cost = '', isPrimary = false, currentStock = null, isExisting = false, discountedCost = null, discountPercentage = null, unitsPerPackage = 1) {
         const template = document.getElementById('supplierRowTemplate');
         const container = document.getElementById('suppliersContainer');
         const clone = template.content.cloneNode(true);
@@ -406,6 +412,9 @@
         if (cost) {
             clone.querySelector('.supplier-cost').value = cost;
         }
+        if (unitsPerPackage) {
+            clone.querySelector('.supplier-upp').value = unitsPerPackage;
+        }
         if (isPrimary) {
             radio.checked = true;
         }
@@ -414,10 +423,11 @@
 
         // If this is an existing supplier, we need to adjust the layout to show stock and discount
         if (isExisting) {
-            // Adjust column sizes to match header: 3-2-2-2-2-1 = 12 columns
-            row.querySelector('.supplier-col').className = 'col-3 supplier-col';
+            // Adjust column sizes to match header: 2-2-2-1-2-2-1 = 12 columns
+            row.querySelector('.supplier-col').className = 'col-2 supplier-col';
             row.querySelector('.sku-col').className = 'col-2 sku-col';
             row.querySelector('.cost-col').className = 'col-2 cost-col';
+            row.querySelector('.upp-col').className = 'col-1 upp-col';
             row.querySelector('.primary-col').className = 'col-2 text-center primary-col';
             row.querySelector('.delete-col').className = 'col-1 text-end delete-col';
 
@@ -712,7 +722,8 @@
                 {{ link.current_stock if link.current_stock is defined else 'null' }},
                 true,  // isExisting = true
                 {{ link.discounted_cost if link.discounted_cost is defined else 'null' }},  // discountedCost
-                {{ link.discount_percentage if link.discount_percentage is defined else 'null' }}  // discountPercentage
+                {{ link.discount_percentage if link.discount_percentage is defined else 'null' }},  // discountPercentage
+                {{ link.units_per_package if link.units_per_package is defined else 1 }}  // unitsPerPackage
             );
             {% endfor %}
         {% else %}
