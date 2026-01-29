@@ -5340,3 +5340,39 @@ msgstr "פחת לפי קטגוריה"
 #~ msgid "Column names are flexible - multiple variations accepted"
 #~ msgstr ""
 
+#: templates/upload_inventory.html
+msgid "Units/Pkg"
+msgstr "יח'/אריזה"
+
+#: templates/upload_inventory.html
+msgid "Units/Pkg multiplies quantity (e.g., 3 boxes × 22.8 kg/box = 68.4 kg)"
+msgstr "יח'/אריזה מכפיל את הכמות (למשל, 3 קרטונים × 22.8 ק\"ג/קרטון = 68.4 ק\"ג)"
+
+#: templates/upload_inventory.html
+msgid "Units/Pkg Mismatch"
+msgstr "אי התאמה ביח'/אריזה"
+
+#: templates/upload_inventory.html
+msgid "Units/Pkg differs from system"
+msgstr "יח'/אריזה שונה מהמערכת"
+
+#: templates/upload_inventory.html
+msgid "Update system"
+msgstr "עדכן במערכת"
+
+#: templates/upload_inventory.html
+msgid "Use file (once)"
+msgstr "השתמש בקובץ (פעם אחת)"
+
+#: templates/upload_inventory.html
+msgid "Use system"
+msgstr "השתמש במערכת"
+
+#: templates/upload_inventory.html
+msgid "File"
+msgstr "קובץ"
+
+#: templates/upload_inventory.html
+msgid "System"
+msgstr "מערכת"
+

@@ -585,3 +585,57 @@ def migrate_multi_sku_support():
             'message': str(e),
             'details': results
         }), 500
+
+
+@admin_blueprint.route('/migrate_units_per_package')
+def migrate_units_per_package():
+    """
+    Migration: Add units_per_package column to RawMaterialSupplier.
+
+    This enables tracking how many units of material are in each package
+    (e.g., a box contains 22.8 kg). Used for inventory import calculations.
+    """
+    results = []
+
+    try:
+        # Check database type
+        is_postgres = 'postgresql' in str(db.engine.url)
+
+        # Add units_per_package column to raw_material_supplier
+        try:
+            if is_postgres:
+                db.session.execute(text(
+                    "ALTER TABLE raw_material_supplier ADD COLUMN IF NOT EXISTS units_per_package FLOAT DEFAULT 1.0 NOT NULL"
+                ))
+            else:
+                # SQLite - check if column exists first
+                result = db.session.execute(text("PRAGMA table_info(raw_material_supplier)"))
+                columns = [row[1] for row in result.fetchall()]
+                if 'units_per_package' not in columns:
+                    db.session.execute(text(
+                        "ALTER TABLE raw_material_supplier ADD COLUMN units_per_package FLOAT DEFAULT 1.0 NOT NULL"
+                    ))
+            results.append(_("Added 'units_per_package' column to raw_material_supplier table"))
+        except Exception as e:
+            if 'already exists' in str(e).lower() or 'duplicate column' in str(e).lower():
+                results.append(_("Column 'units_per_package' already exists"))
+            else:
+                raise
+
+        db.session.commit()
+
+        log_audit("MIGRATION", "System", details="Units per package migration completed")
+
+        return jsonify({
+            'status': 'success',
+            'message': _('Units per package migration completed'),
+            'details': results
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'status': 'error',
+            'message': str(e),
+            'details': results
+        }), 500

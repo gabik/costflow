@@ -535,6 +535,7 @@ class RawMaterialSupplier(db.Model):
     cost_per_unit = db.Column(db.Float, nullable=False)
     is_primary = db.Column(db.Boolean, default=False)  # Mark primary supplier/SKU variant
     sku = db.Column(db.String(100), nullable=True)  # SKU for supplier-specific product identification
+    units_per_package = db.Column(db.Float, default=1.0, nullable=False)  # Units of material per package (e.g., 22.8 kg per box)
 
     raw_material = db.relationship('RawMaterial', backref='supplier_links')
     supplier = db.relationship('Supplier', backref='material_links')
@@ -550,7 +551,8 @@ class RawMaterialSupplier(db.Model):
             'supplier_name': self.supplier.name if self.supplier else None,
             'cost_per_unit': self.cost_per_unit,
             'is_primary': self.is_primary,
-            'sku': self.sku
+            'sku': self.sku,
+            'units_per_package': self.units_per_package
         }
 
 class PackagingSupplier(db.Model):

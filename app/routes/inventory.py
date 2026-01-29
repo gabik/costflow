@@ -45,12 +45,13 @@ def process_inventory_dataframe(df):
     A (0): Material name
     B (1): SKU
     C (2): Supplier name
-    E (4): Quantity
+    E (4): Quantity (in packages)
     F (5): Price per unit
     J (9): Date
+    K (10): Units per package (e.g., 22.8 kg per box)
     """
     # Use column positions instead of names
-    # Column indices: A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7, I=8, J=9
+    # Column indices: A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7, I=8, J=9, K=10
     columns = df.columns.tolist()
 
     # Check we have enough columns
@@ -64,6 +65,7 @@ def process_inventory_dataframe(df):
     col_qty = columns[4] if len(columns) > 4 else None      # E - Quantity
     col_price = columns[5] if len(columns) > 5 else None    # F - Price
     col_date = columns[9] if len(columns) > 9 else None     # J - Date
+    col_units_per_pkg = columns[10] if len(columns) > 10 else None  # K - Units per package
 
     # Check for required columns
     if col_qty is None or col_price is None:
@@ -99,6 +101,16 @@ def process_inventory_dataframe(df):
         # Get optional SKU and supplier
         sku = str(row[col_sku]).strip() if col_sku and not pd.isna(row.get(col_sku)) else None
         supplier_name = str(row[col_supplier]).strip() if col_supplier and not pd.isna(row.get(col_supplier)) else None
+
+        # Get units per package from row (optional, default 1)
+        units_per_package_file = 1.0
+        if col_units_per_pkg and not pd.isna(row.get(col_units_per_pkg)):
+            try:
+                units_per_package_file = float(row[col_units_per_pkg])
+                if units_per_package_file <= 0:
+                    units_per_package_file = 1.0  # Invalid value, default to 1
+            except (ValueError, TypeError):
+                units_per_package_file = 1.0
 
         # Get date from row (optional)
         row_date = None
@@ -221,6 +233,22 @@ def process_inventory_dataframe(df):
             if supplier_name and not supplier:
                 status_flags.append('new_supplier')
 
+        # Get system units_per_package (from supplier link if exists)
+        units_per_package_system = 1.0
+        if supplier_link:
+            units_per_package_system = supplier_link.units_per_package or 1.0
+
+        # Check for units_per_package mismatch
+        # Only flag mismatch if: file has a value, system has a value (supplier_link exists),
+        # and they differ significantly
+        units_per_package_mismatch = False
+        if supplier_link and units_per_package_file != 1.0 and abs(units_per_package_system - units_per_package_file) > 0.001:
+            units_per_package_mismatch = True
+            status_flags.append('units_per_package_mismatch')
+
+        # Calculate actual quantity to add (packages × units per package)
+        calculated_quantity = quantity * units_per_package_file
+
         review_data.append({
             'name': name,
             'system_name': system_name,  # Name in system if different
@@ -236,7 +264,11 @@ def process_inventory_dataframe(df):
             'current_price': current_price,
             'matched_by': matched_by,
             'row_date': row_date,  # Date from row (may be None)
-            'unit': material.unit if material else None  # Unit from existing material
+            'unit': material.unit if material else None,  # Unit from existing material
+            'units_per_package_file': units_per_package_file,
+            'units_per_package_system': units_per_package_system,
+            'units_per_package_mismatch': units_per_package_mismatch,
+            'calculated_quantity': calculated_quantity
         })
 
     return review_data, skipped_rows, None
@@ -450,7 +482,29 @@ def confirm_inventory_upload():
             # Get unit from form (for new materials)
             unit = item.get('unit', 'kg')
 
-            current_app.logger.info(f"Processing: {name}, status={status}, flags={status_flags}, material_id={material_id}, date={inventory_timestamp}")
+            # Parse units_per_package data
+            try:
+                units_per_package_file = float(item.get('units_per_package_file', 1))
+            except (ValueError, TypeError):
+                units_per_package_file = 1.0
+            try:
+                units_per_package_system = float(item.get('units_per_package_system', 1))
+            except (ValueError, TypeError):
+                units_per_package_system = 1.0
+            units_per_package_action = item.get('units_per_package_action', 'use_file')
+
+            # Determine effective units_per_package based on action
+            if units_per_package_action == 'update_system':
+                effective_upp = units_per_package_file
+            elif units_per_package_action == 'use_system':
+                effective_upp = units_per_package_system
+            else:  # 'use_file' or default
+                effective_upp = units_per_package_file
+
+            # Calculate final quantity (file quantity × units per package)
+            final_quantity = quantity * effective_upp
+
+            current_app.logger.info(f"Processing: {name}, status={status}, flags={status_flags}, material_id={material_id}, date={inventory_timestamp}, upp_file={units_per_package_file}, upp_system={units_per_package_system}, action={units_per_package_action}, final_qty={final_quantity}")
 
             # Step 1: Create new supplier if needed
             supplier = None
@@ -504,16 +558,20 @@ def confirm_inventory_upload():
                     db.session.add(new_link)
                     stats['added_supplier_links'] += 1
 
-                # Create initial stock log
+                # Update units_per_package on new supplier link if action is 'update_system'
+                if units_per_package_action == 'update_system' and units_per_package_file != 1.0:
+                    new_link.units_per_package = units_per_package_file
+
+                # Create initial stock log (using final_quantity which accounts for units_per_package)
                 log = StockLog(
                     raw_material_id=material.id,
                     supplier_id=supplier.id if supplier else None,
                     action_type='set',
-                    quantity=quantity,
+                    quantity=final_quantity,
                     timestamp=inventory_timestamp
                 )
                 db.session.add(log)
-                current_app.logger.info(f"NEW MATERIAL StockLog: material_id={material.id}, qty={quantity}, action='set'")
+                current_app.logger.info(f"NEW MATERIAL StockLog: material_id={material.id}, qty={final_quantity} (file_qty={quantity} × upp={effective_upp}), action='set'")
 
             elif material:
                 # Update existing material
@@ -581,16 +639,21 @@ def confirm_inventory_upload():
                             material.supplier_links[0].cost_per_unit = new_price
                     stats['price_updates'] += 1
 
-                # Step 6: Create stock log
+                # Step 5b: Update units_per_package if action is 'update_system'
+                if supplier_link and units_per_package_action == 'update_system' and units_per_package_file != 1.0:
+                    supplier_link.units_per_package = units_per_package_file
+                    current_app.logger.info(f"Updated units_per_package for {name} to {units_per_package_file}")
+
+                # Step 6: Create stock log (using final_quantity which accounts for units_per_package)
                 log = StockLog(
                     raw_material_id=material.id,
                     supplier_id=supplier.id if supplier else None,
                     action_type='add',
-                    quantity=quantity,
+                    quantity=final_quantity,
                     timestamp=inventory_timestamp
                 )
                 db.session.add(log)
-                current_app.logger.info(f"EXISTING MATERIAL StockLog: material_id={material.id}, qty={quantity}, action='add', supplier_id={supplier.id if supplier else None}")
+                current_app.logger.info(f"EXISTING MATERIAL StockLog: material_id={material.id}, qty={final_quantity} (file_qty={quantity} × upp={effective_upp}), action='add', supplier_id={supplier.id if supplier else None}")
 
             else:
                 # Neither new nor existing material found - this shouldn't happen
