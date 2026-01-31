@@ -5376,3 +5376,43 @@ msgstr "קובץ"
 msgid "System"
 msgstr "מערכת"
 
+#: templates/upload_inventory.html
+msgid "Invalid Units/Pkg value (must be > 0)"
+msgstr "ערך יח'/אריזה לא תקין (חייב להיות > 0)"
+
+#: templates/upload_inventory.html
+msgid "Invalid Units/Pkg"
+msgstr "יח'/אריזה לא תקין"
+
+#: templates/upload_inventory.html
+msgid "Units/Pkg found but no supplier - will use for this import only"
+msgstr "יח'/אריזה נמצא אך ללא ספק - ישמש לייבוא זה בלבד"
+
+#: templates/upload_inventory.html
+msgid "Units/Pkg not saved"
+msgstr "יח'/אריזה לא נשמר"
+
+#: templates/upload_inventory.html
+msgid "Units/Pkg will be saved to new supplier link"
+msgstr "יח'/אריזה יישמר לקישור ספק חדש"
+
+#: templates/upload_inventory.html
+msgid "Set Units/Pkg"
+msgstr "הגדר יח'/אריזה"
+
+#: templates/upload_inventory.html
+msgid "Unit in file differs from system"
+msgstr "יחידה בקובץ שונה מהמערכת"
+
+#: templates/upload_inventory.html
+msgid "Unit Mismatch"
+msgstr "אי התאמה ביחידה"
+
+#: templates/upload_inventory.html
+msgid "Keep system"
+msgstr "שמור מערכת"
+
+#: templates/upload_inventory.html
+msgid "Unit"
+msgstr "יחידה"
+

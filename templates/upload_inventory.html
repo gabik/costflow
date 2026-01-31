@@ -91,6 +91,11 @@
                     </tr>
                     <tr>
                         <td><code class="text-secondary fw-bold">K</code></td>
+                        <td>{{ _('Unit') }} <span class="badge bg-secondary">{{ _('Optional') }}</span></td>
+                        <td class="text-muted small">ק״ג / ליטר</td>
+                    </tr>
+                    <tr>
+                        <td><code class="text-secondary fw-bold">L</code></td>
                         <td>{{ _('Units/Pkg') }} <span class="badge bg-secondary">{{ _('Optional') }}</span></td>
                         <td class="text-muted small">22.8</td>
                     </tr>
@@ -181,8 +186,10 @@
                                 {% endif %}
                                 <input type="hidden" name="items[{{ loop.index0 }}][supplier_exists]" value="{{ 'true' if item.supplier_exists else 'false' }}">
                                 <input type="hidden" name="items[{{ loop.index0 }}][row_date]" value="{{ item.row_date or '' }}">
-                                <input type="hidden" name="items[{{ loop.index0 }}][units_per_package_file]" value="{{ item.units_per_package_file or 1 }}">
-                                <input type="hidden" name="items[{{ loop.index0 }}][units_per_package_system]" value="{{ item.units_per_package_system or 1 }}">
+                                <input type="hidden" name="items[{{ loop.index0 }}][units_per_package_file]" value="{{ item.units_per_package_file if item.units_per_package_file is not none else '' }}">
+                                <input type="hidden" name="items[{{ loop.index0 }}][units_per_package_system]" value="{{ item.units_per_package_system if item.units_per_package_system is not none else '' }}">
+                                <input type="hidden" name="items[{{ loop.index0 }}][effective_upp]" value="{{ item.effective_upp or 1 }}">
+                                <input type="hidden" name="items[{{ loop.index0 }}][file_unit]" value="{{ item.file_unit or '' }}">
                                 <strong>{{ item.name }}</strong>
                                 {% if item.system_name and item.system_name != item.name %}
                                 <div class="small text-warning mt-1">
@@ -243,15 +250,44 @@
                                             <i class="bi bi-box-seam me-1"></i>{{ _('Units/Pkg Mismatch') }}
                                         </span>
                                     {% endif %}
+                                    {% if 'units_per_package_invalid' in item.status_flags %}
+                                        <span class="badge bg-danger d-block mt-1" title="{{ _('Invalid Units/Pkg value (must be > 0)') }}">
+                                            <i class="bi bi-exclamation-circle me-1"></i>{{ _('Invalid Units/Pkg') }}
+                                        </span>
+                                    {% endif %}
+                                    {% if 'units_per_package_no_supplier' in item.status_flags %}
+                                        <span class="badge bg-secondary d-block mt-1" title="{{ _('Units/Pkg found but no supplier - will use for this import only') }}">
+                                            <i class="bi bi-info-circle me-1"></i>{{ _('Units/Pkg not saved') }}
+                                        </span>
+                                    {% endif %}
+                                    {% if 'units_per_package_new_supplier' in item.status_flags %}
+                                        <span class="badge bg-info d-block mt-1" title="{{ _('Units/Pkg will be saved to new supplier link') }}">
+                                            <i class="bi bi-box-seam me-1"></i>{{ _('Set Units/Pkg') }}: {{ item.units_per_package_file }}
+                                        </span>
+                                    {% endif %}
+                                    {% if 'unit_mismatch' in item.status_flags %}
+                                        <span class="badge bg-warning text-dark d-block mt-1" title="{{ _('Unit in file differs from system') }}">
+                                            <i class="bi bi-rulers me-1"></i>{{ _('Unit Mismatch') }}
+                                        </span>
+                                    {% endif %}
                                 {% endif %}
                             </td>
                             <td>
-                                {% if item.units_per_package_file and item.units_per_package_file != 1 %}
-                                    <span class="text-muted">{{ item.quantity }} × {{ item.units_per_package_file }} =</span>
-                                    <strong class="text-success">+{{ item.calculated_quantity }}</strong>
-                                {% else %}
-                                    +{{ item.quantity }}
+                                {% if item.effective_upp and item.effective_upp != 1 %}
+                                    <div class="small text-muted mb-1">
+                                        {{ item.quantity }} × {{ item.effective_upp }} =
+                                    </div>
                                 {% endif %}
+                                <div class="input-group input-group-sm" style="width: 120px;">
+                                    <span class="input-group-text">+</span>
+                                    <input type="number"
+                                           class="form-control calculated-qty-input"
+                                           name="items[{{ loop.index0 }}][calculated_quantity]"
+                                           value="{{ item.calculated_quantity }}"
+                                           step="0.01"
+                                           min="0"
+                                           data-original="{{ item.calculated_quantity }}">
+                                </div>
                             </td>
                             <td>
                                 {% if item.unit %}
@@ -320,6 +356,25 @@
                                 </div>
                                 {% else %}
                                 <input type="hidden" name="items[{{ loop.index0 }}][units_per_package_action]" value="use_file">
+                                {% endif %}
+
+                                {% if 'unit_mismatch' in (item.status_flags or []) %}
+                                <div class="mt-2 p-2 rounded" style="background-color: #fff3cd;">
+                                    <small class="d-block mb-1 fw-bold text-warning">
+                                        <i class="bi bi-rulers me-1"></i>{{ _('Unit Mismatch') }}:
+                                        {{ _('File') }}: {{ item.file_unit }} |
+                                        {{ _('System') }}: {{ item.unit }}
+                                    </small>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <input type="radio" class="btn-check" name="items[{{ loop.index0 }}][unit_action]" id="unit_update_{{ loop.index0 }}" value="update_system">
+                                        <label class="btn btn-outline-warning btn-sm" for="unit_update_{{ loop.index0 }}">{{ _('Update system') }}</label>
+
+                                        <input type="radio" class="btn-check" name="items[{{ loop.index0 }}][unit_action]" id="unit_keep_{{ loop.index0 }}" value="keep_system" checked>
+                                        <label class="btn btn-outline-secondary btn-sm" for="unit_keep_{{ loop.index0 }}">{{ _('Keep system') }}</label>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <input type="hidden" name="items[{{ loop.index0 }}][unit_action]" value="keep_system">
                                 {% endif %}
                             </td>
                         </tr>
