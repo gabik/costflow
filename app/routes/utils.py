@@ -4,6 +4,69 @@ from ..models import db, Category, AuditLog, StockLog, ProductionLog, Product
 # Predefined units for raw materials
 units_list = ["kg", "g", "L", "ml", "piece", "unit"]
 
+# Unit normalization mapping (Hebrew/variants → standard)
+UNIT_ALIASES = {
+    # Kilograms
+    'ק"ג': 'kg',
+    'ק״ג': 'kg',
+    'קג': 'kg',
+    'קילו': 'kg',
+    'קילוגרם': 'kg',
+    'kilogram': 'kg',
+    'kilograms': 'kg',
+    'kg': 'kg',
+
+    # Grams
+    'גרם': 'g',
+    "ג'": 'g',
+    'גר': 'g',
+    'gram': 'g',
+    'grams': 'g',
+    'g': 'g',
+
+    # Liters
+    'ליטר': 'L',
+    'ל': 'L',
+    'liter': 'L',
+    'liters': 'L',
+    'litre': 'L',
+    'L': 'L',
+    'l': 'L',
+
+    # Milliliters
+    'מ"ל': 'ml',
+    'מ״ל': 'ml',
+    'מל': 'ml',
+    'milliliter': 'ml',
+    'ml': 'ml',
+
+    # Pieces/Units
+    'יחידה': 'piece',
+    'יח': 'piece',
+    "יח'": 'piece',
+    'piece': 'piece',
+    'pieces': 'piece',
+    'unit': 'unit',
+    'units': 'unit',
+}
+
+
+def normalize_unit(unit_str):
+    """Convert unit string to standard system unit."""
+    if not unit_str:
+        return None
+    cleaned = unit_str.strip()
+    # Try exact match first
+    if cleaned in UNIT_ALIASES:
+        return UNIT_ALIASES[cleaned]
+    # Try case-insensitive match
+    cleaned_lower = cleaned.lower()
+    for alias, standard in UNIT_ALIASES.items():
+        if cleaned_lower == alias.lower():
+            return standard
+    return unit_str  # Return original if no match
+
+
 def hours_to_time_str(hours):
     """Convert decimal hours to HH:MM format string"""
     if hours is None:

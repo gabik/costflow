@@ -5,7 +5,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_babel import gettext as _
 import pandas as pd
 from ..models import db, RawMaterial, StockLog, Category, RawMaterialSupplier, Supplier, RawMaterialAlternativeName
-from .utils import log_audit
+from .utils import log_audit, normalize_unit
 
 inventory_blueprint = Blueprint('inventory', __name__)
 
@@ -105,9 +105,11 @@ def process_inventory_dataframe(df):
         supplier_name = str(row[col_supplier]).strip() if col_supplier and not pd.isna(row.get(col_supplier)) else None
 
         # Get unit from column K (optional, for validation)
+        # Normalize to standard unit (e.g., ק״ג → kg)
         file_unit = None
         if col_unit and not pd.isna(row.get(col_unit)):
-            file_unit = str(row[col_unit]).strip()
+            raw_unit = str(row[col_unit]).strip()
+            file_unit = normalize_unit(raw_unit)
 
         # Get units per package from column L (optional)
         units_per_package_file = None  # None means "not provided in file"
