@@ -231,10 +231,6 @@ def process_inventory_dataframe(df):
                 else:
                     current_price = 0
 
-            # Check price difference
-            if current_price is not None and abs(current_price - price) > 0.01:
-                status_flags.append('price_change')
-
         else:
             # New material
             status = 'new'
@@ -257,6 +253,18 @@ def process_inventory_dataframe(df):
             effective_upp = units_per_package_system
         else:
             effective_upp = 1.0
+
+        # Calculate price per unit (F is price per package, divide by units_per_package)
+        # price = price per package from file
+        price_per_package = price
+        if effective_upp and effective_upp > 0:
+            calculated_price = price_per_package / effective_upp
+        else:
+            calculated_price = price_per_package
+
+        # Check price difference (compare calculated price per unit vs system price)
+        if current_price is not None and abs(current_price - calculated_price) > 0.01:
+            status_flags.append('price_change')
 
         # Check for units_per_package mismatch
         # Mismatch when: file has explicit value AND system has value AND they differ
@@ -299,7 +307,8 @@ def process_inventory_dataframe(df):
             'supplier_exists': supplier is not None,
             'material_id': material.id if material else None,
             'quantity': quantity,
-            'new_price': price,
+            'price_per_package': price_per_package,  # Original price from file (F)
+            'new_price': calculated_price,  # Calculated price per unit (F ÷ L)
             'status': status,
             'status_flags': status_flags,
             'current_price': current_price,

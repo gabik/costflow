@@ -81,8 +81,8 @@
                     </tr>
                     <tr>
                         <td><code class="text-primary fw-bold">F</code></td>
-                        <td>{{ _('Price per Unit') }} <span class="badge bg-danger">{{ _('Required') }}</span></td>
-                        <td class="text-muted small">4.50</td>
+                        <td>{{ _('Price per Package') }} <span class="badge bg-danger">{{ _('Required') }}</span></td>
+                        <td class="text-muted small">2.08</td>
                     </tr>
                     <tr>
                         <td><code class="text-secondary fw-bold">J</code></td>
@@ -153,7 +153,7 @@
                             <th>{{ _('Status') }}</th>
                             <th>{{ _('Quantity to Add') }}</th>
                             <th>{{ _('Unit') }}</th>
-                            <th>{{ _('Price in File') }}</th>
+                            <th>{{ _('Price per Unit') }}</th>
                             <th>{{ _('Price in System') }}</th>
                             <th>{{ _('Date') }}</th>
                             <th>{{ _('Action Required') }}</th>
@@ -305,7 +305,14 @@
                                     </select>
                                 {% endif %}
                             </td>
-                            <td class="fw-bold">{{ item.new_price }} ₪</td>
+                            <td class="fw-bold">
+                                {% if item.effective_upp and item.effective_upp != 1 %}
+                                    <div class="small text-muted mb-1">
+                                        {{ "%.2f"|format(item.price_per_package) }} ÷ {{ item.effective_upp }} =
+                                    </div>
+                                {% endif %}
+                                {{ "%.2f"|format(item.new_price) }} ₪
+                            </td>
                             <td>
                                 {% if item.current_price is not none %}
                                     {{ item.current_price }} ₪
@@ -325,7 +332,7 @@
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="update_price_{{ loop.index0 }}" name="items[{{ loop.index0 }}][update_price]" value="yes" checked>
                                         <label class="form-check-label text-danger fw-bold" for="update_price_{{ loop.index0 }}">
-                                            {{ _('Update price to') }} {{ item.new_price }} ₪
+                                            {{ _('Update price to') }} {{ "%.2f"|format(item.new_price) }} ₪
                                         </label>
                                     </div>
                                 {% elif 'new_supplier' in (item.status_flags or []) or 'add_supplier' in (item.status_flags or []) %}

@@ -5416,3 +5416,7 @@ msgstr "שמור מערכת"
 msgid "Unit"
 msgstr "יחידה"
 
+#: templates/upload_inventory.html
+msgid "Price per Package"
+msgstr "מחיר לאריזה"
+
