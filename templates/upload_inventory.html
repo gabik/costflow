@@ -80,9 +80,14 @@
                         <td class="text-muted small">25.5</td>
                     </tr>
                     <tr>
-                        <td><code class="text-primary fw-bold">F</code></td>
-                        <td>{{ _('Price per Unit') }} <span class="badge bg-danger">{{ _('Required') }}</span></td>
+                        <td><code class="text-secondary fw-bold">F</code></td>
+                        <td>{{ _('Price') }} <span class="badge bg-secondary">{{ _('Display only') }}</span></td>
                         <td class="text-muted small">10.40</td>
+                    </tr>
+                    <tr>
+                        <td><code class="text-primary fw-bold">G</code></td>
+                        <td>{{ _('Total Cost') }} <span class="badge bg-danger">{{ _('Required') }}</span></td>
+                        <td class="text-muted small">100.00</td>
                     </tr>
                     <tr>
                         <td><code class="text-secondary fw-bold">J</code></td>
@@ -101,9 +106,9 @@
                     </tr>
                 </tbody>
             </table>
-            <small class="text-muted">{{ _('First row must be headers. Columns D, G, H, I are ignored.') }}</small>
+            <small class="text-muted">{{ _('First row must be headers. Columns D, H, I are ignored.') }}</small>
             <br>
-            <small class="text-muted">{{ _('Units/Pkg multiplies quantity (e.g., 3 boxes × 22.8 kg/box = 68.4 kg)') }}</small>
+            <small class="text-muted">{{ _('Price per unit = G / E / L (Total Cost / Quantity / Units per package)') }}</small>
         </div>
 
         <form method="POST" enctype="multipart/form-data" class="d-inline-block text-start" style="max-width: 400px;">
@@ -306,6 +311,9 @@
                                 {% endif %}
                             </td>
                             <td class="fw-bold">
+                                <div class="small text-muted mb-1">
+                                    {{ "%.2f"|format(item.total_cost) }} / {{ item.quantity }} / {{ item.effective_upp }} =
+                                </div>
                                 {{ "%.2f"|format(item.new_price) }} ₪
                             </td>
                             <td>

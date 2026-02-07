@@ -46,10 +46,13 @@ def process_inventory_dataframe(df):
     B (1): SKU
     C (2): Supplier name
     E (4): Quantity (in packages)
-    F (5): Price per unit (e.g., price per kg, per L)
+    F (5): Price (display only - not used for calculation)
+    G (6): Total cost (סה"כ) - REQUIRED for price calculation
     J (9): Date
     K (10): Unit (ק״ג, ליטר, יחידה) - optional, for validation
-    L (11): Units per package (e.g., 22.8 kg per box) - used for quantity calculation only
+    L (11): Units per package (e.g., 0.2 kg per box) - REQUIRED for price calculation
+
+    Price per unit is calculated as: G / E / L = Total Cost / Quantity / Units per package
     """
     # Use column positions instead of names
     # Column indices: A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7, I=8, J=9, K=10, L=11
@@ -63,15 +66,16 @@ def process_inventory_dataframe(df):
     col_name = columns[0]      # A - Material name
     col_sku = columns[1]       # B - SKU
     col_supplier = columns[2]  # C - Supplier name
-    col_qty = columns[4] if len(columns) > 4 else None      # E - Quantity
-    col_price = columns[5] if len(columns) > 5 else None    # F - Price
+    col_qty = columns[4] if len(columns) > 4 else None      # E - Quantity (packages)
+    col_price = columns[5] if len(columns) > 5 else None    # F - Price (display only)
+    col_total_cost = columns[6] if len(columns) > 6 else None  # G - Total cost
     col_date = columns[9] if len(columns) > 9 else None     # J - Date
     col_unit = columns[10] if len(columns) > 10 else None   # K - Unit (display only)
     col_units_per_pkg = columns[11] if len(columns) > 11 else None  # L - Units per package
 
-    # Check for required columns
-    if col_qty is None or col_price is None:
-        return None, [], _('File must have columns E (quantity) and F (price)')
+    # Check for required columns (G and L are now required for price calculation)
+    if col_qty is None or col_total_cost is None:
+        return None, [], _('File must have columns E (quantity) and G (total cost)')
 
     review_data = []
     skipped_rows = []
@@ -94,11 +98,20 @@ def process_inventory_dataframe(df):
             skipped_rows.append({'row': row_num, 'name': name, 'reason': _('Invalid quantity')})
             continue
 
+        # Get total cost from column G (required for price calculation)
         try:
-            price = float(row[col_price])
+            total_cost = float(row[col_total_cost])
         except (ValueError, KeyError, TypeError):
-            skipped_rows.append({'row': row_num, 'name': name, 'reason': _('Invalid price')})
+            skipped_rows.append({'row': row_num, 'name': name, 'reason': _('Invalid total cost')})
             continue
+
+        # Get price from column F (optional, for display only)
+        file_price = None
+        if col_price and not pd.isna(row.get(col_price)):
+            try:
+                file_price = float(row[col_price])
+            except (ValueError, TypeError):
+                pass  # Optional, ignore if invalid
 
         # Get optional SKU and supplier
         sku = str(row[col_sku]).strip() if col_sku and not pd.isna(row.get(col_sku)) else None
@@ -282,10 +295,14 @@ def process_inventory_dataframe(df):
         else:
             effective_upp = 1.0
 
-        # Column F is price per unit (kg, L, etc.) - use directly
-        new_price = price
+        # Calculate price per unit from total cost
+        # Formula: price_per_unit = total_cost / quantity / units_per_package
+        if quantity > 0 and effective_upp > 0:
+            new_price = total_cost / quantity / effective_upp
+        else:
+            new_price = 0
 
-        # Check price difference (compare file price vs system price)
+        # Check price difference (compare calculated price vs system price)
         if current_price is not None and abs(current_price - new_price) > 0.01:
             status_flags.append('price_change')
 
@@ -330,7 +347,9 @@ def process_inventory_dataframe(df):
             'supplier_exists': supplier is not None,
             'material_id': material.id if material else None,
             'quantity': quantity,
-            'new_price': new_price,  # Price per unit from file (F)
+            'total_cost': total_cost,  # Total cost from column G
+            'file_price': file_price,  # Price from column F (display only)
+            'new_price': new_price,  # Calculated: G / E / L
             'status': status,
             'status_flags': status_flags,
             'current_price': current_price,
