@@ -67,6 +67,47 @@ def normalize_unit(unit_str):
     return unit_str  # Return original if no match
 
 
+def normalize_name(name_str):
+    """
+    Normalize a material/product name for comparison.
+    Handles various quote types, spaces, and case variations.
+    """
+    if not name_str:
+        return ''
+
+    # Convert to string and strip
+    s = str(name_str).strip()
+
+    # Normalize various quote types to standard single quote
+    s = s.replace('"', "'")   # Double quote -> single
+    s = s.replace('״', "'")   # Hebrew gershayim -> single
+    s = s.replace('׳', "'")   # Hebrew geresh -> single
+    s = s.replace(''', "'")   # Smart quote -> single
+    s = s.replace(''', "'")   # Smart quote -> single
+    s = s.replace('`', "'")   # Backtick -> single
+    s = s.replace('"', "'")   # Left double quote -> single
+    s = s.replace('"', "'")   # Right double quote -> single
+
+    # Normalize various dash/hyphen types
+    s = s.replace('–', '-')   # En dash -> hyphen
+    s = s.replace('—', '-')   # Em dash -> hyphen
+    s = s.replace('־', '-')   # Hebrew maqaf -> hyphen
+
+    # Normalize percent signs
+    s = s.replace('٪', '%')   # Arabic percent -> standard
+    s = s.replace('％', '%')  # Fullwidth percent -> standard
+
+    # Normalize spaces (multiple spaces -> single, non-breaking -> regular)
+    s = s.replace('\u00a0', ' ')  # Non-breaking space -> regular
+    s = s.replace('\u200b', '')   # Zero-width space -> remove
+    s = ' '.join(s.split())       # Collapse multiple spaces
+
+    # Lowercase for case-insensitive comparison
+    s = s.lower()
+
+    return s
+
+
 def hours_to_time_str(hours):
     """Convert decimal hours to HH:MM format string"""
     if hours is None:

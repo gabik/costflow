@@ -81,8 +81,8 @@
                     </tr>
                     <tr>
                         <td><code class="text-primary fw-bold">F</code></td>
-                        <td>{{ _('Price per Package') }} <span class="badge bg-danger">{{ _('Required') }}</span></td>
-                        <td class="text-muted small">2.08</td>
+                        <td>{{ _('Price per Unit') }} <span class="badge bg-danger">{{ _('Required') }}</span></td>
+                        <td class="text-muted small">10.40</td>
                     </tr>
                     <tr>
                         <td><code class="text-secondary fw-bold">J</code></td>
@@ -306,11 +306,6 @@
                                 {% endif %}
                             </td>
                             <td class="fw-bold">
-                                {% if item.effective_upp and item.effective_upp != 1 %}
-                                    <div class="small text-muted mb-1">
-                                        {{ "%.2f"|format(item.price_per_package) }} ÷ {{ item.effective_upp }} =
-                                    </div>
-                                {% endif %}
                                 {{ "%.2f"|format(item.new_price) }} ₪
                             </td>
                             <td>

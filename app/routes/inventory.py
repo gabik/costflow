@@ -5,7 +5,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_babel import gettext as _
 import pandas as pd
 from ..models import db, RawMaterial, StockLog, Category, RawMaterialSupplier, Supplier, RawMaterialAlternativeName
-from .utils import log_audit, normalize_unit
+from .utils import log_audit, normalize_unit, normalize_name
 
 inventory_blueprint = Blueprint('inventory', __name__)
 
@@ -46,10 +46,10 @@ def process_inventory_dataframe(df):
     B (1): SKU
     C (2): Supplier name
     E (4): Quantity (in packages)
-    F (5): Price per unit
+    F (5): Price per unit (e.g., price per kg, per L)
     J (9): Date
-    K (10): Unit (ק״ג, ליטר, יחידה) - optional, for display only
-    L (11): Units per package (e.g., 22.8 kg per box)
+    K (10): Unit (ק״ג, ליטר, יחידה) - optional, for validation
+    L (11): Units per package (e.g., 22.8 kg per box) - used for quantity calculation only
     """
     # Use column positions instead of names
     # Column indices: A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7, I=8, J=9, K=10, L=11
@@ -171,17 +171,43 @@ def process_inventory_dataframe(df):
 
         # Step 2: If no SKU match, try NAME match (primary name first, then alternative names)
         if not material:
-            # Try primary name first
+            # Normalize the name from file for comparison
+            normalized_file_name = normalize_name(name)
+
+            # Try primary name first (exact match)
             material = RawMaterial.query.filter_by(name=name, is_deleted=False).first()
             if material:
                 matched_by = 'name'
             else:
-                # Try alternative names
+                # Try primary name with normalized comparison
+                all_materials = RawMaterial.query.filter_by(is_deleted=False).all()
+                for mat in all_materials:
+                    if normalize_name(mat.name) == normalized_file_name:
+                        material = mat
+                        matched_by = 'name'
+                        if mat.name != name:
+                            system_name = mat.name  # Show the actual system name
+                        break
+
+            # If still not found, try alternative names
+            if not material:
+                # Try exact match first
                 alt_name = RawMaterialAlternativeName.query.filter_by(alternative_name=name).first()
                 if alt_name and not alt_name.raw_material.is_deleted:
                     material = alt_name.raw_material
                     matched_by = 'alt_name'
                     system_name = material.name  # Show the primary name
+                else:
+                    # Try normalized match on alternative names
+                    all_alt_names = RawMaterialAlternativeName.query.join(RawMaterial).filter(
+                        RawMaterial.is_deleted == False
+                    ).all()
+                    for alt in all_alt_names:
+                        if normalize_name(alt.alternative_name) == normalized_file_name:
+                            material = alt.raw_material
+                            matched_by = 'alt_name'
+                            system_name = material.name  # Show the primary name
+                            break
 
         # Step 3: Check supplier if provided but not found yet
         if supplier_name and not supplier:
@@ -256,16 +282,11 @@ def process_inventory_dataframe(df):
         else:
             effective_upp = 1.0
 
-        # Calculate price per unit (F is price per package, divide by units_per_package)
-        # price = price per package from file
-        price_per_package = price
-        if effective_upp and effective_upp > 0:
-            calculated_price = price_per_package / effective_upp
-        else:
-            calculated_price = price_per_package
+        # Column F is price per unit (kg, L, etc.) - use directly
+        new_price = price
 
-        # Check price difference (compare calculated price per unit vs system price)
-        if current_price is not None and abs(current_price - calculated_price) > 0.01:
+        # Check price difference (compare file price vs system price)
+        if current_price is not None and abs(current_price - new_price) > 0.01:
             status_flags.append('price_change')
 
         # Check for units_per_package mismatch
@@ -309,8 +330,7 @@ def process_inventory_dataframe(df):
             'supplier_exists': supplier is not None,
             'material_id': material.id if material else None,
             'quantity': quantity,
-            'price_per_package': price_per_package,  # Original price from file (F)
-            'new_price': calculated_price,  # Calculated price per unit (F ÷ L)
+            'new_price': new_price,  # Price per unit from file (F)
             'status': status,
             'status_flags': status_flags,
             'current_price': current_price,
