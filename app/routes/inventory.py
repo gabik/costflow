@@ -719,10 +719,12 @@ def confirm_inventory_upload():
                         else:
                             current_app.logger.info(f"Alternative name '{name}' already exists for material ID {existing_alt.raw_material_id}")
 
-                # Step 5: Update price if needed
-                if 'price_change' in status_flags:
+                # Step 5: Update price if needed (only if user chose to update)
+                update_price = item.get('update_price', '') == 'yes'
+                if 'price_change' in status_flags and update_price:
                     if supplier_link:
                         supplier_link.cost_per_unit = new_price
+                        current_app.logger.info(f"Updated price for {name} to {new_price}")
                     elif supplier and not supplier_link:
                         # Link was just created above with new_price
                         pass
@@ -731,9 +733,12 @@ def confirm_inventory_upload():
                         primary_link = next((link for link in material.supplier_links if link.is_primary), None)
                         if primary_link:
                             primary_link.cost_per_unit = new_price
+                            current_app.logger.info(f"Updated primary supplier price for {name} to {new_price}")
                         elif material.supplier_links:
                             material.supplier_links[0].cost_per_unit = new_price
                     stats['price_updates'] += 1
+                elif 'price_change' in status_flags and not update_price:
+                    current_app.logger.info(f"Skipped price update for {name} (user chose not to update)")
 
                 # Step 5b: Update units_per_package if action is 'update_system'
                 if supplier_link and units_per_package_action == 'update_system' and units_per_package_file is not None:
