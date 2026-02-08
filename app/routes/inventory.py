@@ -177,9 +177,18 @@ def process_inventory_dataframe(df):
                     material = material_supplier.raw_material
                     supplier_link = material_supplier
                     matched_by = 'sku'
-                    # Check name mismatch
+                    # Check name mismatch - but only if not already an alternative name
                     if material.name != name:
-                        status_flags.append('name_mismatch')
+                        # Check if this name already exists as an alternative
+                        normalized_file_name = normalize_name(name)
+                        is_existing_alt = False
+                        for alt in material.alternative_names:
+                            if normalize_name(alt.alternative_name) == normalized_file_name:
+                                is_existing_alt = True
+                                break
+
+                        if not is_existing_alt:
+                            status_flags.append('name_mismatch')
                         system_name = material.name
 
         # Step 2: If no SKU match, try NAME match (primary name first, then alternative names)
